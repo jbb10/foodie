@@ -1,0 +1,1246 @@
+# Foodie - Product Requirements Document
+
+**Author:** BMad
+**Date:** 2025-11-07
+**Version:** 1.0
+
+---
+
+## Executive Summary
+
+**Vision:** Make calorie tracking invisible - capture food in 2 seconds with one hand while holding your plate, eliminating the speed and accuracy bottlenecks that make manual tracking unsustainable for body recomposition goals.
+
+Foodie is a native Android app that transforms calorie tracking from a 30+ second manual entry process into a 2-second camera snap. Users activate a lock screen widget, photograph their meal one-handed, pocket their phone, and AI analysis completes in the background with automatic save to Google Health Connect. Photos are ephemeral - deleted immediately after extracting caloric data.
+
+Built for personal use to enable sustainable body recomposition through precision tracking without disrupting daily life or requiring cognitive overhead during meals.
+
+### What Makes This Special
+
+**"Invisible tracking that makes precision nutrition sustainable."**
+
+The magic moment: Standing in a canteen line holding your plate, you tap a widget, snap with one hand in 2 seconds, pocket your phone, and the calories are automatically logged by the time you sit down - no typing, no menus, no friction.
+
+This product eliminates the fundamental speed-accuracy tradeoff that kills all calorie tracking adherence. Manual entry is too slow and inaccurate for body recomposition goals. Foodie makes tracking disappear into the background of daily life.
+
+---
+
+## Project Classification
+
+**Technical Type:** Mobile App (Native Android)
+**Domain:** General Consumer Software
+**Complexity:** Medium (API integration, Health Connect, background processing)
+**Field Type:** Greenfield
+**Development Approach:** AI-assisted (100% LLM-generated code under senior engineer direction)
+
+**Project Context:**
+- Primary goal: Personal learning (spec-driven development, Android, Health Connect, Azure OpenAI)
+- Secondary goal: Solve personal body recomposition tracking need
+- Built for single user initially, architecture allows future expansion
+- No commercial plans for MVP, "never say never" for future
+
+---
+
+## Success Criteria
+
+### Primary Success Criterion
+
+**Speed Validation: Average capture time ≤ 5 seconds from widget tap to photo saved**
+
+This is the core hypothesis - can invisible tracking actually work in real life? The app must be fast enough to use while holding a plate in a canteen line (one-handed operation, ~2 seconds for snap).
+
+**Measurement:** Time from lock screen widget activation → photo captured → return to previous activity
+
+**Success Threshold:** ≤ 5 seconds average across typical usage scenarios
+
+### Secondary Success Criteria
+
+**Sustained Usage: Still tracking on workdays after 30 days**
+- Proves the tool doesn't create tracking fatigue
+- Target: 80%+ workdays logged over 30-day period
+- Workday-focused metric (weekends/vacations deliberately excluded)
+
+**AI Accuracy: Trust-based validation**
+- Azure OpenAI estimates validated as "pretty happy with results" during informal testing
+- Manual correction capability built into evening review workflow
+- Action threshold: Investigate only if estimates become "crazy off" during real usage
+- Edit frequency not formally tracked - corrections expected and acceptable
+
+### Metrics Explicitly Excluded
+
+**Body Composition Progress:** Not measured within app
+- User tracks separately with smart scale
+- Future opportunity: Could integrate scale data for energy balance insights (V2.0+)
+
+**AI Edit Rate:** Not formally measured
+- Trust-based approach with manual override capability
+- Investigate only if patterns emerge during usage
+
+---
+
+## Product Scope
+
+### MVP - V1.0 (Minimum Viable Product)
+
+**Core Capture Flow:**
+- Lock screen widget for instant camera access (no unlock required)
+- Single photo capture per meal entry
+- Azure OpenAI GPT-4o API integration with structured JSON output: `{calories: number, description: string}`
+- Background processing: snap → pocket phone → AI analyzes → auto-save
+- Automatic save to Google Health Connect when analysis completes
+- Ephemeral photo storage: delete immediately after extracting caloric data
+
+**Data Management:**
+- List view showing recent entries (date, time, description, calories)
+- Edit capability: tap entry → modify calories and/or description → save to Health Connect
+- Delete capability: remove entries from Google Health Connect
+- Full CRUD operations for nutrition data
+
+**Technical Foundation:**
+- Client-only architecture (no backend server, no database, no user accounts)
+- Direct API flow: Android app → Azure OpenAI → Health Connect (local device storage)
+- Native Android development (Kotlin)
+- Azure OpenAI GPT-4o (multimodal vision model)
+- Google Health Connect API for local data persistence
+
+### Growth Features (V2.0 - Post-MVP)
+
+**Enhanced Tracking:**
+- Macros tracking (protein, carbs, fat) in addition to calories
+- Custom dashboard/analytics within app
+- Daily summary notifications
+- Smart auto-categorization (breakfast/lunch/dinner/snacks based on time)
+
+**Integration & Insights:**
+- Garmin Connect integration for energy balance (calories in vs. calories out)
+- Smart scale integration for body composition trend analysis
+- Home screen widget (alternative access point)
+
+**Offline Capability:**
+- Photo queuing when network unavailable
+- Automatic background processing when network restored
+- Invisible retry logic (no user intervention required)
+
+### Vision Features (V3.0+ - Future)
+
+**Advanced Capture:**
+- Before/after photos for portion size adjustment
+- Family meal portions: "I ate 1/4 of this casserole"
+- Voice annotations for context or corrections
+- Barcode scanning + OpenFoodFacts integration for packaged foods
+
+**Intelligence:**
+- Recipe recognition from home-cooked meals
+- Allergy warnings based on user profile
+- Food safety/freshness detection
+- Video/burst mode for 3D food volume estimation
+
+---
+
+## Mobile App Specific Requirements
+
+### Platform Support
+
+**Target Platform:** Native Android
+- **Minimum SDK:** Android 9 (API 28) - Required for Health Connect compatibility
+- **Target SDK:** Android 14 (API 34) - Latest stable release
+- **Development Language:** Kotlin
+- **Architecture Pattern:** MVVM (Model-View-ViewModel) with Repository pattern
+
+**Platform Rationale:**
+- Google Health Connect is Android-exclusive API
+- Native development ensures best widget performance and camera integration
+- No cross-platform complexity needed for personal tool
+- Full access to Android background processing APIs
+
+**Excluded Platforms:**
+- iOS: Not supported (Health Connect unavailable, personal tool doesn't need cross-platform)
+- Web: Not applicable (requires native camera and widget APIs)
+- Desktop: Not applicable (mobile-first use case)
+
+### Device Features & Permissions
+
+**Required Device Capabilities:**
+- Camera (rear camera preferred for food photography)
+- Internet connectivity (for Azure OpenAI API calls)
+- Storage (minimal - ephemeral photos deleted after processing)
+
+**Required Permissions:**
+- `CAMERA` - Capture food photos
+- `INTERNET` - Azure OpenAI API communication
+- `READ_MEDIA_IMAGES` / `WRITE_EXTERNAL_STORAGE` - Temporary photo storage
+- Health Connect permissions:
+  - `READ_NUTRITION` - View existing nutrition entries
+  - `WRITE_NUTRITION` - Save calorie data to Health Connect
+
+**Permission Handling:**
+- Request camera permission on first widget activation
+- Request Health Connect permissions on first app launch
+- Clear permission rationale: "Foodie needs camera access to analyze your meals and Health Connect access to save your nutrition data locally on your device."
+- Graceful degradation: App unusable without required permissions (core functionality depends on them)
+
+### Lock Screen Widget Specification
+
+**Widget Type:** Lock Screen Quick Action Widget (Button-style)
+- Single tap action: Launch camera directly from lock screen
+- No unlock required for camera access
+- Minimal UI: App icon + "Log Meal" text
+- Size: Smallest available for lock screen widgets
+
+**Widget Behavior:**
+- Tap → Immediate camera launch (no device unlock needed)
+- Photo capture → Return to lock screen (or previous app)
+- Background processing begins automatically
+- No widget state changes (remains static for speed)
+
+**Widget Performance Requirements:**
+- Launch latency: < 500ms from tap to camera ready
+- One-handed operation: Widget placement supports thumb access on lock screen
+- No network dependency for launch (offline camera access, queue photo for later processing)
+
+**Rationale:**
+Lock screen access is critical for the "invisible tracking" use case - user can capture meal without even unlocking their phone. This is faster than home screen widget which requires unlock first.
+
+**Implementation Notes:**
+- Android 12+ lock screen widget API
+- Use `RemoteViews` for widget UI
+- `PendingIntent` to launch camera activity directly
+- Consider `CameraX` library for consistent camera behavior
+- Widget updates not needed (static "Log Meal" button)
+- Handle secure lock screen scenarios (may require unlock for camera on some devices)
+
+### Camera & Photo Capture
+
+**Camera Interface:**
+- Use built-in Android camera intent (system camera app)
+- Leverage stock camera UI if it meets speed and usability requirements
+- Full-screen camera view (maximize food visibility)
+- Auto-focus on center (food typically centered in frame)
+- Flash: User-controlled via system camera (auto-flash often inaccurate for food)
+
+**Photo Specifications:**
+- Resolution: Max 2MP (sufficient for AI analysis, minimizes upload time)
+- Format: JPEG (universal compatibility, good compression)
+- Orientation: Auto-rotate based on device sensors
+- Quality: 80% compression (balance between file size and AI accuracy)
+
+**Capture Flow:**
+- Widget tap → Camera opens full-screen
+- User frames food → Single tap to capture
+- Preview screen with retake option (important for blurry/shaken photos from one-handed use)
+- User confirms or retakes
+- Return to previous screen after confirmation
+
+**Rationale for Retake:**
+Walking with plate while taking single-handed photos often results in blurry/shaken images. Quick retake capability ensures usable photos without requiring a second widget activation.
+
+**One-Handed Optimization:**
+- Large capture button (easy thumb reach)
+- Volume button alternative for capture (accessibility)
+- Minimal confirmation steps (just retake vs. accept)
+
+### Background Processing Architecture
+
+**Processing Flow:**
+1. Photo captured → Saved to temporary local storage
+2. Camera closes → User returns to previous activity
+3. Background service initiates Azure OpenAI API call
+4. API response parsed → Nutrition data extracted
+5. Data saved to Google Health Connect
+6. Temporary photo deleted immediately
+7. Silent completion (no notification unless error)
+
+**Background Service Requirements:**
+- Foreground Service with notification (Android 8+ requirement for background work)
+- Notification: "Analyzing meal..." with app icon (minimal intrusion)
+- Auto-dismiss notification on completion
+- Network failure handling: Retry up to 3 times with exponential backoff
+- Battery optimization: Use WorkManager for deferred processing if immediate retry fails
+
+**Error Handling:**
+- Network unavailable: Show persistent notification "Meal photo saved, will analyze when online"
+- API failure: Retry up to 3 times with exponential backoff
+- After 3 failed retries: Show error notification with manual retry option
+- Health Connect unavailable: Log error, prompt user to enable Health Connect
+- Photo retention: Keep photo stored until successful API response OR all 3 retries exhausted
+- Photo deletion: Delete only after successful Health Connect save OR after retry limit reached
+
+**Performance Targets:**
+- API call completion: < 10 seconds typical (depends on network)
+- Photo deletion: After successful Health Connect save
+- Total background time: < 15 seconds from capture to Health Connect save (excluding retries)
+
+### Azure OpenAI Integration
+
+**API Configuration:**
+- **Endpoint:** Azure OpenAI GPT-4o (multimodal vision model)
+- **Authentication:** API key stored in app (encrypted with Android Keystore)
+- **Request Format:** Multimodal chat completion with image URL or base64-encoded image
+
+**Structured Output Request:**
+```json
+{
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food)."
+    },
+    {
+      "role": "user",
+      "content": [
+        {"type": "text", "text": "Analyze this meal and estimate total calories."},
+        {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,{IMAGE}"}}
+      ]
+    }
+  ],
+  "response_format": {"type": "json_object"}
+}
+```
+
+**Expected Response Format:**
+```json
+{
+  "calories": 650,
+  "description": "Grilled chicken breast with steamed broccoli and brown rice"
+}
+```
+
+**Response Parsing:**
+- Extract `calories` as integer
+- Extract `description` as string (max 200 characters, truncate if longer)
+- Validation: Calories must be > 0 and < 5000 (sanity check)
+- Fallback: If parsing fails, show error and prompt manual entry
+
+**API Key Management:**
+- Store API key in Android Keystore (encrypted hardware-backed storage)
+- Never log API key in crash reports or analytics
+- Allow user to update API key in settings (for future multi-user or key rotation)
+
+**Cost Optimization:**
+- Image resolution capped at 2MP (reduces token usage)
+- No retry on successful response (even if inaccurate - user can edit)
+- Single API call per photo (no multi-model comparison)
+
+### Google Health Connect Integration
+
+**Data Model:**
+- **Record Type:** `NutritionRecord`
+- **Primary Field:**
+  - `energy`: Calories from AI analysis (in kcal) - This is the core data we're capturing
+
+**Implementation Note:**
+Health Connect `NutritionRecord` has limited fields. The primary field we use is `energy` for calorie tracking. Description and timestamp will need to be managed separately in app's local database if we need to display them in the list view.
+
+**Alternative Approach:**
+- Store nutrition records with just `energy` in Health Connect
+- Maintain local SQLite database for UI purposes (description, timestamp, photo path during processing)
+- Sync local database with Health Connect for CRUD operations
+- Display data from local database in list view
+- Health Connect serves as the "source of truth" for calorie data that other apps can access
+
+**CRUD Operations:**
+
+**Create (Write):**
+- Save `NutritionRecord` with `energy` field after successful API response
+- Use `HealthConnectClient.insertRecords()` API
+- Store description and timestamp in local database for UI display
+- Handle permissions errors (prompt user to grant access)
+
+**Read (List View):**
+- Query recent records from local database (includes description, timestamp, calories)
+- Cross-reference with Health Connect for data integrity
+- Default view: Last 7 days of entries
+- Sort: Newest first (reverse chronological)
+- Pagination: Load 50 entries at a time
+
+**Update (Edit):**
+- Load existing record by ID from local database
+- Allow user to modify calories and description
+- Update `NutritionRecord` in Health Connect with new `energy` value
+- Update description in local database
+- Preserve original timestamp (don't change meal timestamp)
+
+**Delete:**
+- Use `HealthConnectClient.deleteRecords()` API to remove from Health Connect
+- Delete corresponding record from local database
+- Require confirmation dialog: "Delete this entry? This cannot be undone."
+- Remove from both Health Connect and local cache
+
+**Health Connect Permissions Flow:**
+- Request on first app launch with clear explanation
+- Link to Health Connect settings if denied
+- Periodic permission check (permissions can be revoked by user)
+
+### Offline Capability (Deferred to V2.0)
+
+**V1.0 Behavior:**
+- Requires network connectivity for AI analysis
+- Show error notification if offline: "No internet - meal not logged. Retry when online?"
+- Manual retry button in notification
+- Photo retained for up to 3 retry attempts
+- Photo deleted after successful processing OR after 3 failed retry attempts
+
+**V2.0 Enhancement Plan:**
+- Queue photos locally in encrypted storage
+- Automatic retry when network detected
+- Support multiple queued photos (process in order)
+- Silent background processing (no user intervention)
+
+---
+
+## User Experience Principles
+
+### Design Philosophy
+
+**Invisible by Default:**
+The UI should get out of the way. The best interface is the one you don't notice because the app just works. No onboarding screens, no tutorials, no "getting started" guides - just a widget that does exactly what you expect.
+
+**Speed Over Features:**
+Every feature must justify its presence by not slowing down the core 2-second capture flow. If a feature adds friction, it's not worth including. Manual entry is the enemy we're defeating.
+
+**Trust with Transparency:**
+Users trust the AI estimates but have full visibility and control. Evening review mode makes corrections easy without interrupting the meal capture flow. Transparency builds trust over time.
+
+**Mobile-First Interaction Patterns:**
+- Large touch targets (minimum 48dp for accessibility)
+- Thumb-optimized layouts (important actions within easy reach)
+- Minimal text input (cameras and taps, not keyboards)
+- Dark mode support (late-night meal logging)
+
+### Key User Flows
+
+**Primary Flow: Meal Capture**
+1. User at meal → Holds plate in one hand, phone in pocket
+2. Pull out phone → Tap lock screen widget with thumb (no unlock needed)
+3. Camera opens full-screen
+4. Frame food → Single tap to capture
+5. Preview → Confirm (or retake if blurry)
+6. Return to lock screen or previous activity
+7. (Background) AI analysis → Auto-save to Health Connect
+8. (Optional) Review in evening, edit if needed
+
+**Time Budget:** < 5 seconds for steps 2-6
+
+**Secondary Flow: Evening Review**
+1. Open Foodie app
+2. Scroll list of today's entries
+3. Tap entry that looks wrong
+4. Modify calories or description
+5. Save → Updated in Health Connect
+6. Return to list
+
+**Time Budget:** < 10 seconds per edit
+
+**Tertiary Flow: Delete Entry**
+1. Long-press entry in list
+2. Confirmation dialog appears
+3. Tap "Delete"
+4. Entry removed from list and Health Connect
+
+**Time Budget:** < 5 seconds
+
+### Visual Design Principles
+
+**Minimalist Interface:**
+- Clean white/dark backgrounds
+- High contrast for outdoor visibility (bright sunlight use case)
+- Monochrome color scheme (focus on data, not decoration)
+- System fonts (San Francisco UI on Android)
+
+**Data Presentation:**
+- Calorie count: Large, bold, immediately scannable
+- Description: Secondary text, smaller font
+- Timestamp: Tertiary info, gray text
+- No graphs or charts in V1.0 (use Google Fit for analytics)
+
+**Interaction Feedback:**
+- Haptic feedback on photo capture (physical confirmation)
+- Visual checkmark on successful capture
+- Toast message for Health Connect save errors only
+- Silent success (no interruption for normal operation)
+
+---
+
+## Functional Requirements
+
+### FR-1: Lock Screen Widget
+
+**Requirement:** Provide instant camera access via lock screen widget
+
+**User Story:** As a user holding my plate with phone in pocket, I want to tap a lock screen widget and immediately launch the camera without unlocking my phone so I can capture my meal in under 2 seconds.
+
+**Acceptance Criteria:**
+- Widget displays on Android lock screen with app icon and "Log Meal" label
+- Widget size: Smallest available for lock screen
+- Single tap launches camera directly (no device unlock required, no intermediate app screen)
+- Widget launch time < 500ms from tap to camera ready
+- Widget remains functional after device reboot
+- Widget works without app being actively running in background
+- Graceful handling if device security policy requires unlock for camera
+
+**Rationale:**
+Lock screen widget is more critical than home screen widget because it eliminates the unlock step, making capture truly instant. This aligns with the core "invisible tracking" value proposition.
+
+**Technical Notes:**
+- Implement using Android 12+ lock screen widget API
+- Use `PendingIntent` to trigger camera activity
+- No widget configuration needed
+- Static widget (no dynamic updates)
+- Test on devices with different security settings
+
+---
+
+### FR-2: Food Photo Capture
+
+**Requirement:** Capture food photos with option to retake if blurry
+
+**User Story:** As a user walking with my plate, I want to quickly photograph my food with one hand and retake if the photo is blurry so I get usable images for AI analysis.
+
+**Acceptance Criteria:**
+- Camera launches in full-screen mode
+- Use built-in Android camera intent (system camera app) if it meets speed requirements
+- Support single-tap capture
+- Volume button alternative for capture (one-handed accessibility)
+- Preview screen shows captured photo with "Retake" and "Use Photo" options
+- Photo saved to temporary storage after confirmation
+- Max photo resolution: 2MP
+- Photo format: JPEG with 80% compression
+- Auto-rotate based on device orientation
+
+**Technical Notes:**
+- Evaluate stock camera performance vs. custom CameraX implementation
+- Implement photo compression before storage
+- Store temporarily in app's cache directory
+
+---
+
+### FR-3: AI Nutrition Analysis
+
+**Requirement:** Analyze food photos using Azure OpenAI to extract calorie count and description
+
+**User Story:** As a user, I want the app to automatically analyze my food photo and estimate calories so I don't have to manually look up or guess the calorie content.
+
+**Acceptance Criteria:**
+- Send photo to Azure OpenAI GPT-4o API after capture
+- Request structured JSON response: `{calories: number, description: string}`
+- Parse API response and extract calorie count (integer) and food description (string, max 200 chars)
+- Validate calorie range: > 0 and < 5000 (sanity check)
+- API call completes in < 10 seconds (typical network conditions)
+- Handle API errors with retry logic (see FR-9)
+- Store API key securely in Android Keystore
+
+**System Prompt:**
+```
+You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).
+```
+
+**User Prompt:**
+```
+Analyze this meal and estimate total calories.
+```
+
+**Technical Notes:**
+- Base64-encode photo for API request
+- Use structured output mode (`response_format: json_object`)
+- Never log API key in crash reports or analytics
+
+---
+
+### FR-4: Background Processing
+
+**Requirement:** Process AI analysis in background without blocking user
+
+**User Story:** As a user, I want to pocket my phone immediately after taking a photo and have the analysis complete in the background so tracking doesn't interrupt my meal.
+
+**Acceptance Criteria:**
+- Background service starts automatically after photo confirmation
+- Foreground notification displays: "Analyzing meal..." during processing
+- Notification auto-dismisses on successful completion
+- User can return to previous activity immediately after photo capture
+- Processing completes within 15 seconds (excluding network delays)
+- Service survives brief app termination (use WorkManager for reliability)
+- Battery-efficient implementation (don't drain battery with continuous processing)
+
+**Technical Notes:**
+- Use Foreground Service for Android 8+ compatibility
+- Implement WorkManager for deferred retry if immediate processing fails
+- Handle Android battery optimization restrictions
+
+---
+
+### FR-5: Health Connect Data Storage
+
+**Requirement:** Save calorie data to Google Health Connect for interoperability
+
+**User Story:** As a user, I want my calorie data saved to Health Connect so other health apps (Google Fit, etc.) can access my nutrition information.
+
+**Acceptance Criteria:**
+- Save `NutritionRecord` with `energy` field (calories in kcal) to Health Connect after successful AI analysis
+- Use `HealthConnectClient.insertRecords()` API
+- Request Health Connect permissions on first app launch
+- Display clear permission rationale to user
+- Handle permission denial gracefully (link to Health Connect settings)
+- Store associated description and timestamp in local SQLite database for app UI
+- Sync local database with Health Connect for data integrity
+
+**Data Flow:**
+1. AI returns calories + description
+2. Save `energy` to Health Connect
+3. Save calories + description + timestamp to local database
+4. Update UI list view
+
+**Technical Notes:**
+- Health Connect only stores `energy` field for calories
+- Local database required for description and enhanced UI
+- Implement sync logic to keep both stores consistent
+
+---
+
+### FR-6: Meal Entry List View
+
+**Requirement:** Display recent meal entries for review and editing
+
+**User Story:** As a user reviewing my day in the evening, I want to see a list of all my logged meals with calories and descriptions so I can verify accuracy and make corrections if needed.
+
+**Acceptance Criteria:**
+- Display list of nutrition entries from last 7 days (default view)
+- Show for each entry: timestamp, food description, calorie count
+- Sort newest first (reverse chronological)
+- Pagination: Load 50 entries at a time
+- Pull-to-refresh to reload from Health Connect and local database
+- Tap entry to open edit screen
+- Long-press entry to show delete confirmation
+- Empty state message: "No meals logged yet. Use the widget to capture your first meal!"
+
+**UI Layout:**
+```
+[Date Header: Today / Yesterday / Nov 7]
+  12:30 PM - Grilled chicken with rice - 650 cal
+  08:15 AM - Oatmeal with berries - 320 cal
+[Date Header: Yesterday]
+  ...
+```
+
+**Technical Notes:**
+- Query from local SQLite database for performance
+- Cross-reference Health Connect for data integrity
+- Implement efficient RecyclerView with ViewHolder pattern
+
+---
+
+### FR-7: Edit Meal Entry
+
+**Requirement:** Allow manual correction of calorie count and description
+
+**User Story:** As a user, I want to edit calories and descriptions when the AI estimate seems incorrect so I can maintain accurate nutrition tracking.
+
+**Acceptance Criteria:**
+- Tap entry in list view → Opens edit screen
+- Edit screen shows: description (editable text field), calories (editable number field), timestamp (read-only)
+- Save button updates both Health Connect (`energy` field) and local database (calories + description)
+- Cancel button discards changes and returns to list
+- Validation: Calories must be > 0 and < 5000
+- Show toast confirmation: "Entry updated" on successful save
+- Update list view immediately after save
+
+**Edit Screen Layout:**
+```
+[Back Button] Edit Meal
+
+Description:
+[Grilled chicken with rice          ]
+
+Calories:
+[650                                 ]
+
+Captured: Nov 7, 2025 at 12:30 PM
+
+[Cancel]  [Save]
+```
+
+**Technical Notes:**
+- Update `NutritionRecord` in Health Connect
+- Update corresponding row in local database
+- Preserve original timestamp (immutable)
+
+---
+
+### FR-8: Delete Meal Entry
+
+**Requirement:** Remove unwanted meal entries
+
+**User Story:** As a user, I want to delete incorrect or duplicate entries so my nutrition log stays accurate.
+
+**Acceptance Criteria:**
+- Long-press entry in list view → Shows confirmation dialog
+- Confirmation dialog: "Delete this entry? This cannot be undone." with Cancel/Delete buttons
+- Delete button removes entry from both Health Connect and local database
+- Entry disappears from list view immediately
+- Show toast confirmation: "Entry deleted"
+- No undo capability (permanent deletion)
+
+**Technical Notes:**
+- Use `HealthConnectClient.deleteRecords()` to remove from Health Connect
+- Delete corresponding row from local SQLite database
+- Ensure atomic operation (both or neither)
+
+---
+
+### FR-9: Network Error Handling & Retry
+
+**Requirement:** Handle network failures gracefully with automatic retry
+
+**User Story:** As a user in an area with poor connectivity, I want the app to retry failed API calls automatically so I don't lose my meal entries.
+
+**Acceptance Criteria:**
+- Detect network unavailability before API call
+- Show notification: "No internet - meal saved, will analyze when online"
+- Retry API call up to 3 times with exponential backoff (1s, 2s, 4s delays)
+- After 3 failures: Show persistent notification "Meal analysis failed. Tap to retry manually."
+- Manual retry button in notification re-triggers API call
+- Keep photo stored during retry attempts
+- Delete photo after successful save OR after all 3 retries exhausted
+- Update notification status during retries: "Retrying analysis... (attempt 2/3)"
+
+**Retry Logic:**
+- Attempt 1: Immediate (0s delay)
+- Attempt 2: After 1 second
+- Attempt 3: After 2 seconds  
+- Attempt 4: After 4 seconds
+- After attempt 4 fails: Show manual retry notification
+
+**Technical Notes:**
+- Use WorkManager for reliable background retry
+- Persist photo path and retry count in local database
+- Implement exponential backoff to avoid hammering API
+
+---
+
+### FR-10: Settings & API Key Management
+
+**Requirement:** Allow user to configure Azure OpenAI API key
+
+**User Story:** As a user, I want to enter my Azure OpenAI API key so the app can access the AI service for nutrition analysis.
+
+**Acceptance Criteria:**
+- Settings screen accessible from app menu
+- API Key field (masked text input for security)
+- Save button encrypts and stores key in Android Keystore
+- Test connection button validates API key by sending test request
+- Show validation result: "API key valid ✓" or "Invalid API key - check your credentials"
+- Pre-populated API key if already configured
+- Clear instructions: "Enter your Azure OpenAI API key. Get one at portal.azure.com"
+
+**Settings Screen Layout:**
+```
+Settings
+
+Azure OpenAI API Key:
+[•••••••••••••••••••••••••        ]
+
+[Test Connection]
+
+[Save]
+```
+
+**Technical Notes:**
+- Store in Android Keystore (hardware-backed encryption)
+- Never log key in crash reports or analytics
+- Validate format before saving (check for common errors)
+
+---
+
+## Non-Functional Requirements
+
+### NFR-1: Performance
+
+**Speed is Critical - The Core Value Proposition**
+
+**Requirements:**
+- **Widget Launch:** < 500ms from tap to camera ready
+- **Photo Capture:** < 2 seconds for single-tap capture
+- **Total Capture Flow:** < 5 seconds from widget tap to return to previous activity
+- **API Response:** < 10 seconds typical (network dependent)
+- **Background Processing:** < 15 seconds total (capture to Health Connect save)
+- **List View Load:** < 500ms to display 7 days of entries
+- **Edit Screen:** < 200ms to open from list tap
+
+**Rationale:**
+The entire product value hinges on being faster than manual entry (30+ seconds). Any performance degradation undermines the core promise of "invisible tracking."
+
+**Testing:**
+- Measure actual timings during real-world usage
+- Test on mid-range Android devices (not just flagship phones)
+- Profile network latency impacts on background processing
+
+---
+
+### NFR-2: Reliability
+
+**Requirements:**
+- **Crash Rate:** < 1% of sessions (app should rarely crash)
+- **Data Loss:** Zero tolerance - never lose a captured meal photo before successful Health Connect save OR retry exhaustion
+- **Background Service:** Must survive brief app termination and device sleep
+- **Health Connect Sync:** 100% consistency between local database and Health Connect
+
+**Critical Paths:**
+1. Photo capture → temporary storage (must never fail)
+2. API response → Health Connect save (retry until success or limit reached)
+3. Edit operation → atomic update of both Health Connect and local DB
+
+**Error Recovery:**
+- All critical operations wrapped in try-catch with logging
+- Automatic retry for transient failures (network, API timeouts)
+- Manual retry option for persistent failures
+- Clear error messages to user (never silent failures)
+
+---
+
+### NFR-3: Security & Privacy
+
+**Requirements:**
+- **API Key Storage:** Encrypted in Android Keystore (hardware-backed)
+- **Photo Storage:** Temporary only - delete after successful processing or retry exhaustion
+- **Network Communication:** HTTPS only for Azure OpenAI API calls
+- **No Photo Cloud Storage:** Photos never uploaded to any storage service (only sent to Azure OpenAI API for analysis)
+- **Local Data:** SQLite database encrypted at rest (Android built-in encryption)
+- **Logging:** Never log sensitive data (API keys, photo paths, user data)
+
+**Privacy Principles:**
+- Minimal data collection (only calories and descriptions)
+- No analytics or tracking (personal tool, no telemetry)
+- No user accounts or authentication required
+- Data stays on device except API calls to Azure OpenAI
+- User has full control to delete all data
+
+---
+
+### NFR-4: Usability
+
+**Requirements:**
+- **One-Handed Operation:** All primary flows (capture, review, edit) must be usable with thumb on single hand
+- **Touch Targets:** Minimum 48dp for all tappable elements (Android accessibility guideline)
+- **No Onboarding:** App must be immediately usable without tutorials or setup wizards
+- **Error Messages:** Clear, actionable language (avoid technical jargon)
+- **Dark Mode:** Full support for system dark theme
+- **Accessibility:** Basic screen reader support (content descriptions for images/buttons)
+
+**Design Constraints:**
+- Large buttons for primary actions
+- High contrast for outdoor visibility
+- Minimal text input (rely on camera and taps)
+- Forgiving interaction (undo for edits, confirmation for deletes)
+
+---
+
+### NFR-5: Maintainability
+
+**Requirements:**
+- **Code Quality:** 100% AI-generated code under senior engineer oversight
+- **Architecture:** MVVM with clear separation of concerns (UI, ViewModel, Repository, Data)
+- **Documentation:** Inline comments for complex logic, README with setup instructions
+- **Testing:** Unit tests for critical business logic (API parsing, data sync, retry logic)
+- **Version Control:** Git with meaningful commit messages
+- **Dependencies:** Minimal external libraries (reduce maintenance burden)
+
+**AI Development Workflow:**
+- Write specifications before generating code
+- Review and refactor AI-generated code
+- Test each feature in isolation before integration
+- Iterate on specs, not ad-hoc code changes
+
+---
+
+### NFR-6: Scalability (Future-Proofing)
+
+**V1.0 Scope:**
+- Single user (no multi-user support)
+- Client-only architecture (no backend server)
+- Local data storage only
+
+**Future Considerations (V2.0+):**
+- Architecture supports adding backend if needed (clean data layer abstraction)
+- Health Connect integration allows other apps to access nutrition data
+- Modular design allows adding features without major refactoring
+- API integration abstracted to allow swapping Azure OpenAI for alternative services
+
+**Non-Goals for V1.0:**
+- Handling thousands of entries (optimize only if needed after real usage)
+- Multi-device sync (single device only)
+- Cloud backup (local data only)
+
+---
+
+## Implementation Roadmap
+
+### Phase 1: Foundation (Week 1)
+
+**Core Infrastructure:**
+- Project setup with Android Studio, Kotlin, MVVM architecture
+- Lock screen widget implementation (static button)
+- Camera integration (evaluate stock camera vs CameraX)
+- Photo capture and temporary storage
+- Basic UI structure (list view scaffold)
+
+**Milestone:** Widget launches camera, photo can be captured and stored temporarily
+
+**Success Criteria:**
+- Widget visible on lock screen
+- Camera opens in < 500ms
+- Photo saved to cache directory
+
+---
+
+### Phase 2: AI Integration (Week 1-2)
+
+**Azure OpenAI Connection:**
+- API key storage in Android Keystore
+- Settings screen for API key entry
+- HTTP client for Azure OpenAI API calls
+- Base64 image encoding
+- JSON response parsing (calories + description)
+- Error handling for API failures
+
+**Milestone:** Photo successfully analyzed by AI, calories extracted
+
+**Success Criteria:**
+- API call completes in < 10 seconds
+- Structured JSON response parsed correctly
+- API key securely stored and retrieved
+
+---
+
+### Phase 3: Data Persistence (Week 2)
+
+**Health Connect Integration:**
+- Health Connect permissions flow
+- Write `NutritionRecord` with `energy` field
+- Local SQLite database setup
+- Sync logic between Health Connect and local DB
+- Read operations for list view
+
+**Milestone:** Calorie data saved to Health Connect and local database
+
+**Success Criteria:**
+- Health Connect permissions granted
+- Data visible in Google Fit or other Health Connect apps
+- Local database stores description + timestamp
+
+---
+
+### Phase 4: Background Processing (Week 2)
+
+**Async Operations:**
+- Foreground Service implementation
+- WorkManager setup for retry logic
+- Background notification ("Analyzing meal...")
+- Network error detection
+- Exponential backoff retry (3 attempts)
+- Photo deletion after successful save or retry exhaustion
+
+**Milestone:** End-to-end flow works - widget → camera → AI → Health Connect (background)
+
+**Success Criteria:**
+- User can return to previous activity immediately after photo capture
+- Background processing completes in < 15 seconds
+- Retry logic handles network failures gracefully
+
+---
+
+### Phase 5: CRUD Operations (Week 2)
+
+**Data Management UI:**
+- List view with recent entries (7 days)
+- Edit screen (calories + description)
+- Delete confirmation dialog
+- Update operations for both Health Connect and local DB
+- Pull-to-refresh functionality
+
+**Milestone:** Full CRUD operations functional
+
+**Success Criteria:**
+- Entries displayed correctly in list
+- Edit saves to both data stores
+- Delete removes from both data stores
+- UI updates immediately after changes
+
+---
+
+### Phase 6: Polish & Testing (Week 2)
+
+**Final Touches:**
+- Dark mode support
+- Error message improvements
+- Performance profiling and optimization
+- Manual testing of all flows
+- Edge case testing (network failures, permission denials, etc.)
+- Basic unit tests for critical logic
+
+**Milestone:** MVP ready for real-world usage
+
+**Success Criteria:**
+- All functional requirements (FR-1 to FR-10) implemented
+- Performance targets met (NFR-1)
+- Zero known critical bugs
+- Manual testing with 5+ real meals successful
+
+---
+
+## Testing Strategy
+
+### Manual Testing (Primary Validation)
+
+**Real-World Usage Testing:**
+- Test with actual meals (breakfast, lunch, dinner, snacks)
+- Measure capture time with stopwatch (target < 5 seconds)
+- Verify AI accuracy with spot checks (cross-reference with nutrition databases)
+- Test one-handed operation while holding plate
+- Test in various lighting conditions (indoor, outdoor, low light)
+
+**Edge Cases:**
+- Network failures during API call
+- Camera permission denied
+- Health Connect not installed or permission denied
+- Device reboot (widget persistence)
+- App force-stopped by user or system
+- Low battery / battery optimization
+
+**Performance Testing:**
+- Measure widget launch latency on mid-range device
+- Profile background processing time
+- Monitor battery drain during 5 meal captures
+- Test with poor network connectivity (3G simulation)
+
+---
+
+### Automated Testing (Minimal for V1.0)
+
+**Unit Tests (Critical Logic Only):**
+- API response parsing (JSON to calories + description)
+- Calorie validation (range check: 0-5000)
+- Retry logic (exponential backoff calculation)
+- Database sync operations (Health Connect ↔ local DB)
+
+**Test Coverage Target:** 30-40% (focus on business logic, not UI)
+
+**No UI Testing:** Manual testing sufficient for personal tool (avoid automation overhead)
+
+---
+
+## Edge Cases & Error Scenarios
+
+### Camera & Photo Capture
+
+**Edge Case:** Camera permission denied
+- **Handling:** Show rationale dialog, link to app settings, disable widget functionality
+
+**Edge Case:** Photo is corrupted or failed to save
+- **Handling:** Show error notification "Photo capture failed. Please try again."
+
+**Edge Case:** User takes photo in extreme low light (black image)
+- **Handling:** Allow AI to attempt analysis, user can retake if needed, manual edit available
+
+---
+
+### Network & API
+
+**Edge Case:** No network connectivity
+- **Handling:** Queue photo locally, show notification "Will analyze when online", retry on network restore
+
+**Edge Case:** Azure OpenAI API is down or rate-limited
+- **Handling:** Retry with exponential backoff, manual retry button after 3 failures
+
+**Edge Case:** API returns invalid JSON or unexpected format
+- **Handling:** Log error, show notification "Analysis failed - please edit manually", save entry with 0 calories + "Unknown food"
+
+**Edge Case:** API estimates are wildly inaccurate (e.g., 10,000 calories for salad)
+- **Handling:** Validation check (> 5000 cal triggers warning), user can edit, learn from patterns over time
+
+---
+
+### Health Connect & Data
+
+**Edge Case:** Health Connect not installed on device
+- **Handling:** Show setup dialog "Install Health Connect from Play Store", link provided
+
+**Edge Case:** Health Connect permissions revoked mid-usage
+- **Handling:** Detect on next save attempt, re-request permissions, queue entry locally until granted
+
+**Edge Case:** Local database corrupted
+- **Handling:** Re-sync from Health Connect on app launch, log error for investigation
+
+**Edge Case:** Sync conflict (entry deleted in Health Connect but exists in local DB)
+- **Handling:** Health Connect is source of truth - remove from local DB on next sync
+
+---
+
+### Background Processing
+
+**Edge Case:** App killed by system during background processing
+- **Handling:** WorkManager reschedules task, processing resumes when app restarts
+
+**Edge Case:** Device sleeps during API call
+- **Handling:** Foreground Service prevents immediate sleep, use wake lock if needed
+
+**Edge Case:** User force-stops app
+- **Handling:** WorkManager task persists, retries after app restart
+
+---
+
+### Lock Screen Widget
+
+**Edge Case:** Device security policy requires unlock for camera
+- **Handling:** Widget still launches camera, system prompts for unlock (graceful degradation)
+
+**Edge Case:** Widget removed from lock screen by user
+- **Handling:** App still functional, user can re-add widget from settings
+
+---
+
+## References & Dependencies
+
+### Input Documents
+
+- **Product Brief:** `/Users/jbjornsson/source/foodie/docs/product-brief-foodie-2025-11-07.md`
+  - Source of core vision, problem statement, and initial feature ideas
+  - User context and learning goals
+  
+- **Brainstorming Session:** `/Users/jbjornsson/source/foodie/docs/bmm-brainstorming-session-2025-11-07.md`
+  - "First Principles" insight: Simplest possible implementation
+  - Architectural philosophy: Client-only, ephemeral photos
+
+---
+
+### Technical Dependencies
+
+**Android Platform:**
+- Minimum SDK: Android 9 (API 28)
+- Target SDK: Android 14 (API 34)
+- Kotlin language version: Latest stable
+
+**Key Libraries:**
+- Google Health Connect SDK (nutrition data storage)
+- Android Keystore API (API key encryption)
+- WorkManager (background processing)
+- CameraX (optional - if stock camera doesn't meet requirements)
+- Retrofit / OkHttp (Azure OpenAI API calls)
+- Room (local SQLite database)
+
+**External Services:**
+- Azure OpenAI GPT-4o API (multimodal vision model)
+- Google Health Connect (local device API, not cloud service)
+
+---
+
+### Related Standards & Guidelines
+
+**Android Development:**
+- Material Design 3 (UI components and patterns)
+- Android Accessibility Guidelines (48dp touch targets, content descriptions)
+- Android Background Work Guidelines (Foreground Service, WorkManager)
+
+**Health Data:**
+- Google Health Connect API Documentation
+- FHIR standards (potential future consideration for data export)
+
+**API Integration:**
+- Azure OpenAI API Documentation
+- JSON Schema for structured outputs
+- HTTPS/TLS security standards
+
+---
+
+## Next Steps
+
+### Immediate Actions (After PRD Approval)
+
+1. **Architecture Document** (Next)
+   - System architecture diagram (MVVM, Repository pattern)
+   - Data flow diagrams (photo → AI → Health Connect)
+   - Component interaction specifications
+   - Database schema (local SQLite)
+   - API integration patterns
+   
+2. **Technical Specification** (If Needed)
+   - Detailed implementation specs for complex components
+   - Lock screen widget technical design
+   - Background service architecture
+   - Health Connect sync algorithm
+
+3. **Sprint Planning**
+   - Break implementation roadmap into tasks
+   - Estimate effort for each task
+   - Prioritize critical path (widget → camera → AI → Health Connect)
+   - Define acceptance criteria for each sprint
+
+---
+
+### Development Phase
+
+**Week 1-2: Implementation**
+- Follow implementation roadmap (Phases 1-6)
+- Daily progress tracking
+- Iterative testing with real meals
+
+**Week 3-4: Validation**
+- 30-day real-world usage test
+- Track success metrics (speed, sustained usage)
+- Identify issues and needed adjustments
+
+---
+
+### Post-MVP Decisions
+
+**After 30-Day Validation:**
+- Evaluate V2.0 feature priorities based on real usage patterns
+- Decide on macros tracking, dashboard, Garmin integration
+- Consider home screen widget if lock screen widget proves insufficient
+- Assess offline queuing necessity based on network failure frequency
+
+---
+
+## Summary
+
+**Foodie PRD v1.0 - Complete**
+
+This PRD defines a native Android app that makes calorie tracking invisible through AI-powered photo capture and automatic nutrition logging. The core innovation is eliminating the speed-accuracy tradeoff that kills manual tracking adherence.
+
+**Key Differentiators:**
+- Lock screen widget: Fastest possible access (no unlock needed)
+- AI analysis: Accurate calorie estimates without manual lookup
+- Background processing: User continues immediately, no waiting
+- Health Connect: Data interoperability with other health apps
+- Ephemeral photos: Privacy by design (photos deleted after analysis)
+
+**Success Criteria:**
+- ≤ 5 second capture time (faster than 30+ second manual entry)
+- 30-day sustained usage (proves no tracking fatigue)
+- Trust-based AI accuracy (manual corrections available)
+
+**MVP Timeline:** 1-2 weeks of AI-assisted development
+
+**Next Deliverable:** Architecture document defining technical implementation approach
+
+---
+
+**Document Status:**
+- ✅ Product vision defined
+- ✅ Success metrics established
+- ✅ Scope clearly bounded (MVP, V2.0, V3.0+)
+- ✅ Functional requirements specified (FR-1 to FR-10)
+- ✅ Non-functional requirements defined (NFR-1 to NFR-6)
+- ✅ Mobile-specific requirements detailed
+- ✅ Implementation roadmap outlined
+- ✅ Testing strategy documented
+- ✅ Edge cases identified
+
+**Ready for:** Architecture phase with Architect agent
+
+---
+
+_This PRD captures "invisible tracking that makes precision nutrition sustainable" - the magic of Foodie._
+
+_Created through collaborative discovery between BMad and PM Agent (John)._
+
+
+
