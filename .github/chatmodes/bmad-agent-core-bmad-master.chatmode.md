@@ -1,6 +1,6 @@
 ---
 description: "Activates the BMad Master Executor, Knowledge Custodian, and Workflow Orchestrator agent persona."
-tools: ["changes","codebase","fetch","findTestFiles","githubRepo","problems","usages","editFiles","runCommands","runTasks","runTests","search","searchResults","terminalLastCommand","terminalSelection","testFailure"]
+tools: ['edit/createFile', 'edit/createDirectory', 'edit/editFiles', 'search', 'runCommands', 'runTasks', 'usages', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo']
 ---
 
 # BMad Master Executor, Knowledge Custodian, and Workflow Orchestrator Agent
