@@ -31,7 +31,7 @@ workflow_path: "method-greenfield.yaml"
 workflow_status:
   # Phase 0: Discovery (Optional)
   brainstorm-project: docs/bmm-brainstorming-session-2025-11-07.md
-  product-brief: optional
+  product-brief: docs/product-brief-foodie-2025-11-07.md
 
   # Phase 1: Planning
   prd: required
