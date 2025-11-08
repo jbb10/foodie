@@ -41,7 +41,7 @@ So that I can begin feature development with a stable build environment.
   - [ ] Add lifecycle-runtime-compose and lifecycle-viewmodel-compose
 
 - [ ] **Task 4: Add Health Connect SDK** (AC: #6)
-  - [ ] Add Health Connect dependency: androidx.health.connect:connect-client:1.1.0-alpha10
+  - [ ] Add Health Connect dependency: androidx.health.connect:connect-client:1.1.0
   - [ ] Add required manifest permissions: READ_NUTRITION, WRITE_NUTRITION
   - [ ] Add Health Connect availability query in manifest
 
@@ -213,7 +213,7 @@ fun `build configuration should use correct SDK versions`() {
 ### Known Issues and Considerations
 
 **Health Connect Alpha Dependency:**
-- Using version 1.1.0-alpha10 (latest available)
+- Using version 1.1.0 (latest available)
 - Monitor for API changes in future releases
 - Wrap all Health Connect calls in repository layer for easy updates
 

@@ -126,7 +126,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     
     // Health Connect
-    implementation("androidx.health.connect:connect-client:1.1.0-alpha10")
+    implementation("androidx.health.connect:connect-client:1.1.0")
     
     // Kotlin Coroutines & Flow
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
@@ -376,7 +376,7 @@ foodie/
 - **Error Handling:** Network errors trigger WorkManager retry, API errors logged and user notified
 
 #### Health Connect (Data Storage)
-- **Version:** 1.1.0-alpha10
+- **Version:** 1.1.0
 - **Integration:** `HealthConnectManager` wrapper class
 - **Operations:**
   - Write: `insertNutritionRecord(calories, description, timestamp)`

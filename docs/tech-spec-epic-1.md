@@ -49,7 +49,7 @@ This epic implements the foundational layers defined in the Architecture Documen
 - UI Framework: Jetpack Compose (BOM 2024.10.01) with Material3
 - Dependency Injection: Hilt 2.51.1 with AppModule, NetworkModule, RepositoryModule
 - HTTP Client: Retrofit 2.11.0 configured but not yet used (Epic 2)
-- Data Persistence: Health Connect 1.1.0-alpha10 as single source of truth
+- Data Persistence: Health Connect 1.1.0 as single source of truth
 - Async Processing: Kotlin Coroutines 1.9.0 with Flow and StateFlow
 - Logging: Timber 5.0.1 with debug/release tree configuration
 
@@ -607,7 +607,7 @@ dependencies {
     ksp("androidx.hilt:hilt-compiler:1.2.0")
     
     // Health Connect
-    implementation("androidx.health.connect:connect-client:1.1.0-alpha10")
+    implementation("androidx.health.connect:connect-client:1.1.0")
     
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
@@ -640,7 +640,7 @@ dependencies {
 
 | Integration | Version | Purpose | Configuration |
 |-------------|---------|---------|---------------|
-| Google Health Connect | 1.1.0-alpha10 | Data persistence | Permissions requested on first launch |
+| Google Health Connect | 1.1.0 | Data persistence | Permissions requested on first launch |
 | Azure OpenAI | N/A (configured) | AI analysis (Epic 2) | API key/endpoint in EncryptedSharedPreferences |
 | Timber | 5.0.1 | Logging | Initialized in Application.onCreate() |
 
@@ -737,7 +737,7 @@ All acceptance criteria extracted from Epic 1 stories in epics.md:
 
 **Risks:**
 
-1. **Risk:** Health Connect SDK is alpha (1.1.0-alpha10) - API stability concerns
+1. **Risk:** Health Connect SDK is alpha (1.1.0) - API stability concerns
    - **Mitigation:** Wrap all HC calls in repository layer for easy updates, monitor SDK releases
    - **Impact:** Medium - May require refactoring if API changes
 

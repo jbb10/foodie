@@ -35,7 +35,7 @@
         - Add lifecycle-runtime-compose and lifecycle-viewmodel-compose
       
       - Task 4: Add Health Connect SDK (AC: #6)
-        - Add Health Connect dependency: androidx.health.connect:connect-client:1.1.0-alpha10
+        - Add Health Connect dependency: androidx.health.connect:connect-client:1.1.0
         - Add required manifest permissions: READ_NUTRITION, WRITE_NUTRITION
         - Add Health Connect availability query in manifest
       
@@ -94,7 +94,7 @@
         <path>docs/architecture.md</path>
         <title>Architecture Document</title>
         <section>Technology Stack Details</section>
-        <snippet>Lists all dependency versions: Jetpack Compose BOM 2024.10.01, Hilt 2.51.1, Retrofit 2.11.0, OkHttp 4.12.0, Health Connect 1.1.0-alpha10, coroutines 1.9.0, and testing libraries (JUnit 4.13.2, Mockito 5.14.2).</snippet>
+        <snippet>Lists all dependency versions: Jetpack Compose BOM 2024.10.01, Hilt 2.51.1, Retrofit 2.11.0, OkHttp 4.12.0, Health Connect 1.1.0, coroutines 1.9.0, and testing libraries (JUnit 4.13.2, Mockito 5.14.2).</snippet>
       </doc>
       <doc>
         <path>docs/architecture.md</path>
@@ -154,7 +154,7 @@
         <security-crypto>1.1.0-alpha06</security-crypto>
       </androidX>
       <healthConnect>
-        <connect-client>1.1.0-alpha10</connect-client>
+        <connect-client>1.1.0</connect-client>
       </healthConnect>
       <hilt>
         <android>2.51.1</android>
