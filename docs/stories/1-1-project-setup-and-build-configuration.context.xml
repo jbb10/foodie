@@ -1,0 +1,225 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.1</storyId>
+    <title>Project Setup and Build Configuration</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-1-project-setup-and-build-configuration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>a properly configured Android project with all required dependencies</iWant>
+    <soThat>I can begin feature development with a stable build environment</soThat>
+    <tasks>
+      - Task 1: Create Android project structure (AC: #1, #2)
+        - Initialize empty Android project via Android Studio or command line
+        - Configure package structure: com.foodie.app with data/, domain/, ui/, di/ layers
+        - Verify standard Android directories exist: src/main/java, res/, AndroidManifest.xml
+        - Create placeholder MainActivity.kt with basic Compose setup
+      
+      - Task 2: Configure build tools and SDK versions (AC: #3, #4)
+        - Set Gradle version to 8.13 in gradle-wrapper.properties
+        - Configure Android Gradle Plugin (AGP) 8.13.0 in project-level build.gradle.kts
+        - Set Kotlin version to 2.2.21 in project-level build.gradle.kts
+        - Configure minSdk = 28, targetSdk = 35, compileSdk = 35 in app-level build.gradle.kts
+        - Verify JDK 17 is configured in Java toolchain settings
+      
+      - Task 3: Add core dependencies (AC: #5)
+        - Add Compose BOM 2024.10.01 for version alignment
+        - Add AndroidX core libraries: core-ktx, lifecycle-runtime-ktx, activity-compose
+        - Add Jetpack Compose dependencies: ui, ui-graphics, ui-tooling-preview, material3
+        - Add Kotlin coroutines: kotlinx-coroutines-android 1.9.0
+        - Add lifecycle-runtime-compose and lifecycle-viewmodel-compose
+      
+      - Task 4: Add Health Connect SDK (AC: #6)
+        - Add Health Connect dependency: androidx.health.connect:connect-client:1.1.0-alpha10
+        - Add required manifest permissions: READ_NUTRITION, WRITE_NUTRITION
+        - Add Health Connect availability query in manifest
+      
+      - Task 5: Configure networking libraries (AC: #7)
+        - Add Retrofit 2.11.0 with Gson converter
+        - Add OkHttp 4.12.0 with logging interceptor
+        - Configure basic network security (HTTPS only)
+        - Add internet permission to AndroidManifest.xml
+      
+      - Task 6: Configure Hilt dependency injection (AC: #1)
+        - Add Hilt Android 2.51.1 and compiler dependencies
+        - Add KSP plugin for annotation processing
+        - Create FoodieApplication class with @HiltAndroidApp annotation
+        - Register application class in AndroidManifest.xml
+      
+      - Task 7: Add testing dependencies (AC: #1)
+        - Add JUnit 4.13.2 for unit testing
+        - Add Mockito 5.14.2 and Mockito-Kotlin 5.4.0 for mocking
+        - Add kotlinx-coroutines-test for async testing
+        - Add Truth library for assertions
+        - Add Espresso and Compose UI test dependencies for instrumentation
+      
+      - Task 8: Configure build variants and ProGuard (AC: #1)
+        - Configure debug and release build types
+        - Enable R8 minification for release builds
+        - Create proguard-rules.pro with basic keep rules
+        - Configure BuildConfig fields if needed
+      
+      - Task 9: Verify build success (AC: #1)
+        - Run ./gradlew clean build and verify zero errors
+        - Run ./gradlew dependencies to verify all dependencies resolve
+        - Test debug build installs on emulator or device
+        - Verify project opens successfully in Android Studio or VS Code
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Build completes successfully with all dependencies resolved
+    2. Project structure follows Android best practices (src/main/java, res/, manifests)
+    3. Build tools configured: Gradle 8.13, AGP 8.13.0, Kotlin 2.2.21, JDK 17
+    4. Min SDK Android 9 (API 28), target/compile SDK Android 15 (API 35)
+    5. Core dependencies added: AndroidX, Kotlin coroutines, Jetpack Compose
+    6. Health Connect SDK dependency included
+    7. Networking libraries configured (OkHttp/Retrofit)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Project Initialization</section>
+        <snippet>Defines complete project structure with Gradle 8.13, AGP 8.13.0, Kotlin 2.2.21, and all dependencies. Includes package structure (com.foodie.app with data/, domain/, ui/, di/ layers) and build configuration examples.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Technology Stack Details</section>
+        <snippet>Lists all dependency versions: Jetpack Compose BOM 2024.10.01, Hilt 2.51.1, Retrofit 2.11.0, OkHttp 4.12.0, Health Connect 1.1.0-alpha10, coroutines 1.9.0, and testing libraries (JUnit 4.13.2, Mockito 5.14.2).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Project Structure</section>
+        <snippet>Complete directory layout showing src/main/java/com/foodie/app/ with subdirectories: di/ (dependency injection), data/ (local/remote sources), domain/ (models/usecases), ui/ (screens/components/theme/navigation). Shows res/ directory for Android resources and test/ structure.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation and Infrastructure</title>
+        <section>Dependencies and Integrations</section>
+        <snippet>Comprehensive build.gradle.kts configuration with all dependencies, versions, and integration points. Includes SDK configuration (minSdk 28, targetSdk/compileSdk 35), JDK 17 toolchain, and testing dependencies.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation and Infrastructure</title>
+        <section>Detailed Design</section>
+        <snippet>Describes Hilt modules (AppModule, NetworkModule, RepositoryModule, WorkManagerModule) and core services including HealthConnectManager and SecurePreferences. MVVM architecture patterns and dependency injection flow.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Project Classification</section>
+        <snippet>Native Android mobile app, greenfield project, AI-assisted development approach. Built for personal use focusing on speed (sub-5-second capture) and reliability (zero data loss).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.1: Project Setup and Build Configuration</section>
+        <snippet>Acceptance criteria and prerequisites for project setup. First story in project with no dependencies. Requires Empty Activity template from Android Studio with proper version catalogs.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code - greenfield project -->
+    </code>
+    <dependencies>
+      <android>
+        <gradle>8.13</gradle>
+        <agp>8.13.0</agp>
+        <kotlin>2.2.21</kotlin>
+        <jdk>17</jdk>
+        <minSdk>28</minSdk>
+        <targetSdk>35</targetSdk>
+        <compileSdk>35</compileSdk>
+      </android>
+      <compose>
+        <bom>2024.10.01</bom>
+        <compiler>1.5.15</compiler>
+      </compose>
+      <androidX>
+        <core-ktx>1.15.0</core-ktx>
+        <lifecycle-runtime-ktx>2.8.7</lifecycle-runtime-ktx>
+        <activity-compose>1.9.3</activity-compose>
+        <lifecycle-runtime-compose>2.8.7</lifecycle-runtime-compose>
+        <lifecycle-viewmodel-compose>2.8.7</lifecycle-viewmodel-compose>
+        <navigation-compose>2.8.4</navigation-compose>
+        <security-crypto>1.1.0-alpha06</security-crypto>
+      </androidX>
+      <healthConnect>
+        <connect-client>1.1.0-alpha10</connect-client>
+      </healthConnect>
+      <hilt>
+        <android>2.51.1</android>
+        <navigation-compose>1.2.0</navigation-compose>
+        <ksp>2.2.21-1.0.28</ksp>
+      </hilt>
+      <networking>
+        <retrofit>2.11.0</retrofit>
+        <okhttp>4.12.0</okhttp>
+      </networking>
+      <coroutines>
+        <core>1.9.0</core>
+      </coroutines>
+      <logging>
+        <timber>5.0.1</timber>
+      </logging>
+      <testing>
+        <junit>4.13.2</junit>
+        <mockito>5.14.2</mockito>
+        <mockito-kotlin>5.4.0</mockito-kotlin>
+        <coroutines-test>1.9.0</coroutines-test>
+        <truth>1.4.4</truth>
+        <arch-testing>2.2.0</arch-testing>
+        <espresso>3.6.1</espresso>
+        <junit-ext>1.2.1</junit-ext>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - MVVM Pattern: ViewModel → Repository → DataSource for clear separation of concerns
+    - Hilt DI: Use compile-time dependency injection for better performance and type safety
+    - Jetpack Compose: Modern declarative UI framework (NOT XML layouts)
+    - Health Connect as Single Source of Truth: No local database (Room) needed for nutrition data
+    - VS Code Development: Command-line Gradle builds, Android Emulator for testing (NOT Android Studio IDE)
+    - Package Structure: com.foodie.app with strict layer separation (data/, domain/, ui/, di/)
+    - Build Configuration: All dependency versions managed directly in build.gradle.kts files (no version catalog for this small project)
+    - JDK 17 Required: AGP 8.13.0 mandates JDK 17 toolchain configuration
+    - Gradle Properties: Enable caching, parallel execution, 4GB heap allocation for build performance
+    - ProGuard Rules: Must keep Health Connect SDK, Retrofit interfaces, and Hilt generated code from obfuscation
+  </constraints>
+
+  <interfaces>
+    <!-- No existing interfaces - greenfield project will define these -->
+  </interfaces>
+
+  <tests>
+    <standards>
+      All repository methods must have unit tests targeting 80% coverage. Use Mockito to mock dependencies (HealthConnectManager, API interfaces). Use Truth assertions for cleaner test code. Follow naming pattern: methodName_whenCondition_thenExpectedResult. Instrumentation tests use Espresso and Compose UI test framework.
+    </standards>
+    <locations>
+      - app/src/test/java/com/foodie/app/ (unit tests)
+      - app/src/androidTest/java/com/foodie/app/ (instrumentation tests)
+    </locations>
+    <ideas>
+      - AC #1: Verify all dependencies resolve and build succeeds with ./gradlew build
+      - AC #2: Verify folder structure matches Android standards (src/main/java, res/, AndroidManifest.xml)
+      - AC #3: Assert Gradle 8.13, AGP 8.13.0, Kotlin 2.2.21 versions in build files
+      - AC #4: Assert minSdk=28, targetSdk=35, compileSdk=35 configuration
+      - AC #5: Verify AndroidX, Coroutines, Compose dependencies present
+      - AC #6: Assert Health Connect SDK in dependencies list
+      - AC #7: Assert Retrofit and OkHttp in dependencies list
+      - Integration test: Build and install debug APK on emulator successfully
+      - Unit test: Verify JDK 17 toolchain configuration
+      - Manual verification: Project opens successfully in VS Code with Gradle sync
+    </ideas>
+  </tests>
+</story-context>
