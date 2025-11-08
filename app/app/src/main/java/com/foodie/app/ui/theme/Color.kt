@@ -1,4 +1,4 @@
-package com.example.foodie.ui.theme
+package com.foodie.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
