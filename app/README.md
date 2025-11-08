@@ -1,0 +1,692 @@
+# Foodie - MVVM Architecture Guide
+
+This README documents the MVVM (Model-View-ViewModel) architecture pattern established in Story 1.2. All features in the Foodie app follow this pattern for consistency, testability, and maintainability.
+
+## Table of Contents
+
+- [Architecture Overview](#architecture-overview)
+- [Layer Responsibilities](#layer-responsibilities)
+- [Creating New Features](#creating-new-features)
+- [Error Handling Pattern](#error-handling-pattern)
+- [Reference Implementations](#reference-implementations)
+- [Testing Patterns](#testing-patterns)
+
+---
+
+## Architecture Overview
+
+Foodie uses Clean Architecture with MVVM pattern, organized into distinct layers with clear dependencies:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        UI Layer                              │
+│  ┌────────────────────┐        ┌──────────────────────┐    │
+│  │  Compose Screens   │───────▶│    ViewModels        │    │
+│  │  (SampleScreen)    │        │  (@HiltViewModel)    │    │
+│  └────────────────────┘        └──────────────────────┘    │
+│         │ observes                      │ uses              │
+│         │ StateFlow                     ▼                   │
+└─────────┼───────────────────────────────────────────────────┘
+          │
+          │
+┌─────────┼───────────────────────────────────────────────────┐
+│         │               Domain Layer                         │
+│         │  ┌─────────────────────┐  ┌──────────────────┐   │
+│         │  │ Repository          │  │  Domain Models   │   │
+│         └─▶│ Interfaces          │  │  (MealEntry)     │   │
+│            │ (MealRepository)    │  └──────────────────┘   │
+│            └─────────────────────┘                          │
+│                     ▲                                        │
+└─────────────────────┼────────────────────────────────────────┘
+                      │ implements
+                      │
+┌─────────────────────┼────────────────────────────────────────┐
+│                     │          Data Layer                     │
+│            ┌────────┴─────────────┐                          │
+│            │ Repository            │                          │
+│            │ Implementations       │                          │
+│            │ (MealRepositoryImpl)  │                          │
+│            └────────┬──────────────┘                          │
+│                     │ uses                                    │
+│                     ▼                                         │
+│            ┌─────────────────────┐                           │
+│            │  Data Sources        │                           │
+│            │  (HealthConnect,     │                           │
+│            │   Azure OpenAI)      │                           │
+│            └─────────────────────┘                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key Principles:**
+
+1. **Unidirectional Data Flow**: Data flows down (from Repository → ViewModel → UI), events flow up (UI → ViewModel → Repository)
+2. **Dependency Inversion**: Upper layers depend on abstractions (interfaces), not concrete implementations
+3. **Single Responsibility**: Each layer has one clear purpose
+4. **Testability**: Interfaces enable easy mocking and unit testing
+
+---
+
+## Layer Responsibilities
+
+### UI Layer (`ui/`)
+
+**Purpose:** Present data to the user and handle user interactions
+
+**Components:**
+- **Screens** (Composable functions): Render UI based on state
+- **ViewModels**: Manage UI state and business logic
+- **State classes**: Immutable data classes representing UI state
+
+**Rules:**
+- ✅ Use `hiltViewModel()` for ViewModel injection
+- ✅ Collect state with `collectAsStateWithLifecycle()`
+- ✅ Never call repositories directly - always go through ViewModel
+- ✅ Handle configuration changes automatically via ViewModel
+- ❌ No business logic in Composables
+- ❌ No direct data source access
+
+**Example Screen:**
+```kotlin
+@Composable
+fun MyFeatureScreen(
+    viewModel: MyFeatureViewModel = hiltViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    
+    Scaffold { paddingValues ->
+        when {
+            state.isLoading -> LoadingIndicator()
+            state.error != null -> ErrorMessage(state.error)
+            else -> SuccessContent(state.data)
+        }
+    }
+}
+```
+
+### Domain Layer (`domain/`)
+
+**Purpose:** Define business models and data contracts (no framework dependencies)
+
+**Components:**
+- **Models** (`domain/model/`): Business entities (MealEntry, NutritionData)
+- **Repository Interfaces** (`domain/repository/`): Data access contracts
+- **Use Cases** (future): Complex business logic operations
+
+**Rules:**
+- ✅ Pure Kotlin - NO Android framework dependencies
+- ✅ Models enforce business rules in `init {}` blocks
+- ✅ All repository methods return `Result<T>` or `Flow<Result<T>>`
+- ✅ Use sealed classes for type-safe state (AnalysisStatus, Result)
+- ❌ No implementation details
+- ❌ No database, network, or UI code
+
+**Example Model:**
+```kotlin
+data class MealEntry(
+    val id: String,
+    val timestamp: Instant,
+    val description: String,
+    val calories: Int
+) {
+    init {
+        require(calories in 1..5000) {
+            "Calories must be between 1 and 5000, got $calories"
+        }
+        require(description.isNotBlank()) {
+            "Description cannot be blank"
+        }
+    }
+}
+```
+
+**Example Repository Interface:**
+```kotlin
+interface MealRepository {
+    fun getMealHistory(): Flow<Result<List<MealEntry>>>
+    suspend fun updateMeal(id: String, calories: Int, description: String): Result<Unit>
+    suspend fun deleteMeal(id: String): Result<Unit>
+}
+```
+
+### Data Layer (`data/`)
+
+**Purpose:** Implement data access and manage external data sources
+
+**Components:**
+- **Repository Implementations** (`data/repository/`): Implement domain interfaces
+- **Data Sources** (`data/local/`, `data/remote/`): Direct access to external systems
+- **DTOs** (Data Transfer Objects): API/database-specific models
+
+**Rules:**
+- ✅ Implement domain repository interfaces
+- ✅ Handle errors and map to user-friendly messages
+- ✅ Transform external data to domain models
+- ✅ Use Timber for logging
+- ✅ All repositories are `@Singleton` scoped
+- ❌ Never expose data source types to domain layer
+- ❌ No UI logic
+
+**Example Repository Implementation:**
+```kotlin
+@Singleton
+class MealRepositoryImpl @Inject constructor(
+    private val healthConnectDataSource: HealthConnectDataSource
+) : MealRepository {
+    
+    override fun getMealHistory(): Flow<Result<List<MealEntry>>> = flow {
+        emit(Result.Loading)
+        try {
+            val records = healthConnectDataSource.queryNutritionRecords(
+                startTime = Instant.now().minus(30, ChronoUnit.DAYS),
+                endTime = Instant.now()
+            )
+            val meals = records.map { /* transform to MealEntry */ }
+            emit(Result.Success(meals))
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fetch meal history")
+            emit(Result.Error(e, "Failed to load meals"))
+        }
+    }
+}
+```
+
+---
+
+## Creating New Features
+
+### Step 1: Define Domain Models
+
+Create data classes in `domain/model/` with validation:
+
+```kotlin
+// domain/model/UserProfile.kt
+data class UserProfile(
+    val id: String,
+    val name: String,
+    val email: String
+) {
+    init {
+        require(name.isNotBlank()) { "Name cannot be blank" }
+        require(email.contains("@")) { "Invalid email format" }
+    }
+}
+```
+
+### Step 2: Define Repository Interface
+
+Create interface in `domain/repository/`:
+
+```kotlin
+// domain/repository/UserRepository.kt
+interface UserRepository {
+    /**
+     * Fetches the current user profile.
+     * 
+     * @return Result.Success with UserProfile, or Result.Error on failure
+     */
+    suspend fun getUserProfile(): Result<UserProfile>
+    
+    /**
+     * Updates the user's name.
+     * 
+     * @param newName The new name (must be non-blank)
+     * @return Result.Success on completion, or Result.Error on failure
+     */
+    suspend fun updateUserName(newName: String): Result<Unit>
+}
+```
+
+### Step 3: Implement Repository
+
+Create implementation in `data/repository/`:
+
+```kotlin
+// data/repository/UserRepositoryImpl.kt
+@Singleton
+class UserRepositoryImpl @Inject constructor(
+    private val apiDataSource: ApiDataSource
+) : UserRepository {
+    
+    override suspend fun getUserProfile(): Result<UserProfile> {
+        return try {
+            val response = apiDataSource.fetchUserProfile()
+            val profile = UserProfile(
+                id = response.id,
+                name = response.name,
+                email = response.email
+            )
+            Result.Success(profile)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fetch user profile")
+            Result.Error(e, "Could not load your profile. Please try again.")
+        }
+    }
+    
+    override suspend fun updateUserName(newName: String): Result<Unit> {
+        return try {
+            apiDataSource.updateUserName(newName)
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to update user name")
+            Result.Error(e, "Could not update your name. Please try again.")
+        }
+    }
+}
+```
+
+### Step 4: Bind Repository in Hilt
+
+Add binding to `di/RepositoryModule.kt`:
+
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class RepositoryModule {
+    
+    @Binds
+    @Singleton
+    abstract fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
+}
+```
+
+### Step 5: Create UI State
+
+Define state in `ui/yourfeature/`:
+
+```kotlin
+// ui/profile/ProfileState.kt
+data class ProfileState(
+    val isLoading: Boolean = false,
+    val profile: UserProfile? = null,
+    val error: String? = null,
+    val isSaving: Boolean = false
+)
+```
+
+### Step 6: Create ViewModel
+
+Extend `BaseViewModel` and use StateFlow:
+
+```kotlin
+// ui/profile/ProfileViewModel.kt
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : BaseViewModel() {
+    
+    private val _state = MutableStateFlow(ProfileState())
+    val state: StateFlow<ProfileState> = _state.asStateFlow()
+    
+    init {
+        loadProfile()
+    }
+    
+    private fun loadProfile() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
+            
+            when (val result = userRepository.getUserProfile()) {
+                is Result.Success -> {
+                    _state.value = ProfileState(
+                        isLoading = false,
+                        profile = result.data
+                    )
+                }
+                is Result.Error -> {
+                    logError("LoadProfile", result.exception, result.message)
+                    _state.value = ProfileState(
+                        isLoading = false,
+                        error = result.message
+                    )
+                }
+                is Result.Loading -> {
+                    // Already set isLoading = true
+                }
+            }
+        }
+    }
+    
+    fun updateName(newName: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isSaving = true)
+            
+            when (val result = userRepository.updateUserName(newName)) {
+                is Result.Success -> {
+                    // Reload profile to get updated data
+                    loadProfile()
+                }
+                is Result.Error -> {
+                    logError("UpdateName", result.exception, result.message)
+                    _state.value = _state.value.copy(
+                        isSaving = false,
+                        error = result.message
+                    )
+                }
+                is Result.Loading -> {}
+            }
+        }
+    }
+    
+    fun clearError() {
+        _state.value = _state.value.copy(error = null)
+    }
+}
+```
+
+### Step 7: Create Compose Screen
+
+Use `hiltViewModel()` and collect state:
+
+```kotlin
+// ui/profile/ProfileScreen.kt
+@Composable
+fun ProfileScreen(
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    // Show errors in snackbar
+    LaunchedEffect(state.error) {
+        state.error?.let { errorMessage ->
+            snackbarHostState.showSnackbar(errorMessage)
+            viewModel.clearError()
+        }
+    }
+    
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            when {
+                state.isLoading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                state.profile != null -> {
+                    ProfileContent(
+                        profile = state.profile!!,
+                        isSaving = state.isSaving,
+                        onUpdateName = { newName ->
+                            viewModel.updateName(newName)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+```
+
+---
+
+## Error Handling Pattern
+
+### Result Wrapper
+
+All repository operations return `Result<T>` for consistent error handling:
+
+```kotlin
+sealed class Result<out T> {
+    data class Success<T>(val data: T) : Result<T>()
+    data class Error(val exception: Throwable, val message: String) : Result<Nothing>()
+    data object Loading : Result<Nothing>()
+    
+    fun getOrNull(): T?
+    fun exceptionOrNull(): Throwable?
+    fun isSuccess(): Boolean
+    fun isError(): Boolean
+}
+```
+
+### Using Result in ViewModels
+
+```kotlin
+when (val result = repository.fetchData()) {
+    is Result.Success -> {
+        // Update state with data
+        _state.value = state.copy(data = result.data)
+    }
+    is Result.Error -> {
+        // Log technical details
+        Timber.e(result.exception, "Operation failed")
+        // Show user-friendly message
+        _state.value = state.copy(error = result.message)
+    }
+    is Result.Loading -> {
+        _state.value = state.copy(isLoading = true)
+    }
+}
+```
+
+### Flow Extension for Result
+
+Wrap Flow emissions automatically:
+
+```kotlin
+// In repository
+override fun getMealHistory(): Flow<Result<List<MealEntry>>> {
+    return flow {
+        val meals = dataSource.queryMeals()
+        emit(meals)
+    }.asResult() // Wraps in Loading → Success/Error
+}
+```
+
+### Error Message Guidelines
+
+- **User Messages**: Short, actionable, non-technical
+  - ✅ "Could not load meals. Please check your connection."
+  - ❌ "HttpException: 500 Internal Server Error"
+  
+- **Logging**: Include full exception and context
+  ```kotlin
+  Timber.e(exception, "Failed to fetch meals for user $userId")
+  ```
+
+---
+
+## Reference Implementations
+
+### SampleViewModel
+
+**Location:** `app/src/main/java/com/foodie/app/ui/sample/SampleViewModel.kt`
+
+Demonstrates the complete MVVM pattern:
+- ✅ `@HiltViewModel` annotation for DI
+- ✅ Constructor injection of repository
+- ✅ StateFlow for reactive state management
+- ✅ `viewModelScope` for coroutine lifecycle
+- ✅ Result wrapper handling (Loading, Success, Error)
+- ✅ Timber logging with BaseViewModel helpers
+- ✅ Clear separation of concerns
+
+### SampleScreen
+
+**Location:** `app/src/main/java/com/foodie/app/ui/sample/SampleScreen.kt`
+
+Demonstrates Compose UI best practices:
+- ✅ `hiltViewModel()` for ViewModel injection
+- ✅ `collectAsStateWithLifecycle()` for state collection
+- ✅ Scaffold with SnackbarHost for error display
+- ✅ LaunchedEffect for side effects
+- ✅ Multiple `@Preview` functions
+- ✅ Separation of UI logic into smaller composables
+
+### MealRepository
+
+**Location:** `app/src/main/java/com/foodie/app/domain/repository/MealRepository.kt`
+
+Demonstrates repository interface pattern:
+- ✅ Flow<Result<T>> for reactive streams
+- ✅ suspend functions for one-shot operations
+- ✅ Comprehensive KDoc documentation
+- ✅ Clear method contracts
+
+### MealRepositoryImpl
+
+**Location:** `app/src/main/java/com/foodie/app/data/repository/MealRepositoryImpl.kt`
+
+Demonstrates repository implementation:
+- ✅ `@Singleton` scoping
+- ✅ Constructor injection of data sources
+- ✅ Error handling with try-catch
+- ✅ Timber logging for debugging
+- ✅ User-friendly error messages
+- ✅ Data transformation (external → domain models)
+
+---
+
+## Testing Patterns
+
+### Domain Model Tests
+
+Test validation logic:
+
+```kotlin
+@Test
+fun `constructor should throw exception when calories is less than 1`() {
+    val exception = assertThrows(IllegalArgumentException::class.java) {
+        MealEntry(
+            id = "id",
+            timestamp = Instant.now(),
+            description = "Invalid meal",
+            calories = 0
+        )
+    }
+    assertThat(exception.message).contains("Calories must be between 1 and 5000")
+}
+```
+
+### Repository Tests
+
+Mock data sources and verify behavior:
+
+```kotlin
+@Test
+fun `getMealHistory should return success with meals when data source returns records`() = runTest {
+    // Given
+    val mockRecords = listOf(/* mock data */)
+    whenever(healthConnectDataSource.queryNutritionRecords(any(), any()))
+        .thenReturn(mockRecords)
+    
+    // When
+    val result = mealRepository.getMealHistory().first()
+    
+    // Then
+    assertThat(result.isSuccess()).isTrue()
+    assertThat(result.getOrNull()).hasSize(mockRecords.size)
+}
+```
+
+### ViewModel Tests
+
+Mock repositories and verify state updates:
+
+```kotlin
+@OptIn(ExperimentalCoroutinesApi::class)
+class MyViewModelTest {
+    
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+    
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private lateinit var repository: MyRepository
+    private lateinit var viewModel: MyViewModel
+    
+    @Before
+    fun setup() {
+        Dispatchers.setMain(testDispatcher)
+        repository = mock()
+    }
+    
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+    
+    @Test
+    fun `loadData should update state to loading then success`() = runTest {
+        // Given
+        val mockData = listOf(/* test data */)
+        whenever(repository.getData()).thenReturn(Result.Success(mockData))
+        viewModel = MyViewModel(repository)
+        
+        // When
+        viewModel.loadData()
+        
+        // Then
+        val state = viewModel.state.value
+        assertThat(state.isLoading).isFalse()
+        assertThat(state.data).hasSize(mockData.size)
+        assertThat(state.error).isNull()
+    }
+}
+```
+
+### Test Naming Convention
+
+```
+methodName should expectedBehavior when condition
+```
+
+Examples:
+- `getMealHistory should return success when data source returns valid records`
+- `updateMeal should return error when calories is out of range`
+- `loadData should set loading state while repository is fetching`
+
+### Testing Tools
+
+- **JUnit 4**: Test framework
+- **Mockito**: Mocking dependencies
+- **Truth**: Fluent assertions (`assertThat(x).isEqualTo(y)`)
+- **kotlinx-coroutines-test**: `runTest`, `UnconfinedTestDispatcher`
+- **InstantTaskExecutorRule**: For ViewModel testing
+
+---
+
+## Best Practices Summary
+
+### DO ✅
+
+- Use `@HiltViewModel` and `hiltViewModel()` for dependency injection
+- Collect state with `collectAsStateWithLifecycle()` in Compose
+- Return `Result<T>` from all repository methods
+- Log errors with Timber (technical details)
+- Provide user-friendly error messages
+- Use `viewModelScope` for coroutines in ViewModels
+- Make domain models validate themselves in `init` blocks
+- Write comprehensive unit tests with mocks
+- Use sealed classes for type-safe state
+- Document with KDoc comments
+
+### DON'T ❌
+
+- Access repositories directly from UI - always use ViewModel
+- Put business logic in Composables
+- Expose data source types outside the data layer
+- Use LiveData (use StateFlow instead)
+- Hardcode strings (use string resources)
+- Ignore exceptions (always handle and log)
+- Put Android dependencies in domain layer
+- Create ViewModels manually (use Hilt injection)
+
+---
+
+## Need Help?
+
+- **Sample Implementation**: Check `ui/sample/` package for complete working example
+- **Architecture Docs**: See `/docs/architecture.md` for detailed system design
+- **Tech Specs**: See `/docs/tech-spec-epic-*.md` for feature specifications
+- **Story Context**: Each story has a `.context.xml` file with implementation guidance
+
+---
+
+**Version:** 1.0 (Story 1.2)  
+**Last Updated:** 2025-11-08  
+**Maintainer:** Foodie Development Team

@@ -1,0 +1,294 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>2</storyId>
+    <title>MVVM Architecture Foundation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-2-mvvm-architecture-foundation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>a clear MVVM architecture with repository pattern</iWant>
+    <soThat>the codebase is maintainable and follows Android best practices</soThat>
+    <tasks>
+      - Task 1: Create domain layer models (MealEntry, NutritionData, AnalysisStatus with validation)
+      - Task 2: Define repository interfaces (MealRepository, NutritionAnalysisRepository)
+      - Task 3: Create Result wrapper for error handling (sealed class with Success/Error/Loading)
+      - Task 4: Implement data source abstractions (HealthConnectDataSource interface and implementation)
+      - Task 5: Create repository implementations (MealRepositoryImpl with Health Connect integration)
+      - Task 6: Create base ViewModel class (BaseViewModel with lifecycle management)
+      - Task 7: Implement sample ViewModel (SampleViewModel demonstrating pattern)
+      - Task 8: Create sample Compose screen (SampleScreen with state collection)
+      - Task 9: Update Hilt modules for repository bindings (@Binds in RepositoryModule)
+      - Task 10: Write integration test validating full stack (ViewModel → Repository → DataSource)
+      - Task 11: Update documentation (architecture diagram, pattern examples)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. ViewModel base classes exist with lifecycle management
+    2. Repository pattern interfaces are defined for data access
+    3. Data source abstractions exist for external APIs and local storage
+    4. Dependency injection framework is configured (Hilt)
+    5. SampleViewModel + Repository + DataSource demonstrate the pattern
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Executive Summary</section>
+        <snippet>Foodie transforms calorie tracking from 30+ second manual entry into 2-second camera snap. Built for personal use with AI analysis and Health Connect integration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Implementation Patterns - Repository Pattern</section>
+        <snippet>Repository pattern with interface MealRepository exposing Flow&lt;Result&lt;List&lt;MealEntry&gt;&gt;&gt; for reactive updates. Implementation delegates to HealthConnectManager for data access.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Implementation Patterns - ViewModel Pattern</section>
+        <snippet>ViewModels annotated with @HiltViewModel, inject use cases/repositories. Use MutableStateFlow privately, expose immutable StateFlow. Collect in viewModelScope for lifecycle management.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Error Handling Strategy - Result Wrapper</section>
+        <snippet>sealed class Result&lt;out T&gt; with Success(data), Error(exception), Loading(progress). Provides getOrNull(), exceptionOrNull() helpers. Used across all repository operations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Project Structure</section>
+        <snippet>Clean architecture layers: ui/ (screens, viewmodels), domain/ (models, repository interfaces, use cases), data/ (repository impls, data sources). Dependency rules: UI → Domain ← Data.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Data Models and Contracts - Domain Models</section>
+        <snippet>MealEntry(id, timestamp, description, calories) with validation: calories 1-5000, non-blank description. NutritionData(calories, description) for API responses. AnalysisStatus sealed class: Idle, Analyzing, Success(data), Error(message).</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Data Models and Contracts - Repository Interfaces</section>
+        <snippet>MealRepository: getMealHistory(): Flow&lt;Result&lt;List&lt;MealEntry&gt;&gt;&gt;, updateMeal(id, calories, description): Result&lt;Unit&gt;, deleteMeal(id): Result&lt;Unit&gt;. NutritionAnalysisRepository placeholder for Epic 2.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>APIs and Interfaces - HealthConnectManager</section>
+        <snippet>HealthConnectManager methods: insertNutritionRecord(calories, description, timestamp): String, queryNutritionRecords(startTime, endTime): List&lt;NutritionRecord&gt;, updateNutritionRecord (delete+reinsert), deleteNutritionRecord. Singleton scoped with @Inject constructor.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.2</section>
+        <snippet>Create base classes: BaseViewModel, BaseRepository. Use Hilt for dependency injection. Clear separation: View (UI) → ViewModel (business logic) → Repository (data coordination) → DataSource (API/DB access).</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-1-project-setup-and-build-configuration.md</path>
+        <title>Story 1.1 - Completed</title>
+        <section>Dev Agent Record - Recommendations for Next Story</section>
+        <snippet>Leverage RepositoryModule for bindings. Use established package structure (domain/, data/, ui/). Follow test patterns (Truth assertions, Mockito). Annotate ViewModels with @HiltViewModel for injection.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/di/RepositoryModule.kt</path>
+        <kind>module</kind>
+        <symbol>RepositoryModule</symbol>
+        <lines>1-15</lines>
+        <reason>Existing Hilt module for repository bindings - Task 9 will add @Binds methods here for MealRepository → MealRepositoryImpl</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/di/AppModule.kt</path>
+        <kind>module</kind>
+        <symbol>AppModule</symbol>
+        <lines>1-18</lines>
+        <reason>Application-level DI module - may need to provide HealthConnectManager or other data source dependencies</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/FoodieApplication.kt</path>
+        <kind>application</kind>
+        <symbol>FoodieApplication</symbol>
+        <lines>1-19</lines>
+        <reason>Hilt application class already configured with @HiltAndroidApp and Timber logging - demonstrates DI setup pattern</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/theme/Theme.kt</path>
+        <kind>theme</kind>
+        <symbol>FoodieTheme</symbol>
+        <lines>all</lines>
+        <reason>Existing Compose theme to use in SampleScreen implementation</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <kotlin>
+        <package name="org.jetbrains.kotlinx:kotlinx-coroutines-android" version="1.9.0">Coroutines and Flow for reactive data streams</package>
+        <package name="org.jetbrains.kotlin.android" version="2.1.0">Kotlin language support (not 2.2.21 due to KSP compatibility)</package>
+      </kotlin>
+      <android>
+        <package name="androidx.lifecycle:lifecycle-viewmodel-ktx" version="2.8.7">ViewModel with lifecycle management</package>
+        <package name="androidx.lifecycle:lifecycle-viewmodel-compose" version="2.8.7">ViewModel integration for Compose</package>
+        <package name="androidx.lifecycle:lifecycle-runtime-compose" version="2.8.7">Lifecycle-aware state collection in Compose</package>
+        <package name="androidx.health.connect:connect-client" version="1.1.0">Health Connect SDK for data persistence</package>
+        <package name="androidx.compose.ui" version="BOM 2024.10.01">Jetpack Compose UI toolkit</package>
+        <package name="androidx.compose.material3" version="BOM 2024.10.01">Material Design 3 components</package>
+      </android>
+      <di>
+        <package name="com.google.dagger:hilt-android" version="2.51.1">Hilt dependency injection runtime</package>
+        <package name="com.google.dagger:hilt-android-compiler" version="2.51.1">Hilt annotation processor (KSP)</package>
+        <package name="androidx.hilt:hilt-navigation-compose" version="1.2.0">Hilt integration for Compose navigation and ViewModels</package>
+      </di>
+      <testing>
+        <package name="junit:junit" version="4.13.2">Unit testing framework</package>
+        <package name="org.mockito:mockito-core" version="5.14.2">Mocking framework for tests</package>
+        <package name="org.mockito.kotlin:mockito-kotlin" version="5.4.0">Kotlin extensions for Mockito</package>
+        <package name="org.jetbrains.kotlinx:kotlinx-coroutines-test" version="1.9.0">Coroutines testing utilities (runTest)</package>
+        <package name="androidx.arch.core:core-testing" version="2.2.0">Architecture components testing (InstantTaskExecutorRule)</package>
+        <package name="com.google.truth:truth" version="1.4.4">Fluent assertion library</package>
+      </testing>
+      <logging>
+        <package name="com.jakewharton.timber:timber" version="5.0.1">Logging framework (already initialized in FoodieApplication)</package>
+      </logging>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Domain layer must have ZERO dependencies on Android framework or Data/UI layers
+    - All repository methods must return Result&lt;T&gt; wrapper for consistent error handling
+    - ViewModels must use viewModelScope for coroutine lifecycle management
+    - Use StateFlow (not LiveData) for reactive state management in Compose
+    - Repository implementations must be Singleton scoped via Hilt
+    - Health Connect is single source of truth - no local database (Room) needed
+    - Use Flow&lt;Result&lt;T&gt;&gt; for continuous data streams from repositories
+    - All data classes must include validation in init blocks (calories 1-5000, non-blank descriptions)
+    - Use delete + re-insert pattern for Health Connect updates (no native update operation)
+    - Package structure: domain/ for interfaces and models, data/ for implementations
+    - Use @HiltViewModel annotation for ViewModels, @Inject constructor for repositories
+    - Follow test naming: methodName_whenCondition_thenExpectedResult
+    - Use Truth assertions (assertThat) over JUnit assertions for better readability
+    - Kotlin 2.1.0 compatibility required (not 2.2.21) - use compatible coroutines/Flow APIs
+    - compileSdk 36 required for Health Connect 1.1.0, targetSdk 35
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>MealRepository</name>
+      <kind>repository interface</kind>
+      <signature>
+        interface MealRepository {
+          fun getMealHistory(): Flow&lt;Result&lt;List&lt;MealEntry&gt;&gt;&gt;
+          suspend fun updateMeal(id: String, calories: Int, description: String): Result&lt;Unit&gt;
+          suspend fun deleteMeal(id: String): Result&lt;Unit&gt;
+        }
+      </signature>
+      <path>domain/repository/MealRepository.kt</path>
+    </interface>
+    <interface>
+      <name>NutritionAnalysisRepository</name>
+      <kind>repository interface (placeholder)</kind>
+      <signature>
+        interface NutritionAnalysisRepository {
+          suspend fun analyzePhoto(photoUri: Uri): Result&lt;NutritionData&gt;
+        }
+      </signature>
+      <path>domain/repository/NutritionAnalysisRepository.kt</path>
+    </interface>
+    <interface>
+      <name>HealthConnectDataSource</name>
+      <kind>data source interface</kind>
+      <signature>
+        interface HealthConnectDataSource {
+          suspend fun queryNutritionRecords(startTime: Instant, endTime: Instant): List&lt;NutritionRecord&gt;
+          suspend fun insertNutritionRecord(calories: Int, description: String, timestamp: Instant): String
+          suspend fun deleteNutritionRecord(recordId: String)
+          suspend fun checkPermissions(): Boolean
+        }
+      </signature>
+      <path>data/local/healthconnect/HealthConnectDataSource.kt</path>
+    </interface>
+    <interface>
+      <name>Result</name>
+      <kind>sealed class</kind>
+      <signature>
+        sealed class Result&lt;out T&gt; {
+          data class Success&lt;T&gt;(val data: T) : Result&lt;T&gt;()
+          data class Error(val exception: Throwable, val message: String) : Result&lt;Nothing&gt;()
+          object Loading : Result&lt;Nothing&gt;()
+          
+          fun getOrNull(): T?
+          fun exceptionOrNull(): Throwable?
+          fun isSuccess(): Boolean
+          fun isError(): Boolean
+        }
+        
+        fun &lt;T&gt; Flow&lt;T&gt;.asResult(): Flow&lt;Result&lt;T&gt;&gt;
+      </signature>
+      <path>util/Result.kt</path>
+    </interface>
+    <interface>
+      <name>BaseViewModel</name>
+      <kind>abstract class</kind>
+      <signature>
+        abstract class BaseViewModel : ViewModel() {
+          // Common error handling patterns
+          // Timber logging for lifecycle events (onCreate, onCleared)
+        }
+      </signature>
+      <path>ui/base/BaseViewModel.kt</path>
+    </interface>
+    <interface>
+      <name>SampleViewModel</name>
+      <kind>ViewModel (demonstration)</kind>
+      <signature>
+        @HiltViewModel
+        class SampleViewModel @Inject constructor(
+          private val mealRepository: MealRepository
+        ) : BaseViewModel() {
+          private val _state = MutableStateFlow(SampleState())
+          val state: StateFlow&lt;SampleState&gt; = _state.asStateFlow()
+          
+          fun loadSampleData()
+        }
+      </signature>
+      <path>ui/sample/SampleViewModel.kt</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      All domain models require unit tests for validation logic (calories range, non-blank descriptions). Repository implementations must be tested with mocked data sources using Mockito. ViewModels must be tested with mocked repositories, verifying state updates using Truth assertions. Use runTest from kotlinx-coroutines-test for suspend functions. Follow naming pattern: methodName_whenCondition_thenExpectedResult. Target 80% code coverage for core business logic. Result wrapper and Flow extension must have comprehensive tests covering all helper methods.
+    </standards>
+    <locations>
+      app/app/src/test/java/com/foodie/app/domain/model/
+      app/app/src/test/java/com/foodie/app/data/repository/
+      app/app/src/test/java/com/foodie/app/ui/sample/
+      app/app/src/test/java/com/foodie/app/util/
+      app/app/src/androidTest/java/com/foodie/app/integration/
+    </locations>
+    <ideas>
+      <idea ac="1">Test BaseViewModel lifecycle events are logged with Timber</idea>
+      <idea ac="2">Test MealRepository interface contract exists with correct method signatures</idea>
+      <idea ac="2">Test MealRepositoryImpl with mocked HealthConnectDataSource: success path returns Result.Success with meal list</idea>
+      <idea ac="2">Test MealRepositoryImpl handles exceptions: HealthConnect throws exception → returns Result.Error with user-friendly message</idea>
+      <idea ac="3">Test HealthConnectDataSourceImpl inserts NutritionRecord with correct energy and name fields</idea>
+      <idea ac="3">Test domain model validation: MealEntry throws exception when calories &lt; 1 or &gt; 5000</idea>
+      <idea ac="3">Test domain model validation: MealEntry throws exception when description is blank</idea>
+      <idea ac="4">Verify @HiltAndroidApp annotation exists on FoodieApplication</idea>
+      <idea ac="4">Verify RepositoryModule contains @Binds method for MealRepository → MealRepositoryImpl</idea>
+      <idea ac="5">Test SampleViewModel state updates: loadSampleData() → state.isLoading=true → success → state.data populated</idea>
+      <idea ac="5">Test SampleViewModel error handling: repository returns Error → state.error contains message</idea>
+      <idea ac="5">Integration test: SampleScreen → SampleViewModel → MealRepository → HealthConnectDataSource full chain with mocked data source</idea>
+      <idea ac="5">Test Result wrapper: Success.getOrNull() returns data, Error.getOrNull() returns null</idea>
+      <idea ac="5">Test Flow.asResult() extension: emits Loading, then Success with collected values</idea>
+    </ideas>
+  </tests>
+</story-context>
