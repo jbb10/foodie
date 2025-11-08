@@ -368,11 +368,11 @@ foodie/
 
 #### Azure OpenAI API
 - **Model:** GPT-4.1 (vision-capable model for food analysis)
-- **Endpoint:** `https://{your-resource-name}.openai.azure.com/openai/deployments/{deployment-id}/chat/completions`
-- **API Version:** 2024-10-21 (latest GA as of Nov 2025)
+- **Endpoint:** `https://{your-resource-name}.openai.azure.com/openai/v1/responses`
+- **API Version:** v1 (Responses API - modern stateful API)
 - **Authentication:** API key in `api-key` header (NOT `Authorization: Bearer`)
-- **Request Format:** Chat completions with multimodal content (text + image_url with base64)
-- **Response Parsing:** Extract `choices[0].message.content` and parse as JSON for `calories: Int` and `description: String`
+- **Request Format:** Responses API with multimodal input array (text + base64 image)
+- **Response Parsing:** Extract `output_text` field and parse as JSON for `calories: Int` and `description: String`
 - **Error Handling:** Network errors trigger WorkManager retry, API errors logged and user notified
 
 #### Health Connect (Data Storage)
@@ -817,69 +817,61 @@ Compose UI recomposes with new data
 **Retrofit Interface:**
 ```kotlin
 interface AzureOpenAiApi {
-    @POST("openai/deployments/{deploymentId}/chat/completions")
+    @POST("openai/v1/responses")
     suspend fun analyzeNutrition(
-        @Path("deploymentId") deploymentId: String,  // "gpt-4.1" deployment
-        @Query("api-version") apiVersion: String = "2024-10-21",
-        @Body request: AzureChatCompletionRequest
-    ): AzureChatCompletionResponse
+        @Body request: AzureResponseRequest
+    ): AzureResponseResponse
 }
 ```
 
 **Request DTO:**
 ```kotlin
-data class AzureChatCompletionRequest(
-    val messages: List<ChatMessage>,
-    val response_format: ResponseFormat = ResponseFormat(type = "json_object"),
-    val max_tokens: Int = 500,
-    val temperature: Double = 1.0
+data class AzureResponseRequest(
+    val model: String,  // "gpt-4.1"
+    val instructions: String,  // System-level instructions
+    val input: List<InputItem>  // Multimodal input array
 )
 
-data class ChatMessage(
-    val role: String,  // "system", "user", "assistant"
-    val content: List<MessageContent>
+data class InputItem(
+    val role: String,  // "user"
+    val content: List<ContentItem>
 )
 
-data class MessageContent(
-    val type: String,  // "text" or "image_url"
+data class ContentItem(
+    val type: String,  // "input_text" or "input_image"
     val text: String? = null,
-    val image_url: ImageUrl? = null
-)
-
-data class ImageUrl(
-    val url: String,  // "data:image/jpeg;base64,{BASE64_IMAGE}"
-    val detail: String = "auto"  // "auto", "low", or "high"
-)
-
-data class ResponseFormat(
-    val type: String  // "json_object" enables JSON mode
+    val image_url: String? = null  // Base64 data URL: "data:image/jpeg;base64,..."
 )
 ```
 
 **Response DTO:**
 ```kotlin
-data class AzureChatCompletionResponse(
+data class AzureResponseResponse(
     val id: String,
-    val created: Long,
+    val created_at: Double,
     val model: String,
-    val choices: List<Choice>,
+    val object: String,  // "response"
+    val status: String,  // "completed", "in_progress", etc.
+    val output_text: String?,  // Direct text output for simple responses
+    val output: List<OutputItem>?,  // Structured output for complex responses
     val usage: Usage
 )
 
-data class Choice(
-    val index: Int,
-    val message: ResponseMessage,
-    val finish_reason: String  // "stop", "length", etc.
+data class OutputItem(
+    val id: String,
+    val type: String,  // "message", "function_call", etc.
+    val content: List<OutputContent>?,
+    val role: String?
 )
 
-data class ResponseMessage(
-    val role: String,  // "assistant"
-    val content: String  // JSON string: {"calories": 650, "description": "..."}
+data class OutputContent(
+    val type: String,  // "output_text"
+    val text: String
 )
 
 data class Usage(
-    val prompt_tokens: Int,
-    val completion_tokens: Int,
+    val input_tokens: Int,
+    val output_tokens: Int,
     val total_tokens: Int
 )
 
@@ -892,64 +884,43 @@ data class ParsedNutrition(
 
 **Example Request to Azure OpenAI:**
 ```http
-POST https://{your-resource-name}.openai.azure.com/openai/deployments/{deployment-id}/chat/completions?api-version=2024-10-21
+POST https://{your-resource-name}.openai.azure.com/openai/v1/responses
 api-key: {your-api-key}
 Content-Type: application/json
 
 {
-  "messages": [
-    {
-      "role": "system",
-      "content": [
-        {
-          "type": "text",
-          "text": "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food)."
-        }
-      ]
-    },
+  "model": "gpt-4.1",
+  "instructions": "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).",
+  "input": [
     {
       "role": "user",
       "content": [
         {
-          "type": "text",
+          "type": "input_text",
           "text": "Analyze this meal and estimate total calories."
         },
         {
-          "type": "image_url",
-          "image_url": {
-            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
-            "detail": "auto"
-          }
+          "type": "input_image",
+          "image_url": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
         }
       ]
     }
-  ],
-  "response_format": {
-    "type": "json_object"
-  },
-  "max_tokens": 500
+  ]
 }
 ```
 
 **Example Response:**
 ```json
 {
-  "id": "chatcmpl-7R1nGnsXO8n4oi9UPz2f3UHdgAYMn",
-  "created": 1686676106,
+  "id": "resp_67cb61fa3a448190bcf2c42d96f0d1a8",
+  "created_at": 1741408624.0,
   "model": "gpt-4.1",
-  "choices": [
-    {
-      "index": 0,
-      "finish_reason": "stop",
-      "message": {
-        "role": "assistant",
-        "content": "{\"calories\": 650, \"description\": \"Grilled chicken breast with steamed broccoli and brown rice\"}"
-      }
-    }
-  ],
+  "object": "response",
+  "status": "completed",
+  "output_text": "{\"calories\": 650, \"description\": \"Grilled chicken breast with steamed broccoli and brown rice\"}",
   "usage": {
-    "prompt_tokens": 1245,
-    "completion_tokens": 25,
+    "input_tokens": 1245,
+    "output_tokens": 25,
     "total_tokens": 1270
   }
 }

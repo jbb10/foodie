@@ -278,82 +278,61 @@ Walking with plate while taking single-handed photos often results in blurry/sha
 ### Azure OpenAI Integration
 
 **API Configuration:**
-- **Endpoint:** Azure OpenAI GPT-4.1 (multimodal vision model)
+- **Endpoint:** Azure OpenAI Responses API with vision-capable model (GPT-4.1)
 - **Authentication:** API key stored in app (encrypted with Android Keystore)
-- **Request Format:** Multimodal chat completion with image URL or base64-encoded image
-- **API Version:** 2024-10-21 (latest GA)
-- **Endpoint Structure:** `https://{resource-name}.openai.azure.com/openai/deployments/{deployment-id}/chat/completions?api-version=2024-10-21`
+- **Request Format:** Responses API with multimodal input (text + base64-encoded image)
+- **API Version:** v1 (Responses API)
+- **Endpoint Structure:** `https://{resource-name}.openai.azure.com/openai/v1/responses`
 
-**IMPORTANT:** This uses **Azure OpenAI Service**, NOT OpenAI's public API. Authentication uses `api-key` header (not `Authorization: Bearer`).
+**IMPORTANT:** This uses **Azure OpenAI Responses API**, the modern stateful API that replaces chat completions. Authentication uses `api-key` header (not `Authorization: Bearer`).
 
 **Structured Output Request:**
 ```http
-POST https://{your-resource-name}.openai.azure.com/openai/deployments/{deployment-id}/chat/completions?api-version=2024-10-21
+POST https://{your-resource-name}.openai.azure.com/openai/v1/responses
 api-key: {your-api-key}
 Content-Type: application/json
 
 {
-  "messages": [
-    {
-      "role": "system",
-      "content": [
-        {
-          "type": "text",
-          "text": "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food)."
-        }
-      ]
-    },
+  "model": "gpt-4.1",
+  "instructions": "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).",
+  "input": [
     {
       "role": "user",
       "content": [
         {
-          "type": "text",
+          "type": "input_text",
           "text": "Analyze this meal and estimate total calories."
         },
         {
-          "type": "image_url",
-          "image_url": {
-            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
-            "detail": "auto"
-          }
+          "type": "input_image",
+          "image_url": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
         }
       ]
     }
-  ],
-  "response_format": {
-    "type": "json_object"
-  },
-  "max_tokens": 500
+  ]
 }
 ```
 
 **Expected Response Format:**
 ```json
 {
-  "id": "chatcmpl-7R1nGnsXO8n4oi9UPz2f3UHdgAYMn",
-  "created": 1686676106,
-  "model": "gpt-4.1",
-  "choices": [
-    {
-      "index": 0,
-      "finish_reason": "stop",
-      "message": {
-        "role": "assistant",
-        "content": "{\"calories\": 650, \"description\": \"Grilled chicken breast with steamed broccoli and brown rice\"}"
-      }
-    }
-  ],
+  "id": "resp_67cb61fa3a448190bcf2c42d96f0d1a8",
+  "created_at": 1741408624.0,
+  "model": "gpt-4o-2024-08-06",
+  "object": "response",
+  "status": "completed",
+  "output_text": "{\"calories\": 650, \"description\": \"Grilled chicken breast with steamed broccoli and brown rice\"}",
   "usage": {
-    "prompt_tokens": 1245,
-    "completion_tokens": 25,
+    "input_tokens": 1245,
+    "output_tokens": 25,
     "total_tokens": 1270
   }
 }
 ```
 
 **Response Parsing:**
-- Extract `choices[0].message.content` from response
-- Parse content string as JSON: `{calories: number, description: string}`
+- Extract `output_text` field from response (for simple text responses)
+- Parse output_text string as JSON: `{calories: number, description: string}`
 - Extract `calories` as integer
 - Extract `description` as string (max 200 characters, truncate if longer)
 - Validation: Calories must be > 0 and < 5000 (sanity check)
@@ -593,7 +572,8 @@ Analyze this meal and estimate total calories.
 
 **Technical Notes:**
 - Base64-encode photo for API request
-- Use structured output mode (`response_format: json_object`)
+- Use Responses API with `instructions` field for system-level guidance
+- Parse `output_text` field from response for nutrition data
 - Never log API key in crash reports or analytics
 
 ---

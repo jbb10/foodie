@@ -45,7 +45,7 @@
 - ✓ Every technology includes specific version (17/17 in Decision Summary)
 - ✓ Versions verified from official sources:
   - Android: AGP 8.13.0, Gradle 8.13, Kotlin 2.2.21, API 35 (verified from developer.android.com)
-  - Azure OpenAI: GPT-4.1 with API version 2024-10-21 (verified from Azure docs)
+  - Azure OpenAI: GPT-4.1 with Responses API v1 (verified from Azure docs)
 - ✓ Compatible versions selected (AGP 8.13 requires Gradle 8.13, JDK 17)
 - ✓ Version verification documented (updated 2025-11-08)
 
