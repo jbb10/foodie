@@ -39,9 +39,9 @@ workflow_status:
   create-design: conditional
 
   # Phase 2: Solutioning
-  create-architecture: required
-  validate-architecture: optional
-  solutioning-gate-check: required
+  create-architecture: docs/architecture.md
+  validate-architecture: docs/validation-report-architecture-20251108.md
+  solutioning-gate-check: docs/solutioning-gate-check-report-20251108.md
 
   # Phase 3: Implementation
   sprint-planning: required

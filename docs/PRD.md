@@ -84,7 +84,7 @@ This is the core hypothesis - can invisible tracking actually work in real life?
 **Core Capture Flow:**
 - Lock screen widget for instant camera access (no unlock required)
 - Single photo capture per meal entry
-- Azure OpenAI GPT-4o API integration with structured JSON output: `{calories: number, description: string}`
+- Azure OpenAI GPT-4.1 API integration with structured JSON output: `{calories: number, description: string}`
 - Background processing: snap → pocket phone → AI analyzes → auto-save
 - Automatic save to Google Health Connect when analysis completes
 - Ephemeral photo storage: delete immediately after extracting caloric data
@@ -99,7 +99,7 @@ This is the core hypothesis - can invisible tracking actually work in real life?
 - Client-only architecture (no backend server, no database, no user accounts)
 - Direct API flow: Android app → Azure OpenAI → Health Connect (local device storage)
 - Native Android development (Kotlin)
-- Azure OpenAI GPT-4o (multimodal vision model)
+- Azure OpenAI GPT-4.1 (multimodal vision model)
 - Google Health Connect API for local data persistence
 
 ### Growth Features (V2.0 - Post-MVP)
@@ -142,9 +142,15 @@ This is the core hypothesis - can invisible tracking actually work in real life?
 
 **Target Platform:** Native Android
 - **Minimum SDK:** Android 9 (API 28) - Required for Health Connect compatibility
-- **Target SDK:** Android 14 (API 34) - Latest stable release
-- **Development Language:** Kotlin
+- **Target SDK:** Android 15 (API 35) - Latest stable release
+- **Compile SDK:** Android 15 (API 35)
+- **Development Language:** Kotlin 2.2.21
 - **Architecture Pattern:** MVVM (Model-View-ViewModel) with Repository pattern
+- **Build Tools:**
+  - Android Gradle Plugin: 8.13.0
+  - Gradle: 8.13
+  - JDK: 17
+  - SDK Build Tools: 35.0.0
 
 **Platform Rationale:**
 - Google Health Connect is Android-exclusive API
@@ -272,40 +278,82 @@ Walking with plate while taking single-handed photos often results in blurry/sha
 ### Azure OpenAI Integration
 
 **API Configuration:**
-- **Endpoint:** Azure OpenAI GPT-4o (multimodal vision model)
+- **Endpoint:** Azure OpenAI GPT-4.1 (multimodal vision model)
 - **Authentication:** API key stored in app (encrypted with Android Keystore)
 - **Request Format:** Multimodal chat completion with image URL or base64-encoded image
+- **API Version:** 2024-10-21 (latest GA)
+- **Endpoint Structure:** `https://{resource-name}.openai.azure.com/openai/deployments/{deployment-id}/chat/completions?api-version=2024-10-21`
+
+**IMPORTANT:** This uses **Azure OpenAI Service**, NOT OpenAI's public API. Authentication uses `api-key` header (not `Authorization: Bearer`).
 
 **Structured Output Request:**
-```json
+```http
+POST https://{your-resource-name}.openai.azure.com/openai/deployments/{deployment-id}/chat/completions?api-version=2024-10-21
+api-key: {your-api-key}
+Content-Type: application/json
+
 {
-  "model": "gpt-4o",
   "messages": [
     {
       "role": "system",
-      "content": "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food)."
+      "content": [
+        {
+          "type": "text",
+          "text": "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food)."
+        }
+      ]
     },
     {
       "role": "user",
       "content": [
-        {"type": "text", "text": "Analyze this meal and estimate total calories."},
-        {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,{IMAGE}"}}
+        {
+          "type": "text",
+          "text": "Analyze this meal and estimate total calories."
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
+            "detail": "auto"
+          }
+        }
       ]
     }
   ],
-  "response_format": {"type": "json_object"}
+  "response_format": {
+    "type": "json_object"
+  },
+  "max_tokens": 500
 }
 ```
 
 **Expected Response Format:**
 ```json
 {
-  "calories": 650,
-  "description": "Grilled chicken breast with steamed broccoli and brown rice"
+  "id": "chatcmpl-7R1nGnsXO8n4oi9UPz2f3UHdgAYMn",
+  "created": 1686676106,
+  "model": "gpt-4.1",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "{\"calories\": 650, \"description\": \"Grilled chicken breast with steamed broccoli and brown rice\"}"
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1245,
+    "completion_tokens": 25,
+    "total_tokens": 1270
+  }
 }
 ```
 
 **Response Parsing:**
+- Extract `choices[0].message.content` from response
+- Parse content string as JSON: `{calories: number, description: string}`
 - Extract `calories` as integer
 - Extract `description` as string (max 200 characters, truncate if longer)
 - Validation: Calories must be > 0 and < 5000 (sanity check)
@@ -325,46 +373,50 @@ Walking with plate while taking single-handed photos often results in blurry/sha
 
 **Data Model:**
 - **Record Type:** `NutritionRecord`
-- **Primary Field:**
-  - `energy`: Calories from AI analysis (in kcal) - This is the core data we're capturing
+- **Fields Used:**
+  - `energy`: Calories from AI analysis (in Energy units, kcal)
+  - `name`: Food description from AI (optional String field)
+  - `startTime` / `endTime`: Meal timestamp (Instant)
+  - `mealType`: Optional categorization (breakfast/lunch/dinner/snack) - deferred to V2.0
 
-**Implementation Note:**
-Health Connect `NutritionRecord` has limited fields. The primary field we use is `energy` for calorie tracking. Description and timestamp will need to be managed separately in app's local database if we need to display them in the list view.
-
-**Alternative Approach:**
-- Store nutrition records with just `energy` in Health Connect
-- Maintain local SQLite database for UI purposes (description, timestamp, photo path during processing)
-- Sync local database with Health Connect for CRUD operations
-- Display data from local database in list view
-- Health Connect serves as the "source of truth" for calorie data that other apps can access
+**Single Source of Truth:**
+Health Connect stores ALL data - no local database needed. The `NutritionRecord.name` field supports food descriptions, eliminating the need for a separate SQLite database. This simplifies the architecture to a pure Health Connect implementation.
 
 **CRUD Operations:**
 
 **Create (Write):**
-- Save `NutritionRecord` with `energy` field after successful API response
+- Save `NutritionRecord` with `energy` and `name` fields after successful API response
 - Use `HealthConnectClient.insertRecords()` API
-- Store description and timestamp in local database for UI display
 - Handle permissions errors (prompt user to grant access)
+- Example:
+  ```kotlin
+  NutritionRecord(
+      energy = Energy.kilocalories(650.0),
+      name = "Grilled chicken with rice",
+      startTime = timestamp,
+      endTime = timestamp,
+      startZoneOffset = ZoneOffset.systemDefault(),
+      endZoneOffset = ZoneOffset.systemDefault()
+  )
+  ```
 
 **Read (List View):**
-- Query recent records from local database (includes description, timestamp, calories)
-- Cross-reference with Health Connect for data integrity
-- Default view: Last 7 days of entries
-- Sort: Newest first (reverse chronological)
+- Query `NutritionRecord` directly from Health Connect
+- Use `TimeRangeFilter` for last 7 days
+- Sort by `startTime` descending (newest first)
 - Pagination: Load 50 entries at a time
+- Access both `energy` and `name` fields for display
 
 **Update (Edit):**
-- Load existing record by ID from local database
-- Allow user to modify calories and description
-- Update `NutritionRecord` in Health Connect with new `energy` value
-- Update description in local database
-- Preserve original timestamp (don't change meal timestamp)
+- Health Connect doesn't support direct updates
+- Delete old record and insert new record with same timestamp
+- Preserve original `startTime` and `endTime`
+- Update both `energy` and `name` fields as needed
 
 **Delete:**
-- Use `HealthConnectClient.deleteRecords()` API to remove from Health Connect
-- Delete corresponding record from local database
+- Use `HealthConnectClient.deleteRecords()` API
 - Require confirmation dialog: "Delete this entry? This cannot be undone."
-- Remove from both Health Connect and local cache
+- Single operation (no dual-store sync needed)
 
 **Health Connect Permissions Flow:**
 - Request on first app launch with clear explanation
@@ -521,7 +573,7 @@ Lock screen widget is more critical than home screen widget because it eliminate
 **User Story:** As a user, I want the app to automatically analyze my food photo and estimate calories so I don't have to manually look up or guess the calorie content.
 
 **Acceptance Criteria:**
-- Send photo to Azure OpenAI GPT-4o API after capture
+- Send photo to Azure OpenAI GPT-4.1 API after capture
 - Request structured JSON response: `{calories: number, description: string}`
 - Parse API response and extract calorie count (integer) and food description (string, max 200 chars)
 - Validate calorie range: > 0 and < 5000 (sanity check)
@@ -575,24 +627,21 @@ Analyze this meal and estimate total calories.
 **User Story:** As a user, I want my calorie data saved to Health Connect so other health apps (Google Fit, etc.) can access my nutrition information.
 
 **Acceptance Criteria:**
-- Save `NutritionRecord` with `energy` field (calories in kcal) to Health Connect after successful AI analysis
+- Save `NutritionRecord` with `energy` and `name` fields to Health Connect after successful AI analysis
 - Use `HealthConnectClient.insertRecords()` API
 - Request Health Connect permissions on first app launch
 - Display clear permission rationale to user
 - Handle permission denial gracefully (link to Health Connect settings)
-- Store associated description and timestamp in local SQLite database for app UI
-- Sync local database with Health Connect for data integrity
 
 **Data Flow:**
 1. AI returns calories + description
-2. Save `energy` to Health Connect
-3. Save calories + description + timestamp to local database
-4. Update UI list view
+2. Save `energy` (calories) and `name` (description) to Health Connect
+3. Update UI list view by querying Health Connect
 
 **Technical Notes:**
-- Health Connect only stores `energy` field for calories
-- Local database required for description and enhanced UI
-- Implement sync logic to keep both stores consistent
+- Health Connect `NutritionRecord.name` field stores food descriptions
+- No local database needed - Health Connect is single source of truth
+- Simplifies architecture with single data store
 
 ---
 
@@ -622,9 +671,9 @@ Analyze this meal and estimate total calories.
 ```
 
 **Technical Notes:**
-- Query from local SQLite database for performance
-- Cross-reference Health Connect for data integrity
+- Query directly from Health Connect using `TimeRangeFilter`
 - Implement efficient RecyclerView with ViewHolder pattern
+- Cache query results in ViewModel for smooth scrolling
 
 ---
 
@@ -659,9 +708,9 @@ Captured: Nov 7, 2025 at 12:30 PM
 ```
 
 **Technical Notes:**
-- Update `NutritionRecord` in Health Connect
-- Update corresponding row in local database
-- Preserve original timestamp (immutable)
+- Delete old `NutritionRecord` from Health Connect
+- Insert new record with updated `energy` and `name` fields
+- Preserve original `startTime` and `endTime` (immutable)
 
 ---
 
@@ -681,8 +730,7 @@ Captured: Nov 7, 2025 at 12:30 PM
 
 **Technical Notes:**
 - Use `HealthConnectClient.deleteRecords()` to remove from Health Connect
-- Delete corresponding row from local SQLite database
-- Ensure atomic operation (both or neither)
+- Single operation (no dual-store complexity)
 
 ---
 
@@ -711,7 +759,7 @@ Captured: Nov 7, 2025 at 12:30 PM
 
 **Technical Notes:**
 - Use WorkManager for reliable background retry
-- Persist photo path and retry count in local database
+- Persist photo path and retry count in WorkManager data
 - Implement exponential backoff to avoid hammering API
 
 ---
@@ -781,12 +829,12 @@ The entire product value hinges on being faster than manual entry (30+ seconds).
 - **Crash Rate:** < 1% of sessions (app should rarely crash)
 - **Data Loss:** Zero tolerance - never lose a captured meal photo before successful Health Connect save OR retry exhaustion
 - **Background Service:** Must survive brief app termination and device sleep
-- **Health Connect Sync:** 100% consistency between local database and Health Connect
+- **Data Consistency:** Health Connect is single source of truth (no sync conflicts)
 
 **Critical Paths:**
 1. Photo capture → temporary storage (must never fail)
 2. API response → Health Connect save (retry until success or limit reached)
-3. Edit operation → atomic update of both Health Connect and local DB
+3. Edit operation → delete and re-insert in Health Connect
 
 **Error Recovery:**
 - All critical operations wrapped in try-catch with logging
@@ -803,7 +851,7 @@ The entire product value hinges on being faster than manual entry (30+ seconds).
 - **Photo Storage:** Temporary only - delete after successful processing or retry exhaustion
 - **Network Communication:** HTTPS only for Azure OpenAI API calls
 - **No Photo Cloud Storage:** Photos never uploaded to any storage service (only sent to Azure OpenAI API for analysis)
-- **Local Data:** SQLite database encrypted at rest (Android built-in encryption)
+- **Local Data:** Health Connect handles encryption at rest
 - **Logging:** Never log sensitive data (API keys, photo paths, user data)
 
 **Privacy Principles:**
@@ -914,17 +962,17 @@ The entire product value hinges on being faster than manual entry (30+ seconds).
 
 **Health Connect Integration:**
 - Health Connect permissions flow
-- Write `NutritionRecord` with `energy` field
-- Local SQLite database setup
-- Sync logic between Health Connect and local DB
-- Read operations for list view
+- Write `NutritionRecord` with `energy` and `name` fields
+- Read operations for list view using `TimeRangeFilter`
+- Update operations (delete + re-insert pattern)
+- Delete operations
 
-**Milestone:** Calorie data saved to Health Connect and local database
+**Milestone:** Calorie and description data saved to Health Connect
 
 **Success Criteria:**
 - Health Connect permissions granted
 - Data visible in Google Fit or other Health Connect apps
-- Local database stores description + timestamp
+- Both calories and descriptions displayed correctly
 
 ---
 
@@ -950,18 +998,18 @@ The entire product value hinges on being faster than manual entry (30+ seconds).
 ### Phase 5: CRUD Operations (Week 2)
 
 **Data Management UI:**
-- List view with recent entries (7 days)
+- List view with recent entries (7 days) from Health Connect
 - Edit screen (calories + description)
 - Delete confirmation dialog
-- Update operations for both Health Connect and local DB
+- Update operations (delete + re-insert in Health Connect)
 - Pull-to-refresh functionality
 
 **Milestone:** Full CRUD operations functional
 
 **Success Criteria:**
-- Entries displayed correctly in list
-- Edit saves to both data stores
-- Delete removes from both data stores
+- Entries displayed correctly in list from Health Connect
+- Edit updates Health Connect record (delete + re-insert)
+- Delete removes from Health Connect
 - UI updates immediately after changes
 
 ---
@@ -1019,7 +1067,7 @@ The entire product value hinges on being faster than manual entry (30+ seconds).
 - API response parsing (JSON to calories + description)
 - Calorie validation (range check: 0-5000)
 - Retry logic (exponential backoff calculation)
-- Database sync operations (Health Connect ↔ local DB)
+- Health Connect record creation and updates
 
 **Test Coverage Target:** 30-40% (focus on business logic, not UI)
 
@@ -1066,11 +1114,8 @@ The entire product value hinges on being faster than manual entry (30+ seconds).
 **Edge Case:** Health Connect permissions revoked mid-usage
 - **Handling:** Detect on next save attempt, re-request permissions, queue entry locally until granted
 
-**Edge Case:** Local database corrupted
-- **Handling:** Re-sync from Health Connect on app launch, log error for investigation
-
-**Edge Case:** Sync conflict (entry deleted in Health Connect but exists in local DB)
-- **Handling:** Health Connect is source of truth - remove from local DB on next sync
+**Edge Case:** Health Connect data appears corrupted or incomplete
+- **Handling:** Show error message, allow user to manually retry query, log error for investigation
 
 ---
 
@@ -1115,19 +1160,23 @@ The entire product value hinges on being faster than manual entry (30+ seconds).
 
 **Android Platform:**
 - Minimum SDK: Android 9 (API 28)
-- Target SDK: Android 14 (API 34)
-- Kotlin language version: Latest stable
+- Target SDK: Android 15 (API 35)
+- Compile SDK: Android 15 (API 35)
+- Kotlin version: 2.2.21
+- Android Gradle Plugin: 8.13.0
+- Gradle: 8.13
+- JDK: 17
+- SDK Build Tools: 35.0.0
 
 **Key Libraries:**
-- Google Health Connect SDK (nutrition data storage)
+- Google Health Connect SDK (nutrition data storage - single source of truth)
 - Android Keystore API (API key encryption)
 - WorkManager (background processing)
 - CameraX (optional - if stock camera doesn't meet requirements)
 - Retrofit / OkHttp (Azure OpenAI API calls)
-- Room (local SQLite database)
 
 **External Services:**
-- Azure OpenAI GPT-4o API (multimodal vision model)
+- Azure OpenAI GPT-4.1 API (multimodal vision model)
 - Google Health Connect (local device API, not cloud service)
 
 ---

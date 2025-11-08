@@ -142,7 +142,7 @@ If tracking takes cognitive effort or interrupts daily life, adherence collapses
 - Client-only architecture (no backend server, no database, no user accounts)
 - Direct API calls: Android app → Azure OpenAI → Health Connect (local device storage)
 - Native Android development (Kotlin/Java)
-- Azure OpenAI GPT-4o (multimodal model)
+- Azure OpenAI GPT-4.1 (multimodal model)
 
 ### V1.0 Features (Explicitly Out of Scope)
 
@@ -173,7 +173,7 @@ If tracking takes cognitive effort or interrupts daily life, adherence collapses
 - Best widget performance and platform integration
 - No cross-platform complexity needed for personal tool
 
-**AI Model:** Azure OpenAI GPT-4o (multimodal)
+**AI Model:** Azure OpenAI GPT-4.1 (multimodal)
 - Proven accurate in informal testing via ChatGPT
 - Supports structured JSON outputs for reliable parsing
 - User already has Azure OpenAI API access
