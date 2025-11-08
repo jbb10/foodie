@@ -4,16 +4,21 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.foodie.app.ui.navigation.NavGraph
 import com.foodie.app.ui.theme.FoodieTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Main activity for the Foodie application.
+ *
+ * This activity follows the single-activity architecture pattern, hosting the main
+ * navigation graph with all app screens implemented as Composables.
+ *
+ * Architecture:
+ * - Single Activity: All screens are Composables navigated via NavHost
+ * - Hilt Integration: @AndroidEntryPoint enables dependency injection
+ * - Edge-to-Edge: System bars handled by individual screens via Scaffold
+ */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,29 +26,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             FoodieTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Foodie",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                NavGraph()
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    FoodieTheme {
-        Greeting("Android")
     }
 }

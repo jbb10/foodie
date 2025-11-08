@@ -1,10 +1,11 @@
 # Foodie - MVVM Architecture Guide
 
-This README documents the MVVM (Model-View-ViewModel) architecture pattern established in Story 1.2. All features in the Foodie app follow this pattern for consistency, testability, and maintainability.
+This README documents the MVVM (Model-View-ViewModel) architecture pattern and navigation structure for the Foodie app. All features follow these patterns for consistency, testability, and maintainability.
 
 ## Table of Contents
 
 - [Architecture Overview](#architecture-overview)
+- [Navigation Structure](#navigation-structure)
 - [Layer Responsibilities](#layer-responsibilities)
 - [Creating New Features](#creating-new-features)
 - [Error Handling Pattern](#error-handling-pattern)
@@ -63,6 +64,184 @@ Foodie uses Clean Architecture with MVVM pattern, organized into distinct layers
 2. **Dependency Inversion**: Upper layers depend on abstractions (interfaces), not concrete implementations
 3. **Single Responsibility**: Each layer has one clear purpose
 4. **Testability**: Interfaces enable easy mocking and unit testing
+
+---
+
+## Navigation Structure
+
+Foodie uses Jetpack Navigation Compose with a single-activity architecture. All screens are Composable functions, and navigation is type-safe using a sealed class pattern.
+
+### Navigation Flow
+
+```
+MainActivity (hosts NavGraph)
+    │
+    └──▶ NavHost (startDestination: MealList)
+         │
+         ├──▶ MealList (home) ────┬──▶ MealDetail/{mealId}
+         │                         │
+         │                         └──▶ Settings
+         │
+         └──▶ Deep Link: foodie://home → MealList
+```
+
+### Screen Routes (Type-Safe Navigation)
+
+All navigation routes are defined in `ui/navigation/Screen.kt` as a sealed class:
+
+```kotlin
+sealed class Screen(val route: String) {
+    object MealList : Screen("meal_list")                    // Home screen
+    object MealDetail : Screen("meal_detail/{mealId}") {     // Edit meal screen
+        fun createRoute(mealId: String) = "meal_detail/$mealId"
+    }
+    object Settings : Screen("settings")                     // Settings screen
+}
+```
+
+### How to Navigate
+
+**From NavGraph (wiring callbacks):**
+```kotlin
+// In NavGraph.kt composable definitions
+MealListScreen(
+    onMealClick = { mealId ->
+        navController.navigate(Screen.MealDetail.createRoute(mealId))
+    },
+    onSettingsClick = {
+        navController.navigate(Screen.Settings.route)
+    }
+)
+```
+
+**From Screens (using callbacks):**
+```kotlin
+// Screens receive callbacks, NOT NavController
+@Composable
+fun MealListScreen(
+    onMealClick: (String) -> Unit,
+    onSettingsClick: () -> Unit
+) {
+    // UI calls callbacks on user action
+    Button(onClick = { onMealClick("meal-123") }) {
+        Text("View Meal")
+    }
+}
+```
+
+**Why callbacks instead of NavController?**
+- ✅ Screens remain testable in isolation
+- ✅ Screens don't need to know about navigation implementation
+- ✅ Easy to create `@Preview` functions
+- ✅ Clear separation of concerns
+
+### Adding a New Screen
+
+1. **Add route to Screen.kt:**
+```kotlin
+sealed class Screen(val route: String) {
+    // ... existing routes ...
+    object NewFeature : Screen("new_feature")
+}
+```
+
+2. **Create screen Composable:**
+```kotlin
+// ui/screens/newfeature/NewFeatureScreen.kt
+@Composable
+fun NewFeatureScreen(
+    onNavigateBack: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("New Feature") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        // Screen content
+    }
+}
+```
+
+3. **Add to NavGraph:**
+```kotlin
+// In NavGraph.kt
+composable(route = Screen.NewFeature.route) {
+    NewFeatureScreen(
+        onNavigateBack = { navController.popBackStack() }
+    )
+}
+```
+
+4. **Navigate to it from other screens:**
+```kotlin
+// From calling screen
+SomeScreen(
+    onNewFeatureClick = { navController.navigate(Screen.NewFeature.route) }
+)
+```
+
+### Deep Linking
+
+Deep links allow external sources (widgets, notifications) to launch specific screens.
+
+**Current deep links:**
+- `foodie://home` → Opens MealList screen
+
+**Configuration:**
+```kotlin
+// In NavGraph.kt
+composable(
+    route = Screen.MealList.route,
+    deepLinks = listOf(
+        navDeepLink { uriPattern = "foodie://home" }
+    )
+) { /* ... */ }
+
+// AndroidManifest.xml (already configured)
+<intent-filter>
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <data android:scheme="foodie" android:host="home" />
+</intent-filter>
+```
+
+**Testing deep links:**
+```bash
+adb shell am start -W -a android.intent.action.VIEW -d "foodie://home" com.foodie.app
+```
+
+**Future use:** Lock screen widget (Story 2.1) will use `foodie://home` to launch the app.
+
+### Back Stack Behavior
+
+- **MealList** is the start destination (root of back stack)
+  - Pressing back on MealList exits the app
+- **MealDetail** and **Settings** are pushed onto the back stack
+  - Pressing back returns to MealList
+- System back button and TopAppBar back arrow behave identically
+
+**Example navigation flow:**
+```
+App Launch → MealList
+  ↓ tap meal
+MealDetail
+  ↓ back
+MealList
+  ↓ tap settings
+Settings
+  ↓ back
+MealList
+  ↓ back
+App exits
+```
 
 ---
 

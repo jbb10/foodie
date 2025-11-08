@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Story Context: 1-3-core-navigation-and-screen-structure
+  Generated: 2025-11-08
+  Epic: 1 (Foundation & Infrastructure)
+  
+  This context file assembles all relevant documentation, code artifacts, dependencies,
+  and constraints needed to implement this story following the established architecture.
+-->
+<story-context>
+  <metadata>
+    <story-id>1.3</story-id>
+    <story-key>1-3-core-navigation-and-screen-structure</story-key>
+    <epic-id>1</epic-id>
+    <title>Core Navigation and Screen Structure</title>
+    <status>ready-for-dev</status>
+    <generated-date>2025-11-08</generated-date>
+  </metadata>
+
+  <story>
+    <as-a>developer</as-a>
+    <i-want>the main app navigation and screen structure defined</i-want>
+    <so-that>features can be integrated into a cohesive user flow</so-that>
+  </story>
+
+  <acceptance-criteria>
+    <criterion id="1">Navigation component is configured with navigation graph</criterion>
+    <criterion id="2">Main activity hosts the navigation controller</criterion>
+    <criterion id="3">Placeholder screens exist for: List View, Edit Screen, Settings Screen</criterion>
+    <criterion id="4">Navigation between screens works with proper back stack handling</criterion>
+    <criterion id="5">Deep linking is configured for widget intents</criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="1" ac-refs="1">
+      <summary>Create navigation routes and sealed class</summary>
+      <subtasks>
+        <subtask>Create `ui/navigation/Screen.kt` sealed class defining all app routes</subtask>
+        <subtask>Define routes: `MealList` (home), `MealDetail/{mealId}` (edit), `Settings`</subtask>
+        <subtask>Add `createRoute()` helper methods for routes with parameters (mealId)</subtask>
+        <subtask>Write unit tests verifying route string generation</subtask>
+      </subtasks>
+    </task>
+    
+    <task id="2" ac-refs="1,5">
+      <summary>Implement navigation graph</summary>
+      <subtasks>
+        <subtask>Create `ui/navigation/NavGraph.kt` composable function</subtask>
+        <subtask>Configure `NavHost` with `rememberNavController()` and `startDestination = Screen.MealList`</subtask>
+        <subtask>Add `composable()` destinations for all three screens with proper arguments</subtask>
+        <subtask>Configure `navArgument` for `mealId` in MealDetail route (type: StringType)</subtask>
+        <subtask>Add deep link configuration for MealList route (uri pattern: `foodie://home`)</subtask>
+        <subtask>Write instrumentation test verifying navigation graph configuration</subtask>
+      </subtasks>
+    </task>
+    
+    <task id="3" ac-refs="3">
+      <summary>Create MealList screen placeholder</summary>
+      <subtasks>
+        <subtask>Create `ui/screens/meallist/MealListScreen.kt` composable</subtask>
+        <subtask>Implement placeholder UI: Scaffold with TopAppBar ("Foodie"), floating action button ("+"), placeholder list with Text("Meals will appear here")</subtask>
+        <subtask>Add navigation callbacks: `onMealClick: (String) -> Unit`, `onSettingsClick: () -> Unit`</subtask>
+        <subtask>Add button "Go to Settings" triggering `onSettingsClick`</subtask>
+        <subtask>Create `@Preview` function for development</subtask>
+        <subtask>Write UI test verifying screen renders and button clicks work</subtask>
+      </subtasks>
+    </task>
+    
+    <task id="4" ac-refs="3,4">
+      <summary>Create MealDetail screen placeholder</summary>
+      <subtasks>
+        <subtask>Create `ui/screens/mealdetail/MealDetailScreen.kt` composable</subtask>
+        <subtask>Extract `mealId` parameter from `NavBackStackEntry` arguments</subtask>
+        <subtask>Implement placeholder UI: Scaffold with TopAppBar (title: "Edit Meal", navigation icon: back arrow), Text displaying "Editing meal: {mealId}")</subtask>
+        <subtask>Add navigation callback: `onNavigateBack: () -> Unit`</subtask>
+        <subtask>Wire back arrow to `onNavigateBack` callback</subtask>
+        <subtask>Create `@Preview` function with sample mealId</subtask>
+        <subtask>Write UI test verifying screen renders with mealId and back navigation works</subtask>
+      </subtasks>
+    </task>
+    
+    <task id="5" ac-refs="3,4">
+      <summary>Create Settings screen placeholder</summary>
+      <subtasks>
+        <subtask>Create `ui/screens/settings/SettingsScreen.kt` composable</subtask>
+        <subtask>Implement placeholder UI: Scaffold with TopAppBar (title: "Settings", navigation icon: back arrow), Column with Text("Settings will appear here")</subtask>
+        <subtask>Add navigation callback: `onNavigateBack: () -> Unit`</subtask>
+        <subtask>Wire back arrow to `onNavigateBack` callback</subtask>
+        <subtask>Create `@Preview` function</subtask>
+        <subtask>Write UI test verifying screen renders and back navigation works</subtask>
+      </subtasks>
+    </task>
+    
+    <task id="6" ac-refs="2">
+      <summary>Integrate NavGraph into MainActivity</summary>
+      <subtasks>
+        <subtask>Update `MainActivity.kt` to call `NavGraph()` composable in `setContent` block</subtask>
+        <subtask>Apply `FoodieTheme` wrapper around NavGraph</subtask>
+        <subtask>Remove any existing placeholder UI (if present from Story 1.1 or 1.2)</subtask>
+        <subtask>Verify app launches successfully showing MealList screen by default</subtask>
+      </subtasks>
+    </task>
+    
+    <task id="7" ac-refs="4">
+      <summary>Implement navigation actions in NavGraph</summary>
+      <subtasks>
+        <subtask>Wire MealList `onMealClick` to navigate to `Screen.MealDetail.createRoute(mealId)`</subtask>
+        <subtask>Wire MealList `onSettingsClick` to navigate to `Screen.Settings.route`</subtask>
+        <subtask>Wire MealDetail `onNavigateBack` to `navController.popBackStack()`</subtask>
+        <subtask>Wire Settings `onNavigateBack` to `navController.popBackStack()`</subtask>
+        <subtask>Write instrumentation test verifying all navigation actions work correctly</subtask>
+      </subtasks>
+    </task>
+    
+    <task id="8" ac-refs="5">
+      <summary>Configure deep linking for widget</summary>
+      <subtasks>
+        <subtask>Add deep link to MealList composable in NavGraph: `navDeepLink { uriPattern = "foodie://home" }`</subtask>
+        <subtask>Update `AndroidManifest.xml` with intent filter for deep link scheme `foodie://`</subtask>
+        <subtask>Add `&lt;data android:scheme="foodie" android:host="home" /&gt;` to manifest</subtask>
+        <subtask>Verify deep link launches app to MealList screen (test via adb command)</subtask>
+        <subtask>Document deep link usage for future widget implementation (Epic 2)</subtask>
+      </subtasks>
+    </task>
+    
+    <task id="9" ac-refs="4">
+      <summary>Test back stack behavior</summary>
+      <subtasks>
+        <subtask>Write instrumentation test: Launch app → Tap meal (navigate to Detail) → Press back → Verify returns to List</subtask>
+        <subtask>Write instrumentation test: Launch app → Navigate to Settings → Press back → Verify returns to List</subtask>
+        <subtask>Write instrumentation test: Launch app → Detail → Settings → Back → Back → Verify returns to List then exits app</subtask>
+        <subtask>Verify system back button and TopAppBar back arrow behave identically</subtask>
+      </subtasks>
+    </task>
+    
+    <task id="10" ac-refs="3">
+      <summary>Add temporary test data to MealList</summary>
+      <subtasks>
+        <subtask>Create dummy MealEntry list (3-5 items) with hardcoded data for UI validation</subtask>
+        <subtask>Display list with LazyColumn showing meal descriptions and calories</subtask>
+        <subtask>Make list items clickable, passing meal ID to `onMealClick` callback</subtask>
+        <subtask>Note in code comment: "Temporary test data - will be replaced with ViewModel in Epic 3"</subtask>
+      </subtasks>
+    </task>
+    
+    <task id="11" ac-refs="1,2,3,4,5">
+      <summary>Update documentation and validate</summary>
+      <subtasks>
+        <subtask>Update `/app/README.md` documenting navigation structure and how to add new screens</subtask>
+        <subtask>Add navigation flow diagram (text/ASCII): MealList ↔ MealDetail, MealList ↔ Settings</subtask>
+        <subtask>Document deep link configuration for future developers</subtask>
+        <subtask>Verify all acceptance criteria satisfied with file:line evidence</subtask>
+        <subtask>Run all tests (unit + instrumentation) and verify passing</subtask>
+      </subtasks>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Navigation Configuration</section>
+        <snippet>Complete NavGraph implementation example with sealed class routes, composable destinations, and deep linking configuration for widget integration.</snippet>
+      </doc>
+      
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Screen sealed class</section>
+        <snippet>Type-safe navigation routes using sealed class pattern with createRoute() helpers for parameterized routes.</snippet>
+      </doc>
+      
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Implementation Patterns - ViewModel Pattern</section>
+        <snippet>StateFlow pattern for state management with collectAsStateWithLifecycle() in Compose screens.</snippet>
+      </doc>
+      
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Navigation Configuration</section>
+        <snippet>Deep linking setup for widget integration with foodie://home URI pattern and AndroidManifest configuration.</snippet>
+      </doc>
+      
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Workflows and Sequencing - Navigation Flow</section>
+        <snippet>MainActivity hosts NavHost, Screen.MealList is startDestination, navigation between screens via callbacks.</snippet>
+      </doc>
+      
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.3 - Core Navigation and Screen Structure</section>
+        <snippet>Acceptance criteria: Navigation component configured, MainActivity hosts controller, placeholder screens for List/Edit/Settings, proper back stack handling, deep linking for widget.</snippet>
+      </doc>
+      
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Lock Screen Widget Specification</section>
+        <snippet>Widget uses deep link to launch camera directly from lock screen without unlock. Deep link pattern: foodie://home.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/sample/SampleScreen.kt</path>
+        <kind>composable-screen</kind>
+        <symbol>SampleScreen</symbol>
+        <lines>1-281</lines>
+        <reason>Reference implementation demonstrating complete MVVM architecture with Scaffold, StateFlow, hiltViewModel injection, and Material3 components. Pattern to follow for new screens.</reason>
+      </artifact>
+      
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/theme/Theme.kt</path>
+        <kind>theme</kind>
+        <symbol>FoodieTheme</symbol>
+        <reason>Application theme wrapping all screens. Use this in MainActivity around NavGraph.</reason>
+      </artifact>
+      
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/MainActivity.kt</path>
+        <kind>activity</kind>
+        <symbol>MainActivity</symbol>
+        <lines>1-50</lines>
+        <reason>Current MainActivity with placeholder Greeting screen. Needs to be updated to host NavGraph instead.</reason>
+      </artifact>
+      
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/domain/model/MealEntry.kt</path>
+        <kind>domain-model</kind>
+        <symbol>MealEntry</symbol>
+        <reason>Domain model for meal entries. Use for temporary test data in MealList screen (Task 10).</reason>
+      </artifact>
+      
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/base/BaseViewModel.kt</path>
+        <kind>base-class</kind>
+        <symbol>BaseViewModel</symbol>
+        <reason>Base ViewModel with lifecycle logging. Not needed for placeholder screens but referenced for future ViewModels in Epic 3.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <android>
+        <package name="androidx.navigation:navigation-compose" version="2.8.4">Navigation component for Compose with type-safe routing and deep linking</package>
+        <package name="androidx.compose.material3:material3">Material Design 3 components (Scaffold, TopAppBar, FloatingActionButton, Icon, Text)</package>
+        <package name="androidx.compose.ui:ui-tooling-preview">Preview annotation for Compose previews</package>
+        <package name="androidx.hilt:hilt-navigation-compose">Hilt integration for Navigation Compose (hiltViewModel function)</package>
+        <package name="androidx.compose.ui:ui-test-junit4">Compose UI testing framework for instrumentation tests</package>
+      </android>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>Screen (sealed class)</name>
+      <kind>navigation-routes</kind>
+      <signature>
+sealed class Screen(val route: String) {
+    object MealList : Screen("meal_list")
+    object MealDetail : Screen("meal_detail/{mealId}") {
+        fun createRoute(mealId: String) = "meal_detail/$mealId"
+    }
+    object Settings : Screen("settings")
+}
+      </signature>
+      <path>docs/architecture.md#Screen-sealed-class</path>
+    </interface>
+    
+    <interface>
+      <name>NavGraph composable</name>
+      <kind>navigation-configuration</kind>
+      <signature>
+@Composable
+fun NavGraph(navController: NavHostController = rememberNavController()) {
+    NavHost(
+        navController = navController,
+        startDestination = Screen.MealList.route
+    ) {
+        composable(Screen.MealList.route) { ... }
+        composable(
+            route = Screen.MealDetail.route,
+            arguments = listOf(navArgument("mealId") { type = NavType.StringType })
+        ) { ... }
+        composable(Screen.Settings.route) { ... }
+    }
+}
+      </signature>
+      <path>docs/architecture.md#Navigation-Configuration</path>
+    </interface>
+    
+    <interface>
+      <name>Screen Composable Pattern</name>
+      <kind>composable-function</kind>
+      <signature>
+@Composable
+fun ScreenName(
+    onNavigateBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Scaffold(
+        topBar = { TopAppBar(...) }
+    ) { paddingValues ->
+        // Content
+    }
+}
+      </signature>
+      <path>app/src/main/java/com/foodie/app/ui/sample/SampleScreen.kt</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <architectural>
+      <constraint>Single Activity Architecture: MainActivity hosts NavHost, all screens are Composables (no Fragments)</constraint>
+      <constraint>Type-Safe Navigation: Use sealed class for routes to prevent string typo errors</constraint>
+      <constraint>Unidirectional Data Flow: Screens receive callbacks (events up), not NavController directly</constraint>
+      <constraint>Screens must be testable in isolation using @Preview and UI tests</constraint>
+    </architectural>
+    
+    <design>
+      <constraint>Use Material3 components: Scaffold, TopAppBar, FloatingActionButton, Icon, Text</constraint>
+      <constraint>Apply FoodieTheme wrapper around all UI content</constraint>
+      <constraint>All screens must have Scaffold with TopAppBar for consistent structure</constraint>
+      <constraint>Use IconButton with Icons.AutoMirrored.Filled.ArrowBack for back navigation in TopAppBar</constraint>
+    </design>
+    
+    <testing>
+      <constraint>Create @Preview functions for all screens for development</constraint>
+      <constraint>Write unit tests for Screen sealed class route generation</constraint>
+      <constraint>Write instrumentation tests for navigation graph configuration</constraint>
+      <constraint>Write instrumentation tests for each screen rendering and callbacks</constraint>
+      <constraint>Write instrumentation tests for back stack behavior</constraint>
+      <constraint>Test deep linking via adb command: adb shell am start -W -a android.intent.action.VIEW -d "foodie://home" com.foodie.app</constraint>
+    </testing>
+    
+    <implementation>
+      <constraint>Placeholder screens have NO ViewModels or data loading (Epic 3 will add)</constraint>
+      <constraint>Temporary test data in MealList must have code comment noting replacement in Epic 3</constraint>
+      <constraint>Deep link URI pattern: foodie://home for MealList screen</constraint>
+      <constraint>Package structure: ui/navigation/ for navigation code, ui/screens/{screenname}/ for screens</constraint>
+      <constraint>File naming: ScreenNameScreen.kt (e.g., MealListScreen.kt, MealDetailScreen.kt)</constraint>
+    </implementation>
+  </constraints>
+
+  <tests>
+    <standards>
+      Unit tests use Truth assertions for readability. Test naming follows pattern: methodName should behavior when condition. 
+      Compose UI tests use createComposeRule(), onNodeWithText(), performClick(), assertIsDisplayed(). 
+      Navigation tests use TestNavHostController for isolated testing. 
+      All tests must pass before marking story complete.
+    </standards>
+    
+    <locations>
+      <location>app/src/test/java/com/foodie/app/ui/navigation/</location>
+      <location>app/src/androidTest/java/com/foodie/app/ui/navigation/</location>
+      <location>app/src/androidTest/java/com/foodie/app/ui/screens/</location>
+    </locations>
+    
+    <ideas>
+      <idea ac-ref="1">Unit test: Screen.MealDetail.createRoute("test-123") should produce "meal_detail/test-123"</idea>
+      <idea ac-ref="1">Instrumentation test: NavHost should configure all three destinations with correct routes</idea>
+      <idea ac-ref="2">Instrumentation test: MainActivity should launch and display NavGraph with MealList as start destination</idea>
+      <idea ac-ref="3">Instrumentation test: MealListScreen should render with TopAppBar title "Foodie" and placeholder text</idea>
+      <idea ac-ref="3">Instrumentation test: MealDetailScreen should display "Editing meal: {mealId}" when mealId parameter provided</idea>
+      <idea ac-ref="3">Instrumentation test: SettingsScreen should render with TopAppBar title "Settings" and placeholder text</idea>
+      <idea ac-ref="4">Instrumentation test: Navigate from MealList to MealDetail, press back, verify returns to MealList</idea>
+      <idea ac-ref="4">Instrumentation test: Navigate from MealList to Settings, press back, verify returns to MealList</idea>
+      <idea ac-ref="4">Instrumentation test: TopAppBar back arrow should invoke onNavigateBack callback</idea>
+      <idea ac-ref="5">Integration test: Deep link foodie://home should launch app to MealList screen (test via adb)</idea>
+    </ideas>
+  </tests>
+
+  <dev-notes>
+    <note category="architecture">
+      This story implements Jetpack Navigation Compose with single activity architecture. 
+      MainActivity hosts NavHost, all screens are Composables. 
+      Navigation flow: MealList (start) ↔ MealDetail, MealList ↔ Settings. 
+      Screens receive callbacks for navigation actions, NavGraph wires them to actual navigation.
+    </note>
+    
+    <note category="patterns">
+      Follow SampleScreen.kt pattern: Scaffold with TopAppBar, use hiltViewModel() for future ViewModels, 
+      create @Preview functions. Screens are placeholders with NO business logic (ViewModels added in Epic 3).
+    </note>
+    
+    <note category="dependencies">
+      All navigation dependencies already configured in Story 1.1: navigation-compose 2.8.4, 
+      material3, hilt-navigation-compose, ui-test-junit4. No new dependencies needed.
+    </note>
+    
+    <note category="deep-linking">
+      Deep link foodie://home launches MealList. Future lock screen widget (Story 2.1) will use this. 
+      Configure in NavGraph with navDeepLink and AndroidManifest.xml intent filter. 
+      Test via adb: adb shell am start -W -a android.intent.action.VIEW -d "foodie://home" com.foodie.app
+    </note>
+    
+    <note category="testing">
+      Use TestNavHostController for navigation tests. Create @Preview for visual testing in IDE. 
+      Truth assertions for readable tests. Test back stack behavior comprehensively.
+    </note>
+    
+    <note category="future-integration">
+      Story 1.4 (Health Connect) has no direct dependency. 
+      Story 2.1 (Lock Screen Widget) will use foodie://home deep link. 
+      Epic 3 will add ViewModels and real data to these placeholder screens.
+    </note>
+    
+    <note category="learnings-from-previous">
+      Story 1.2 established MVVM architecture with BaseViewModel, Result wrapper, StateFlow patterns. 
+      These are not needed for placeholder screens but will be used when Epic 3 adds ViewModels. 
+      Follow Compose patterns in SampleScreen.kt: Scaffold structure, Material3 components, @Preview functions. 
+      Maintain test coverage standards from Story 1.2: Truth assertions, comprehensive testing.
+    </note>
+  </dev-notes>
+</story-context>
