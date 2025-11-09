@@ -1,0 +1,200 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.2</storyId>
+    <title>Lock Screen Widget Implementation</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-2-lock-screen-widget-implementation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>tap a lock screen widget to instantly launch the camera</iWant>
+    <soThat>I can capture my meal in 2 seconds without unlocking my phone</soThat>
+    <tasks>
+      - Task 1: Create Jetpack Glance Widget Module (AC: #1, #2, #3, #4, #5)
+      - Task 2: Create Widget Receiver and Configuration (AC: #1, #5)
+      - Task 3: Deep Link Navigation Setup (AC: #1, #2)
+      - Task 4: Lock Screen Widget Testing (AC: #1, #2, #3, #4, #5)
+      - Task 5: Documentation and Integration Verification (AC: All)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Camera launches in less than 500ms from widget tap</criterion>
+    <criterion id="2">No device unlock required (camera accessible from lock screen)</criterion>
+    <criterion id="3">Widget displays app icon with "Log Meal" text</criterion>
+    <criterion id="4">Widget uses smallest available lock screen widget size</criterion>
+    <criterion id="5">Widget remains functional after device reboot</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2 - AI-Powered Meal Capture, Story 2.2</title>
+        <section>Lock Screen Widget Implementation (originally Story 2-1, renumbered to 2-2)</section>
+        <snippet>Acceptance Criteria: Widget tap launches camera in &lt; 500ms, no device unlock required, displays app icon + "Log Meal" text, smallest lock screen widget size, persists after reboot. Technical Notes: Use Android 12+ lock screen widget API with RemoteViews or Jetpack Glance, PendingIntent to launch camera activity via deep link, test on devices with different lock screen security settings, widget should be stateless (no updates needed).</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Lock Screen Widget Specification</title>
+        <section>Mobile App Specific Requirements - Lock Screen Widget Specification</section>
+        <snippet>Widget Type: Lock Screen Quick Action Widget (Button-style), single tap launches camera directly from lock screen. No unlock required. Minimal UI: app icon + "Log Meal" text. Size: Smallest available for lock screen. Performance Requirements: Launch latency &lt; 500ms from tap to camera ready. Widget Behavior: Tap → immediate camera launch (no device unlock needed), background processing begins automatically, no widget state changes. Rationale: Lock screen access critical for "invisible tracking" - faster than home screen widget which requires unlock first.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Lock Screen Widget Module</title>
+        <section>System Architecture Alignment - UI Layer - Lock Screen Widget Module</section>
+        <snippet>Lock screen widget using GlanceAppWidget (Jetpack Glance for widgets) with PendingIntent deep link to camera activity. Widget Configuration: Single tap action launches camera directly from lock screen, no unlock required, minimal UI (app icon + "Log Meal" text), size: smallest available lock screen widget. Widget behavior: tap → immediate camera launch via deep link, no widget state changes (remains static). Components: MealCaptureWidget (GlanceAppWidget), MealCaptureWidgetReceiver (GlanceAppWidgetReceiver).</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: AI-Powered Meal Capture</title>
+        <section>Detailed Design - Lock Screen Widget Module</section>
+        <snippet>Lock Screen Widget Module (ui/widget/): MealCaptureWidget (GlanceAppWidget) - lock screen quick action widget rendering with Content() composable, provideGlance() method, depends on navigation deep link URI. MealCaptureWidgetReceiver (GlanceAppWidgetReceiver) - widget lifecycle and update handling with onUpdate(), onEnabled() methods. Widget Configuration: lock screen quick action (single button), display: app icon + "Log Meal" text, action: deep link to foodie://capture route, size: small/medium lock screen constraint, update frequency: static (no periodic updates needed).</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-0-deep-linking-validation.md</path>
+        <title>Deep Linking Validation - Completed</title>
+        <section>Story Context and Dev Notes</section>
+        <snippet>Deep link route foodie://capture already configured in NavGraph. Deep linking tested and working via adb commands. Navigation handles all app states (cold start, background, foreground). DeepLinkTestHelper.kt created in test/util/ package with helper functions for testing. All manual deep link tests passed via adb validation. Status: review (validation complete, awaiting final approval).</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-1-fix-hilt-compose-test-infrastructure.md</path>
+        <title>Fix Hilt + Compose Test Infrastructure - Completed</title>
+        <section>Story Context and Solution</section>
+        <snippet>Test infrastructure fix completed. ComposeTestActivity pattern now available for instrumentation tests. All 56 tests passing - instrumentation test framework fully operational. Hilt + Compose pattern: Use createAndroidComposeRule&lt;ComposeTestActivity&gt;() with manual setContent() for testing Compose screens with hiltViewModel(). Documentation created: docs/testing/compose-hilt-testing-guide.md. Widget PendingIntent can be tested using this pattern. Deep link navigation from widget can be validated with automated tests.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing/compose-hilt-testing-guide.md</path>
+        <title>Compose + Hilt Testing Guide</title>
+        <section>Testing Pattern Documentation</section>
+        <snippet>Complete guide for writing instrumentation tests for Compose screens with Hilt ViewModels. Includes ComposeTestActivity pattern, HiltAndroidTest setup, test rule configuration, and code examples. Use this guide when writing widget navigation tests and deep link validation tests.</snippet>
+      </doc>
+    </docs>
+    
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+        <kind>navigation</kind>
+        <symbol>NavGraph</symbol>
+        <lines>1-100</lines>
+        <reason>Contains existing deep link configuration. Widget will use foodie:// scheme for deep linking to camera. Currently has foodie://home (legacy) and foodie://meals (primary) deep links. Widget should use foodie://capture deep link which needs to be added to NavGraph or camera destination.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/navigation/Screen.kt</path>
+        <kind>navigation</kind>
+        <symbol>Screen</symbol>
+        <lines>N/A</lines>
+        <reason>Sealed class defining navigation routes. Widget will need to reference the camera/capture route from this sealed class. May need to add Screen.Capture route if not already present.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/test/java/com/foodie/app/util/DeepLinkTestHelper.kt</path>
+        <kind>test utility</kind>
+        <symbol>DeepLinkTestHelper</symbol>
+        <lines>N/A</lines>
+        <reason>Test helper for creating deep link intents and testing navigation. Can be used to test widget PendingIntent behavior. Created in Story 2-0 for deep link validation.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/androidTest/java/com/foodie/app/ui/ComposeTestActivity.kt</path>
+        <kind>test infrastructure</kind>
+        <symbol>ComposeTestActivity</symbol>
+        <lines>N/A</lines>
+        <reason>Hilt-enabled test activity for Compose instrumentation tests. Required pattern from Story 2-1 for testing widget PendingIntent and deep link navigation with hiltViewModel() composables.</reason>
+      </artifact>
+    </code>
+    
+    <dependencies>
+      <android>
+        <package name="androidx.core.ktx" version="latest" />
+        <package name="androidx.compose.bom" version="platform-2024.10.01" />
+        <package name="androidx.compose.ui" version="bom" />
+        <package name="androidx.compose.material3" version="bom" />
+        <package name="androidx.navigation.compose" version="latest" />
+        <package name="androidx.activity.compose" version="latest" />
+        <package name="hilt.android" version="latest" />
+        <package name="NOTE" info="Jetpack Glance dependency NOT currently in build.gradle.kts - must be added for widget support" />
+      </android>
+      <testing>
+        <package name="junit" version="latest" />
+        <package name="androidx.compose.ui.test.junit4" version="bom" />
+        <package name="androidx.navigation.testing" version="latest" />
+        <package name="truth" version="latest" />
+        <package name="hilt.android.testing" version="latest" />
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Widget must use Jetpack Glance framework (GlanceAppWidget) for Material3 alignment and modern Compose-like API</constraint>
+    <constraint>Widget is stateless - no periodic updates needed, static "Log Meal" button</constraint>
+    <constraint>Deep link URI pattern must follow foodie:// scheme established in Story 2-0</constraint>
+    <constraint>PendingIntent flags must be FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE for Android 12+ compatibility and lock screen security</constraint>
+    <constraint>Widget launch time must be &lt; 500ms (measured from tap to camera ready)</constraint>
+    <constraint>Widget must work from fully locked device without requiring unlock</constraint>
+    <constraint>Widget must persist after device reboot</constraint>
+    <constraint>Widget receiver must be registered in AndroidManifest.xml with proper intent filters</constraint>
+    <constraint>Widget configuration XML must specify lock screen placement capability</constraint>
+    <constraint>Must follow project architecture: ui/widget/ package for widget module</constraint>
+    <constraint>Testing must use ComposeTestActivity pattern from Story 2-1 for instrumentation tests</constraint>
+    <constraint>All code must follow Kotlin coding standards with KDoc documentation</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GlanceAppWidget.provideGlance()</name>
+      <kind>Jetpack Glance API</kind>
+      <signature>suspend fun provideGlance(context: Context, id: GlanceId)</signature>
+      <path>External: androidx.glance.appwidget.GlanceAppWidget</path>
+    </interface>
+    <interface>
+      <name>GlanceAppWidgetReceiver.glanceAppWidget</name>
+      <kind>Jetpack Glance API</kind>
+      <signature>override val glanceAppWidget: GlanceAppWidget</signature>
+      <path>External: androidx.glance.appwidget.GlanceAppWidgetReceiver</path>
+    </interface>
+    <interface>
+      <name>PendingIntent.getActivity()</name>
+      <kind>Android Platform API</kind>
+      <signature>fun getActivity(context: Context, requestCode: Int, intent: Intent, flags: Int): PendingIntent</signature>
+      <path>External: android.app.PendingIntent</path>
+    </interface>
+    <interface>
+      <name>NavGraph Deep Link Route</name>
+      <kind>Navigation deep link</kind>
+      <signature>foodie://capture (to be added to NavGraph or camera destination)</signature>
+      <path>app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+    </interface>
+    <interface>
+      <name>DeepLinkTestHelper.createDeepLinkIntent()</name>
+      <kind>Test utility function</kind>
+      <signature>fun createDeepLinkIntent(uri: String): Intent</signature>
+      <path>app/src/test/java/com/foodie/app/util/DeepLinkTestHelper.kt</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing follows project standards: Unit tests for widget configuration and PendingIntent creation logic using JUnit, Mockito-Kotlin, and Truth assertion library. Instrumentation tests for widget UI rendering and deep link navigation using Compose UI Test with ComposeTestActivity pattern (from Story 2-1). Manual testing required for lock screen behavior, launch timing measurement, and reboot persistence. Test naming convention: methodName_whenCondition_thenExpectedResult. All tests must pass before story completion.
+    </standards>
+    
+    <locations>
+      <location>app/src/test/java/com/foodie/app/ui/widget/ (unit tests for widget logic)</location>
+      <location>app/src/androidTest/java/com/foodie/app/ui/widget/ (instrumentation tests for widget rendering and navigation)</location>
+    </locations>
+    
+    <ideas>
+      <idea ac="1,2,3">Unit test: Widget PendingIntent creation includes correct deep link URI (foodie://capture) and immutable flags</idea>
+      <idea ac="1,3">Instrumentation test: Widget content renders with app icon and "Log Meal" text using Glance preview</idea>
+      <idea ac="1,2">Instrumentation test: Widget tap triggers PendingIntent with deep link that navigates to camera (use DeepLinkTestHelper)</idea>
+      <idea ac="1">Manual test: Measure widget tap to camera ready time on physical device (must be &lt; 500ms)</idea>
+      <idea ac="2">Manual test: Verify widget tap launches camera from fully locked device without unlock prompt</idea>
+      <idea ac="4">Manual test: Verify widget size matches lock screen constraints (smallest available size)</idea>
+      <idea ac="5">Manual test: Add widget, reboot device, verify widget still present and functional</idea>
+      <idea ac="1,2,3">Integration test: End-to-end flow from widget tap to camera launch in different app states (killed, background, foreground)</idea>
+    </ideas>
+  </tests>
+</story-context>

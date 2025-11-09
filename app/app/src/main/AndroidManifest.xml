@@ -52,7 +52,28 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="foodie" android:host="meals" />
             </intent-filter>
+            
+            <!-- Deep link for widget capture (Story 2-2) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="foodie" android:host="capture" />
+            </intent-filter>
         </activity>
+
+        <!-- Lock Screen Widget (Story 2-2) -->
+        <receiver
+            android:name=".ui.widget.MealCaptureWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_placeholder">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/glance_widget_info" />
+        </receiver>
     </application>
 
 </manifest>

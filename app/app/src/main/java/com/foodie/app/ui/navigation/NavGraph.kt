@@ -51,7 +51,8 @@ fun NavGraph(
             route = Screen.MealList.route,
             deepLinks = listOf(
                 navDeepLink { uriPattern = "foodie://home" }, // Legacy - Story 1-3
-                navDeepLink { uriPattern = "foodie://meals" } // Primary - Story 2-0
+                navDeepLink { uriPattern = "foodie://meals" }, // Primary - Story 2-0
+                navDeepLink { uriPattern = "foodie://capture" } // Widget - Story 2-2 (placeholder for future camera screen)
             )
         ) {
             MealListScreen(

@@ -9,14 +9,14 @@ Status: Draft
 
 ## Overview
 
-Epic 2 delivers the core "invisible tracking" innovation that defines the Foodie value proposition: enabling users to capture, analyze, and save meal nutrition data in under 5 seconds with minimal friction. This epic implements the complete end-to-end flow from lock screen widget activation through AI-powered nutrition analysis to automatic Health Connect storage, all happening in the background while users continue with their activities.
+Epic 2 delivers the core "invisible tracking" innovation that defines the Foodie value proposition: enabling users to capture, analyze, and save meal nutrition data in under 5 seconds with minimal friction. This epic implements the complete end-to-end flow from home screen widget activation through AI-powered nutrition analysis to automatic Health Connect storage, all happening in the background while users continue with their activities.
 
-The epic builds on the foundation established in Epic 1 (MVVM architecture, Health Connect integration, error handling framework) and introduces the three critical technical integrations: Android lock screen widget for instant camera access, Azure OpenAI Responses API for multimodal image analysis, and WorkManager for reliable background processing with retry logic. Success is measured by the speed validation criterion: average capture time ≤ 5 seconds from widget tap to photo confirmation.
+The epic builds on the foundation established in Epic 1 (MVVM architecture, Health Connect integration, error handling framework) and introduces the three critical technical integrations: Android home screen widget with Jetpack Glance for quick camera access, Azure OpenAI Responses API for multimodal image analysis, and WorkManager for reliable background processing with retry logic. Success is measured by the speed validation criterion: average capture time ≤ 5 seconds from widget tap to photo confirmation.
 
 ## Objectives and Scope
 
 **In Scope:**
-- Lock screen widget implementation using Android 12+ lock screen quick action API with sub-500ms launch time
+- Home screen widget implementation using Jetpack Glance with sub-3-second launch time (including biometric unlock)
 - Camera integration using system camera intent with one-handed operation, retake capability, and 2MP JPEG compression
 - Azure OpenAI Responses API client with GPT-4.1 multimodal vision model, structured JSON output parsing (calories + description)
 - WorkManager background processing with network-constrained execution, exponential backoff retry (3 attempts), and automatic photo cleanup
@@ -34,7 +34,7 @@ The epic builds on the foundation established in Epic 1 (MVVM architecture, Heal
 - Multi-photo capture or before/after comparisons (V3.0)
 
 **Success Criteria:**
-- Widget launches camera in < 500ms (measured from tap to camera ready state)
+- Widget launches camera in < 3 seconds from device wake (measured from wake to camera ready state with biometric unlock)
 - Photo capture + confirmation completes in < 5 seconds (one-handed operation validated)
 - Background processing completes in < 15 seconds typical (widget → camera → AI → Health Connect save)
 - Azure OpenAI API returns structured nutrition data with 95%+ success rate on valid food images
@@ -47,7 +47,7 @@ The epic builds on the foundation established in Epic 1 (MVVM architecture, Heal
 This epic implements the AI-powered capture flow layer defined in the Architecture Document, integrating across all architectural tiers:
 
 **UI Layer (ui/ package):**
-- Lock screen widget using `GlanceAppWidget` (Jetpack Glance for widgets) with `PendingIntent` deep link to camera activity
+- Home screen widget using `GlanceAppWidget` (Jetpack Glance) with `PendingIntent` deep link to camera activity
 - Camera activity using system camera intent (`MediaStore.ACTION_IMAGE_CAPTURE`) with preview confirmation UI
 - No ViewModel needed for camera flow (stateless, intent-based navigation)
 
@@ -64,7 +64,7 @@ This epic implements the AI-powered capture flow layer defined in the Architectu
 **Technology Stack Integration:**
 - **WorkManager 2.9.1:** Background processing with network constraints, exponential backoff, and zero foreground service overhead
 - **Retrofit 2.11.0 + OkHttp 4.12.0:** HTTP client for Azure OpenAI API with logging interceptor (debug mode), authentication interceptor (API key header)
-- **Jetpack Glance:** Modern widget framework for lock screen quick actions (Material3-aligned)
+- **Jetpack Glance:** Modern widget framework for home screen quick actions (Material3-aligned)
 - **Health Connect 1.1.0:** `NutritionRecord` creation with both `energy` (calories in kcal) and `name` (food description) fields
 - **Kotlin Coroutines + Flow:** Async API calls, repository Flow emissions, WorkManager suspend functions
 
@@ -78,19 +78,20 @@ Navigation uses Jetpack Navigation Compose with deep link routes. Widget `Pendin
 
 ### Services and Modules
 
-**Lock Screen Widget Module (ui/widget/):**
+**Home Screen Widget Module (ui/widget/):**
 
 | Component | Responsibility | Key Methods | Dependencies |
 |-----------|----------------|-------------|--------------|
-| `MealCaptureWidget` (GlanceAppWidget) | Lock screen quick action widget rendering | `Content()` composable, `provideGlance()` | Navigation deep link URI |
+| `MealCaptureWidget` (GlanceAppWidget) | Home screen quick action widget rendering | `Content()` composable, `provideGlance()` | Navigation deep link URI |
 | `MealCaptureWidgetReceiver` (GlanceAppWidgetReceiver) | Widget lifecycle and update handling | `onUpdate()`, `onEnabled()` | MealCaptureWidget |
 
 **Widget Configuration:**
-- Widget type: Lock screen quick action (single button)
+- Widget type: Home screen quick action (single button)
 - Display: App icon + "Log Meal" text
 - Action: Deep link to `foodie://capture` route
-- Size: Small/medium (lock screen constraint)
+- Size: Standard small widget (2x1 or 2x2 grid cells)
 - Update frequency: Static (no periodic updates needed)
+- Platform: Home screen only (Android does not support third-party lock screen widgets)
 
 **Camera Module (ui/camera/):**
 
@@ -416,7 +417,7 @@ suspend fun HealthConnectManager.insertNutritionWithDescription(
 **Complete End-to-End Flow:**
 
 ```
-[User Action] Tap Lock Screen Widget
+[User Action] Tap Home Screen Widget
     ↓
 [Widget] PendingIntent triggers deep link: foodie://capture
     ↓
@@ -694,14 +695,14 @@ Timber.i("Health Connect record created: $recordId")
 | `com.squareup.retrofit2:converter-gson` | 2.11.0 | JSON serialization/deserialization | API request/response parsing |
 | `com.squareup.okhttp3:okhttp` | 4.12.0 | HTTP client foundation | Network communication |
 | `com.squareup.okhttp3:logging-interceptor` | 4.12.0 | HTTP request/response logging | Debug mode network inspection |
-| `androidx.glance:glance-appwidget` | 1.1.1 | Modern widget framework | Lock screen widget implementation |
+| `androidx.glance:glance-appwidget` | 1.1.1 | Modern widget framework | Home screen widget implementation |
 | `androidx.health.connect:connect-client` | 1.1.0 | Health Connect SDK | Nutrition data persistence (from Epic 1) |
 | `com.jakewharton.timber:timber` | 5.0.1 | Logging framework | Error logging and performance tracking (from Epic 1) |
 | `androidx.security:security-crypto` | 1.1.0-alpha06 | Encrypted preferences | API key storage (from Epic 1) |
 | `com.google.dagger:hilt-android` | 2.51.1 | Dependency injection | Module and worker injection (from Epic 1) |
 
 **New Dependencies Added in Epic 2:**
-- `androidx.glance:glance-appwidget:1.1.1` - Lock screen widget support
+- `androidx.glance:glance-appwidget:1.1.1` - Home screen widget support
 
 **External Service Integrations:**
 
@@ -783,7 +784,7 @@ NavHost(navController, startDestination = "home") {
 **Android System Requirements:**
 - **Minimum SDK:** API 28 (Android 9.0) - Health Connect compatibility
 - **Target SDK:** API 35 (Android 15)
-- **Lock Screen Widget:** API 31+ (Android 12+) for Glance lock screen widgets
+- **Home Screen Widget:** API 31+ (Android 12+) for Jetpack Glance widgets
 - **Camera Access:** Camera permission required on first widget activation
 - **Storage:** Minimal (photos deleted immediately, only nutrition metadata persisted)
 
@@ -791,16 +792,17 @@ NavHost(navController, startDestination = "home") {
 
 **Derived from PRD FR-1 through FR-5 and Epic 2 Stories:**
 
-**AC-1: Lock Screen Widget Functionality (Story 2.1)**
-- Widget displays on Android lock screen with app icon and "Log Meal" label
-- Widget size is smallest available for lock screen (small/medium constraint)
-- Single tap launches camera directly without device unlock (if security policy allows)
-- Widget launch time < 500ms from tap to camera ready state
+**AC-1: Home Screen Widget Functionality (Story 2.2)**
+- Widget displays on Android home screen with app icon and "Log Meal" label
+- Widget size is standard small widget (2x1 or 2x2 grid cells)
+- Single tap launches camera directly after device unlock (biometric unlock recommended)
+- Widget launch time < 3 seconds from device wake to camera ready state (with biometric unlock)
 - Widget remains functional after device reboot
 - Widget works without app actively running in background
 - Deep link `foodie://capture` routes to camera screen regardless of app state (cold start, background, foreground)
+- Platform note: Home screen placement only (Android does not support third-party lock screen widgets)
 
-**AC-2: Photo Capture with Retake Option (Story 2.2)**
+**AC-2: Photo Capture with Retake Option (Story 2.3)**
 - System camera intent launches in full-screen mode
 - User can capture photo with single tap or volume button
 - Preview screen shows captured photo with "Retake" and "Use Photo" buttons
@@ -880,7 +882,7 @@ NavHost(navController, startDestination = "home") {
 
 | Acceptance Criterion | Spec Section(s) | Component(s)/API(s) | Test Strategy |
 |---------------------|-----------------|---------------------|---------------|
-| **AC-1: Lock Screen Widget** | Services and Modules → Lock Screen Widget Module, Workflows → Deep Link Navigation | MealCaptureWidget (GlanceAppWidget), MealCaptureWidgetReceiver, PendingIntent with foodie://capture deep link | Unit test: Widget configuration, deep link URI construction<br>Integration test: Widget tap triggers CameraActivity launch<br>Performance test: Measure launch time on mid-range device |
+| **AC-1: Home Screen Widget** | Services and Modules → Home Screen Widget Module, Workflows → Deep Link Navigation | MealCaptureWidget (GlanceAppWidget), MealCaptureWidgetReceiver, PendingIntent with foodie://capture deep link | Unit test: Widget configuration, deep link URI construction<br>Integration test: Widget tap triggers CameraActivity launch<br>Performance test: Measure launch time on mid-range device |
 | **AC-2: Photo Capture** | Services and Modules → Camera Module, Data Models → WorkManager Data Keys | CameraActivity, System Camera Intent (ACTION_IMAGE_CAPTURE), ImageUtils (compression), File storage in cache/photos/ | Unit test: Image compression to 2MP + 80% JPEG quality<br>Integration test: Camera intent launch and result handling<br>Manual test: One-handed operation with thumb, retake functionality |
 | **AC-3: Azure OpenAI API** | APIs and Interfaces → Azure OpenAI Integration, Data Models → API DTOs | AzureOpenAiApi (Retrofit), AuthInterceptor, NutritionAnalysisRepository, Gson parser | Unit test: Request body serialization, response parsing, validation logic<br>Integration test: Mock API responses for success/error scenarios<br>Contract test: Verify API request format matches Azure OpenAI spec |
 | **AC-4: Background Processing** | Services and Modules → Background Processing Module, Workflows → Complete End-to-End Flow | AnalyzeMealWorker, WorkManager with constraints and backoff policy, NutritionAnalysisRepository | Unit test: Worker logic with mocked repository and Health Connect<br>Integration test: WorkManager execution with network constraint<br>Retry test: Simulate network failures, verify exponential backoff |
@@ -892,8 +894,8 @@ NavHost(navController, startDestination = "home") {
 
 | PRD Requirement | Epic 2 Acceptance Criteria | Implementation Status |
 |-----------------|---------------------------|----------------------|
-| FR-1: Lock Screen Widget | AC-1 | Fully implemented in Story 2.1 |
-| FR-2: Food Photo Capture | AC-2 | Fully implemented in Story 2.2 |
+| FR-1: Home Screen Widget | AC-1 | Fully implemented in Story 2.2 |
+| FR-2: Food Photo Capture | AC-2 | Fully implemented in Story 2.3 |
 | FR-3: AI Nutrition Analysis | AC-3 | Fully implemented in Story 2.3 |
 | FR-4: Background Processing | AC-4 | Fully implemented in Story 2.4 |
 | FR-5: Health Connect Data Storage | AC-5 | Fully implemented in Story 2.5 |
@@ -906,7 +908,7 @@ NavHost(navController, startDestination = "home") {
 **Risks:**
 
 **R-1: Widget Launch Performance on Low-End Devices**
-- **Risk:** Lock screen widget launch may exceed 500ms target on budget Android devices with limited RAM
+- **Risk:** Home screen widget launch may exceed 3-second target on budget Android devices with limited RAM or slow biometric sensors
 - **Impact:** Core value proposition ("invisible tracking") degraded if widget feels slow
 - **Mitigation:** Use system camera intent (fastest option), minimize deep link processing overhead, test on mid-range devices during development
 - **Contingency:** If < 500ms unachievable, adjust success criteria to < 1 second with documented device limitations
@@ -955,7 +957,7 @@ NavHost(navController, startDestination = "home") {
 
 **A-3: System Camera Performance**
 - **Assumption:** Android system camera intent launches faster than CameraX custom implementation
-- **Validation:** Benchmark both approaches during Story 2.2 implementation
+- **Validation:** Benchmark both approaches during Story 2.3 implementation
 - **Impact if False:** Switch to CameraX if system camera too slow (adds dependency complexity)
 
 **A-4: One-Handed Operation is Achievable**
@@ -973,7 +975,7 @@ NavHost(navController, startDestination = "home") {
 **Q-1: Should widget support home screen placement in addition to lock screen?**
 - **Context:** PRD focuses on lock screen for speed, home screen widget offers alternative access
 - **Decision Needed:** Epic 2 scope or defer to V2.0?
-- **Recommendation:** Defer to V2.0 - lock screen widget validates core hypothesis first
+- **Recommendation:** Defer to V2.0 - home screen widget validates core hypothesis first
 
 **Q-2: How should app handle multiple concurrent photo captures?**
 - **Context:** User could theoretically tap widget multiple times before first photo processed
@@ -1033,7 +1035,7 @@ NavHost(navController, startDestination = "home") {
 
 **Full Flow Validation:**
 1. Launch app on physical device with real Azure OpenAI API key configured
-2. Tap lock screen widget → Verify camera launches in < 500ms
+2. Wake device, unlock with biometric, tap home screen widget → Verify camera launches in < 3 seconds
 3. Capture food photo (e.g., sandwich) → Confirm photo preview displays
 4. Tap "Use Photo" → Verify return to previous activity immediately
 5. Wait 15 seconds → Check Health Connect for new NutritionRecord

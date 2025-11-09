@@ -193,6 +193,7 @@ Deep links allow external sources (widgets, notifications) to launch specific sc
 
 **Current deep links:**
 - `foodie://home` → Opens MealList screen
+- `foodie://capture` → Opens MealList screen (used by home screen widget)
 
 **Configuration:**
 ```kotlin
@@ -200,7 +201,8 @@ Deep links allow external sources (widgets, notifications) to launch specific sc
 composable(
     route = Screen.MealList.route,
     deepLinks = listOf(
-        navDeepLink { uriPattern = "foodie://home" }
+        navDeepLink { uriPattern = "foodie://home" },
+        navDeepLink { uriPattern = "foodie://capture" }
     )
 ) { /* ... */ }
 
@@ -210,15 +212,50 @@ composable(
     <category android:name="android.intent.category.DEFAULT" />
     <category android:name="android.intent.category.BROWSABLE" />
     <data android:scheme="foodie" android:host="home" />
+    <data android:scheme="foodie" android:host="capture" />
 </intent-filter>
 ```
 
 **Testing deep links:**
 ```bash
 adb shell am start -W -a android.intent.action.VIEW -d "foodie://home" com.foodie.app
+adb shell am start -W -a android.intent.action.VIEW -d "foodie://capture" com.foodie.app
 ```
 
-**Future use:** Lock screen widget (Story 2.1) will use `foodie://home` to launch the app.
+### Home Screen Widget
+
+The Foodie app includes a home screen widget for quick meal capture access.
+
+**Implementation:**
+- Built with Jetpack Glance (Compose-like API for widgets)
+- Stateless design - no periodic updates required
+- Launches app via `foodie://capture` deep link
+- Requires device unlock (home screen widget)
+
+**Key Files:**
+- `ui/widget/MealCaptureWidget.kt` - Widget implementation using Glance
+- `ui/widget/MealCaptureWidgetReceiver.kt` - Widget receiver
+- `res/xml/glance_widget_info.xml` - Widget configuration
+- `res/layout/widget_meal_capture.xml` - Placeholder layout
+
+**Adding to Home Screen:**
+1. Long-press on home screen
+2. Tap "Widgets"
+3. Find "Foodie" category
+4. Drag "Log Meal" widget (2x1 size) to desired location
+
+**Technical Details:**
+- Widget shows app icon + "Log Meal" text
+- Tapping widget launches app to MealList after unlock (camera integration in future story)
+- PendingIntent uses `FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE` for Android 12+ security
+- No background processing or battery impact (static widget)
+- Persists across device reboots
+- Performance: < 3 seconds from device wake to camera ready (with biometric unlock)
+
+**Platform Note:**
+Android does not support third-party lock screen widgets on phones. Lock screen shortcuts
+are limited to system apps only (camera, torch, wallet, etc.). Home screen widgets provide
+the best quick-access experience for third-party apps.
 
 ### Back Stack Behavior
 

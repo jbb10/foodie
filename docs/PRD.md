@@ -10,7 +10,7 @@
 
 **Vision:** Make calorie tracking invisible - capture food in 2 seconds with one hand while holding your plate, eliminating the speed and accuracy bottlenecks that make manual tracking unsustainable for body recomposition goals.
 
-Foodie is a native Android app that transforms calorie tracking from a 30+ second manual entry process into a 2-second camera snap. Users activate a lock screen widget, photograph their meal one-handed, pocket their phone, and AI analysis completes in the background with automatic save to Google Health Connect. Photos are ephemeral - deleted immediately after extracting caloric data.
+Foodie is a native Android app that transforms calorie tracking from a 30+ second manual entry process into a 5-second camera snap. Users activate a home screen widget, unlock with biometrics, photograph their meal one-handed, pocket their phone, and AI analysis completes in the background with automatic save to Google Health Connect. Photos are ephemeral - deleted immediately after extracting caloric data.
 
 Built for personal use to enable sustainable body recomposition through precision tracking without disrupting daily life or requiring cognitive overhead during meals.
 
@@ -18,7 +18,7 @@ Built for personal use to enable sustainable body recomposition through precisio
 
 **"Invisible tracking that makes precision nutrition sustainable."**
 
-The magic moment: Standing in a canteen line holding your plate, you tap a widget, snap with one hand in 2 seconds, pocket your phone, and the calories are automatically logged by the time you sit down - no typing, no menus, no friction.
+The magic moment: Standing in a canteen line holding your plate, you tap a widget, unlock with your thumb, snap with one hand in 2-3 seconds, pocket your phone, and the calories are automatically logged by the time you sit down - no typing, no menus, no friction.
 
 This product eliminates the fundamental speed-accuracy tradeoff that kills all calorie tracking adherence. Manual entry is too slow and inaccurate for body recomposition goals. Foodie makes tracking disappear into the background of daily life.
 
@@ -48,7 +48,7 @@ This product eliminates the fundamental speed-accuracy tradeoff that kills all c
 
 This is the core hypothesis - can invisible tracking actually work in real life? The app must be fast enough to use while holding a plate in a canteen line (one-handed operation, ~2 seconds for snap).
 
-**Measurement:** Time from lock screen widget activation → photo captured → return to previous activity
+**Measurement:** Time from home screen widget activation → photo captured → return to previous activity
 
 **Success Threshold:** ≤ 5 seconds average across typical usage scenarios
 
@@ -82,7 +82,7 @@ This is the core hypothesis - can invisible tracking actually work in real life?
 ### MVP - V1.0 (Minimum Viable Product)
 
 **Core Capture Flow:**
-- Lock screen widget for instant camera access (no unlock required)
+- Home screen widget for quick camera access (requires device unlock with biometric for fast access)
 - Single photo capture per meal entry
 - Azure OpenAI GPT-4.1 API integration with structured JSON output: `{calories: number, description: string}`
 - Background processing: snap → pocket phone → AI analyzes → auto-save
@@ -184,35 +184,35 @@ This is the core hypothesis - can invisible tracking actually work in real life?
 - Clear permission rationale: "Foodie needs camera access to analyze your meals and Health Connect access to save your nutrition data locally on your device."
 - Graceful degradation: App unusable without required permissions (core functionality depends on them)
 
-### Lock Screen Widget Specification
+### Home Screen Widget Specification
 
-**Widget Type:** Lock Screen Quick Action Widget (Button-style)
-- Single tap action: Launch camera directly from lock screen
-- No unlock required for camera access
+**Widget Type:** Home Screen Quick Action Widget (Button-style)
+- Single tap action: Launch camera directly from home screen
+- Requires device unlock (biometric recommended for speed)
 - Minimal UI: App icon + "Log Meal" text
-- Size: Smallest available for lock screen widgets
+- Size: Standard small widget (2x1 or 2x2 grid cells)
 
 **Widget Behavior:**
-- Tap → Immediate camera launch (no device unlock needed)
-- Photo capture → Return to lock screen (or previous app)
+- Tap → Immediate camera launch (after device unlock if locked)
+- Photo capture → Return to home screen (or previous app)
 - Background processing begins automatically
 - No widget state changes (remains static for speed)
 
 **Widget Performance Requirements:**
-- Launch latency: < 500ms from tap to camera ready
-- One-handed operation: Widget placement supports thumb access on lock screen
+- Launch latency: < 3 seconds from device wake to camera ready (with biometric unlock)
+- One-handed operation: Widget placement supports thumb access on home screen
 - No network dependency for launch (offline camera access, queue photo for later processing)
 
-**Rationale:**
-Lock screen access is critical for the "invisible tracking" use case - user can capture meal without even unlocking their phone. This is faster than home screen widget which requires unlock first.
+**Platform Note:**
+Android does not support third-party lock screen widgets on phones. Lock screen shortcuts are limited to system apps only (camera, torch, wallet, etc.). Home screen widget with biometric unlock provides the fastest third-party app access experience (typically 2-3 seconds total).
 
 **Implementation Notes:**
-- Android 12+ lock screen widget API
-- Use `RemoteViews` for widget UI
-- `PendingIntent` to launch camera activity directly
+- Android 12+ widget API using Jetpack Glance
+- Use Glance composables for widget UI (modern Compose-like API)
+- `PendingIntent` to launch camera activity directly via deep link
 - Consider `CameraX` library for consistent camera behavior
 - Widget updates not needed (static "Log Meal" button)
-- Handle secure lock screen scenarios (may require unlock for camera on some devices)
+- Widget configured for home screen placement only
 
 ### Camera & Photo Capture
 
@@ -442,15 +442,16 @@ Users trust the AI estimates but have full visibility and control. Evening revie
 
 **Primary Flow: Meal Capture**
 1. User at meal → Holds plate in one hand, phone in pocket
-2. Pull out phone → Tap lock screen widget with thumb (no unlock needed)
-3. Camera opens full-screen
-4. Frame food → Single tap to capture
-5. Preview → Confirm (or retake if blurry)
-6. Return to lock screen or previous activity
-7. (Background) AI analysis → Auto-save to Health Connect
-8. (Optional) Review in evening, edit if needed
+2. Pull out phone → Wake device → Unlock with biometric (fingerprint/face)
+3. Tap home screen widget with thumb
+4. Camera opens full-screen
+5. Frame food → Single tap to capture
+6. Preview → Confirm (or retake if blurry)
+7. Return to home screen or previous activity
+8. (Background) AI analysis → Auto-save to Health Connect
+9. (Optional) Review in evening, edit if needed
 
-**Time Budget:** < 5 seconds for steps 2-6
+**Time Budget:** < 5 seconds for steps 2-7
 
 **Secondary Flow: Evening Review**
 1. Open Foodie app
@@ -494,30 +495,30 @@ Users trust the AI estimates but have full visibility and control. Evening revie
 
 ## Functional Requirements
 
-### FR-1: Lock Screen Widget
+### FR-1: Home Screen Widget
 
-**Requirement:** Provide instant camera access via lock screen widget
+**Requirement:** Provide quick camera access via home screen widget
 
-**User Story:** As a user holding my plate with phone in pocket, I want to tap a lock screen widget and immediately launch the camera without unlocking my phone so I can capture my meal in under 2 seconds.
+**User Story:** As a user holding my plate with phone in pocket, I want to tap a home screen widget and quickly launch the camera after unlocking my phone so I can capture my meal in under 5 seconds.
 
 **Acceptance Criteria:**
-- Widget displays on Android lock screen with app icon and "Log Meal" label
-- Widget size: Smallest available for lock screen
-- Single tap launches camera directly (no device unlock required, no intermediate app screen)
-- Widget launch time < 500ms from tap to camera ready
+- Widget displays on Android home screen with app icon and "Log Meal" label
+- Widget size: Standard small widget (2x1 or 2x2 grid cells)
+- Single tap launches camera directly after device unlock (no intermediate app screen)
+- Widget launch time < 3 seconds from device wake to camera ready (with biometric unlock)
 - Widget remains functional after device reboot
 - Widget works without app being actively running in background
-- Graceful handling if device security policy requires unlock for camera
+- Biometric unlock recommended for optimal speed
 
-**Rationale:**
-Lock screen widget is more critical than home screen widget because it eliminates the unlock step, making capture truly instant. This aligns with the core "invisible tracking" value proposition.
+**Platform Note:**
+Android does not support third-party lock screen widgets on phones. Lock screen shortcuts are limited to system apps only. Home screen widget with biometric unlock provides the fastest third-party app access experience.
 
 **Technical Notes:**
-- Implement using Android 12+ lock screen widget API
-- Use `PendingIntent` to trigger camera activity
+- Implement using Android 12+ widget API with Jetpack Glance
+- Use `PendingIntent` to trigger camera activity via deep link
 - No widget configuration needed
 - Static widget (no dynamic updates)
-- Test on devices with different security settings
+- Widget configured for home screen placement only
 
 ---
 

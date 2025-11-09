@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Widget configuration for MealCaptureWidget home screen quick action.
+
+  This XML defines the widget's appearance and behavior constraints:
+  - minWidth/minHeight: Standard widget size (2x1 grid cells)
+  - initialLayout: Placeholder layout (Glance provides actual content)
+  - widgetCategory: Home screen placement only
+  - resizeMode: horizontal|vertical for flexible sizing
+  - updatePeriodMillis: 0 (static widget, no periodic updates)
+
+  Home Screen Configuration:
+  - widgetCategory="home_screen" for home screen placement
+  - Widget requires device unlock before use
+  - Persists across device reboots
+  - Standard size optimized for home screen constraints
+
+  Performance: Widget is stateless for fast launch (< 3 seconds target with biometric unlock)
+
+  Platform Note: Android does not support third-party lock screen widgets on phones.
+  Lock screen shortcuts are limited to system apps only (camera, torch, wallet, etc.).
+-->
+<appwidget-provider
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="110dp"
+    android:minHeight="40dp"
+    android:minResizeWidth="40dp"
+    android:minResizeHeight="40dp"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/widget_meal_capture"
+    android:description="@string/widget_description"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:previewImage="@drawable/ic_launcher_foreground"
+    android:previewLayout="@layout/widget_meal_capture" />

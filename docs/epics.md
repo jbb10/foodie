@@ -182,33 +182,35 @@ So that debugging is efficient and errors are handled gracefully.
 
 ---
 
-### Story 2.1: Lock Screen Widget Implementation
+### Story 2.2: Home Screen Widget Implementation
 
 As a user,
-I want to tap a lock screen widget to instantly launch the camera,
-So that I can capture my meal in 2 seconds without unlocking my phone.
+I want to tap a home screen widget to quickly launch the camera,
+So that I can capture my meal in under 5 seconds with minimal friction.
 
 **Acceptance Criteria:**
 
-**Given** I have the app installed and the widget added to my lock screen
-**When** I tap the lock screen widget
-**Then** the camera launches in less than 500ms
+**Given** I have the app installed and the widget added to my home screen
+**When** I tap the home screen widget
+**Then** the camera launches in less than 3 seconds (including device unlock time)
 
-**And** no device unlock is required (camera accessible from lock screen)
+**And** the widget works with biometric unlock for fast access
 
 **And** the widget displays the app icon with "Log Meal" text
 
-**And** the widget uses the smallest available lock screen widget size
+**And** the widget uses a standard small widget size (2x1 or 2x2 grid)
 
 **And** the widget remains functional after device reboot
 
 **Prerequisites:** Story 1.3 (navigation and deep linking must be configured)
 
-**Technical Notes:** Use Android 12+ lock screen widget API with RemoteViews. Create AppWidgetProvider for lock screen. Use PendingIntent to launch camera activity directly via deep link. Test on devices with different lock screen security settings. Widget should be stateless (no updates needed).
+**Platform Note:** Android does not support third-party lock screen widgets on phones. Home screen widget with biometric unlock provides the fastest third-party app access.
+
+**Technical Notes:** Use Jetpack Glance (modern widget API) for Android 12+. Create GlanceAppWidget for home screen placement. Use PendingIntent to launch camera activity via deep link (foodie://capture). Widget configured for home_screen category only. Widget should be stateless (no updates needed).
 
 ---
 
-### Story 2.2: Camera Integration with Photo Capture
+### Story 2.3: Camera Integration with Photo Capture
 
 As a user,
 I want to quickly photograph my food with one hand and retake if blurry,

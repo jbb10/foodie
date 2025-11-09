@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Placeholder layout for MealCaptureWidget.
+
+  This is a minimal placeholder layout required by Android's AppWidgetProvider
+  configuration. The actual widget content is rendered by Glance Compose API
+  in MealCaptureWidget.kt.
+
+  Note: Glance widgets don't use this layout at runtime, but it's required
+  for the widget configuration XML (glance_widget_info.xml).
+-->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="8dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/widget_placeholder"
+        android:textColor="@android:color/white"
+        android:textSize="14sp" />
+
+</FrameLayout>

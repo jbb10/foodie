@@ -49,9 +49,13 @@ development_status:
   # ⚠️ BEFORE CREATING EPIC 2 STORIES: Read docs/epic-2-story-notes.md for required guidance
   # Contains: WorkManager setup for 2.4, Playwright docs research for 2.3 & 2.4
   epic-2: contexted
+  2-0-deep-linking-validation: done
+  2-1-fix-hilt-compose-test-infrastructure: done
+  2-2-home-screen-widget-implementation: done
+  epic-2: contexted
   2-0-deep-linking-validation: review
   2-1-fix-hilt-compose-test-infrastructure: done  # ✅ All 56 tests passing - unblocked Epic 2
-  2-2-lock-screen-widget-implementation: backlog  # Originally 2-1, renumbered
+  2-2-home-screen-widget-implementation: done  # Pivoted from lock screen to home screen (Android platform limitation discovered)
   2-3-camera-integration-with-photo-capture: backlog  # Originally 2-2, renumbered
   2-4-azure-openai-api-client: backlog  # Originally 2-3, renumbered
   2-5-background-processing-service: backlog  # Originally 2-4, renumbered

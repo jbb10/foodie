@@ -273,7 +273,7 @@ foodie/
 │   │   │   │   │   └── themes.xml
 │   │   │   │   ├── drawable/
 │   │   │   │   └── xml/
-│   │   │   │       └── glance_widget.xml             # Lock screen widget config
+│   │   │   │       └── glance_widget.xml             # Home screen widget config
 │   │   │   │
 │   │   │   └── AndroidManifest.xml
 │   │   │
@@ -1791,7 +1791,7 @@ adb -s <PIXEL_IP>:5555 install app/build/outputs/apk/debug/app-debug.apk
 Use physical device for:
 - **Camera testing:** Realistic photo capture (emulator uses webcam)
 - **Performance validation:** Real-world speed testing
-- **Lock screen widget:** Actual lock screen behavior
+- **Home screen widget:** Actual widget behavior with biometric unlock
 - **Final UAT:** End-to-end user acceptance testing
 
 ```bash
@@ -2001,7 +2001,7 @@ adb shell pm grant com.foodie.app android.permission.health.WRITE_NUTRITION
 - **Daily development:** Emulator (fast, consistent, snapshotable)
 - **Camera validation:** Pixel 8 Pro (realistic photo capture)
 - **Performance testing:** Pixel 8 Pro (real-world speed)
-- **Final UAT:** Pixel 8 Pro (lock screen widget, end-to-end)
+- **Final UAT:** Pixel 8 Pro (home screen widget with biometric unlock, end-to-end)
 
 ---
 
@@ -2112,7 +2112,7 @@ This section provides authoritative documentation links for all technologies use
 
 - **App Widgets**: https://developer.android.com/develop/ui/views/appwidgets
 - **Glanceable Widgets (Compose)**: https://developer.android.com/jetpack/androidx/releases/glance
-- **Lock Screen Widgets**: https://developer.android.com/develop/ui/views/appwidgets/advanced
+- **Home Screen Widgets**: https://developer.android.com/develop/ui/views/appwidgets/advanced
 
 ### Build & Tooling
 
