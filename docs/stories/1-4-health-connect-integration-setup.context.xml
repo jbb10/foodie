@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="foodie/story-1.4" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.4</storyId>
+    <title>Health Connect Integration Setup</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-4-health-connect-integration-setup.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer</asA>
+    <iWant>Health Connect SDK properly integrated with permissions handling</iWant>
+    <soThat>the app can read and write nutrition data to the local device storage</soThat>
+    <tasks>
+      <task id="1" ac="1">
+        <description>Initialize Health Connect SDK</description>
+        <subtasks>
+          <subtask>Update FoodieApplication.kt to configure Health Connect client as singleton</subtask>
+          <subtask>Add @HiltAndroidApp annotation to application class</subtask>
+          <subtask>Create HealthConnectManager class in data/local/healthconnect/ package</subtask>
+          <subtask>Inject @ApplicationContext into HealthConnectManager</subtask>
+          <subtask>Initialize HealthConnectClient.getOrCreate(context) lazily in HealthConnectManager</subtask>
+          <subtask>Write unit test verifying HealthConnectManager instantiation</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="2">
+        <description>Implement permission request flow</description>
+        <subtasks>
+          <subtask>Create checkPermissions() method in HealthConnectManager returning Boolean</subtask>
+          <subtask>Query permissions using HealthPermission.createReadPermission(NutritionRecord::class) and WRITE variant</subtask>
+          <subtask>Create requestPermissions(activity: ComponentActivity) method in HealthConnectManager</subtask>
+          <subtask>Use PermissionController.createRequestPermissionResultContract() for permission request</subtask>
+          <subtask>Register ActivityResultLauncher in MainActivity for permission callback</subtask>
+          <subtask>Add Timber logging for permission grant/denial outcomes</subtask>
+          <subtask>Write instrumentation test verifying permission request flow (mock permissions granted)</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="3">
+        <description>Add Health Connect availability check</description>
+        <subtasks>
+          <subtask>Create isAvailable() suspend method in HealthConnectManager</subtask>
+          <subtask>Call HealthConnectClient.isAvailable(context) to check installation</subtask>
+          <subtask>Add availability check in MainActivity.onCreate() before permission request</subtask>
+          <subtask>Write unit test for isAvailable() method (mock available and unavailable states)</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="4">
+        <description>Implement graceful handling for unavailable Health Connect</description>
+        <subtasks>
+          <subtask>Create dialog composable HealthConnectUnavailableDialog in ui/components/</subtask>
+          <subtask>Display dialog with message: "Health Connect is required but not installed. Install from Play Store?"</subtask>
+          <subtask>Add "Cancel" and "Install" buttons to dialog</subtask>
+          <subtask>On "Install" click, launch Play Store intent: market://details?id=com.google.android.apps.healthdata</subtask>
+          <subtask>Handle case where Play Store app not installed (fallback to web browser)</subtask>
+          <subtask>Add dialog state to MainActivity ViewModel</subtask>
+          <subtask>Write UI test verifying dialog appears when HC unavailable</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="5">
+        <description>Create HealthConnectRepository with CRUD methods</description>
+        <subtasks>
+          <subtask>Create HealthConnectRepository.kt in data/repository/ package</subtask>
+          <subtask>Inject HealthConnectManager into repository via Hilt</subtask>
+          <subtask>Implement insertNutritionRecord(calories: Int, description: String, timestamp: Instant): String method (returns record ID)</subtask>
+          <subtask>Implement queryNutritionRecords(startTime: Instant, endTime: Instant): List&lt;NutritionRecord&gt; method</subtask>
+          <subtask>Implement updateNutritionRecord(recordId: String, calories: Int, description: String, timestamp: Instant) using delete + re-insert pattern</subtask>
+          <subtask>Implement deleteNutritionRecord(recordId: String) method</subtask>
+          <subtask>Wrap all operations in try-catch blocks returning Result&lt;T&gt;</subtask>
+          <subtask>Add Timber logging for all CRUD operations (success and failure)</subtask>
+          <subtask>Write unit tests for all repository methods (mock HealthConnectManager)</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="6">
+        <description>Implement sample write + read validation</description>
+        <subtasks>
+          <subtask>Create test button in MealListScreen placeholder: "Test Health Connect"</subtask>
+          <subtask>Wire button to ViewModel action testHealthConnect()</subtask>
+          <subtask>In ViewModel, call repository to insert test record: insertNutritionRecord(500, "Test meal", Instant.now())</subtask>
+          <subtask>Query records after insert to validate round-trip</subtask>
+          <subtask>Display Snackbar with success message: "Test successful - {calories} cal saved and retrieved"</subtask>
+          <subtask>Display Snackbar with error message if operation fails</subtask>
+          <subtask>Add state to ViewModel for test result (success/error message)</subtask>
+          <subtask>Write instrumentation test executing full round-trip on real/mocked HC client</subtask>
+        </subtasks>
+      </task>
+      <task id="7" ac="1,2">
+        <description>Configure AndroidManifest permissions</description>
+        <subtasks>
+          <subtask>Add &lt;uses-permission android:name="android.permission.health.READ_NUTRITION" /&gt; to AndroidManifest.xml</subtask>
+          <subtask>Add &lt;uses-permission android:name="android.permission.health.WRITE_NUTRITION" /&gt; to AndroidManifest.xml</subtask>
+          <subtask>Add &lt;queries&gt; element with Health Connect package query: &lt;package android:name="com.google.android.apps.healthdata" /&gt;</subtask>
+          <subtask>Verify manifest merging succeeds during build</subtask>
+        </subtasks>
+      </task>
+      <task id="8" ac="5,6">
+        <description>Create NutritionRecord data models</description>
+        <subtasks>
+          <subtask>Create extension function NutritionRecord.toDomainModel() converting to MealEntry</subtask>
+          <subtask>Create MealEntry domain model in domain/model/ with: id, timestamp, description, calories</subtask>
+          <subtask>Add validation in MealEntry init block: calories in 1..5000, description not blank</subtask>
+          <subtask>Write unit tests for domain model validation and conversion</subtask>
+        </subtasks>
+      </task>
+      <task id="9" ac="5,6">
+        <description>Handle time zones correctly</description>
+        <subtasks>
+          <subtask>Use ZoneOffset.systemDefault().rules.getOffset(timestamp) for startZoneOffset and endZoneOffset</subtask>
+          <subtask>Ensure all timestamp fields use Instant (UTC) in domain models</subtask>
+          <subtask>Convert to ZonedDateTime only when displaying to user</subtask>
+          <subtask>Write test verifying timezone handling across different system timezones</subtask>
+        </subtasks>
+      </task>
+      <task id="10" ac="5">
+        <description>Add Hilt bindings for repository</description>
+        <subtasks>
+          <subtask>Create @Binds method in RepositoryModule for HealthConnectRepository</subtask>
+          <subtask>Ensure HealthConnectManager is provided as @Singleton in AppModule</subtask>
+          <subtask>Verify Hilt dependency graph compiles successfully</subtask>
+          <subtask>Write instrumentation test confirming repository injection works in ViewModel</subtask>
+        </subtasks>
+      </task>
+      <task id="11" ac="All">
+        <description>Update documentation</description>
+        <subtasks>
+          <subtask>Update /app/README.md with Health Connect integration guide</subtask>
+          <subtask>Document permission request flow and availability check</subtask>
+          <subtask>Add code examples for CRUD operations</subtask>
+          <subtask>Document delete + re-insert update pattern (Health Connect limitation)</subtask>
+          <subtask>Verify all acceptance criteria satisfied with file:line evidence</subtask>
+          <subtask>Run all tests (unit + instrumentation) and verify passing</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Health Connect SDK is initialized in the application class</criterion>
+    <criterion id="2">Permission request flow is implemented for READ_NUTRITION and WRITE_NUTRITION</criterion>
+    <criterion id="3">Health Connect availability check is performed on app launch</criterion>
+    <criterion id="4">Graceful handling exists if Health Connect is not installed (link to Play Store)</criterion>
+    <criterion id="5">Repository class exists for Health Connect operations (placeholder methods)</criterion>
+    <criterion id="6">Sample write + read operation demonstrates successful integration</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Health Connect Data Model</section>
+        <snippet>Complete Health Connect integration pattern with NutritionRecord field mapping (energy → calories, name → description, startTime → timestamp). Includes CRUD operation examples and permission handling flow.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Health Connect API Integration</section>
+        <snippet>Detailed HealthConnectManager implementation with all methods (insertNutritionRecord, queryNutritionRecords, updateNutritionRecord, deleteNutritionRecord, checkPermissions, requestPermissions). Includes code examples and error handling patterns.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Story 1.4 Acceptance Criteria</section>
+        <snippet>Complete acceptance criteria with technical notes: Health Connect SDK initialization, permission flow, availability check, graceful degradation, repository methods, sample validation. Notes delete + re-insert update pattern.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.4: Health Connect Integration Setup</section>
+        <snippet>User story with acceptance criteria and prerequisites. Technical notes mention using HealthConnectClient in Application class, implementing ActivityResultContract for permissions, creating HealthConnectRepository with CRUD methods.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-3-core-navigation-and-screen-structure.md</path>
+        <title>Previous Story (1.3)</title>
+        <section>Dev Agent Record - Learnings</section>
+        <snippet>Story 1.3 completed successfully. MealListScreen already exists as placeholder where test button should be added. MainActivity already hosts NavGraph. Navigation and UI patterns established. Testing patterns (Truth assertions, Mockito, instrumentation tests) should be followed.</snippet>
+      </doc>
+    </docs>
+    
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectDataSource.kt</path>
+        <kind>interface</kind>
+        <symbol>HealthConnectDataSource</symbol>
+        <lines>1-52</lines>
+        <reason>PLACEHOLDER interface for Health Connect operations. Story 1.4 needs to implement HealthConnectManager class that will replace HealthConnectDataSourceImpl and implement these methods (queryNutritionRecords, insertNutritionRecord, deleteNutritionRecord, checkPermissions). Interface already defines correct method signatures.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectDataSourceImpl.kt</path>
+        <kind>implementation</kind>
+        <symbol>HealthConnectDataSourceImpl</symbol>
+        <lines>1-47</lines>
+        <reason>PLACEHOLDER implementation with TODO comments. This file shows the expected structure but all methods throw NotImplementedError. Story 1.4 will replace this with actual HealthConnectManager implementation using Health Connect SDK.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/domain/model/MealEntry.kt</path>
+        <kind>domain-model</kind>
+        <symbol>MealEntry</symbol>
+        <lines>1-31</lines>
+        <reason>COMPLETE domain model already exists with proper validation (calories 1-5000, description not blank). Story 1.4 needs to create NutritionRecord.toDomainModel() extension function to convert Health Connect records to this domain model.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/util/Result.kt</path>
+        <kind>utility</kind>
+        <symbol>Result</symbol>
+        <lines>1-82</lines>
+        <reason>Result wrapper for error handling. All Health Connect repository methods must return Result&lt;T&gt; (Success/Error/Loading). Includes asResult() extension for Flow. Pattern established in Story 1.2.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/di/DataSourceModule.kt</path>
+        <kind>di-module</kind>
+        <symbol>DataSourceModule</symbol>
+        <lines>1-29</lines>
+        <reason>Hilt module that binds HealthConnectDataSource. Story 1.4 needs to update this module to provide HealthConnectManager as singleton. May need to create separate AppModule for HealthConnectClient initialization.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt</path>
+        <kind>composable-screen</kind>
+        <symbol>MealListScreen</symbol>
+        <lines>45-181</lines>
+        <reason>EXISTING placeholder screen from Story 1.3. Story 1.4 needs to add "Test Health Connect" button here with callback to ViewModel.testHealthConnect() action. Screen already has proper structure with Scaffold and Material3 components.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/MainActivity.kt</path>
+        <kind>activity</kind>
+        <symbol>MainActivity</symbol>
+        <lines>1-50</lines>
+        <reason>Main activity where Health Connect availability check and permission request flow should be added in onCreate(). Already annotated with @AndroidEntryPoint for Hilt injection.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/FoodieApplication.kt</path>
+        <kind>application</kind>
+        <symbol>FoodieApplication</symbol>
+        <lines>1-30</lines>
+        <reason>Application class where Health Connect SDK should be initialized. Already has @HiltAndroidApp annotation and Timber initialization pattern to follow.</reason>
+      </artifact>
+    </code>
+    
+    <dependencies>
+      <android>
+        <package name="androidx.health.connect:connect-client" version="1.1.0" />
+        <package name="com.google.dagger:hilt-android" version="~2.51" />
+        <package name="androidx.compose.material3:material3" version="via-compose-bom" />
+        <package name="androidx.navigation:navigation-compose" version="~2.8" />
+        <package name="com.jakewharton.timber:timber" version="~5.0" />
+      </android>
+      <testing>
+        <package name="junit:junit" version="~4.13" />
+        <package name="org.mockito:mockito-core" version="~5.14" />
+        <package name="org.mockito.kotlin:mockito-kotlin" version="~5.4" />
+        <package name="com.google.truth:truth" version="~1.4" />
+        <package name="org.jetbrains.kotlinx:kotlinx-coroutines-test" version="~1.9" />
+        <package name="androidx.arch.core:core-testing" version="~2.2" />
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">
+      <rule>HealthConnectManager wrapper class must encapsulate all Health Connect SDK calls for testability and abstraction</rule>
+      <rule>Repository pattern: HealthConnectRepository provides domain-level CRUD, isolates ViewModels from SDK details</rule>
+      <rule>All Health Connect operations must be suspend functions for async execution</rule>
+      <rule>Lazy initialization: HealthConnectClient.getOrCreate() called lazily to avoid blocking app startup</rule>
+      <rule>Health Connect is the ONLY data store for nutrition entries - no local Room database needed</rule>
+    </constraint>
+    <constraint type="error-handling">
+      <rule>All repository methods must return Result&lt;T&gt; (Success/Error/Loading) for consistent error handling</rule>
+      <rule>Wrap all Health Connect operations in try-catch blocks, log technical details with Timber, return user-friendly error messages</rule>
+      <rule>Handle SecurityException (permissions not granted) and IllegalStateException (HC not available) gracefully</rule>
+    </constraint>
+    <constraint type="permissions">
+      <rule>Check permissions before every Health Connect operation</rule>
+      <rule>Request READ_NUTRITION and WRITE_NUTRITION permissions on first app launch</rule>
+      <rule>Use PermissionController.createRequestPermissionResultContract() for permission requests</rule>
+      <rule>Log permission outcomes with Timber (INFO for granted, WARN for denied)</rule>
+    </constraint>
+    <constraint type="data-model">
+      <rule>NutritionRecord field mapping: energy → calories (Int), name → description (String), startTime/endTime → timestamp (Instant)</rule>
+      <rule>MealEntry domain model already exists with validation - use NutritionRecord.toDomainModel() extension for conversion</rule>
+      <rule>Update pattern limitation: Health Connect doesn't support direct updates, must use delete + re-insert preserving timestamp</rule>
+    </constraint>
+    <constraint type="testing">
+      <rule>Unit tests: Mock HealthConnectManager for repository tests, verify all CRUD operations, test error paths</rule>
+      <rule>Integration tests: Test actual Health Connect round-trip (insert + query), test permission flow</rule>
+      <rule>Use Truth assertions for readable tests, follow patterns from Story 1.2 and 1.3</rule>
+      <rule>Target 80%+ test coverage for repository and manager classes</rule>
+    </constraint>
+    <constraint type="timezone">
+      <rule>Use ZoneOffset.systemDefault().rules.getOffset(timestamp) for startZoneOffset and endZoneOffset</rule>
+      <rule>Store all timestamps as Instant (UTC) in domain models, convert to ZonedDateTime only for UI display</rule>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>HealthConnectClient SDK Methods</name>
+      <kind>sdk-api</kind>
+      <signature>
+        // Check availability
+        HealthConnectClient.isAvailable(context: Context): Boolean
+        
+        // Get/Create client
+        HealthConnectClient.getOrCreate(context: Context): HealthConnectClient
+        
+        // Check permissions
+        healthConnectClient.permissionController.getGrantedPermissions(permissions: Set&lt;HealthPermission&gt;): Set&lt;HealthPermission&gt;
+        
+        // Request permissions (via ActivityResultContract)
+        PermissionController.createRequestPermissionResultContract(): ActivityResultContract&lt;Set&lt;HealthPermission&gt;, Set&lt;HealthPermission&gt;&gt;
+        
+        // Insert records
+        healthConnectClient.insertRecords(records: List&lt;Record&gt;): InsertRecordsResponse
+        
+        // Query records
+        healthConnectClient.readRecords(request: ReadRecordsRequest&lt;T&gt;): ReadRecordsResponse&lt;T&gt;
+        
+        // Delete records
+        healthConnectClient.deleteRecords(recordType: KClass&lt;T&gt;, recordIdsList: List&lt;String&gt;, clientRecordIdsList: List&lt;String&gt;)
+      </signature>
+      <path>androidx.health.connect.client (SDK dependency)</path>
+    </interface>
+    
+    <interface>
+      <name>NutritionRecord Constructor</name>
+      <kind>data-class</kind>
+      <signature>
+        NutritionRecord(
+            energy: Energy,                    // Energy.kilocalories(calories.toDouble())
+            name: String,                      // Food description
+            startTime: Instant,                // Meal timestamp
+            endTime: Instant,                  // Same as startTime for meal
+            startZoneOffset: ZoneOffset,       // System timezone
+            endZoneOffset: ZoneOffset          // System timezone
+        )
+      </signature>
+      <path>androidx.health.connect.client.records.NutritionRecord</path>
+    </interface>
+    
+    <interface>
+      <name>HealthConnectDataSource (existing interface to implement)</name>
+      <kind>interface</kind>
+      <signature>
+        interface HealthConnectDataSource {
+            suspend fun queryNutritionRecords(startTime: Instant, endTime: Instant): List&lt;NutritionRecord&gt;
+            suspend fun insertNutritionRecord(calories: Int, description: String, timestamp: Instant): String
+            suspend fun deleteNutritionRecord(recordId: String)
+            suspend fun checkPermissions(): Boolean
+        }
+      </signature>
+      <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectDataSource.kt</path>
+    </interface>
+    
+    <interface>
+      <name>Result&lt;T&gt; (error handling wrapper)</name>
+      <kind>sealed-class</kind>
+      <signature>
+        sealed class Result&lt;out T&gt; {
+            data class Success&lt;T&gt;(val data: T) : Result&lt;T&gt;()
+            data class Error(val exception: Throwable, val message: String) : Result&lt;Nothing&gt;()
+            data object Loading : Result&lt;Nothing&gt;()
+        }
+        
+        // Usage: Return Result.Success(data) or Result.Error(exception, userMessage)
+      </signature>
+      <path>app/src/main/java/com/foodie/app/util/Result.kt</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit testing uses JUnit 4.13.2 with Mockito 5.14.2 and Truth assertions. Repository tests should mock HealthConnectManager to verify CRUD operations and error handling paths. Integration tests use instrumentation testing with real/mocked Health Connect client. Follow patterns from Story 1.2: test naming "methodName should behavior when condition", use Truth assertions for readability (assertThat(result).isInstanceOf(Result.Success::class.java)). Target 80%+ coverage for repository and manager classes. All async operations tested with kotlinx-coroutines-test runTest {}.
+    </standards>
+    
+    <locations>
+      <location type="unit">app/src/test/java/com/foodie/app/data/local/healthconnect/HealthConnectManagerTest.kt</location>
+      <location type="unit">app/src/test/java/com/foodie/app/data/repository/HealthConnectRepositoryTest.kt</location>
+      <location type="unit">app/src/test/java/com/foodie/app/domain/model/MealEntryTest.kt</location>
+      <location type="instrumentation">app/src/androidTest/java/com/foodie/app/data/healthconnect/HealthConnectIntegrationTest.kt</location>
+      <location type="instrumentation">app/src/androidTest/java/com/foodie/app/ui/screens/meallist/MealListScreenHealthConnectTest.kt</location>
+    </locations>
+    
+    <ideas>
+      <idea ac="1">Unit test: HealthConnectManager initializes HealthConnectClient lazily without blocking</idea>
+      <idea ac="2">Unit test: checkPermissions() returns true when READ_NUTRITION and WRITE_NUTRITION granted</idea>
+      <idea ac="2">Instrumentation test: requestPermissions() triggers permission dialog and handles grant/deny</idea>
+      <idea ac="3">Unit test: isAvailable() returns true when Health Connect installed, false otherwise</idea>
+      <idea ac="4">UI test: HealthConnectUnavailableDialog appears when HC not available and launches Play Store on "Install"</idea>
+      <idea ac="5">Unit test: insertNutritionRecord returns Success with record ID when HC operation succeeds</idea>
+      <idea ac="5">Unit test: queryNutritionRecords returns Success with list of MealEntry when HC query succeeds</idea>
+      <idea ac="5">Unit test: updateNutritionRecord calls delete then insert with preserved timestamp</idea>
+      <idea ac="5">Unit test: deleteNutritionRecord returns Success when HC delete succeeds</idea>
+      <idea ac="5">Unit test: All repository methods return Error with user-friendly message on exception</idea>
+      <idea ac="6">Integration test: Insert test record (500 cal, "Test meal") then query and verify data matches</idea>
+      <idea ac="6">UI test: MealListScreen test button displays success Snackbar after successful round-trip</idea>
+      <idea ac="6">UI test: MealListScreen test button displays error Snackbar on HC operation failure</idea>
+    </ideas>
+  </tests>
+</story-context>

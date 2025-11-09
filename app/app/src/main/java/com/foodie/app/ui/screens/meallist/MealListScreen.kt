@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,12 +21,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.ui.theme.FoodieTheme
 import java.time.Instant
@@ -42,9 +50,11 @@ import java.time.format.DateTimeFormatter
  * - Meal entry deletion
  *
  * Current implementation shows temporary hardcoded test data for UI validation.
+ * Story 1.4 adds Health Connect test button for integration validation.
  *
  * @param onMealClick Callback invoked when a meal is tapped (passes meal ID)
  * @param onSettingsClick Callback invoked when settings button is tapped
+ * @param viewModel ViewModel managing meal list state and Health Connect operations
  * @param modifier Optional modifier for the screen
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,8 +62,20 @@ import java.time.format.DateTimeFormatter
 fun MealListScreen(
     onMealClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: MealListViewModel = hiltViewModel()
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val testResult by viewModel.testResult.collectAsState()
+    
+    // Show snackbar when test result changes
+    LaunchedEffect(testResult) {
+        testResult?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearTestResult()
+        }
+    }
+    
     // Temporary test data - will be replaced with ViewModel in Epic 3
     val testMeals = listOf(
         MealEntry(
@@ -96,6 +118,7 @@ fun MealListScreen(
                 }
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(onClick = { /* Future: Add meal entry */ }) {
                 Icon(
@@ -113,6 +136,16 @@ fun MealListScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Health Connect test button (Story 1.4)
+            item {
+                Button(
+                    onClick = { viewModel.testHealthConnect() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Test Health Connect")
+                }
+            }
+            
             items(testMeals) { meal ->
                 MealListItem(
                     meal = meal,

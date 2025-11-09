@@ -2,49 +2,106 @@ package com.foodie.app.data.local.healthconnect
 
 import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
-import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.NutritionRecord
+import androidx.health.connect.client.records.metadata.Device
+import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.health.connect.client.units.Energy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.time.Instant
+import java.time.ZoneOffset
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Implementation of HealthConnectDataSource using the Health Connect SDK.
  *
- * NOTE: This is a PLACEHOLDER implementation for Story 1.2 to establish the MVVM architecture pattern.
- * The full Health Connect integration will be implemented in Story 1.4.
- *
- * Current status:
- * - Interface and DI structure are complete
- * - Actual Health Connect operations are TODO for Story 1.4
- * - This allows the repository and ViewModel layers to be tested with mocked data sources
+ * This replaces the PLACEHOLDER implementation from Story 1.2 with full Health Connect integration.
+ * Story 1.4: Health Connect Integration Setup - Complete implementation.
  */
 @Singleton
 class HealthConnectDataSourceImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : HealthConnectDataSource {
 
-    // Health Connect client will be properly initialized in Story 1.4
-    // For now, we throw NotImplementedError to make it clear this is a placeholder
+    companion object {
+        private const val TAG = "HealthConnect"
+        
+        val REQUIRED_PERMISSIONS: Set<String> = setOf(
+            "android.permission.health.READ_NUTRITION",
+            "android.permission.health.WRITE_NUTRITION"
+        )
+    }
+
+    private val healthConnectClient: HealthConnectClient by lazy {
+        Timber.tag(TAG).d("Initializing HealthConnectClient")
+        HealthConnectClient.getOrCreate(context)
+    }
     
     override suspend fun queryNutritionRecords(startTime: Instant, endTime: Instant): List<NutritionRecord> {
-        TODO("Health Connect query implementation will be completed in Story 1.4")
+        Timber.tag(TAG).d("Querying nutrition records: $startTime to $endTime")
+        
+        val request = ReadRecordsRequest(
+            recordType = NutritionRecord::class,
+            timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+        )
+        
+        val response = healthConnectClient.readRecords(request)
+        val records = response.records
+        
+        Timber.tag(TAG).i("Retrieved ${records.size} nutrition records")
+        return records
     }
 
     override suspend fun insertNutritionRecord(calories: Int, description: String, timestamp: Instant): String {
-        TODO("Health Connect insert implementation will be completed in Story 1.4")
+        Timber.tag(TAG).d("Inserting nutrition record: $calories kcal, '$description', at $timestamp")
+        
+        val zoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)
+        
+        val record = NutritionRecord(
+            startTime = timestamp,
+            startZoneOffset = zoneOffset,
+            endTime = timestamp.plusSeconds(1),
+            endZoneOffset = zoneOffset,
+            energy = Energy.kilocalories(calories.toDouble()),
+            name = description,
+            metadata = Metadata.autoRecorded(
+                device = Device(type = Device.TYPE_PHONE)
+            )
+        )
+        
+        val response = healthConnectClient.insertRecords(listOf(record))
+        val recordId = response.recordIdsList.first()
+        
+        Timber.tag(TAG).i("Successfully inserted nutrition record: $recordId")
+        return recordId
     }
 
     override suspend fun deleteNutritionRecord(recordId: String) {
-        TODO("Health Connect delete implementation will be completed in Story 1.4")
+        Timber.tag(TAG).d("Deleting nutrition record: $recordId")
+        
+        healthConnectClient.deleteRecords(
+            recordType = NutritionRecord::class,
+            recordIdsList = listOf(recordId),
+            clientRecordIdsList = emptyList()
+        )
+        
+        Timber.tag(TAG).i("Successfully deleted nutrition record: $recordId")
     }
 
     override suspend fun checkPermissions(): Boolean {
-        TODO("Health Connect permissions check will be completed in Story 1.4")
+        val grantedPermissions = healthConnectClient.permissionController.getGrantedPermissions()
+        val allGranted = grantedPermissions.containsAll(REQUIRED_PERMISSIONS)
+        
+        Timber.tag(TAG).i("Permissions check: $allGranted (granted: ${grantedPermissions.size}/${REQUIRED_PERMISSIONS.size})")
+        return allGranted
+    }
+
+    suspend fun isAvailable(): Boolean {
+        val available = HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_AVAILABLE
+        Timber.tag(TAG).i("Health Connect availability: $available")
+        return available
     }
 }
