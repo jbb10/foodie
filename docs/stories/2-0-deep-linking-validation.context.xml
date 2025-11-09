@@ -1,0 +1,178 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>0</storyId>
+    <title>Deep Linking Validation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-0-deep-linking-validation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer</asA>
+    <iWant>to validate navigation deep linking works correctly in realistic meal capture scenarios</iWant>
+    <soThat>Epic 2 meal capture flow triggers (widget, FAB) integrate seamlessly without navigation regressions</soThat>
+    <tasks>
+- Task 1: Review existing deep linking implementation (AC: #1, #2, #6)
+- Task 2: Create deep link test utilities (AC: #1, #2, #3, #4)
+- Task 3: Test deep link to MealListScreen (AC: #1, #3, #4)
+- Task 4: Test deep link to MealDetailScreen (AC: #2, #3, #4)
+- Task 5: Test deep link error scenarios (AC: #6)
+- Task 6: Validate Epic 2 integration readiness (AC: #1, #3)
+- Task 7: Regression testing (AC: #5)
+- Task 8: Documentation and completion (AC: All)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Deep links to MealListScreen work correctly from external triggers
+2. Deep links to MealDetailScreen with meal ID parameter work correctly
+3. Navigation back stack behaves correctly after deep link navigation
+4. Deep linking works when app is in background, foreground, or killed states
+5. All existing navigation tests continue to pass (no regressions)
+6. Deep link URIs follow Android best practices and architecture.md patterns
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Foodie Architecture Document</title>
+        <section>Navigation</section>
+        <snippet>Single-activity architecture using Jetpack Navigation Compose 2.8.4 with type-safe routes, deep linking support for widget integration. NavGraph defines all composable destinations with back stack management.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Deep Linking Architecture</section>
+        <snippet>Navigation uses Jetpack Navigation Compose with deep link routes. Widget PendingIntent triggers foodie://capture deep link, which NavGraph routes to camera activity regardless of app state (cold start, background, foreground). Story 2.0 validates deep linking before Epic 2 meal capture implementation begins.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-3-core-navigation-and-screen-structure.md</path>
+        <title>Story 1.3: Core Navigation and Screen Structure</title>
+        <section>Implementation Details</section>
+        <snippet>Established navigation foundation with NavGraph.kt, Screen.kt sealed class routes, deep link configuration for foodie://home URI. Created 33 navigation tests validating back stack, screen transitions, and deep link functionality. MealList, MealDetail, Settings screens with proper back navigation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>User Experience Flow</section>
+        <snippet>Lock screen widget as primary entry point for meal capture. Users tap widget to launch camera instantly - Epic 2 flow triggers rely on deep linking patterns for seamless navigation from external triggers.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+        <kind>navigation</kind>
+        <symbol>NavGraph</symbol>
+        <lines>1-90</lines>
+        <reason>Main navigation graph with deep link configuration for MealList (foodie://home). All screen destinations configured with proper argument handling and back stack management.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/navigation/Screen.kt</path>
+        <kind>navigation</kind>
+        <symbol>Screen sealed class</symbol>
+        <lines>1-55</lines>
+        <reason>Type-safe route definitions. MealList, MealDetail (with mealId parameter), Settings routes. Provides createRoute() helper for parameterized navigation.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/androidTest/java/com/foodie/app/ui/navigation/NavGraphTest.kt</path>
+        <kind>test</kind>
+        <symbol>NavGraphTest</symbol>
+        <lines>1-194</lines>
+        <reason>Existing navigation instrumentation tests demonstrating testing patterns: TestNavHostController usage, back stack verification, screen transition validation. 33 tests established in Story 1-3.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt</path>
+        <kind>screen</kind>
+        <symbol>MealListScreen</symbol>
+        <lines>all</lines>
+        <reason>Deep link destination screen. Target for foodie://meals deep link validation. Contains onMealClick callback for navigating to MealDetail.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailScreen.kt</path>
+        <kind>screen</kind>
+        <symbol>MealDetailScreen</symbol>
+        <lines>all</lines>
+        <reason>Deep link destination with parameter. Target for foodie://meals/{mealId} validation. Receives mealId from navigation arguments.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <android>
+        <package name="androidx.navigation:navigation-compose" version="2.8.4" />
+        <package name="androidx.navigation:navigation-testing" version="unspecified" />
+        <package name="androidx.compose.ui:ui-test-junit4" version="BOM-managed" />
+        <package name="androidx.test.espresso:espresso-core" version="unspecified" />
+        <package name="com.google.truth:truth" version="unspecified" />
+        <package name="junit:junit" version="4.x" />
+      </android>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Deep link URIs MUST use "foodie://" scheme with host patterns "home" and "meals"
+    - MealDetail deep link MUST accept mealId parameter: foodie://meals/{mealId}
+    - Deep linking MUST work in all app states: killed, background, foreground
+    - Back stack MUST be correct after deep link: MealList only for meals deep link, MealList → MealDetail for meal ID deep link
+    - Tests MUST use TestNavHostController from androidx.navigation.testing
+    - All 33 existing navigation tests from Story 1-3 MUST continue to pass (no regressions)
+    - Testing MUST follow established patterns: ComposeTestRule, Truth assertions, Hilt integration where needed
+    - Error handling for invalid/malformed URIs MUST log with Timber.e and navigate to safe screen (MealList)
+    - AndroidManifest.xml intent filter MUST support deep link scheme
+    - Test utilities MUST be reusable for Epic 2 widget and FAB integration testing
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Screen.MealList</name>
+      <kind>Navigation Route</kind>
+      <signature>sealed class Screen { data object MealList : Screen("meal_list") }</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/navigation/Screen.kt</path>
+    </interface>
+    <interface>
+      <name>Screen.MealDetail.createRoute</name>
+      <kind>Navigation Route with Parameter</kind>
+      <signature>fun createRoute(mealId: String): String = "meal_detail/$mealId"</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/navigation/Screen.kt</path>
+    </interface>
+    <interface>
+      <name>NavGraph Deep Link Configuration</name>
+      <kind>Jetpack Navigation Deep Link</kind>
+      <signature>navDeepLink { uriPattern = "foodie://home" }</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+    </interface>
+    <interface>
+      <name>TestNavHostController</name>
+      <kind>Test Navigation Controller</kind>
+      <signature>TestNavHostController(context: Context) from androidx.navigation.testing</signature>
+      <path>androidx.navigation.testing</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Tests follow Android instrumentation testing patterns established in Story 1-3. Use ComposeTestRule for UI testing, TestNavHostController for navigation verification, Truth library for assertions (assertThat(x).isEqualTo(y)). Testing naming convention: methodName_whenCondition_thenExpectedResult or feature_should_behavior_when_condition. Hilt integration uses HiltTestRunner. Deep link tests should use adb shell commands for realistic validation or programmatic Intent creation. All tests must verify both UI state and navigation back stack state.
+    </standards>
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/ - Unit tests</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/ - Instrumentation tests</location>
+      <location>app/app/src/test/java/com/foodie/app/util/ - Test utilities and helpers</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/ui/navigation/ - Navigation-specific instrumentation tests</location>
+    </locations>
+    <ideas>
+      <test ac="1" description="Test deep link to MealListScreen from killed app state using adb intent or programmatic Intent with ACTION_VIEW and foodie://meals URI" />
+      <test ac="1" description="Test deep link to MealListScreen from background state - app running but different screen visible" />
+      <test ac="1" description="Test deep link to MealListScreen from foreground state - verify navigation occurs" />
+      <test ac="2" description="Test deep link to MealDetailScreen with valid mealId parameter - verify screen loads with correct meal data" />
+      <test ac="2" description="Test deep link with invalid mealId - verify error handling and fallback to MealListScreen" />
+      <test ac="3" description="Verify back stack after MealList deep link contains only MealList (no previous screens)" />
+      <test ac="3" description="Verify back stack after MealDetail deep link contains MealList then MealDetail" />
+      <test ac="4" description="Test deep link behavior across all app states using IntentFilter simulation or adb commands" />
+      <test ac="5" description="Run all 33 existing NavGraphTest tests to ensure no regressions" />
+      <test ac="6" description="Test malformed URI handling - verify app doesn't crash, logs error with Timber.e" />
+      <test ac="6" description="Validate deep link URI patterns match Android best practices (scheme://host/path format)" />
+      <test description="Create DeepLinkTestHelper utility with helper functions for creating deep link intents and verifying back stacks" />
+    </ideas>
+  </tests>
+</story-context>

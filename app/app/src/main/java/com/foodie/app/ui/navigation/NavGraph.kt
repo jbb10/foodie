@@ -50,7 +50,8 @@ fun NavGraph(
         composable(
             route = Screen.MealList.route,
             deepLinks = listOf(
-                navDeepLink { uriPattern = "foodie://home" }
+                navDeepLink { uriPattern = "foodie://home" }, // Legacy - Story 1-3
+                navDeepLink { uriPattern = "foodie://meals" } // Primary - Story 2-0
             )
         ) {
             MealListScreen(
@@ -70,6 +71,9 @@ fun NavGraph(
                 navArgument("mealId") {
                     type = NavType.StringType
                 }
+            ),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "foodie://meals/{mealId}" } // Story 2-0
             )
         ) { backStackEntry ->
             val mealId = backStackEntry.arguments?.getString("mealId") ?: ""

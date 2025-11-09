@@ -48,14 +48,15 @@ development_status:
   # Epic 2: AI-Powered Meal Capture
   # ⚠️ BEFORE CREATING EPIC 2 STORIES: Read docs/epic-2-story-notes.md for required guidance
   # Contains: WorkManager setup for 2.4, Playwright docs research for 2.3 & 2.4
-  epic-2: backlog
-  2-0-deep-linking-validation: backlog
-  2-1-lock-screen-widget-implementation: backlog
-  2-2-camera-integration-with-photo-capture: backlog
-  2-3-azure-openai-api-client: backlog
-  2-4-background-processing-service: backlog
-  2-5-health-connect-nutrition-data-save: backlog
-  2-6-end-to-end-capture-flow-integration: backlog
+  epic-2: contexted
+  2-0-deep-linking-validation: review
+  2-1-fix-hilt-compose-test-infrastructure: ready-for-dev  # BLOCKING - Must complete before Epic 2 continues
+  2-2-lock-screen-widget-implementation: backlog  # Originally 2-1, renumbered
+  2-3-camera-integration-with-photo-capture: backlog  # Originally 2-2, renumbered
+  2-4-azure-openai-api-client: backlog  # Originally 2-3, renumbered
+  2-5-background-processing-service: backlog  # Originally 2-4, renumbered
+  2-6-health-connect-nutrition-data-save: backlog  # Originally 2-5, renumbered
+  2-7-end-to-end-capture-flow-integration: backlog  # Originally 2-6, renumbered
   epic-2-retrospective: optional
 
   # Epic 3: Data Management & Review

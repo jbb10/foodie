@@ -7,6 +7,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.foodie.app.ui.theme.FoodieTheme
 import com.google.common.truth.Truth.assertThat
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -16,13 +19,22 @@ import org.junit.Test
  * These tests verify that the meal list screen renders correctly and handles user
  * interactions properly, ensuring navigation callbacks are invoked as expected.
  *
- * Note: These are UI component tests that do NOT require Hilt injection.
- * We test the MealListScreen composable in isolation by providing test data directly.
+ * Uses @HiltAndroidTest with createComposeRule() to test the screen composable in isolation
+ * while providing Hilt dependency injection for ViewModels.
  */
+@HiltAndroidTest
 class MealListScreenTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
+    var hiltRule = HiltAndroidRule(this)
+
+    @get:Rule(order = 1)
     val composeTestRule = createComposeRule()
+
+    @Before
+    fun setup() {
+        hiltRule.inject()
+    }
 
     @Test
     fun mealListScreen_displaysTopAppBarWithTitle() {

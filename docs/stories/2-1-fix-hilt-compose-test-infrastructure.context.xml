@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="2-1-fix-hilt-compose-test-infrastructure">
+  <metadata>
+    <story-id>2-1</story-id>
+    <title>Fix Hilt + Compose Test Infrastructure</title>
+    <epic>Epic 2 - Meal Capture Flow</epic>
+    <status>ready-for-dev</status>
+    <priority>HIGH</priority>
+    <blocking>true</blocking>
+    <created>2025-11-09</created>
+  </metadata>
+
+  <problem-statement>
+    <issue>31 instrumentation tests fail due to Hilt + Compose testing architecture incompatibility</issue>
+    <root-cause>
+      Composables using hiltViewModel() require @AndroidEntryPoint Activity, but createComposeRule() 
+      creates basic ComponentActivity without Hilt support
+    </root-cause>
+    <error-signature>
+      java.lang.IllegalStateException: Given component holder class androidx.activity.ComponentActivity 
+      does not implement interface dagger.hilt.internal.GeneratedComponent
+    </error-signature>
+    <impact>
+      <blocked-tests>
+        <test file="NavGraphTest.kt" count="9"/>
+        <test file="DeepLinkTest.kt" count="15"/>
+        <test file="MealListScreenTest.kt" count="7"/>
+        <total>31</total>
+      </blocked-tests>
+      <production-impact>NONE - deep links work in production (manually validated)</production-impact>
+      <epic-impact>BLOCKING - must fix before Epic 2 continues</epic-impact>
+    </impact>
+  </problem-statement>
+
+  <technical-context>
+    <current-setup>
+      <test-runner>HiltTestRunner (configured in build.gradle.kts)</test-runner>
+      <test-annotations>@HiltAndroidTest with HiltAndroidRule</test-annotations>
+      <compose-rule>createComposeRule() - creates basic ComponentActivity</compose-rule>
+      <screen-pattern>Screens use hiltViewModel() with ViewModel as parameter with default</screen-pattern>
+    </current-setup>
+
+    <attempted-solutions>
+      <attempt>
+        <approach>createComposeRule() with @HiltAndroidTest</approach>
+        <result>FAILED - ComponentActivity not Hilt-enabled</result>
+      </attempt>
+      <attempt>
+        <approach>createAndroidComposeRule&lt;MainActivity&gt;()</approach>
+        <result>FAILED - Activity already calls setContent(), cannot call it in tests</result>
+      </attempt>
+      <attempt>
+        <approach>createAndroidComposeRule&lt;HiltTestActivity&gt;()</approach>
+        <result>FAILED - Package/process mismatch errors</result>
+      </attempt>
+    </attempted-solutions>
+
+    <architecture-patterns>
+      <screen-signature>
+        <example>
+          fun MealListScreen(
+              onMealClick: (String) -&gt; Unit,
+              onSettingsClick: () -&gt; Unit,
+              viewModel: MealListViewModel = hiltViewModel() // Default for production
+          )
+        </example>
+        <note>Screens already designed for testability - ViewModel as parameter</note>
+      </screen-signature>
+    </architecture-patterns>
+  </technical-context>
+
+  <solution-architecture>
+    <recommended-approach>
+      <name>Option A: Refactor Tests to Provide Test ViewModels</name>
+      <pattern>
+        <description>Stop using hiltViewModel() in tests, provide fake/test ViewModels explicitly</description>
+        <code-example>
+          @Test
+          fun myTest() {
+              val fakeViewModel = FakeMealListViewModel()
+              
+              composeTestRule.setContent {
+                  MealListScreen(
+                      onMealClick = {},
+                      onSettingsClick = {},
+                      viewModel = fakeViewModel  // Explicit test ViewModel
+                  )
+              }
+              
+              // Test assertions
+          }
+        </code-example>
+      </pattern>
+      <benefits>
+        <benefit>Screens already designed for this pattern</benefit>
+        <benefit>Complete test isolation</benefit>
+        <benefit>Fast test execution</benefit>
+        <benefit>Full control over ViewModel state</benefit>
+        <benefit>Official Android best practice</benefit>
+      </benefits>
+      <trade-offs>
+        <trade-off>Requires creating fake ViewModels and repositories</trade-off>
+        <trade-off>More test infrastructure setup upfront</trade-off>
+      </trade-offs>
+      <effort>Medium - proper long-term solution</effort>
+    </recommended-approach>
+
+    <alternative-approaches>
+      <approach name="Option B: ActivityScenario Integration Tests">
+        <description>Test full Activity with real Hilt injection</description>
+        <limitation>Cannot inject TestNavHostController for navigation assertions</limitation>
+        <use-case>Integration tests verifying full flows</use-case>
+      </approach>
+      <approach name="Option C: Hybrid">
+        <description>Use Option A for unit tests, Option B for integration tests</description>
+        <benefit>Best of both worlds</benefit>
+        <trade-off>More tests to maintain</trade-off>
+      </approach>
+    </alternative-approaches>
+  </solution-architecture>
+
+  <implementation-guide>
+    <test-infrastructure>
+      <create-fakes>
+        <location>app/src/androidTest/java/com/foodie/app/fakes/</location>
+        <required-fakes>
+          <fake>FakeMealListViewModel</fake>
+          <fake>FakeHealthConnectManager</fake>
+          <fake>FakeMealRepository (if needed)</fake>
+        </required-fakes>
+      </create-fakes>
+      
+      <test-pattern>
+        <rule>Use createComposeRule() for isolated composable testing</rule>
+        <rule>Provide explicit ViewModel instances in tests</rule>
+        <rule>Keep @HiltAndroidTest and HiltAndroidRule for consistency</rule>
+        <rule>Remove hiltRule.inject() calls if not injecting into test class</rule>
+      </test-pattern>
+    </test-infrastructure>
+
+    <migration-steps>
+      <step order="1">Create fake ViewModels and dependencies</step>
+      <step order="2">Update NavGraphTest to use fakes</step>
+      <step order="3">Update DeepLinkTest to use fakes</step>
+      <step order="4">Update MealListScreenTest to use fakes</step>
+      <step order="5">Verify all tests pass</step>
+      <step order="6">Document pattern for future tests</step>
+    </migration-steps>
+  </implementation-guide>
+
+  <documentation-requirements>
+    <create-guide>
+      <file>docs/testing/compose-hilt-testing-guide.md</file>
+      <sections>
+        <section>Overview of Compose + Hilt testing</section>
+        <section>When to use createComposeRule vs createAndroidComposeRule</section>
+        <section>Pattern: Testing screens with hiltViewModel()</section>
+        <section>Creating fake ViewModels</section>
+        <section>Code examples</section>
+        <section>Links to official documentation</section>
+      </sections>
+    </create-guide>
+
+    <update-story-2-0>
+      <action>Add reference to Story 2-1 as resolution</action>
+      <action>Update regression section with "Fixed in Story 2-1"</action>
+    </update-story-2-0>
+  </documentation-requirements>
+
+  <official-documentation>
+    <reference>
+      <title>Jetpack Compose Testing Overview</title>
+      <url>https://developer.android.com/develop/ui/compose/testing</url>
+      <key-sections>
+        <section>Set up your test - Rule selection guidance</section>
+        <section>Create a composable under test</section>
+      </key-sections>
+      <critical-quote>
+        "use createComposeRule() for testing a composable in isolation, 
+        use createAndroidComposeRule&lt;YourActivity&gt;() if you need access to an activity"
+      </critical-quote>
+    </reference>
+
+    <reference>
+      <title>Compose Test Rules API Reference</title>
+      <url>https://developer.android.com/reference/kotlin/androidx/compose/ui/test/junit4/package-summary</url>
+      <key-apis>
+        <api>createComposeRule() - Activity-less, call setContent()</api>
+        <api>createAndroidComposeRule&lt;A&gt;() - Real Activity, don't call setContent() if Activity sets it</api>
+      </key-apis>
+    </reference>
+
+    <reference>
+      <title>Hilt Testing Guide</title>
+      <url>https://developer.android.com/training/dependency-injection/hilt-testing</url>
+      <key-sections>
+        <section>UI test setup - @HiltAndroidTest annotation</section>
+        <section>HiltAndroidRule usage</section>
+        <section>@BindValue for test dependencies</section>
+        <section>Multiple TestRule objects ordering</section>
+      </key-sections>
+    </reference>
+
+    <reference>
+      <title>Hilt + Compose Integration</title>
+      <url>https://developer.android.com/develop/ui/compose/libraries#hilt</url>
+      <key-sections>
+        <section>Hilt and Navigation</section>
+      </key-sections>
+      <critical-quote>
+        "When using Navigation Compose, always use the hiltViewModel composable function to 
+        obtain an instance of your @HiltViewModel annotated ViewModel. This works with 
+        fragments or activities that are annotated with @AndroidEntryPoint."
+      </critical-quote>
+      <implication>hiltViewModel() REQUIRES @AndroidEntryPoint Activity</implication>
+    </reference>
+
+    <reference>
+      <title>Architecture Samples (Official Reference)</title>
+      <url>https://github.com/android/architecture-samples</url>
+      <branch>main</branch>
+      <description>Official Android architecture sample with Compose + Hilt</description>
+      <study-focus>
+        <item>Test setup patterns in androidTest folder</item>
+        <item>How they test screens with hiltViewModel()</item>
+        <item>ViewModel injection patterns in tests</item>
+      </study-focus>
+    </reference>
+  </official-documentation>
+
+  <related-files>
+    <test-files>
+      <file path="app/src/androidTest/java/com/foodie/app/ui/navigation/NavGraphTest.kt" tests="9"/>
+      <file path="app/src/androidTest/java/com/foodie/app/ui/navigation/DeepLinkTest.kt" tests="15"/>
+      <file path="app/src/androidTest/java/com/foodie/app/ui/screens/meallist/MealListScreenTest.kt" tests="7"/>
+    </test-files>
+
+    <production-files>
+      <file path="app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt">
+        <note>Already has ViewModel parameter with default - designed for testability</note>
+      </file>
+      <file path="app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt">
+        <note>Need to create fake version for tests</note>
+      </file>
+    </production-files>
+
+    <test-infrastructure>
+      <file path="app/src/androidTest/java/com/foodie/app/HiltTestRunner.kt">
+        <note>Already configured correctly</note>
+      </file>
+      <file path="app/build.gradle.kts">
+        <note>testInstrumentationRunner already set to HiltTestRunner</note>
+      </file>
+    </test-infrastructure>
+  </related-files>
+
+  <acceptance-criteria>
+    <criterion id="AC1">
+      <description>Test infrastructure works with Compose + Hilt screens</description>
+      <verification>Can write test for screen using hiltViewModel() and it executes</verification>
+    </criterion>
+
+    <criterion id="AC2">
+      <description>All 31 blocked tests pass</description>
+      <verification>./gradlew :app:connectedDebugAndroidTest shows all tests passing</verification>
+    </criterion>
+
+    <criterion id="AC3">
+      <description>Documentation guides future developers</description>
+      <verification>compose-hilt-testing-guide.md exists with clear examples</verification>
+    </criterion>
+  </acceptance-criteria>
+
+  <success-metrics>
+    <metric>31 tests execute and pass (currently 0/31)</metric>
+    <metric>Test infrastructure fakes created and documented</metric>
+    <metric>Zero manual validation required for deep links</metric>
+    <metric>Testing guide available for future development</metric>
+  </success-metrics>
+</story-context>
