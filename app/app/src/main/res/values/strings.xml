@@ -4,4 +4,21 @@
     <!-- Widget -->
     <string name="widget_description">Quick access to meal capture - tap to log a meal instantly</string>
     <string name="widget_placeholder">Log Meal</string>
+    
+    <!-- Camera Capture Screen -->
+    <string name="capture_requesting_permission">Requesting camera permission…</string>
+    <string name="capture_launching_camera">Launching camera…</string>
+    <string name="capture_processing_photo">Processing photo…</string>
+    <string name="capture_preparing_camera">Preparing camera…</string>
+    <string name="capture_error_title">Camera Error</string>
+    <string name="capture_permission_denied_title">Camera Permission Required</string>
+    <string name="capture_permission_denied_message">Camera access is needed to photograph meals. Please grant permission in app settings.</string>
+    <string name="capture_cancel">Cancel</string>
+    <string name="capture_retry">Retry</string>
+    <string name="capture_open_settings">Open Settings</string>
+    
+    <!-- Preview Screen -->
+    <string name="preview_photo_description">Captured meal photo preview</string>
+    <string name="preview_retake">Retake</string>
+    <string name="preview_use_photo">Use Photo</string>
 </resources>

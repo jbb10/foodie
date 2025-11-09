@@ -1,0 +1,243 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>3</storyId>
+    <title>Camera Integration with Photo Capture</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-3-camera-integration-with-photo-capture.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to quickly photograph my food with one hand and retake if blurry</iWant>
+    <soThat>I get a clear image for AI analysis while holding my plate</soThat>
+    <tasks>
+      <task id="1" ac="1,2,4,5,6">Evaluate Camera Implementation Strategy - Research system camera intent vs CameraX library for performance trade-offs</task>
+      <task id="2" ac="1,4,5,6">Implement Camera Activity with CameraX - Create CameraActivity with PreviewView, configure 2MP resolution, implement capture button (48dp) and volume button support</task>
+      <task id="3" ac="1,2">Implement Photo Capture with Compression - Configure ImageCapture with JPEG 80% quality, save to cacheDir/photos/{timestamp}.jpg with 2MP limit</task>
+      <task id="4" ac="3,7,8">Create Preview Screen with Confirmation UI - Display captured photo with Retake and Use Photo buttons (48dp minimum)</task>
+      <task id="5" ac="7">Integrate Camera with Deep Link Navigation - Route foodie://capture to CameraActivity, verify widget integration</task>
+      <task id="6" ac="2,7,8">Photo Storage and Cleanup Strategy - Create PhotoManager utility for savePhoto(), deletePhoto(), getCacheDir() operations</task>
+      <task id="7" ac="1">Handle Camera Permissions - Request CAMERA permission with rationale, handle denial cases</task>
+      <task id="8" ac="All">Camera Performance and UX Testing - Manual testing for one-handed operation, volume buttons, rotation, performance timing</task>
+      <task id="9" ac="All">Documentation and Completion - Update Dev Notes, add KDocs, update README, create Change Log entry</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Photo captured at maximum 2MP resolution when user taps capture button</criterion>
+    <criterion id="2">Photo saved as JPEG with 80% compression quality</criterion>
+    <criterion id="3">Preview screen shows captured photo with Retake and Use Photo buttons</criterion>
+    <criterion id="4">Capture button large enough for easy thumb access (minimum 48dp)</criterion>
+    <criterion id="5">Volume buttons can be used as alternative capture method</criterion>
+    <criterion id="6">Auto-rotate handles device orientation correctly</criterion>
+    <criterion id="7">Tapping Use Photo saves to app cache directory and proceeds to background processing</criterion>
+    <criterion id="8">Tapping Retake returns to camera without saving</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 2.3: Camera Integration with Photo Capture</section>
+        <snippet>As a user, I want to quickly photograph my food with one hand and retake if blurry. AC: 2MP resolution, 80% JPEG quality, one-handed operation with 48dp capture button, volume button support, retake capability. Prerequisites: Story 1.3 (navigation), Story 2.2 (widget launches camera).</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Camera Module</section>
+        <snippet>Camera integration using system camera intent (MediaStore.ACTION_IMAGE_CAPTURE) with preview confirmation UI. No ViewModel needed for stateless intent-based navigation. Photos saved to context.cacheDir/photos with 2MP resize and 80% JPEG compression.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>System Camera Integration</section>
+        <snippet>ActivityResultContract with MediaStore.ACTION_IMAGE_CAPTURE flow: Widget/FAB tap triggers camera intent, user captures photo saved to app cache directory, Uri returned to activity and passed to WorkManager. WorkManager reads image, analyzes, then deletes file.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Camera Capture Specification</section>
+        <snippet>One-handed operation requirement (holding plate while capturing). Performance target: photo capture completes in under 5 seconds total from widget tap to photo confirmation. Volume button as alternative capture method for accessibility.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-2-lock-screen-widget-implementation.md</path>
+        <title>Story 2.2: Home Screen Widget Implementation</title>
+        <section>Dev Notes - Learnings</section>
+        <snippet>Deep link foodie://capture already established in NavGraph. Widget PendingIntent triggers deep link successfully from home screen. Widget launch time ~2-3 seconds with biometric unlock within 5-second capture flow budget.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-1-fix-hilt-compose-test-infrastructure.md</path>
+        <title>Story 2.1: Test Infrastructure</title>
+        <section>Testing Guide</section>
+        <snippet>ComposeTestActivity pattern available for instrumentation tests. Use createAndroidComposeRule&lt;ComposeTestActivity&gt;() with manual setContent() for testing Compose screens. All 56 tests passing - test infrastructure ready.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+        <kind>navigation</kind>
+        <symbol>NavGraph</symbol>
+        <lines>71</lines>
+        <reason>Deep link route foodie://capture configured at line 71, needs to route to camera destination</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/widget/MealCaptureWidget.kt</path>
+        <kind>widget</kind>
+        <symbol>MealCaptureWidget</symbol>
+        <lines>50-60</lines>
+        <reason>Widget PendingIntent already configured to launch foodie://capture deep link</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/AndroidManifest.xml</path>
+        <kind>manifest</kind>
+        <symbol>AndroidManifest</symbol>
+        <lines>45-60</lines>
+        <reason>Deep link intent filters configured, need to add CAMERA permission declaration</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/base/BaseViewModel.kt</path>
+        <kind>base-class</kind>
+        <symbol>BaseViewModel</symbol>
+        <lines>1-30</lines>
+        <reason>Base ViewModel class for CameraViewModel to extend, follows MVVM pattern from Epic 1</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/util/Result.kt</path>
+        <kind>utility</kind>
+        <symbol>Result</symbol>
+        <lines>1-20</lines>
+        <reason>Result wrapper for error handling in camera operations (capture failures, permission denials)</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <android>
+        <dependency name="androidx.camera.camera-camera2" version="not yet added" note="CameraX library for camera preview and capture" />
+        <dependency name="androidx.camera.camera-lifecycle" version="not yet added" note="CameraX lifecycle integration" />
+        <dependency name="androidx.camera.camera-view" version="not yet added" note="PreviewView composable for camera preview" />
+        <dependency name="androidx.compose.material3" version="via BOM" note="Material3 FAB for capture button (48dp minimum)" />
+        <dependency name="androidx.activity.compose" version="1.9.3" note="Activity integration for camera permissions" />
+        <dependency name="androidx.navigation.compose" version="2.8.4" note="Navigation to camera destination from deep link" />
+        <dependency name="androidx.hilt.navigation.compose" version="1.2.0" note="Hilt ViewModel injection in CameraActivity" />
+        <dependency name="timber" version="5.0.1" note="Logging for camera errors and debug info" />
+      </android>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Follow MVVM architecture pattern established in Epic 1 (Story 1-2): CameraViewModel coordinates camera lifecycle and capture logic</constraint>
+    <constraint>Use Hilt dependency injection for PhotoManager utility and ViewModel</constraint>
+    <constraint>Photos must be saved to context.cacheDir/photos/ directory with timestamp-based filenames (meal_{epochMillis}.jpg)</constraint>
+    <constraint>Camera permissions must be requested at runtime using rememberLauncherForActivityResult with rationale dialog</constraint>
+    <constraint>One-handed operation design: Capture button 48dp minimum, positioned bottom center, volume buttons as alternative</constraint>
+    <constraint>Performance target: Widget to camera ready in under 3 seconds total (including biometric unlock from Story 2-2)</constraint>
+    <constraint>Photo compression: Maximum 2MP resolution (1920x1080 or 1600x1200) with 80% JPEG quality for AI API upload optimization</constraint>
+    <constraint>Device rotation: Camera preview must auto-rotate and maintain functionality across portrait/landscape orientations</constraint>
+    <constraint>Testing: Unit tests for CameraViewModel and PhotoManager, instrumentation tests for UI using ComposeTestActivity pattern, manual tests for one-handed operation and volume buttons</constraint>
+    <constraint>Error handling: All camera operations wrapped in Result&lt;T&gt; pattern, graceful fallback for permission denials and capture failures</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>PhotoManager Utility</name>
+      <kind>utility-class</kind>
+      <signature>
+        class PhotoManager(private val context: Context) {
+          suspend fun savePhoto(bitmap: Bitmap, filename: String): Uri
+          suspend fun deletePhoto(uri: Uri): Boolean
+          fun getCacheDir(): File
+          fun generateFilename(): String // Returns "meal_{timestamp}.jpg"
+        }
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt</path>
+    </interface>
+    <interface>
+      <name>CameraViewModel</name>
+      <kind>viewmodel</kind>
+      <signature>
+        @HiltViewModel
+        class CameraViewModel @Inject constructor(
+          private val photoManager: PhotoManager
+        ) : BaseViewModel() {
+          val cameraState: StateFlow&lt;CameraState&gt;
+          suspend fun capturePhoto(imageProxy: ImageProxy): Result&lt;Uri&gt;
+          fun onUsePhoto(photoUri: Uri)
+          fun onRetakePhoto(photoUri: Uri?)
+        }
+        
+        data class CameraState(
+          val capturedPhotoUri: Uri? = null,
+          val isProcessing: Boolean = false,
+          val error: String? = null
+        )
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/camera/CameraViewModel.kt</path>
+    </interface>
+    <interface>
+      <name>NavGraph Camera Route</name>
+      <kind>navigation-route</kind>
+      <signature>
+        composable(
+          route = "camera",
+          deepLinks = listOf(navDeepLink { uriPattern = "foodie://capture" })
+        ) {
+          CameraScreen(
+            onPhotoConfirmed = { photoUri ->
+              // TODO Story 2-5: Navigate to background processing
+              navController.navigate("mealList")
+            }
+          )
+        }
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+    </interface>
+    <interface>
+      <name>CameraX ImageCapture Configuration</name>
+      <kind>camerax-config</kind>
+      <signature>
+        val imageCapture = ImageCapture.Builder()
+          .setTargetResolution(Size(1920, 1080)) // 2MP max
+          .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+          .setJpegQuality(80) // 80% compression
+          .build()
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/camera/CameraScreen.kt</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing follows patterns established in Epic 1 and Story 2-1:
+      - Unit tests for CameraViewModel logic and PhotoManager utility using JUnit, Mockito, Truth assertions
+      - Instrumentation tests for camera UI using ComposeTestActivity pattern with createAndroidComposeRule&lt;ComposeTestActivity&gt;()
+      - Manual tests required for camera-specific features: one-handed operation, volume button capture, device rotation, performance timing
+      - Test naming convention: methodName_whenCondition_thenExpectedResult
+      - All tests must pass before marking story review-ready
+    </standards>
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/ui/camera/</location>
+      <location>app/app/src/test/java/com/foodie/app/data/local/cache/</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/ui/camera/</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2">PhotoManager.savePhoto() generates correct filename with timestamp, applies 2MP resize and 80% JPEG compression</idea>
+      <idea ac="1,2">PhotoManager.savePhoto() saves to correct cache directory path (cacheDir/photos/)</idea>
+      <idea ac="8">PhotoManager.deletePhoto() successfully removes file from cache directory</idea>
+      <idea ac="7">CameraViewModel.onRetakePhoto() calls PhotoManager.deletePhoto() before returning to camera view</idea>
+      <idea ac="7">CameraViewModel.onUsePhoto() stores photo URI and transitions to processing state</idea>
+      <idea ac="1,4,5,6">CameraActivity instrumentation test: Camera preview displays correctly in full-screen</idea>
+      <idea ac="4">CameraActivity instrumentation test: Capture button is visible, minimum 48dp size, positioned bottom center</idea>
+      <idea ac="3,7,8">PreviewScreen instrumentation test: Retake and Use Photo buttons visible, correctly sized (48dp)</idea>
+      <idea ac="7">CameraPermission instrumentation test: Permission rationale dialog displays when camera permission denied</idea>
+      <idea ac="7">CameraPermission instrumentation test: Camera launches successfully after permission granted</idea>
+      <idea ac="1,5,6">Manual test: One-handed operation comfortable (thumb reaches capture button while holding device)</idea>
+      <idea ac="5">Manual test: Volume up and volume down buttons capture photo correctly</idea>
+      <idea ac="6">Manual test: Device rotation from portrait to landscape maintains camera preview orientation</idea>
+      <idea ac="All">Manual test: Widget to camera ready in under 3 seconds (including biometric unlock)</idea>
+      <idea ac="3,7,8">Manual test: Preview screen displays captured photo clearly, Retake returns to camera, Use Photo proceeds</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -89,6 +89,9 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
+    // Image Loading
+    implementation(libs.coil.compose)
+
     // Logging
     implementation(libs.timber)
 

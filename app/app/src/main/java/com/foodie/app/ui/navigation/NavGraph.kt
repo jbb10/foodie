@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.foodie.app.ui.screens.capture.CapturePhotoScreen
 import com.foodie.app.ui.screens.mealdetail.MealDetailScreen
 import com.foodie.app.ui.screens.meallist.MealListScreen
 import com.foodie.app.ui.screens.settings.SettingsScreen
@@ -51,8 +52,7 @@ fun NavGraph(
             route = Screen.MealList.route,
             deepLinks = listOf(
                 navDeepLink { uriPattern = "foodie://home" }, // Legacy - Story 1-3
-                navDeepLink { uriPattern = "foodie://meals" }, // Primary - Story 2-0
-                navDeepLink { uriPattern = "foodie://capture" } // Widget - Story 2-2 (placeholder for future camera screen)
+                navDeepLink { uriPattern = "foodie://meals" } // Primary - Story 2-0
             )
         ) {
             MealListScreen(
@@ -80,6 +80,27 @@ fun NavGraph(
             val mealId = backStackEntry.arguments?.getString("mealId") ?: ""
             MealDetailScreen(
                 mealId = mealId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Camera Capture screen (Story 2-3)
+        composable(
+            route = Screen.CameraCapture.route,
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "foodie://capture" } // Widget - Story 2-2
+            )
+        ) {
+            CapturePhotoScreen(
+                onPhotoConfirmed = { photoUri ->
+                    // TODO Story 2-5: Navigate to background processing
+                    // For now, return to meal list
+                    navController.navigate(Screen.MealList.route) {
+                        popUpTo(Screen.MealList.route) { inclusive = false }
+                    }
+                },
                 onNavigateBack = {
                     navController.popBackStack()
                 }

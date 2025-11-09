@@ -49,4 +49,11 @@ sealed class Screen(val route: String) {
      * Displays app configuration and preferences.
      */
     data object Settings : Screen("settings")
+
+    /**
+     * Camera capture screen (Story 2-3).
+     * Handles photo capture, processing, and preview confirmation.
+     * Entry point from widget deep link (foodie://capture).
+     */
+    data object CameraCapture : Screen("camera_capture")
 }

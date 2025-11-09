@@ -1,0 +1,236 @@
+package com.foodie.app.ui.screens.capture
+
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.foodie.app.data.local.cache.PhotoManager
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
+
+/**
+ * State for camera capture flow.
+ *
+ * Represents the different stages of photo capture from permission request
+ * through processing to final confirmation.
+ */
+sealed class CaptureState {
+    /** Initial state before permission check */
+    data object Idle : CaptureState()
+
+    /** Requesting camera permission from user */
+    data object RequestingPermission : CaptureState()
+
+    /** Permission denied by user */
+    data object PermissionDenied : CaptureState()
+
+    /** Ready to launch camera with temporary file prepared */
+    data class ReadyToCapture(val photoUri: Uri) : CaptureState()
+
+    /** Processing captured photo (resize + compress) */
+    data object Processing : CaptureState()
+
+    /** Processing complete, showing preview */
+    data class ProcessingComplete(val processedPhotoUri: Uri) : CaptureState()
+
+    /** Error occurred during capture or processing */
+    data class Error(val message: String) : CaptureState()
+}
+
+/**
+ * ViewModel managing camera capture state and coordination.
+ *
+ * Responsibilities:
+ * - Check and request camera permission
+ * - Create temporary photo file for camera intent
+ * - Process captured photo (resize + compress via PhotoManager)
+ * - Manage capture state transitions
+ * - Handle retake flow (cleanup + reset)
+ *
+ * Architecture:
+ * - Injected via Hilt with PhotoManager dependency
+ * - Exposes StateFlow for reactive UI updates
+ * - All file operations delegated to PhotoManager
+ * - Suspend functions executed in viewModelScope
+ *
+ * State flow:
+ * ```
+ * Idle → RequestingPermission → ReadyToCapture → Processing → ProcessingComplete
+ *   ↓                 ↓                               ↓
+ * Error        PermissionDenied                    Error
+ * ```
+ *
+ * @param photoManager PhotoManager for file operations
+ */
+@HiltViewModel
+class CapturePhotoViewModel @Inject constructor(
+    private val photoManager: PhotoManager
+) : ViewModel() {
+
+    private val _state = MutableStateFlow<CaptureState>(CaptureState.Idle)
+    val state: StateFlow<CaptureState> = _state.asStateFlow()
+
+    private var currentPhotoUri: Uri? = null
+    private var processedPhotoUri: Uri? = null
+
+    /**
+     * Checks camera permission and prepares for capture.
+     *
+     * If permission granted: Creates temp file and transitions to ReadyToCapture.
+     * If permission denied: Transitions to RequestingPermission.
+     *
+     * @param context Android context for permission check
+     */
+    fun checkPermissionAndPrepare(context: Context) {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            prepareForCapture()
+        } else {
+            _state.value = CaptureState.RequestingPermission
+        }
+    }
+
+    /**
+     * Called when camera permission is granted.
+     *
+     * Prepares temporary file and transitions to ReadyToCapture.
+     */
+    fun onPermissionGranted() {
+        Timber.d("Camera permission granted")
+        prepareForCapture()
+    }
+
+    /**
+     * Called when camera permission is denied.
+     *
+     * Transitions to PermissionDenied state for user guidance.
+     */
+    fun onPermissionDenied() {
+        Timber.w("Camera permission denied")
+        _state.value = CaptureState.PermissionDenied
+    }
+
+    /**
+     * Called when photo is successfully captured by camera.
+     *
+     * Initiates photo processing (resize + compress).
+     */
+    fun onPhotoCaptured() {
+        Timber.d("Photo captured, starting processing")
+        _state.value = CaptureState.Processing
+        processPhoto()
+    }
+
+    /**
+     * Called when camera capture is cancelled by user.
+     *
+     * Cleans up temporary file and returns to idle.
+     */
+    fun onCaptureCancelled() {
+        Timber.d("Capture cancelled")
+        cleanupCurrentPhoto()
+        _state.value = CaptureState.Idle
+    }
+
+    /**
+     * Called when user taps Retake button.
+     *
+     * Deletes processed photo and prepares for new capture.
+     */
+    fun onRetake() {
+        Timber.d("Retake requested")
+        cleanupProcessedPhoto()
+        prepareForCapture()
+    }
+
+    /**
+     * Prepares temporary file for camera capture.
+     *
+     * Creates FileProvider URI and transitions to ReadyToCapture.
+     */
+    private fun prepareForCapture() {
+        viewModelScope.launch {
+            try {
+                currentPhotoUri = photoManager.createPhotoFile()
+                _state.value = CaptureState.ReadyToCapture(currentPhotoUri!!)
+                Timber.d("Ready to capture: $currentPhotoUri")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to prepare for capture")
+                _state.value = CaptureState.Error("Failed to prepare camera: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Processes captured photo with resize and compression.
+     *
+     * Applies 2MP max resolution and 80% JPEG quality via PhotoManager.
+     * Transitions to ProcessingComplete on success or Error on failure.
+     */
+    private fun processPhoto() {
+        viewModelScope.launch {
+            try {
+                val originalUri = currentPhotoUri
+                    ?: throw IllegalStateException("No photo URI to process")
+
+                processedPhotoUri = photoManager.resizeAndCompress(originalUri)
+
+                if (processedPhotoUri != null) {
+                    Timber.d("Photo processing complete: $processedPhotoUri")
+                    _state.value = CaptureState.ProcessingComplete(processedPhotoUri!!)
+
+                    // Delete original unprocessed photo
+                    photoManager.deletePhoto(originalUri)
+                } else {
+                    throw IllegalStateException("Photo processing returned null")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to process photo")
+                _state.value = CaptureState.Error("Failed to process photo: ${e.message}")
+                cleanupCurrentPhoto()
+            }
+        }
+    }
+
+    /**
+     * Cleans up current (unprocessed) photo file.
+     */
+    private fun cleanupCurrentPhoto() {
+        viewModelScope.launch {
+            currentPhotoUri?.let { uri ->
+                photoManager.deletePhoto(uri)
+                currentPhotoUri = null
+            }
+        }
+    }
+
+    /**
+     * Cleans up processed photo file.
+     */
+    private fun cleanupProcessedPhoto() {
+        viewModelScope.launch {
+            processedPhotoUri?.let { uri ->
+                photoManager.deletePhoto(uri)
+                processedPhotoUri = null
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Cleanup any remaining photos on ViewModel destruction
+        cleanupCurrentPhoto()
+        cleanupProcessedPhoto()
+    }
+}
