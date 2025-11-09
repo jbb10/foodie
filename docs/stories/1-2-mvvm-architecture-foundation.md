@@ -438,6 +438,7 @@ Tests:
 - `app/src/test/java/com/foodie/app/util/ResultTest.kt`
 - `app/src/test/java/com/foodie/app/data/repository/MealRepositoryImplTest.kt` (tests @Ignore'd until Story 1.4)
 - `app/src/test/java/com/foodie/app/ui/sample/SampleViewModelTest.kt`
+- `app/src/androidTest/java/com/foodie/app/ui/sample/SampleScreenIntegrationTest.kt` - **ADDED 2025-11-09** - Full MVVM stack integration test (6 tests demonstrating UI → ViewModel → Repository flow)
 
 **Modified Files:**
 - `app/src/main/java/com/foodie/app/di/RepositoryModule.kt` - Changed from object to abstract class, added @Binds for MealRepository
@@ -468,6 +469,11 @@ Tests:
   - Task 11 now complete
   - Ready for re-review
 - **2025-11-08**: Senior Developer Review (Re-review) completed - **APPROVED** ✅
+- **2025-11-09**: Missing instrumentation test added by PM agent (John) per testing standards compliance audit
+  - Created `SampleScreenIntegrationTest.kt` with 6 integration tests
+  - Tests validate full MVVM stack: UI → ViewModel → Repository → DataSource
+  - Addresses Task 10 requirement for instrumentation test demonstrating complete architecture
+  - Test compiles successfully, validates Hilt injection and state flow patterns
 
 ---
 

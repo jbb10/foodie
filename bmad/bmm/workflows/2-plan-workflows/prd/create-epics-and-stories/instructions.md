@@ -119,6 +119,11 @@ And [additional criteria as needed]
 
 **Technical Notes:** Implementation guidance, affected components, compliance requirements
 
+**Testing Requirements:** Specify what needs unit tests vs instrumentation tests:
+- Unit tests: Always required for repositories, ViewModels, domain models, business logic, utilities
+- Instrumentation tests: Required ONLY IF story involves UI workflows, platform APIs (Camera, Health Connect, Permissions), or end-to-end flows
+- Identify specific components/methods that need test coverage
+
 Ensure stories are:
 
 - Vertically sliced (deliver complete functionality, not just one layer)
@@ -126,11 +131,12 @@ Ensure stories are:
 - Independently valuable when possible
 - Small enough for single-session completion
 - Clear enough for autonomous implementation
+- Testable with clear testing requirements
 
 For each story in epic {{N}}, output variables following this pattern:
 
 - story*title*{{N}}_1, story_title_{{N}}\_2, etc.
-- Each containing: user story, BDD acceptance criteria, prerequisites, technical notes</action>
+- Each containing: user story, BDD acceptance criteria, prerequisites, technical notes, testing requirements</action>
 
 <template-output>epic*title*{{N}}</template-output>
 <template-output>epic*goal*{{N}}</template-output>

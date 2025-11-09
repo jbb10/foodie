@@ -15,6 +15,9 @@ import org.junit.Test
  *
  * These tests verify that the meal list screen renders correctly and handles user
  * interactions properly, ensuring navigation callbacks are invoked as expected.
+ *
+ * Note: These are UI component tests that do NOT require Hilt injection.
+ * We test the MealListScreen composable in isolation by providing test data directly.
  */
 class MealListScreenTest {
 

@@ -19,6 +19,9 @@ import org.junit.Test
  *
  * These tests verify the complete navigation flow between screens, back stack handling,
  * and proper configuration of all navigation destinations.
+ *
+ * Note: These tests may fail if the NavGraph screens require Hilt-injected ViewModels
+ * and cannot be instantiated in a test environment without full Hilt support.
  */
 class NavGraphTest {
 

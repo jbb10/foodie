@@ -41,6 +41,11 @@ So that {{value_benefit}}.
 
 **Technical Notes:** {{implementation_guidance}}
 
+**Testing Requirements:**
+- Unit tests required for: {{unit_test_scope}}
+- Instrumentation tests required if story involves: UI workflows, platform APIs, or E2E flows
+- All tests must pass before story is considered complete
+
 <!-- End story repeat -->
 
 ---
