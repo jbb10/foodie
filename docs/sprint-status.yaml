@@ -50,7 +50,7 @@ development_status:
   # Contains: WorkManager setup for 2.4, Playwright docs research for 2.3 & 2.4
   epic-2: contexted
   2-0-deep-linking-validation: review
-  2-1-fix-hilt-compose-test-infrastructure: ready-for-dev  # BLOCKING - Must complete before Epic 2 continues
+  2-1-fix-hilt-compose-test-infrastructure: done  # ✅ All 56 tests passing - unblocked Epic 2
   2-2-lock-screen-widget-implementation: backlog  # Originally 2-1, renumbered
   2-3-camera-integration-with-photo-capture: backlog  # Originally 2-2, renumbered
   2-4-azure-openai-api-client: backlog  # Originally 2-3, renumbered

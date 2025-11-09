@@ -2,12 +2,13 @@ package com.foodie.app.ui.navigation
 
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.testing.TestNavHostController
+import com.foodie.app.HiltTestActivity
 import com.foodie.app.ui.theme.FoodieTheme
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -22,8 +23,10 @@ import org.junit.Test
  * These tests verify the complete navigation flow between screens, back stack handling,
  * and proper configuration of all navigation destinations.
  *
- * Uses @HiltAndroidTest with createComposeRule() to test NavGraph in isolation
- * while providing Hilt dependency injection for ViewModels.
+ * Pattern: Uses createAndroidComposeRule<HiltTestActivity>() with @HiltAndroidTest.
+ * This provides a Hilt-enabled activity so that hiltViewModel() in composables works.
+ *
+ * Based on android/architecture-samples AppNavigationTest pattern.
  */
 @HiltAndroidTest
 class NavGraphTest {
@@ -32,7 +35,7 @@ class NavGraphTest {
     var hiltRule = HiltAndroidRule(this)
 
     @get:Rule(order = 1)
-    val composeTestRule = createComposeRule()
+    val composeTestRule = createAndroidComposeRule<HiltTestActivity>()
 
     private lateinit var navController: TestNavHostController
 
