@@ -4,6 +4,8 @@ import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.data.local.healthconnect.toDomainModel
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.util.Result
+import com.foodie.app.util.logDebug
+import com.foodie.app.util.runCatchingResult
 import timber.log.Timber
 import java.time.Instant
 import javax.inject.Inject
@@ -38,21 +40,11 @@ class HealthConnectRepository @Inject constructor(
         calories: Int,
         description: String,
         timestamp: Instant
-    ): Result<String> {
-        return try {
-            val recordId = healthConnectManager.insertNutritionRecord(calories, description, timestamp)
-            Timber.tag(TAG).d("Insert successful: $recordId")
-            Result.Success(recordId)
-        } catch (e: SecurityException) {
-            Timber.tag(TAG).e(e, "Insert failed: permissions not granted")
-            Result.Error(e, "Health Connect permissions required. Please grant access in settings.")
-        } catch (e: IllegalStateException) {
-            Timber.tag(TAG).e(e, "Insert failed: Health Connect not available")
-            Result.Error(e, "Health Connect is not available on this device.")
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Insert failed: unexpected error")
-            Result.Error(e, "Failed to save meal entry: ${e.localizedMessage}")
-        }
+    ): Result<String> = runCatchingResult {
+        logDebug("Inserting nutrition record: $calories cal, $description")
+        val recordId = healthConnectManager.insertNutritionRecord(calories, description, timestamp)
+        Timber.tag(TAG).i("Insert successful: $recordId")
+        recordId
     }
 
     /**
@@ -65,22 +57,12 @@ class HealthConnectRepository @Inject constructor(
     suspend fun queryNutritionRecords(
         startTime: Instant,
         endTime: Instant
-    ): Result<List<MealEntry>> {
-        return try {
-            val records = healthConnectManager.queryNutritionRecords(startTime, endTime)
-            val mealEntries = records.map { it.toDomainModel() }
-            Timber.tag(TAG).d("Query successful: ${mealEntries.size} entries")
-            Result.Success(mealEntries)
-        } catch (e: SecurityException) {
-            Timber.tag(TAG).e(e, "Query failed: permissions not granted")
-            Result.Error(e, "Health Connect permissions required. Please grant access in settings.")
-        } catch (e: IllegalStateException) {
-            Timber.tag(TAG).e(e, "Query failed: Health Connect not available")
-            Result.Error(e, "Health Connect is not available on this device.")
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Query failed: unexpected error")
-            Result.Error(e, "Failed to load meal entries: ${e.localizedMessage}")
-        }
+    ): Result<List<MealEntry>> = runCatchingResult {
+        logDebug("Querying nutrition records: $startTime to $endTime")
+        val records = healthConnectManager.queryNutritionRecords(startTime, endTime)
+        val mealEntries = records.map { it.toDomainModel() }
+        Timber.tag(TAG).i("Query successful: ${mealEntries.size} entries")
+        mealEntries
     }
 
     /**
@@ -100,21 +82,10 @@ class HealthConnectRepository @Inject constructor(
         calories: Int,
         description: String,
         timestamp: Instant
-    ): Result<Unit> {
-        return try {
-            healthConnectManager.updateNutritionRecord(recordId, calories, description, timestamp)
-            Timber.tag(TAG).d("Update successful: $recordId")
-            Result.Success(Unit)
-        } catch (e: SecurityException) {
-            Timber.tag(TAG).e(e, "Update failed: permissions not granted")
-            Result.Error(e, "Health Connect permissions required. Please grant access in settings.")
-        } catch (e: IllegalStateException) {
-            Timber.tag(TAG).e(e, "Update failed: Health Connect not available")
-            Result.Error(e, "Health Connect is not available on this device.")
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Update failed: unexpected error")
-            Result.Error(e, "Failed to update meal entry: ${e.localizedMessage}")
-        }
+    ): Result<Unit> = runCatchingResult {
+        logDebug("Updating nutrition record: $recordId")
+        healthConnectManager.updateNutritionRecord(recordId, calories, description, timestamp)
+        Timber.tag(TAG).i("Update successful: $recordId")
     }
 
     /**
@@ -123,20 +94,9 @@ class HealthConnectRepository @Inject constructor(
      * @param recordId The unique ID of the record to delete
      * @return Result.Success on completion, or Result.Error on failure
      */
-    suspend fun deleteNutritionRecord(recordId: String): Result<Unit> {
-        return try {
-            healthConnectManager.deleteNutritionRecord(recordId)
-            Timber.tag(TAG).d("Delete successful: $recordId")
-            Result.Success(Unit)
-        } catch (e: SecurityException) {
-            Timber.tag(TAG).e(e, "Delete failed: permissions not granted")
-            Result.Error(e, "Health Connect permissions required. Please grant access in settings.")
-        } catch (e: IllegalStateException) {
-            Timber.tag(TAG).e(e, "Delete failed: Health Connect not available")
-            Result.Error(e, "Health Connect is not available on this device.")
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Delete failed: unexpected error")
-            Result.Error(e, "Failed to delete meal entry: ${e.localizedMessage}")
-        }
+    suspend fun deleteNutritionRecord(recordId: String): Result<Unit> = runCatchingResult {
+        logDebug("Deleting nutrition record: $recordId")
+        healthConnectManager.deleteNutritionRecord(recordId)
+        Timber.tag(TAG).i("Delete successful: $recordId")
     }
 }

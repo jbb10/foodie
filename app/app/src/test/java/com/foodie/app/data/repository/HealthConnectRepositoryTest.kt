@@ -65,7 +65,7 @@ class HealthConnectRepositoryTest {
         assertThat(result).isInstanceOf(Result.Error::class.java)
         val error = result as Result.Error
         assertThat(error.exception).isInstanceOf(SecurityException::class.java)
-        assertThat(error.message).contains("permissions")
+        assertThat(error.message).isEqualTo("Permission denied. Please grant Health Connect access in settings.")
     }
     
     @Test
@@ -85,7 +85,7 @@ class HealthConnectRepositoryTest {
         assertThat(result).isInstanceOf(Result.Error::class.java)
         val error = result as Result.Error
         assertThat(error.exception).isInstanceOf(IllegalStateException::class.java)
-        assertThat(error.message).contains("not available")
+        assertThat(error.message).isEqualTo("Health Connect is not available. Please install it from the Play Store.")
     }
     
     @Test
@@ -114,7 +114,7 @@ class HealthConnectRepositoryTest {
         
         // Then
         assertThat(result).isInstanceOf(Result.Error::class.java)
-        assertThat((result as Result.Error).message).contains("permissions")
+        assertThat((result as Result.Error).message).isEqualTo("Permission denied. Please grant Health Connect access in settings.")
     }
     
     @Test
@@ -134,7 +134,7 @@ class HealthConnectRepositoryTest {
         assertThat(result).isInstanceOf(Result.Error::class.java)
         val error = result as Result.Error
         assertThat(error.exception).isInstanceOf(RuntimeException::class.java)
-        assertThat(error.message).contains("timeout")
+        assertThat(error.message).isEqualTo("An unexpected error occurred. Please try again.")
     }
     
     @Test
@@ -152,7 +152,7 @@ class HealthConnectRepositoryTest {
         assertThat(result).isInstanceOf(Result.Error::class.java)
         val error = result as Result.Error
         assertThat(error.exception).isInstanceOf(IllegalArgumentException::class.java)
-        assertThat(error.message).contains("Invalid")
+        assertThat(error.message).isEqualTo("Invalid input. Please check your data and try again.")
     }
     
     @Test
@@ -171,7 +171,8 @@ class HealthConnectRepositoryTest {
         // Then
         assertThat(result).isInstanceOf(Result.Error::class.java)
         val error = result as Result.Error
-        assertThat(error.message).contains("positive")
+        assertThat(error.exception).isInstanceOf(IllegalArgumentException::class.java)
+        assertThat(error.message).isEqualTo("Invalid input. Please check your data and try again.")
     }
     
     @Test

@@ -1,0 +1,200 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>5</storyId>
+    <title>Logging and Error Handling Framework</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-5-logging-and-error-handling-framework.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>consistent logging and error handling patterns</iWant>
+    <soThat>debugging is efficient and errors are handled gracefully</soThat>
+    <tasks>
+      - Task 1: Implement centralized logging utility (AC: #1)
+      - Task 2: Enhance Result&lt;T&gt; wrapper for error handling (AC: #2)
+      - Task 3: Define user-facing error message mappings (AC: #3)
+      - Task 4: (Optional) Configure Firebase Crashlytics (AC: #4)
+      - Task 5: Wrap Health Connect operations with error handling (AC: #5)
+      - Task 6: Wrap future Azure OpenAI API operations (AC: #5)
+      - Task 7: Update ViewModel error handling patterns (AC: #5)
+      - Task 8: Display error messages in UI (AC: #3)
+      - Task 9: Create error handling documentation (AC: All)
+      - Task 10: Integration testing for error flows (AC: All)
+      - Task 11: Apply error handling to existing code (AC: #5)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Centralized logging utility exists with log levels (DEBUG, INFO, WARN, ERROR)
+    2. Error handling wrapper exists for try-catch blocks with logging
+    3. User-facing error messages are defined (no technical jargon)
+    4. Crash reporting is configured (Firebase Crashlytics or similar, optional for MVP)
+    5. All API calls and critical operations are wrapped with error handling
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Foodie - Architecture Document</title>
+        <section>Error Handling Model</section>
+        <snippet>Result&lt;T&gt; sealed class for consistent error propagation through layers. Data layer catches exceptions, wraps in Result.Error. Domain layer propagates Result&lt;T&gt;. Presentation layer maps Result to UI state. UI layer displays user-friendly errors with retry actions.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation &amp; Infrastructure</title>
+        <section>Logger Utility &amp; Error Handling Architecture</section>
+        <snippet>Timber configured with DebugTree for debug builds (all levels) and ReleaseTree for release builds (ERROR/WARN only). Tag naming uses class names for filtering. Error flow: Exception → Result.Error → Timber.e() → toUserMessage() → ViewModel state → UI Snackbar display.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/stories/1-4-health-connect-integration-setup.md</path>
+        <title>Story 1.4: Health Connect Integration Setup</title>
+        <section>Dev Agent Record</section>
+        <snippet>HealthConnectRepository already uses Result&lt;T&gt; pattern with basic error handling. MealListViewModel exists with test operations. This story enhances error handling with runCatchingResult&lt;T&gt; helper and user-friendly error messages.</snippet>
+      </artifact>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/util/Result.kt</path>
+        <kind>sealed class</kind>
+        <symbol>Result</symbol>
+        <lines>1-100</lines>
+        <reason>Existing Result&lt;T&gt; wrapper - needs enhancement with mapError(), onSuccess(), onError() extensions and runCatchingResult&lt;T&gt; helper function</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/HealthConnectRepository.kt</path>
+        <kind>repository</kind>
+        <symbol>HealthConnectRepository</symbol>
+        <lines>1-143</lines>
+        <reason>Repository with basic error handling - needs enhancement with runCatchingResult&lt;T&gt; wrapper for all operations (insertNutritionRecord, queryNutritionRecords, updateNutritionRecord, deleteNutritionRecord)</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>MealListViewModel</symbol>
+        <lines>1-100</lines>
+        <reason>ViewModel currently handles Result&lt;T&gt; in testHealthConnect() - needs error state field added to properly expose errors to UI layer</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/FoodieApplication.kt</path>
+        <kind>application</kind>
+        <symbol>FoodieApplication</symbol>
+        <lines>1-50</lines>
+        <reason>Application class with Timber initialization for debug builds - needs ReleaseTree configuration for production logging (ERROR/WARN only)</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <timber version="5.0.1">Already in gradle/libs.versions.toml - no new dependency needed</timber>
+      <hilt version="2.53">For dependency injection</hilt>
+      <compose-bom version="2024.10.01">For Material3 Snackbar UI components</compose-bom>
+      <junit version="4.13.2">For unit testing</junit>
+      <mockito-core version="5.14.2">For mocking in tests</mockito-core>
+      <mockito-kotlin version="5.4.0">Kotlin-friendly Mockito</mockito-kotlin>
+      <truth version="1.4.4">For readable assertions</truth>
+      <coroutines-test version="1.9.0">For testing suspend functions</coroutines-test>
+      <arch-testing version="2.2.0">For testing ViewModels</arch-testing>
+      <optional-crashlytics>Firebase Crashlytics (optional for MVP) - requires Firebase BOM, Crashlytics SDK, and google-services.json</optional-crashlytics>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Follow MVVM clean architecture: UI Layer → Domain Layer → Data Layer
+    - All repository methods MUST return Result&lt;T&gt;, never throw raw exceptions to caller
+    - Use Timber with class-specific tags: Timber.tag("ClassName").e(exception, message)
+    - Log at appropriate levels: DEBUG for verbose info, INFO for key events, WARN for recoverable issues, ERROR for exceptions
+    - Release builds: Only log ERROR and WARN levels (implement custom ReleaseTree)
+    - User messages: Must be &lt;50 words, actionable, jargon-free, and guide user to resolution
+    - Error state pattern: ViewModels expose StateFlow&lt;ScreenState&gt; with optional error: String? field
+    - UI error display: Use Material3 Snackbar with 4-second duration and "Retry" action
+    - Test coverage: Unit tests for all utility functions, repository error paths, ViewModel error state handling
+    - Package structure: New files in util/ (Logger.kt, ErrorMessages.kt, ResultExtensions.kt), new ErrorMessage.kt in ui/components/
+    - Health Connect errors: Map SecurityException → permission guidance, IllegalStateException → HC unavailable message
+    - Network errors (future): Map IOException → "Check network", HttpException codes → specific messages
+    - All error paths must be tested as thoroughly as success paths
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>runCatchingResult&lt;T&gt;</name>
+      <kind>inline function</kind>
+      <signature>inline fun &lt;T&gt; runCatchingResult(block: () -&gt; T): Result&lt;T&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/util/ResultExtensions.kt</path>
+      <description>Wraps try-catch block, returns Result.Success on success or Result.Error with logging on exception. Automatically calls toUserMessage() for error messages.</description>
+    </interface>
+    <interface>
+      <name>Result.mapError</name>
+      <kind>extension function</kind>
+      <signature>fun &lt;T&gt; Result&lt;T&gt;.mapError(transform: (String) -&gt; String): Result&lt;T&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/util/ResultExtensions.kt</path>
+      <description>Transforms error message in Result.Error, useful for adding context or customizing messages.</description>
+    </interface>
+    <interface>
+      <name>Result.onSuccess</name>
+      <kind>extension function</kind>
+      <signature>fun &lt;T&gt; Result&lt;T&gt;.onSuccess(action: (T) -&gt; Unit): Result&lt;T&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/util/ResultExtensions.kt</path>
+      <description>Executes side effect when Result is Success, returns original Result for chaining.</description>
+    </interface>
+    <interface>
+      <name>Result.onError</name>
+      <kind>extension function</kind>
+      <signature>fun &lt;T&gt; Result&lt;T&gt;.onError(action: (Throwable, String) -&gt; Unit): Result&lt;T&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/util/ResultExtensions.kt</path>
+      <description>Executes side effect when Result is Error, returns original Result for chaining.</description>
+    </interface>
+    <interface>
+      <name>ErrorMessages.toUserMessage</name>
+      <kind>function</kind>
+      <signature>fun toUserMessage(exception: Throwable): String</signature>
+      <path>app/app/src/main/java/com/foodie/app/util/ErrorMessages.kt</path>
+      <description>Maps technical exceptions to user-friendly messages. Handles SecurityException, IllegalStateException, IOException, HttpException, and provides fallback for unknown exceptions.</description>
+    </interface>
+    <interface>
+      <name>Logger extensions</name>
+      <kind>extension functions</kind>
+      <signature>fun Any.logDebug(message: String), fun Any.logInfo(message: String), fun Any.logWarn(message: String), fun Any.logError(throwable: Throwable?, message: String)</signature>
+      <path>app/app/src/main/java/com/foodie/app/util/Logger.kt</path>
+      <description>Extension functions on Any for convenient Timber logging with automatic class tag extraction.</description>
+    </interface>
+    <interface>
+      <name>ReleaseTree</name>
+      <kind>class</kind>
+      <signature>class ReleaseTree : Timber.Tree()</signature>
+      <path>app/app/src/main/java/com/foodie/app/util/Logger.kt</path>
+      <description>Custom Timber tree for release builds - logs only ERROR and WARN levels, prevents sensitive data leaks in production.</description>
+    </interface>
+    <interface>
+      <name>HealthConnectRepository operations</name>
+      <kind>repository methods</kind>
+      <signature>suspend fun insertNutritionRecord(...): Result&lt;String&gt;, suspend fun queryNutritionRecords(...): Result&lt;List&lt;MealEntry&gt;&gt;, suspend fun updateNutritionRecord(...): Result&lt;Unit&gt;, suspend fun deleteNutritionRecord(...): Result&lt;Unit&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/repository/HealthConnectRepository.kt</path>
+      <description>All methods already return Result&lt;T&gt; - enhance with runCatchingResult&lt;T&gt; wrapper for cleaner error handling.</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit tests are REQUIRED for all business logic, repositories, ViewModels, domain models, and utility functions. Test naming follows pattern: methodName_whenCondition_thenExpectedResult or "feature should behavior when condition". Use Truth library for assertions (assertThat(x).isEqualTo(y)). Use Mockito/Mockito-Kotlin for mocking. Instrumentation tests are CONDITIONAL - required for UI flows, platform integration (Health Connect), or E2E scenarios. All tests must pass with ./gradlew test connectedAndroidTest.
+    </standards>
+    <locations>
+      - app/app/src/test/java/com/foodie/app/util/ (LoggerTest.kt, ErrorMessagesTest.kt, ResultExtensionsTest.kt)
+      - app/app/src/test/java/com/foodie/app/data/repository/ (HealthConnectRepositoryTest.kt - enhanced)
+      - app/app/src/test/java/com/foodie/app/ui/viewmodel/ (MealListViewModelTest.kt - enhanced)
+      - app/app/src/androidTest/java/com/foodie/app/ui/ (ErrorHandlingIntegrationTest.kt - error Snackbar display and Health Connect error flows)
+    </locations>
+    <ideas>
+      <idea criteria="AC1">Test Logger.kt: Verify Timber configuration in debug vs release builds, verify extension functions delegate correctly</idea>
+      <idea criteria="AC2">Test ResultExtensions.kt: Verify runCatchingResult catches exceptions and returns Result.Error, verify mapError/onSuccess/onError callbacks</idea>
+      <idea criteria="AC3">Test ErrorMessages.kt: Verify each exception type maps to correct user message (SecurityException → permission message, IOException → network message, etc.), verify no technical jargon in messages</idea>
+      <idea criteria="AC5">Test enhanced HealthConnectRepository: Mock exceptions (SecurityException, IllegalStateException) and verify Result.Error returned with user-friendly messages, verify Timber.e() called on errors</idea>
+      <idea criteria="AC5">Test enhanced MealListViewModel: Mock repository to return Result.Error, verify error state field updated with message, verify loading state cleared on error</idea>
+      <idea criteria="AC3">Integration test: Mock repository error in UI, verify Snackbar appears with correct message, verify Retry action triggers reload</idea>
+      <idea criteria="AC5">Instrumentation test: Test Health Connect permission denied flow (SecurityException), verify error message displayed to user</idea>
+      <idea criteria="AC5">Instrumentation test: Test Health Connect unavailable flow (IllegalStateException), verify error message guides user appropriately</idea>
+    </ideas>
+  </tests>
+</story-context>

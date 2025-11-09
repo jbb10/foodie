@@ -215,6 +215,178 @@ All Health Connect operations include proper error handling:
 - Network/timeout errors → Graceful failure with user messaging
 - Invalid data → Validation before insertion
 
+## Error Handling Framework (Story 1.5)
+
+Foodie implements a comprehensive error handling framework to ensure consistent, user-friendly error messaging across the application.
+
+### Architecture
+
+The error handling follows a consistent pattern through all application layers:
+
+```
+Exception occurs → runCatchingResult<T> → Result.Error → ErrorMessages.toUserMessage() 
+→ ViewModel updates error state → UI displays Snackbar with retry action
+```
+
+### Result<T> Pattern
+
+All repository methods return `Result<T>` for consistent error handling:
+
+```kotlin
+suspend fun insertNutritionRecord(
+    calories: Int, 
+    description: String, 
+    timestamp: Instant
+): Result<String> = runCatchingResult {
+    // Operation that may throw exception
+    healthConnectManager.insertNutritionRecord(calories, description, timestamp)
+}
+```
+
+**Result Types:**
+- `Result.Success<T>`: Operation succeeded with data
+- `Result.Error`: Operation failed with exception and user-friendly message
+- `Result.Loading`: Operation in progress
+
+### User-Friendly Error Messages
+
+The `ErrorMessages` utility maps technical exceptions to actionable user messages:
+
+```kotlin
+val userMessage = ErrorMessages.toUserMessage(exception)
+```
+
+**Exception Mapping:**
+
+| Exception | User Message |
+|-----------|-------------|
+| `SecurityException` | "Permission denied. Please grant Health Connect access in settings." |
+| `IllegalStateException` (HC) | "Health Connect is not available. Please install it from the Play Store." |
+| `IOException` | "Network error. Please check your connection and try again." |
+| `UnknownHostException` | "No internet connection. Please check your network." |
+| `HttpException(401/403)` | "Authentication failed. Please check your API key in settings." |
+| `HttpException(429)` | "Too many requests. Please try again in a moment." |
+| `HttpException(500+)` | "Server error. Please try again later." |
+| `IllegalArgumentException` | "Invalid input. Please check your data and try again." |
+| Default | "An unexpected error occurred. Please try again." |
+
+### Usage Patterns
+
+**In Repository:**
+
+```kotlin
+suspend fun queryNutritionRecords(
+    startTime: Instant,
+    endTime: Instant
+): Result<List<MealEntry>> = runCatchingResult {
+    val records = healthConnectManager.queryNutritionRecords(startTime, endTime)
+    records.map { it.toDomainModel() }
+}
+```
+
+**In ViewModel:**
+
+```kotlin
+fun loadMeals() {
+    viewModelScope.launch {
+        _state.update { it.copy(isLoading = true, error = null) }
+        
+        when (val result = repository.queryNutritionRecords(startTime, endTime)) {
+            is Result.Success -> _state.update { 
+                it.copy(meals = result.data, isLoading = false, error = null)
+            }
+            is Result.Error -> _state.update { 
+                it.copy(isLoading = false, error = result.message)
+            }
+            is Result.Loading -> { /* Handled above */ }
+        }
+    }
+}
+```
+
+**In UI (Composable):**
+
+```kotlin
+val state by viewModel.state.collectAsState()
+val snackbarHostState = remember { SnackbarHostState() }
+
+// Show error snackbar with retry action
+LaunchedEffect(state.error) {
+    state.error?.let { errorMessage ->
+        val result = snackbarHostState.showSnackbar(
+            message = errorMessage,
+            actionLabel = "Retry",
+            withDismissAction = true
+        )
+        if (result == SnackbarResult.ActionPerformed) {
+            viewModel.retryLoadMeals()
+        } else {
+            viewModel.clearError()
+        }
+    }
+}
+```
+
+### Logging
+
+Timber is used for structured logging with appropriate log levels:
+
+```kotlin
+// Extension functions for convenient logging
+fun Any.logDebug(message: String)
+fun Any.logInfo(message: String)
+fun Any.logWarn(message: String)
+fun Any.logError(throwable: Throwable?, message: String)
+```
+
+**Log Levels:**
+- **DEBUG**: Verbose information (debug builds only)
+- **INFO**: Key events (success messages, milestones)
+- **WARN**: Recoverable issues (deprecated API usage)
+- **ERROR**: Exceptions and failures
+
+**Release Build Configuration:**
+
+In release builds, only ERROR and WARN logs are emitted to prevent sensitive data leaks. This is enforced by `ReleaseTree`:
+
+```kotlin
+// FoodieApplication.kt
+if (BuildConfig.DEBUG) {
+    Timber.plant(Timber.DebugTree())
+} else {
+    Timber.plant(ReleaseTree())  // Only logs ERROR and WARN
+}
+```
+
+### Testing Error Handling
+
+All error paths are tested with appropriate coverage:
+
+```kotlin
+@Test
+fun `repository returns error when SecurityException thrown`() = runTest {
+    // Given
+    whenever(healthConnectManager.insertNutritionRecord(any(), any(), any()))
+        .thenThrow(SecurityException("Permissions not granted"))
+    
+    // When
+    val result = repository.insertNutritionRecord(500, "Test", Instant.now())
+    
+    // Then
+    assertThat(result).isInstanceOf(Result.Error::class.java)
+    val error = result as Result.Error
+    assertThat(error.message).isEqualTo("Permission denied. Please grant Health Connect access in settings.")
+}
+```
+
+### Best Practices
+
+1. **Always use Result<T>**: Never throw exceptions from repository methods
+2. **User-friendly messages**: No technical jargon in UI-facing error messages
+3. **Provide retry actions**: Include "Retry" buttons in error Snackbars when appropriate
+4. **Log errors**: Use `logError()` for all exceptions to aid debugging
+5. **Test error paths**: Verify error handling is as comprehensive as success paths
+
 ## Contributing
 
 When adding new features:

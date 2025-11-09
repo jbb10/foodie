@@ -43,14 +43,14 @@ import java.time.format.DateTimeFormatter
 /**
  * Meal list screen (home screen) displaying all meal entries.
  *
- * This is a placeholder implementation for Epic 1 Story 1.3. Future stories will add:
- * - ViewModel with real data loading from Health Connect (Epic 3)
+ * Demonstrates error handling pattern: observes error state from ViewModel
+ * and displays user-friendly Snackbar with retry action.
+ *
+ * Current implementation shows test data. Future stories will add:
+ * - Real data loading from Health Connect with error handling
  * - Pull-to-refresh for syncing data
  * - Search and filter capabilities
  * - Meal entry deletion
- *
- * Current implementation shows temporary hardcoded test data for UI validation.
- * Story 1.4 adds Health Connect test button for integration validation.
  *
  * @param onMealClick Callback invoked when a meal is tapped (passes meal ID)
  * @param onSettingsClick Callback invoked when settings button is tapped
@@ -67,12 +67,29 @@ fun MealListScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val testResult by viewModel.testResult.collectAsState()
+    val state by viewModel.state.collectAsState()
     
     // Show snackbar when test result changes
     LaunchedEffect(testResult) {
         testResult?.let { message ->
             snackbarHostState.showSnackbar(message)
             viewModel.clearTestResult()
+        }
+    }
+    
+    // Show error snackbar with retry action
+    LaunchedEffect(state.error) {
+        state.error?.let { errorMessage ->
+            val result = snackbarHostState.showSnackbar(
+                message = errorMessage,
+                actionLabel = "Retry",
+                withDismissAction = true
+            )
+            if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                viewModel.retryLoadMeals()
+            } else {
+                viewModel.clearError()
+            }
         }
     }
     
