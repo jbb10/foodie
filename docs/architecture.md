@@ -2026,7 +2026,112 @@ This architecture document defines a modern, clean Android application using Jet
 
 ---
 
+## Official Documentation References
+
+This section provides authoritative documentation links for all technologies used in the Foodie application. These links should be referenced during story creation and consulted by developers during implementation to ensure adherence to current best practices and API patterns.
+
+### Core Android Framework
+
+- **Android Developers Documentation**: https://developer.android.com/docs
+- **Android API Reference**: https://developer.android.com/reference
+- **Android Architecture Components**: https://developer.android.com/topic/architecture
+- **Android Jetpack**: https://developer.android.com/jetpack
+
+### Kotlin & Language Features
+
+- **Kotlin Documentation**: https://kotlinlang.org/docs/home.html
+- **Kotlin Coroutines Guide**: https://kotlinlang.org/docs/coroutines-guide.html
+- **Kotlin Flow**: https://kotlinlang.org/docs/flow.html
+- **Kotlin API Reference**: https://kotlinlang.org/api/latest/jvm/stdlib/
+
+### UI & Compose
+
+- **Jetpack Compose**: https://developer.android.com/jetpack/compose
+- **Compose UI Documentation**: https://developer.android.com/jetpack/compose/documentation
+- **Compose Layouts**: https://developer.android.com/jetpack/compose/layouts
+- **Compose Material3**: https://developer.android.com/jetpack/compose/designsystems/material3
+- **Compose Navigation**: https://developer.android.com/jetpack/compose/navigation
+- **Compose Testing**: https://developer.android.com/jetpack/compose/testing
+
+### Dependency Injection
+
+- **Hilt (Android)**: https://developer.android.com/training/dependency-injection/hilt-android
+- **Hilt Documentation**: https://dagger.dev/hilt/
+- **Hilt with Jetpack**: https://developer.android.com/training/dependency-injection/hilt-jetpack
+
+### Data & Persistence
+
+- **Health Connect SDK**: https://developer.android.com/health-and-fitness/guides/health-connect
+- **Health Connect API Reference**: https://developer.android.com/reference/kotlin/androidx/health/connect/client/package-summary
+- **NutritionRecord Documentation**: https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/NutritionRecord
+- **Health Connect Permissions**: https://developer.android.com/health-and-fitness/guides/health-connect/permissions
+- **Health Connect Samples**: https://github.com/android/health-samples
+
+### Background Processing
+
+- **WorkManager**: https://developer.android.com/topic/libraries/architecture/workmanager
+- **WorkManager Advanced**: https://developer.android.com/topic/libraries/architecture/workmanager/advanced
+- **WorkManager Testing**: https://developer.android.com/topic/libraries/architecture/workmanager/how-to/testing-workmanager
+
+### Camera & Media
+
+- **CameraX**: https://developer.android.com/training/camerax
+- **CameraX Architecture**: https://developer.android.com/training/camerax/architecture
+- **Camera Intent (System Camera)**: https://developer.android.com/training/camera/photobasics
+
+### Networking
+
+- **Retrofit**: https://square.github.io/retrofit/
+- **OkHttp**: https://square.github.io/okhttp/
+- **Azure OpenAI REST API**: https://learn.microsoft.com/en-us/azure/ai-services/openai/reference
+- **Azure OpenAI Chat Completions**: https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/chatgpt
+- **Azure OpenAI Vision**: https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/gpt-with-vision
+
+### Security & Storage
+
+- **Android Keystore System**: https://developer.android.com/training/articles/keystore
+- **EncryptedSharedPreferences**: https://developer.android.com/reference/androidx/security/crypto/EncryptedSharedPreferences
+- **Security Best Practices**: https://developer.android.com/topic/security/best-practices
+
+### Testing
+
+- **Android Testing Fundamentals**: https://developer.android.com/training/testing/fundamentals
+- **JUnit 4**: https://junit.org/junit4/
+- **Mockito**: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html
+- **Truth Assertions**: https://truth.dev/
+- **Espresso**: https://developer.android.com/training/testing/espresso
+- **Kotlin Coroutines Test**: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-test/
+
+### Logging & Debugging
+
+- **Timber**: https://github.com/JakeWharton/timber
+- **Android Logcat**: https://developer.android.com/studio/command-line/logcat
+- **ADB (Android Debug Bridge)**: https://developer.android.com/studio/command-line/adb
+
+### Widgets
+
+- **App Widgets**: https://developer.android.com/develop/ui/views/appwidgets
+- **Glanceable Widgets (Compose)**: https://developer.android.com/jetpack/androidx/releases/glance
+- **Lock Screen Widgets**: https://developer.android.com/develop/ui/views/appwidgets/advanced
+
+### Build & Tooling
+
+- **Gradle for Android**: https://developer.android.com/build
+- **Android Gradle Plugin**: https://developer.android.com/studio/releases/gradle-plugin
+- **Kotlin Symbol Processing (KSP)**: https://kotlinlang.org/docs/ksp-overview.html
+- **ProGuard/R8**: https://developer.android.com/studio/build/shrink-code
+
+### Best Practices & Guides
+
+- **Android App Architecture Guide**: https://developer.android.com/topic/architecture
+- **Modern Android Development**: https://developer.android.com/series/mad-skills
+- **Kotlin Style Guide**: https://kotlinlang.org/docs/coding-conventions.html
+- **Android Code Quality**: https://developer.android.com/studio/write/lint
+
+---
+
 _Generated by BMAD Decision Architecture Workflow v1.3.2_  
 _Date: 2025-11-08_  
+_Updated: 2025-11-09 (Added Official Documentation References)_  
 _For: BMad_  
 _Architect: Winston_

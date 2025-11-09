@@ -174,6 +174,47 @@ Will update existing story file rather than creating new one.
   <step n="4" goal="Extract requirements and derive story statement">
     <action>From tech_spec_file (preferred) or epics_file: extract epic {{epic_num}} title/summary, acceptance criteria for the next story, and any component references. If not present, fall back to PRD sections mapping to this epic/story.</action>
     <action>From architecture and architecture docs: extract constraints, patterns, component boundaries, and testing guidance relevant to the extracted ACs. ONLY capture information that directly informs implementation of this story.</action>
+    
+    <action>**PLAYWRIGHT MCP FOR COMPLEX SDK RESEARCH:**
+      When this story involves complex third-party SDKs or APIs with multi-layered documentation (e.g., Health Connect, Azure OpenAI, Android Jetpack libraries), consider adding a Dev Notes recommendation to use Playwright MCP for interactive documentation exploration during implementation.
+      
+      **Indicators for Playwright Usage:**
+      - Story involves new SDK integration (Health Connect, Azure OpenAI, Firebase, etc.)
+      - Official documentation is complex, multi-page, or has interactive examples
+      - API has multiple configuration options or patterns not fully documented in architecture.md
+      - Story requires understanding of advanced SDK features or best practices
+      
+      **Add to Dev Notes when applicable:**
+      ```
+      ### Documentation Research Strategy
+      
+      **Recommended: Use Playwright MCP for Interactive Documentation Exploration**
+      
+      This story involves [SDK/API name] which has extensive, multi-layered official documentation. Use Playwright browser navigation tool for efficient research:
+      
+      **Starting Points:**
+      - [Official Docs URL]
+      - [API Reference URL]
+      - [Best Practices Guide URL]
+      
+      **Focus Areas:**
+      - [Specific feature/pattern needed for this story]
+      - [Configuration options to explore]
+      - [Code examples to review]
+      
+      **Playwright Benefits:**
+      - Navigate complex documentation hierarchies interactively
+      - Capture code snippets and examples directly
+      - Follow cross-references and related topics efficiently
+      - Document learnings in story completion notes
+      
+      **Examples from architecture.md:**
+      - Health Connect: https://developer.android.com/health-and-fitness/guides/health-connect
+      - Azure OpenAI: https://learn.microsoft.com/en-us/azure/ai-services/openai/reference
+      - Jetpack Compose: https://developer.android.com/jetpack/compose/documentation
+      ```
+    </action>
+    
     <action>Derive a clear user story statement (role, action, benefit) grounded strictly in the above sources. If ambiguous and {{non_interactive}} == false → ASK user to clarify. If {{non_interactive}} == true → generate the best grounded statement WITHOUT inventing domain facts.</action>
     <template-output file="{default_output_file}">requirements_context_summary</template-output>
   </step>

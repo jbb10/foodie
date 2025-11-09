@@ -51,12 +51,35 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - [ ] Change Log entry added summarizing what was implemented
 - [ ] Story status updated to "review" (pending approval) or "done" (if approved)
 
-**Testing Standards Summary:**
+### Testing Standards Summary:**
 - **Unit Tests Required:** Always, for any story with business logic or data handling
 - **Instrumentation Tests Required:** Conditional - only for UI flows, platform integration, or E2E scenarios
 - **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
+
+## User Demo
+
+**Purpose**: Provide step-by-step instructions for stakeholders to validate functionality without technical knowledge.
+
+### Prerequisites
+- Android device or emulator running the app
+- [List any specific setup required, e.g., API keys, permissions, test data]
+
+### Demo Steps
+1. [Step-by-step instructions for demonstrating the feature]
+2. [Include expected outcomes at each step]
+3. [Use plain language, avoid technical jargon]
+
+### Expected Behavior
+- [Describe what the user should see/experience]
+- [Include screenshots or screen descriptions if helpful]
+
+### Validation Checklist
+- [ ] All acceptance criteria visible to stakeholder
+- [ ] No errors or crashes during demo
+- [ ] UI behaves as expected
+- [ ] Feature provides expected value/benefit
 
 ## Dev Notes
 

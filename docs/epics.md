@@ -175,6 +175,11 @@ So that debugging is efficient and errors are handled gracefully.
 
 **Value:** This is the fundamental product innovation. Without this working end-to-end, the app has no value. Proves the central hypothesis that invisible tracking is faster than manual entry.
 
+**⚠️ IMPORTANT FOR SM AGENT:** Before creating stories for Epic 2, read `docs/epic-2-story-notes.md` which contains critical guidance from Epic 1 retrospective action items. This file includes:
+- Required tasks for Story 2.4 (WorkManager basic setup must be first tasks)
+- Required Dev Notes sections for Stories 2.3 and 2.4 (Playwright documentation research)
+- Templates for documentation research strategy sections
+
 ---
 
 ### Story 2.1: Lock Screen Widget Implementation
