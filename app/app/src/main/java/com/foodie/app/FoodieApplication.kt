@@ -1,8 +1,8 @@
 package com.foodie.app
 
 import android.app.Application
+import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import androidx.work.WorkManager
 import com.foodie.app.util.ReleaseTree
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
@@ -16,14 +16,14 @@ import javax.inject.Inject
  * - Hilt dependency injection initialization (via @HiltAndroidApp)
  * - WorkManager configuration with HiltWorkerFactory for dependency injection
  *
- * WorkManager uses HiltWorkerFactory (injected via WorkManagerModule)
+ * WorkManager uses HiltWorkerFactory (injected by Hilt)
  * for dependency injection into workers (@HiltWorker annotation).
  */
 @HiltAndroidApp
 class FoodieApplication : Application(), Configuration.Provider {
     
     @Inject
-    lateinit var wmConfiguration: Configuration
+    lateinit var workerFactory: HiltWorkerFactory
     
     override fun onCreate() {
         super.onCreate()
@@ -35,13 +35,11 @@ class FoodieApplication : Application(), Configuration.Provider {
             Timber.plant(ReleaseTree())
         }
         
-        Timber.d("FoodieApplication initialized")
-        
-        // Initialize WorkManager with custom configuration
-        WorkManager.initialize(this, wmConfiguration)
-        Timber.d("WorkManager initialized with HiltWorkerFactory")
+        Timber.d("FoodieApplication initialized with HiltWorkerFactory")
     }
     
     override val workManagerConfiguration: Configuration
-        get() = wmConfiguration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 }

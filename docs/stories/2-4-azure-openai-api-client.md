@@ -1,6 +1,6 @@
 # Story 2.4: Azure OpenAI API Client
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -550,9 +550,101 @@ This story involves **Azure OpenAI Responses API** which has extensive, multi-la
 
 ### Completion Notes List
 
+**2025-11-10 - Story 2.4 Finalization (Configuration Solution):**
+
+**Context:** Story 2.4 implementation was completed in Story 2-5 (background processing) but SecurePreferences returned null, blocking end-to-end testing. This update provides a working configuration solution.
+
+**Changes Made:**
+1. ✅ Updated `app/build.gradle.kts` to read Azure OpenAI credentials from `local.properties`:
+   - Added `BuildConfig.AZURE_OPENAI_API_KEY` field
+   - Added `BuildConfig.AZURE_OPENAI_ENDPOINT` field  
+   - Added `BuildConfig.AZURE_OPENAI_MODEL` field
+   - Uses `org.jetbrains.kotlin.konan.properties.Properties` to read from `local.properties`
+
+2. ✅ Updated `SecurePreferences.kt` to use BuildConfig fields instead of returning null:
+   - `azureOpenAiApiKey` now returns `BuildConfig.AZURE_OPENAI_API_KEY`
+   - `azureOpenAiEndpoint` now returns `BuildConfig.AZURE_OPENAI_ENDPOINT`
+   - `azureOpenAiModel` now returns `BuildConfig.AZURE_OPENAI_MODEL`
+   - Added `.takeIf { it.isNotBlank() }` guards to return null for unconfigured values
+
+3. ✅ Created `app/local.properties.template` with configuration instructions:
+   - Documents all three required fields with examples
+   - Explains where to get Azure credentials
+   - Notes security considerations (git-ignored)
+
+4. ✅ Updated `app/README.md` with "Quick Start & Configuration" section:
+   - Step-by-step Azure OpenAI setup instructions
+   - Links to Azure Portal for credentials
+   - Example `local.properties` configuration
+   - Security note about never committing API keys
+
+**Testing:**
+- All unit tests passing (`./gradlew :app:testDebugUnitTest`)
+- No compilation errors (`get_errors` returned clean)
+- BuildConfig fields generated successfully
+
+**Architectural Notes:**
+- This is a **temporary solution** until Story 5.2 implements EncryptedSharedPreferences
+- API keys in `local.properties` are acceptable for development, NOT for production
+- Story 5.2 will move credentials to in-app settings with proper encryption
+- BuildConfig approach allows immediate testing of end-to-end flow from Stories 2-2 through 2-6
+
+**Files Modified:**
+- `app/build.gradle.kts` - Added BuildConfig fields for Azure OpenAI configuration
+- `app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt` - Read from BuildConfig instead of returning null
+- `app/README.md` - Added configuration instructions
+- `app/local.properties.template` - Created template for developer setup
+
+**Story 2.4 Implementation Status:**
+The core Story 2.4 implementation (DTOs, API interface, Repository, ImageUtils) was already completed in Story 2-5. This update only addresses the configuration gap that was blocking end-to-end testing. All 11 acceptance criteria from Story 2.4 were already met by the Story 2-5 implementation.
+
 ### File List
 
+**Modified Files (Story 2.4 Configuration Fix - 2025-11-10):**
+- `app/build.gradle.kts` - Added BuildConfig fields for Azure OpenAI credentials (API key, endpoint, model)
+- `app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt` - Updated to read from BuildConfig instead of returning null
+- `app/README.md` - Added "Quick Start & Configuration" section with Azure OpenAI setup instructions
+
+**Created Files (Story 2.4 Configuration Fix - 2025-11-10):**
+- `app/local.properties.template` - Template for Azure OpenAI configuration with examples and security notes
+
+**Files Already Created by Story 2-5 (Core Story 2.4 Implementation):**
+- `app/src/main/java/com/foodie/app/data/remote/api/AzureOpenAiApi.kt` - Retrofit interface for Responses API
+- `app/src/main/java/com/foodie/app/data/remote/dto/AzureResponseRequest.kt` - Request DTO with model, instructions, input
+- `app/src/main/java/com/foodie/app/data/remote/dto/AzureResponseResponse.kt` - Response DTO with output_text field
+- `app/src/main/java/com/foodie/app/data/remote/dto/ApiNutritionResponse.kt` - Parsed nutrition JSON (calories, description)
+- `app/src/main/java/com/foodie/app/data/remote/dto/InputMessage.kt` - Input message with role and content
+- `app/src/main/java/com/foodie/app/data/remote/dto/ContentItem.kt` - Sealed class for text/image content
+- `app/src/main/java/com/foodie/app/data/remote/interceptor/AuthInterceptor.kt` - OkHttp interceptor for api-key header
+- `app/src/main/java/com/foodie/app/data/repository/NutritionAnalysisRepositoryImpl.kt` - Repository implementation
+- `app/src/main/java/com/foodie/app/domain/repository/NutritionAnalysisRepository.kt` - Repository interface
+- `app/src/main/java/com/foodie/app/domain/model/NutritionData.kt` - Domain model with validation
+- `app/src/main/java/com/foodie/app/util/ImageUtils.kt` - Base64 encoding utility with memory management
+- `app/src/main/java/com/foodie/app/di/NetworkModule.kt` - Updated with AuthInterceptor and timeout configuration
+
 ## Change Log
+
+**2025-11-10 - Story 2.4 Configuration Fix: Azure OpenAI Credentials via BuildConfig**
+
+**Summary:** Resolved configuration gap that prevented end-to-end testing. Added BuildConfig-based credential loading from `local.properties` as temporary solution until Story 5.2 implements EncryptedSharedPreferences.
+
+**Changes:**
+- Updated `SecurePreferences` to read from BuildConfig fields instead of returning null
+- Added BuildConfig field generation in `app/build.gradle.kts` reading from `local.properties`
+- Created `local.properties.template` with setup instructions and examples
+- Updated README with "Quick Start & Configuration" section documenting Azure OpenAI setup process
+
+**Impact:**
+- Unblocks end-to-end testing for Stories 2-2 through 2-6 (widget → camera → API → Health Connect)
+- Allows developers to test meal analysis feature with real Azure OpenAI API
+- All unit tests passing, no compilation errors
+
+**Security Notes:**
+- `local.properties` is git-ignored (credentials never committed)
+- BuildConfig approach acceptable for development, NOT production
+- Story 5.2 will migrate to EncryptedSharedPreferences for production-ready security
+
+---
 
 **2025-11-10 - Story 2.4: Azure OpenAI API Client - Story Drafted**
 

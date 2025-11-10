@@ -189,6 +189,15 @@ class AnalyzeMealWorker @AssistedInject constructor(
                             "Health Connect permission denied - keeping photo for manual intervention"
                         )
                         androidx.work.ListenableWorker.Result.failure()
+                    } catch (e: IllegalArgumentException) {
+                        // Validation error (calories out of range or blank description)
+                        // This should not happen if API returns valid data, but handle defensively
+                        Timber.tag(TAG).e(
+                            e,
+                            "Invalid nutrition data from API - deleting photo"
+                        )
+                        photoManager.deletePhoto(photoUri)
+                        androidx.work.ListenableWorker.Result.failure()
                     }
                 }
                 

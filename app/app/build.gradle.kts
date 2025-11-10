@@ -21,6 +21,30 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Azure OpenAI Configuration from local.properties
+        // Story 2.4: Temporary BuildConfig approach until Story 5.2 implements EncryptedSharedPreferences
+        val properties = org.jetbrains.kotlin.konan.properties.Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            properties.load(localPropertiesFile.inputStream())
+        }
+
+        buildConfigField(
+            "String",
+            "AZURE_OPENAI_API_KEY",
+            properties.getProperty("azure.openai.api.key", "\"\"")
+        )
+        buildConfigField(
+            "String",
+            "AZURE_OPENAI_ENDPOINT",
+            properties.getProperty("azure.openai.endpoint", "\"https://your-resource.openai.azure.com\"")
+        )
+        buildConfigField(
+            "String",
+            "AZURE_OPENAI_MODEL",
+            properties.getProperty("azure.openai.model", "\"gpt-4.1\"")
+        )
     }
 
     buildTypes {
@@ -75,7 +99,7 @@ dependencies {
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)
-    ksp(libs.hilt.android.compiler)
+    ksp(libs.androidx.hilt.compiler)
 
     // Health Connect
     implementation(libs.androidx.health.connect)

@@ -4,11 +4,21 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 /**
- * Unit tests for HealthConnectManager.
+ * Unit tests for HealthConnectManager constants and validation.
  *
- * Note: Most HealthConnectManager functionality requires Android SDK and real HealthConnectClient.
- * These tests verify static configuration and constants.
- * See HealthConnectPermissionFlowTest and HealthConnectIntegrationTest for integration tests.
+ * Note: Actual Health Connect SDK behavior is tested in HealthConnectIntegrationTest.
+ * Unit tests for business logic with mocked HealthConnectManager are in HealthConnectRepositoryTest.
+ *
+ * This test class validates:
+ * - Required permissions configuration
+ * - Input validation logic (tested at repository level via HealthConnectRepositoryTest)
+ *
+ * See HealthConnectIntegrationTest for:
+ * - Real insertNutritionRecord() behavior with Health Connect SDK
+ * - NutritionRecord field creation (energy, name, timestamps, zone offsets)
+ * - Time zone handling validation
+ * - Record ID extraction
+ * - SecurityException handling
  */
 class HealthConnectManagerTest {
     

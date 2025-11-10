@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
+import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -39,7 +40,7 @@ import javax.inject.Inject
  * https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses#multimodal-vision
  */
 class ImageUtils @Inject constructor(
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) {
 
     companion object {

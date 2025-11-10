@@ -4,6 +4,7 @@ This README documents the MVVM (Model-View-ViewModel) architecture pattern and n
 
 ## Table of Contents
 
+- [Quick Start & Configuration](#quick-start--configuration)
 - [Architecture Overview](#architecture-overview)
 - [Navigation Structure](#navigation-structure)
 - [Layer Responsibilities](#layer-responsibilities)
@@ -11,6 +12,40 @@ This README documents the MVVM (Model-View-ViewModel) architecture pattern and n
 - [Error Handling Pattern](#error-handling-pattern)
 - [Reference Implementations](#reference-implementations)
 - [Testing Patterns](#testing-patterns)
+
+---
+
+## Quick Start & Configuration
+
+### Azure OpenAI API Setup (Required for Story 2.4+)
+
+The app requires Azure OpenAI credentials to analyze meal photos and estimate calories:
+
+1. **Copy the template:**
+   ```bash
+   cp local.properties.template local.properties
+   ```
+
+2. **Get your Azure OpenAI credentials:**
+   - Go to [Azure Portal](https://portal.azure.com)
+   - Navigate to your Azure OpenAI resource
+   - Copy the API key and endpoint URL
+
+3. **Edit `local.properties`:**
+   ```properties
+   azure.openai.api.key="your-api-key-here"
+   azure.openai.endpoint="https://your-resource.openai.azure.com"
+   azure.openai.model="gpt-4.1"
+   ```
+
+4. **Build the app:**
+   ```bash
+   ./gradlew assembleDebug
+   ```
+
+**Note:** `local.properties` is git-ignored for security. Never commit API keys to version control.
+
+**Future:** Story 5.2 will move credentials to in-app settings with EncryptedSharedPreferences.
 
 ---
 

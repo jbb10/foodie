@@ -1,7 +1,9 @@
 package com.foodie.app.ui.navigation
 
+import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -42,6 +44,9 @@ fun NavGraph(
     navController: NavHostController = rememberNavController(),
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+    
     NavHost(
         navController = navController,
         startDestination = Screen.MealList.route,
@@ -95,14 +100,13 @@ fun NavGraph(
         ) {
             CapturePhotoScreen(
                 onPhotoConfirmed = { photoUri ->
-                    // TODO Story 2-5: Navigate to background processing
-                    // For now, return to meal list
-                    navController.navigate(Screen.MealList.route) {
-                        popUpTo(Screen.MealList.route) { inclusive = false }
-                    }
+                    // Story 2-5: Background processing started via WorkManager
+                    // Finish activity to return to home screen / previous app
+                    activity?.finish()
                 },
                 onNavigateBack = {
-                    navController.popBackStack()
+                    // User cancelled - finish activity
+                    activity?.finish()
                 }
             )
         }

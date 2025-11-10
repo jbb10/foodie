@@ -1,0 +1,302 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>6</storyId>
+    <title>Health Connect Nutrition Data Save</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-6-health-connect-nutrition-data-save.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>my meal calories and description automatically saved to Health Connect</iWant>
+    <soThat>my nutrition data is available to other health apps without manual entry</soThat>
+    <tasks>
+- Task 1: Extend HealthConnectManager with Nutrition Save (AC: #1-6)
+  - Verify HealthConnectManager exists from Story 1-4
+  - Add method: insertNutritionRecord(calories, description, timestamp)
+  - Create NutritionRecord with energy (kilocalories), name, timestamps, zone offsets
+  - Call healthConnectClient.insertRecords() and return record ID
+  - Add validation: calories 1-5000 range
+  
+- Task 2: Update AnalyzeMealWorker to Call Health Connect Save (AC: #1-6, #8-10)
+  - Verify worker calls insertNutritionRecord() after successful API response
+  - Ensure photo capture timestamp is passed (not current time)
+  - Verify error handling: SecurityException keeps photo, other exceptions delete photo
+  - Add performance logging for Health Connect save duration
+  
+- Task 3: Unit Tests for insertNutritionRecord() (AC: #1-6)
+  - Create HealthConnectManagerTest.kt with validation and error handling tests
+  - Mock HealthConnectClient.insertRecords()
+  - Test NutritionRecord field creation and SecurityException handling
+  
+- Task 4: Integration Testing with Real Health Connect (AC: #7)
+  - Create HealthConnectManagerIntegrationTest.kt
+  - Test insert and query validation with real Health Connect
+  - Verify time zone handling and data visibility
+  
+- Task 5: Verify End-to-End Flow with Health Connect (AC: #7, #10)
+  - Manual validation via User Demo scenarios
+  - Verify data in Health Connect/Google Fit apps
+  - Confirm photo cleanup after successful save
+  
+- Task 6: Error Handling and Edge Cases (AC: #8-9)
+  - Test permission revoked mid-session (SecurityException)
+  - Test Health Connect not installed scenario
+  - Document error scenarios in KDocs
+  
+- Task 7: Performance Validation (AC: #10)
+  - Add logging for Health Connect save duration
+  - Target: &lt;500ms, warn if &gt;1s
+  
+- Task 8: Documentation and Completion (AC: All)
+  - Update Dev Notes with NutritionRecord field mapping
+  - Run all tests and verify end-to-end flow
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. NutritionRecord created with energy field (calories in kcal)
+2. name field contains food description from AI
+3. startTime and endTime set to photo capture timestamp
+4. startZoneOffset and endZoneOffset set to local time zone offset
+5. Record inserted using HealthConnectClient.insertRecords()
+6. Save operation returns Health Connect record ID
+7. Data immediately visible in Google Fit or other Health Connect apps
+8. Errors handled gracefully (permission issues, Health Connect unavailable)
+9. SecurityException (permission denied) keeps photo file for manual intervention
+10. Successful saves delete temporary photo file
+11. All Health Connect operations use proper time zone handling (device local time zone)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2, Story 2.6</title>
+        <section>Story 2.6: Health Connect Nutrition Data Save</section>
+        <snippet>Testing and validation story for Health Connect nutrition data persistence. Create NutritionRecord with energy field (calories in kcal), name field (food description), timestamps, and zone offsets. Verify data appears in Google Fit.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Tech Spec Epic 2</title>
+        <section>Health Connect Extension</section>
+        <snippet>Extends HealthConnectManager from Epic 1. insertNutritionRecord() method with calories, description, timestamp parameters. NutritionRecord field mapping: energy, name, startTime, endTime, zone offsets. Returns Health Connect record ID.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Health Connect Data Model</section>
+        <snippet>Health Connect as single source of truth. NutritionRecord with energy (calories) and name (description) fields. Update pattern: delete + re-insert. Query pattern with TimeRangeFilter. Time zone handling with ZoneOffset.systemDefault().</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>PRD</title>
+        <section>Health Connect Data Storage</section>
+        <snippet>Health Connect provides persistent storage on-device. No local database needed. Interoperability with Google Fit and other health apps. Privacy by default - data stays on device.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-4-health-connect-integration-setup.md</path>
+        <title>Story 1.4: Health Connect Integration Setup</title>
+        <section>HealthConnectManager base implementation</section>
+        <snippet>Permission handling for WRITE_NUTRITION and READ_NUTRITION. HealthConnectClient initialization. Availability checking and permission request flow.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-5-background-processing-service.md</path>
+        <title>Story 2.5: Background Processing Service</title>
+        <section>Health Connect Integration Already Implemented</section>
+        <snippet>AnalyzeMealWorker calls healthConnectManager.insertNutritionRecord() after API success. Error handling: SecurityException keeps photo, other errors delete photo. Performance logging tracks Health Connect save duration. Implementation already exists - Story 2.6 adds testing and documentation.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>manager</kind>
+        <symbol>HealthConnectManager</symbol>
+        <lines>1-219</lines>
+        <reason>Core Health Connect operations manager. Contains insertNutritionRecord(), queryNutritionRecords(), updateNutritionRecord(), deleteNutritionRecord(). This story validates and tests these methods.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>method</kind>
+        <symbol>insertNutritionRecord</symbol>
+        <lines>113-141</lines>
+        <reason>Primary method under test. Creates NutritionRecord with energy (kilocalories), name, timestamps, zone offsets. Calls healthConnectClient.insertRecords() and returns record ID. Already implemented in Story 2-5.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <kind>worker</kind>
+        <symbol>AnalyzeMealWorker</symbol>
+        <lines>1-268</lines>
+        <reason>Background worker that calls insertNutritionRecord() after successful API response. Task 2 verifies this integration, error handling (SecurityException keeps photo), and photo cleanup.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/NutritionRecordExtensions.kt</path>
+        <kind>extensions</kind>
+        <symbol>toDomainModel</symbol>
+        <lines>1-50</lines>
+        <reason>Extension functions for converting between Health Connect NutritionRecord and domain MealEntry model. Relevant for understanding data model mapping.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/test/java/com/foodie/app/data/repository/HealthConnectRepositoryTest.kt</path>
+        <kind>test</kind>
+        <symbol>HealthConnectRepositoryTest</symbol>
+        <lines>1-120</lines>
+        <reason>Example unit tests with mocked HealthConnectManager. Demonstrates testing patterns for insertNutritionRecord(), error handling (SecurityException, IllegalStateException).</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/androidTest/java/com/foodie/app/data/healthconnect/HealthConnectIntegrationTest.kt</path>
+        <kind>integration-test</kind>
+        <symbol>healthConnectRoundTrip_insertsAndQueriesSuccessfully</symbol>
+        <lines>34-75</lines>
+        <reason>Example integration test with real Health Connect. Shows insert, query, and delete pattern for test cleanup. Task 4 follows this pattern.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <kotlin>
+        <version>2.1.0</version>
+      </kotlin>
+      <android>
+        <healthConnect>1.1.0</healthConnect>
+        <coreKtx>1.15.0</coreKtx>
+        <lifecycleRuntimeKtx>2.8.7</lifecycleRuntimeKtx>
+        <workManager>2.9.1</workManager>
+      </android>
+      <networking>
+        <retrofit>2.11.0</retrofit>
+        <okhttp>4.12.0</okhttp>
+      </networking>
+      <testing>
+        <junit>4.13.2</junit>
+        <mockito>5.14.2</mockito>
+        <mockitoKotlin>5.4.0</mockitoKotlin>
+        <truth>1.4.4</truth>
+        <espressoCore>3.6.1</espressoCore>
+      </testing>
+      <di>
+        <hilt>2.53</hilt>
+      </di>
+      <logging>
+        <timber>5.0.1</timber>
+      </logging>
+      <coroutines>
+        <version>1.9.0</version>
+      </coroutines>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- MVVM architecture pattern: Manager → Repository → ViewModel flow
+- Hilt dependency injection for all components
+- Health Connect as single source of truth (no Room database)
+- Testing focus: Story 2-6 validates implementation from Story 2-5
+- Unit tests required for HealthConnectManager.insertNutritionRecord()
+- Integration tests required for real Health Connect insertion and query
+- Test naming convention: methodName_whenCondition_thenExpectedResult
+- Assertion library: Truth for readable assertions
+- Mocking: Mockito/Mockito-Kotlin for HealthConnectClient in unit tests
+- NutritionRecord field mapping: energy (kilocalories extension property), name, startTime, endTime, startZoneOffset, endZoneOffset
+- Time zone handling: ZoneOffset.systemDefault().rules.getOffset(timestamp) for DST support
+- Error handling: SecurityException keeps photo for manual retry, other exceptions delete photo
+- Performance target: Health Connect save &lt; 500ms typical
+- Photo cleanup: Delete after successful save, keep if permission denied
+- Update pattern: delete + re-insert (Health Connect API limitation)
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>HealthConnectManager.insertNutritionRecord</name>
+      <kind>suspend-function</kind>
+      <signature>
+suspend fun insertNutritionRecord(
+    calories: Int,
+    description: String,
+    timestamp: Instant
+): String  // Returns Health Connect record ID
+      </signature>
+      <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+    </interface>
+    
+    <interface>
+      <name>HealthConnectManager.queryNutritionRecords</name>
+      <kind>suspend-function</kind>
+      <signature>
+suspend fun queryNutritionRecords(
+    startTime: Instant,
+    endTime: Instant
+): List&lt;NutritionRecord&gt;
+      </signature>
+      <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+    </interface>
+    
+    <interface>
+      <name>HealthConnectManager.deleteNutritionRecord</name>
+      <kind>suspend-function</kind>
+      <signature>
+suspend fun deleteNutritionRecord(recordId: String)
+      </signature>
+      <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+    </interface>
+    
+    <interface>
+      <name>HealthConnectClient.insertRecords</name>
+      <kind>sdk-method</kind>
+      <signature>
+suspend fun insertRecords(records: List&lt;Record&gt;): InsertRecordsResponse
+// InsertRecordsResponse.recordIdsList: List&lt;String&gt;
+      </signature>
+      <path>androidx.health.connect.client.HealthConnectClient (SDK)</path>
+    </interface>
+    
+    <interface>
+      <name>NutritionRecord</name>
+      <kind>data-class</kind>
+      <signature>
+NutritionRecord(
+    energy: Energy,                    // Use .kilocalories extension property
+    name: String,                      // Food description
+    startTime: Instant,                // Meal timestamp
+    endTime: Instant,                  // Same as startTime for instant meal
+    startZoneOffset: ZoneOffset,       // Device local timezone
+    endZoneOffset: ZoneOffset,         // Device local timezone
+    metadata: Metadata = Metadata.autoRecorded(device = Device(type = Device.TYPE_PHONE))
+)
+      </signature>
+      <path>androidx.health.connect.client.records.NutritionRecord (SDK)</path>
+    </interface>
+    
+    <interface>
+      <name>PhotoManager.deletePhoto</name>
+      <kind>function</kind>
+      <signature>
+fun deletePhoto(photoUri: Uri): Boolean  // Returns true if deleted successfully
+      </signature>
+      <path>app/src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Unit tests use JUnit 4.13.2, Mockito 5.14.2, Mockito-Kotlin 5.4.0, and Truth 1.4.4 for assertions. Test naming convention: methodName_whenCondition_thenExpectedResult. Mock HealthConnectClient for unit tests to avoid SDK dependencies. Use runTest { } for coroutine tests. Integration tests require real Health Connect with permissions granted. Test cleanup: delete inserted records after verification. AndroidX Test framework with Hilt testing support for instrumentation tests.
+    </standards>
+    <locations>
+      <location>app/src/test/java/com/foodie/app/data/local/healthconnect/HealthConnectManagerTest.kt</location>
+      <location>app/src/androidTest/java/com/foodie/app/data/local/healthconnect/HealthConnectManagerIntegrationTest.kt</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2,3,4,5,6">Unit test: insertNutritionRecord_withValidInputs_createsNutritionRecordWithCorrectFields - Mock HealthConnectClient.insertRecords(), verify NutritionRecord created with energy=calories.toDouble().kilocalories, name=description, startTime=timestamp, endTime=timestamp, zone offsets from ZoneOffset.systemDefault().rules.getOffset(timestamp)</idea>
+      <idea ac="1,6">Unit test: insertNutritionRecord_whenInsertSucceeds_returnsRecordId - Mock insertRecords() to return InsertRecordsResponse with recordIdsList, verify method returns first ID</idea>
+      <idea ac="8,9">Unit test: insertNutritionRecord_whenSecurityExceptionThrown_propagatesException - Mock insertRecords() to throw SecurityException, verify exception propagates (worker handles it)</idea>
+      <idea ac="1">Unit test: insertNutritionRecord_withCaloriesBelow1_throwsIllegalArgumentException - Verify validation: calories must be 1-5000 range</idea>
+      <idea ac="1">Unit test: insertNutritionRecord_withCaloriesAbove5000_throwsIllegalArgumentException - Verify validation: calories must be 1-5000 range</idea>
+      <idea ac="2">Unit test: insertNutritionRecord_withBlankDescription_throwsIllegalArgumentException - Verify validation: description cannot be blank</idea>
+      <idea ac="3,4,11">Unit test: insertNutritionRecord_withTimestamp_usesCorrectZoneOffset - Verify ZoneOffset.systemDefault().rules.getOffset(timestamp) called for startZoneOffset and endZoneOffset</idea>
+      <idea ac="7">Integration test: healthConnectRoundTrip_insertsAndQueriesSuccessfully - Insert test record, query by time range, verify record exists with correct calories and description, cleanup via deleteNutritionRecord()</idea>
+      <idea ac="7">Integration test: insertNutritionRecord_whenPermissionsGranted_dataVisibleInHealthConnect - Insert record, query back, verify energy and name fields match</idea>
+      <idea ac="4,11">Integration test: insertNutritionRecord_withTimestamp_preservesLocalTimeZone - Insert record, query back, verify startZoneOffset and endZoneOffset match device timezone at timestamp</idea>
+      <idea ac="10">Worker verification: AnalyzeMealWorker calls photoManager.deletePhoto() after successful insertNutritionRecord() - Verify in Story 2.5 worker implementation</idea>
+      <idea ac="9">Worker verification: AnalyzeMealWorker catches SecurityException and keeps photo - Verify in Story 2.5 worker implementation</idea>
+      <idea ac="5">Performance test: insertNutritionRecord_completesInUnder500ms - Measure duration, assert &lt; 500ms typical case</idea>
+    </ideas>
+  </tests>
+</story-context>

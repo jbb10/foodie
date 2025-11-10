@@ -105,18 +105,23 @@ class HealthConnectManager @Inject constructor(
     /**
      * Inserts a nutrition record into Health Connect.
      *
-     * @param calories Energy content in kilocalories (kcal)
-     * @param description Meal description/name
+     * @param calories Energy content in kilocalories (kcal), must be between 1 and 5000
+     * @param description Meal description/name, cannot be blank
      * @param timestamp When the meal was consumed
      * @return The unique record ID assigned by Health Connect
      * @throws SecurityException if permissions are not granted
      * @throws IllegalStateException if Health Connect is not available
+     * @throws IllegalArgumentException if calories is not in range 1-5000 or description is blank
      */
     suspend fun insertNutritionRecord(
         calories: Int,
         description: String,
         timestamp: Instant
     ): String {
+        // Validation
+        require(calories in 1..5000) { "Calories must be between 1 and 5000, got: $calories" }
+        require(description.isNotBlank()) { "Description cannot be blank" }
+        
         Timber.tag(TAG).d("Inserting nutrition record: $calories kcal, '$description', at $timestamp")
         
         val zoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)
