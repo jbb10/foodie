@@ -1,7 +1,9 @@
 package com.foodie.app.di
 
 import com.foodie.app.data.repository.MealRepositoryImpl
+import com.foodie.app.data.repository.NutritionAnalysisRepositoryImpl
 import com.foodie.app.domain.repository.MealRepository
+import com.foodie.app.domain.repository.NutritionAnalysisRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -26,4 +28,14 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindMealRepository(impl: MealRepositoryImpl): MealRepository
+
+    /**
+     * Binds NutritionAnalysisRepository interface to its Azure OpenAI implementation.
+     *
+     * @Singleton ensures only one instance exists throughout the app lifecycle.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindNutritionAnalysisRepository(impl: NutritionAnalysisRepositoryImpl): NutritionAnalysisRepository
 }
+

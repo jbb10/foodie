@@ -1,0 +1,218 @@
+<story-context id="2-4-azure-openai-api-client" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.4</storyId>
+    <title>Azure OpenAI API Client</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-4-azure-openai-api-client.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer</asA>
+    <iWant>to send food photos to Azure OpenAI and receive structured calorie estimates</iWant>
+    <soThat>users get automatic nutrition data without manual entry</soThat>
+    <tasks>
+      - Create Azure OpenAI API Data Transfer Objects (DTOs) for request/response
+      - Implement Retrofit API interface for Responses API
+      - Configure Retrofit and OkHttp with authentication and timeouts
+      - Implement NutritionAnalysisRepository with error handling
+      - Create ImageUtils for base64 encoding
+      - Create NutritionData domain model with validation
+      - Integration testing with mock API responses
+      - Playwright documentation research (non-interactive)
+      - Documentation and completion
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Photo is base64-encoded and included in request payload</ac>
+    <ac id="2">Request uses Azure OpenAI Responses API endpoint format: https://{resource}.openai.azure.com/openai/v1/responses</ac>
+    <ac id="3">Authentication uses api-key header (not Bearer token)</ac>
+    <ac id="4">Request uses model field to specify deployment name (e.g., "gpt-4.1")</ac>
+    <ac id="5">Request uses instructions field for system-level guidance</ac>
+    <ac id="6">Request uses input array with multimodal content containing text prompt and base64 image</ac>
+    <ac id="7">Input includes user message with text and image type input_image with base64 data URL</ac>
+    <ac id="8">Response contains output_text field with JSON: {calories: number, description: string}</ac>
+    <ac id="9">Validation ensures calories &gt; 0 and &lt; 5000</ac>
+    <ac id="10">API call completes in under 10 seconds for typical network conditions</ac>
+    <ac id="11">API key and endpoint retrieved from secure storage (Android Keystore)</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Azure OpenAI Integration</section>
+        <snippet>Azure OpenAI Responses API with GPT-4.1 multimodal vision model. Authentication uses api-key header. Request uses instructions field for system guidance, input array with text prompt and base64 image. Response output_text contains JSON with calories and description. API key stored in Android Keystore.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Technology Stack - Azure OpenAI API</section>
+        <snippet>Retrofit interface AzureOpenAiApi with analyzeNutrition() method. AuthInterceptor injects API key in header. Repository pattern: NutritionAnalysisRepository wraps API calls with error handling. Network errors retryable (IOException, 5xx), parse errors non-retryable (4xx, JsonSyntaxException).</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Azure OpenAI API Module</section>
+        <snippet>Component table defines AzureOpenAiApi Retrofit interface, AuthInterceptor for api-key header, NutritionAnalysisRepositoryImpl. DTOs: AzureResponseRequest (model, instructions, input array), AzureResponseResponse (output_text field), ApiNutritionResponse (calories, description). NetworkModule provides Retrofit with 15s connect timeout, 30s read timeout. Error classification: retryable (IOException, 5xx) vs non-retryable (4xx, parse errors).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 2.4: Azure OpenAI API Client</section>
+        <snippet>Acceptance criteria: base64 encoding, Responses API endpoint, api-key authentication, multimodal input (text + image), structured JSON output parsing, calorie validation 1-5000, 10-second API call target, secure storage for API key/endpoint. Technical notes: Request/response format, error handling, timeout configuration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-3-camera-integration-with-photo-capture.md</path>
+        <title>Story 2.3: Camera Integration</title>
+        <section>Dev Agent Record - Completion Notes</section>
+        <snippet>PhotoManager utility created at data/local/cache/PhotoManager.kt. Photos stored in cacheDir/photos/ with 2MP max resolution and 80% JPEG quality. Photo URIs available for this story's base64 encoding. Memory management pattern: bitmap recycling critical. EXIF orientation correction already applied. Files reference: PhotoManager.kt lines 90-145 (resizeAndCompress), lines 54-55 (MAX_PIXELS, JPEG_QUALITY constants).</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/di/NetworkModule.kt</path>
+        <kind>module</kind>
+        <symbol>NetworkModule</symbol>
+        <lines>1-52</lines>
+        <reason>Existing DI module provides OkHttpClient and Retrofit. Must be updated to inject AuthInterceptor for API key header, configure base URL from SecurePreferences, and adjust timeouts (15s connect, 30s read/write). Current placeholder base URL must be replaced with Azure OpenAI endpoint.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/remote/api/AzureOpenAiApi.kt</path>
+        <kind>interface</kind>
+        <symbol>AzureOpenAiApi</symbol>
+        <lines>1-36</lines>
+        <reason>Placeholder interface exists. Must define @POST("openai/v1/responses") endpoint with suspend fun analyzeNutrition(@Body request: AzureResponseRequest): AzureResponseResponse. Current file contains architecture notes about expected endpoints and DTOs.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/domain/repository/NutritionAnalysisRepository.kt</path>
+        <kind>interface</kind>
+        <symbol>NutritionAnalysisRepository</symbol>
+        <lines>1-32</lines>
+        <reason>Repository interface defined with analyzePhoto(photoUri: Uri): Result&lt;NutritionData&gt; signature. Contains comprehensive KDoc describing expected behavior, error types, and implementation plan. Interface ready for implementation - no changes needed.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/repository/NutritionAnalysisRepositoryImpl.kt</path>
+        <kind>class</kind>
+        <symbol>NutritionAnalysisRepositoryImpl</symbol>
+        <lines>1-70</lines>
+        <reason>Placeholder implementation with runCatchingResult error handling pattern already in place. Must inject AzureOpenAiApi, implement actual API call (load image, base64 encode, call API, parse response), and map to NutritionData domain model. Error handling structure and logging patterns already established.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/domain/model/NutritionData.kt</path>
+        <kind>model</kind>
+        <symbol>NutritionData</symbol>
+        <lines>all</lines>
+        <reason>Domain model for nutrition data. Must verify or add validation in init block: calories in 1..5000 range, description not blank, max 200 characters. This is the target output of the repository's analyzePhoto() method.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt</path>
+        <kind>utility</kind>
+        <symbol>PhotoManager</symbol>
+        <lines>54-55, 90-145</lines>
+        <reason>Provides photo URIs from cacheDir/photos/ with 2MP + 80% JPEG compression. ImageUtils will load these photos for base64 encoding. Reference for memory management patterns (bitmap recycling). MAX_PIXELS=2_000_000 and JPEG_QUALITY=80 constants define photo specifications.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/util/Result.kt</path>
+        <kind>sealed class</kind>
+        <symbol>Result</symbol>
+        <lines>all</lines>
+        <reason>Result wrapper for error handling used throughout repository layer. Repository methods return Result&lt;T&gt; for type-safe error propagation. Extension functions like getOrNull(), exceptionOrNull(), and runCatchingResult standardize error handling patterns.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <android>
+        <package name="com.squareup.retrofit2:retrofit" version="2.11.0"/>
+        <package name="com.squareup.retrofit2:converter-gson" version="2.11.0"/>
+        <package name="com.squareup.okhttp3:okhttp" version="4.12.0"/>
+        <package name="com.squareup.okhttp3:logging-interceptor" version="4.12.0"/>
+        <package name="com.google.dagger:hilt-android" version="2.51.1"/>
+        <package name="com.jakewharton.timber:timber" version="5.0.1"/>
+        <package name="androidx.security:security-crypto" version="1.1.0-alpha06"/>
+        <package name="org.jetbrains.kotlinx:kotlinx-coroutines-android" version="1.9.0"/>
+      </android>
+      <testing>
+        <package name="junit:junit" version="4.13.2"/>
+        <package name="org.mockito:mockito-core" version="5.14.2"/>
+        <package name="org.mockito.kotlin:mockito-kotlin" version="5.4.0"/>
+        <package name="com.google.truth:truth" version="1.4.4"/>
+        <package name="com.squareup.okhttp3:mockwebserver" version="4.12.0" note="For integration tests with mocked API"/>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Follow MVVM architecture pattern with Repository layer mediating between data sources and domain</constraint>
+    <constraint>Use Hilt dependency injection for all module dependencies (@Singleton scope for repositories and API clients)</constraint>
+    <constraint>All repository methods must return Result&lt;T&gt; sealed class for type-safe error handling (never throw exceptions from public methods)</constraint>
+    <constraint>Use Timber for all logging (logDebug, logError utility extensions). Never log API keys or sensitive data</constraint>
+    <constraint>All suspend functions must use Dispatchers.IO for network/file operations (implicit in Retrofit, explicit elsewhere)</constraint>
+    <constraint>DTOs (data transfer objects) must be separate from domain models. DTOs in data/remote/dto/, domain models in domain/model/</constraint>
+    <constraint>Timeout configuration: connectTimeout=15s, readTimeout=30s, writeTimeout=30s (AI vision analysis can take 10-30 seconds)</constraint>
+    <constraint>Error classification: Retryable errors (IOException, SocketTimeoutException, HTTP 5xx) return Result.error for WorkManager retry. Non-retryable errors (HTTP 4xx, JsonSyntaxException, validation failures) return Result.failure</constraint>
+    <constraint>Base64 encoding must recycle bitmaps immediately after encoding to prevent memory leaks (follow PhotoManager patterns)</constraint>
+    <constraint>All file paths in documentation must be project-relative (strip /Users/.../foodie/ prefix)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>AzureOpenAiApi</name>
+      <kind>Retrofit API</kind>
+      <signature>suspend fun analyzeNutrition(@Body request: AzureResponseRequest): AzureResponseResponse</signature>
+      <path>app/src/main/java/com/foodie/app/data/remote/api/AzureOpenAiApi.kt</path>
+      <notes>POST endpoint at "openai/v1/responses". Retrofit annotations required. Uses GsonConverterFactory for JSON serialization/deserialization.</notes>
+    </interface>
+    <interface>
+      <name>NutritionAnalysisRepository</name>
+      <kind>Domain repository interface</kind>
+      <signature>suspend fun analyzePhoto(photoUri: Uri): Result&lt;NutritionData&gt;</signature>
+      <path>app/src/main/java/com/foodie/app/domain/repository/NutritionAnalysisRepository.kt</path>
+      <notes>Already defined. Implementation needed in NutritionAnalysisRepositoryImpl. Accepts photo URI from PhotoManager, returns structured NutritionData or error.</notes>
+    </interface>
+    <interface>
+      <name>Interceptor (OkHttp)</name>
+      <kind>HTTP interceptor</kind>
+      <signature>override fun intercept(chain: Interceptor.Chain): Response</signature>
+      <path>app/src/main/java/com/foodie/app/data/remote/interceptor/AuthInterceptor.kt</path>
+      <notes>Must create AuthInterceptor to inject api-key header. Inject SecurePreferences via Hilt. Add api-key and Content-Type headers to all requests. Throw IllegalStateException if API key not configured.</notes>
+    </interface>
+    <interface>
+      <name>SecurePreferences (EncryptedSharedPreferences)</name>
+      <kind>Data storage</kind>
+      <signature>fun getApiKey(): String?, fun getEndpoint(): String?, fun getModelName(): String?</signature>
+      <path>app/src/main/java/com/foodie/app/data/local/datastore/SecurePreferences.kt</path>
+      <notes>Existing secure storage interface. Story 2.4 reads API key, endpoint, and model name for API configuration. Story 5.2 will implement write methods for user configuration.</notes>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Project uses JUnit 4.13.2 for unit tests with Mockito 5.14.2 and Mockito-Kotlin 5.4.0 for mocking. Truth 1.4.4 library for assertions (assertThat() syntax). Test naming convention: methodName_whenCondition_thenExpectedResult. Unit tests in app/src/test/java mirroring production structure. Integration tests in app/src/androidTest/java. Coroutine tests use kotlinx-coroutines-test with runTest and TestDispatcher. Repository layer tested with mocked API clients. API integration tests use MockWebServer or WireMock to simulate HTTP responses. All tests must pass before marking story complete (./gradlew test connectedAndroidTest).
+    </standards>
+    <locations>
+      app/src/test/java/com/foodie/app/data/remote/dto/ (DTO serialization tests)
+      app/src/test/java/com/foodie/app/data/remote/interceptor/ (AuthInterceptor tests)
+      app/src/test/java/com/foodie/app/data/repository/ (Repository unit tests with mocked API)
+      app/src/test/java/com/foodie/app/domain/model/ (NutritionData validation tests)
+      app/src/test/java/com/foodie/app/util/ (ImageUtils base64 encoding tests)
+      app/src/androidTest/java/com/foodie/app/data/remote/ (API integration tests with MockWebServer)
+    </locations>
+    <ideas>
+      <idea ac="1,5,6,7">Unit test: ImageUtils base64 encoding with sample 2MP JPEG. Verify data URL format, size ~500-700KB, bitmap recycled</idea>
+      <idea ac="2,3,4">Integration test: Verify Retrofit request format with MockWebServer. Assert endpoint URL, api-key header, model field in body</idea>
+      <idea ac="8">Unit test: DTO serialization/deserialization with Gson. Verify AzureResponseRequest and AzureResponseResponse JSON structure matches API spec</idea>
+      <idea ac="9">Unit test: NutritionData validation. Test valid data (calories=650), boundary cases (calories=1, calories=5000), invalid (calories=0, calories=5001, blank description)</idea>
+      <idea ac="10">Integration test: Mock API timeout scenario. Verify OkHttp timeout configuration (30s read timeout). Assert Result.error returned for retry</idea>
+      <idea ac="11">Unit test: AuthInterceptor with mocked SecurePreferences. Verify api-key header added, Content-Type header added. Test IllegalStateException if API key missing</idea>
+      <idea ac="all">Integration test: Success scenario with 200 OK response. Mock valid output_text JSON. Verify parsing to NutritionData domain model</idea>
+      <idea ac="all">Integration test: Error scenarios - 401 Unauthorized, 429 Rate Limit, 500 Server Error, invalid JSON. Verify error classification (retryable vs non-retryable)</idea>
+      <idea ac="all">Unit test: Repository error handling with mocked API throwing IOException, JsonSyntaxException, HttpException. Verify Result.error vs Result.failure return values</idea>
+    </ideas>
+  </tests>
+</story-context>
