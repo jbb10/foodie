@@ -6,13 +6,22 @@ import android.net.Uri
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.foodie.app.data.local.cache.PhotoManager
+import com.foodie.app.data.worker.AnalyzeMealWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.Instant
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -39,6 +48,9 @@ sealed class CaptureState {
 
     /** Processing complete, showing preview */
     data class ProcessingComplete(val processedPhotoUri: Uri) : CaptureState()
+
+    /** Background processing enqueued, user can return to previous activity */
+    data object BackgroundProcessingStarted : CaptureState()
 
     /** Error occurred during capture or processing */
     data class Error(val message: String) : CaptureState()
@@ -68,10 +80,12 @@ sealed class CaptureState {
  * ```
  *
  * @param photoManager PhotoManager for file operations
+ * @param workManager WorkManager for background processing jobs
  */
 @HiltViewModel
 class CapturePhotoViewModel @Inject constructor(
-    private val photoManager: PhotoManager
+    private val photoManager: PhotoManager,
+    private val workManager: WorkManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<CaptureState>(CaptureState.Idle)
@@ -152,6 +166,69 @@ class CapturePhotoViewModel @Inject constructor(
         Timber.d("Retake requested")
         cleanupProcessedPhoto()
         prepareForCapture()
+    }
+
+    /**
+     * Called when user taps Use Photo button.
+     *
+     * Enqueues background processing job with WorkManager and transitions
+     * to BackgroundProcessingStarted state, allowing user to immediately
+     * return to their previous activity.
+     *
+     * WorkManager job will:
+     * 1. Call Azure OpenAI API for nutrition analysis
+     * 2. Save results to Health Connect
+     * 3. Delete temporary photo file
+     * 4. Retry on network failures with exponential backoff (1s, 2s, 4s delays)
+     */
+    fun onUsePhoto() {
+        Timber.d("Use photo requested, enqueuing background processing")
+        
+        viewModelScope.launch {
+            try {
+                val photoUri = processedPhotoUri
+                    ?: throw IllegalStateException("No processed photo URI available")
+                
+                val timestamp = Instant.now()
+                
+                // Build WorkRequest with network constraints and retry policy
+                val workRequest = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
+                    .setInputData(
+                        workDataOf(
+                            AnalyzeMealWorker.KEY_PHOTO_URI to photoUri.toString(),
+                            AnalyzeMealWorker.KEY_TIMESTAMP to timestamp.epochSecond
+                        )
+                    )
+                    .setConstraints(
+                        Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+                    )
+                    .setBackoffCriteria(
+                        BackoffPolicy.EXPONENTIAL,
+                        1, TimeUnit.SECONDS  // Initial delay 1s, doubles each retry
+                    )
+                    .addTag("analyze_meal")
+                    .build()
+                
+                // Enqueue work
+                workManager.enqueue(workRequest)
+                
+                Timber.d(
+                    "Work enqueued: id=${workRequest.id}, uri=$photoUri, timestamp=$timestamp"
+                )
+                
+                // Transition to background processing state
+                _state.value = CaptureState.BackgroundProcessingStarted
+                
+                // Clear processed photo URI (WorkManager now owns the file)
+                processedPhotoUri = null
+                
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to enqueue background processing")
+                _state.value = CaptureState.Error("Failed to start processing: ${e.message}")
+            }
+        }
     }
 
     /**

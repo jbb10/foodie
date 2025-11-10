@@ -2,6 +2,7 @@ package com.foodie.app.ui.screens.capture
 
 import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.work.WorkManager
 import com.foodie.app.data.local.cache.PhotoManager
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +36,9 @@ class CapturePhotoViewModelTest {
 
     @Mock
     private lateinit var mockPhotoManager: PhotoManager
+    
+    @Mock
+    private lateinit var mockWorkManager: WorkManager
 
     private lateinit var viewModel: CapturePhotoViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -43,7 +47,7 @@ class CapturePhotoViewModelTest {
     fun setup() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        viewModel = CapturePhotoViewModel(mockPhotoManager)
+        viewModel = CapturePhotoViewModel(mockPhotoManager, mockWorkManager)
     }
 
     @After

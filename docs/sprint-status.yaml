@@ -58,7 +58,7 @@ development_status:
   2-2-home-screen-widget-implementation: done  # Pivoted from lock screen to home screen (Android platform limitation discovered)
   2-3-camera-integration-with-photo-capture: done  # ✅ System camera intent with 2MP+80% JPEG - APPROVED with advisory notes
   2-4-azure-openai-api-client: in-progress  # API client for Azure OpenAI Responses API with multimodal vision - context generated
-  2-5-background-processing-service: backlog  # Originally 2-4, renumbered
+  2-5-background-processing-service: done  # ✅ WorkManager + HiltWorkerFactory - APPROVED - All ACs verified, code complete, 187 tests passing - Device validation pending (WorkManager caching)
   2-6-health-connect-nutrition-data-save: backlog  # Originally 2-5, renumbered
   2-7-end-to-end-capture-flow-integration: backlog  # Originally 2-6, renumbered
   epic-2-retrospective: optional

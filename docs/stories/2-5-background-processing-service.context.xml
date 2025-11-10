@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Story Context: 2.5 Background Processing Service
+Generated: 2025-01-15
+Purpose: Technical context for implementing WorkManager background processing service
+-->
+<storyContext>
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>5</storyId>
+    <title>Background Processing Service</title>
+    <status>drafted</status>
+    <generated>2025-01-15</generated>
+    <dependencies>
+      <dependency storyId="2-2">Lock Screen Widget (photo capture trigger)</dependency>
+      <dependency storyId="2-3">Camera Integration (photo file creation)</dependency>
+      <dependency storyId="2-4">Azure OpenAI API Client (nutrition analysis)</dependency>
+      <dependency storyId="1-4">Health Connect Integration (data storage)</dependency>
+    </dependencies>
+  </metadata>
+
+  <story>
+    <asA>user who captured a meal photo via widget</asA>
+    <iWant>background processing to analyze the photo and save nutrition data automatically</iWant>
+    <soThat>I can immediately return to my previous activity without waiting for processing</soThat>
+    
+    <tasks>
+      <task id="1">Setup WorkManager Basic Infrastructure (WorkManagerModule, FoodieApplication config)</task>
+      <task id="2">Create AnalyzeMealWorker (orchestrate photo → API → Health Connect → cleanup flow)</task>
+      <task id="3">Implement Photo Processing Trigger (CapturePhotoViewModel enqueues WorkRequest)</task>
+      <task id="4">Implement Exponential Backoff Retry Logic (1s, 2s, 4s delays, max 4 attempts)</task>
+      <task id="5">Health Connect Integration (extend HealthConnectManager.insertNutritionRecord())</task>
+      <task id="6">Photo Cleanup After Processing (extend PhotoManager.deletePhoto())</task>
+      <task id="7">Performance Monitoring and Logging (track API duration, total processing time)</task>
+      <task id="8">Error Handling and Classification (retryable vs non-retryable errors)</task>
+      <task id="9">Integration Testing and Validation (test success, retry, failure scenarios)</task>
+      <task id="10">Documentation and Completion (Dev Notes, README, Change Log)</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">WorkManager queues analysis job with network constraints when photo captured</criterion>
+    <criterion id="2">User can immediately return to lock screen or previous app without waiting</criterion>
+    <criterion id="3">WorkManager calls Azure OpenAI API via NutritionAnalysisRepository with photo URI</criterion>
+    <criterion id="4">Processing survives brief app termination (WorkManager ensures reliability)</criterion>
+    <criterion id="5">Entire process (photo → API → save) completes in under 15 seconds typical</criterion>
+    <criterion id="6">Temporary photo deleted after successful Health Connect save</criterion>
+    <criterion id="7">Retry logic uses exponential backoff with maximum 3 retry attempts</criterion>
+    <criterion id="8">Retry delays are: immediate (attempt 1), 1 second (attempt 2), 2 seconds (attempt 3), 4 seconds (attempt 4)</criterion>
+    <criterion id="9">Retryable errors (network failures, timeouts, 5xx responses) trigger automatic retry</criterion>
+    <criterion id="10">Non-retryable errors (4xx responses, parse errors) fail immediately without retry</criterion>
+    <criterion id="11">Photo deleted after max retries exhausted or non-retryable error, kept if Health Connect permission denied</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <documentation>
+      <doc>
+        <path>docs/architecture.md</path>
+        <section>WorkManager Background Processing</section>
+        <relevantContent>
+          - WorkManager 2.9.1 for reliable background execution
+          - AnalyzeMealWorker coordinates photo → API → Health Connect → cleanup
+          - Network constraints: NetworkType.CONNECTED
+          - Retry policy: Exponential backoff, max 3 retries
+          - HiltWorkerFactory for dependency injection
+          - No foreground service needed (WorkManager handles reliability)
+        </relevantContent>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <section>Background Processing Module</section>
+        <relevantContent>
+          Component Table:
+          - AnalyzeMealWorker (CoroutineWorker): Orchestrate photo → API → Health Connect → cleanup
+          - WorkManagerModule (Hilt DI): Configure WorkManager with HiltWorkerFactory
+          
+          Worker Responsibilities:
+          1. Read photo URI from WorkManager input data
+          2. Load and base64-encode image
+          3. Call NutritionAnalysisRepository.analyzePhoto()
+          4. Parse API response to extract calories + description
+          5. Save to Health Connect via insertNutritionRecord()
+          6. Delete photo file after successful save
+          7. Handle retries with exponential backoff (1s, 2s, 4s delays)
+          
+          Retry Policy: Exponential backoff, max 3 retries (4 total attempts)
+          Error Handling: Retryable (IOException, 5xx) vs non-retryable (4xx, parse errors)
+        </relevantContent>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <section>FR-9: Background Processing</section>
+        <relevantContent>
+          - Processing happens invisibly in background via WorkManager
+          - Network failures handled with automatic retry (3 attempts)
+          - User receives no intrusive notifications during processing
+          - Photo lifecycle: capture → process → delete (ephemeral storage)
+        </relevantContent>
+      </doc>
+      <doc>
+        <path>docs/stories/2-4-azure-openai-api-client.md</path>
+        <section>Learnings</section>
+        <relevantContent>
+          New Capabilities to Reuse:
+          - NutritionAnalysisRepository.analyzePhoto(photoUri: Uri): Result&lt;NutritionData&gt;
+          - NutritionData domain model (calories: 1-5000, description: max 200 chars)
+          - Result&lt;T&gt; wrapper with success/error states and retry classification
+          - Error classification: retryable (IOException, 5xx) vs non-retryable (4xx, parse errors)
+          
+          Integration Points:
+          - Worker calls analyzePhoto() from background thread
+          - Worker consumes Result&lt;NutritionData&gt; and makes retry decision based on error type
+          - Worker extracts calories and description for Health Connect save
+          - Worker uses Result.isRetryable flag to determine retry vs failure
+        </relevantContent>
+      </doc>
+      <doc>
+        <path>docs/stories/2-3-camera-integration-with-photo-capture.md</path>
+        <section>Photo Management</section>
+        <relevantContent>
+          PhotoManager utilities:
+          - createPhotoFile(): Creates temp file with FileProvider URI
+          - resizeAndCompress(): Applies 2MP max resolution + 80% JPEG compression
+          - deletePhoto(uri): Deletes photo file from cache directory
+          - Cache location: cacheDir/photos/meal_{timestamp}.jpg
+          - Photo URIs passed to WorkManager for processing
+        </relevantContent>
+      </doc>
+      <doc>
+        <path>docs/stories/1-4-health-connect-integration-setup.md</path>
+        <section>Health Connect API</section>
+        <relevantContent>
+          HealthConnectManager operations:
+          - insertNutritionRecord(calories, description, timestamp): String
+            * Creates NutritionRecord with energy (kilocalories) and name fields
+            * Returns Health Connect record ID
+            * Throws SecurityException if permissions not granted
+          - Permission handling patterns for SecurityException
+          - NutritionRecord creation with energy and name fields
+        </relevantContent>
+      </doc>
+    </documentation>
+
+    <codeArtifacts>
+      <existingCode>
+        <file>
+          <path>app/src/main/java/com/foodie/app/domain/repository/NutritionAnalysisRepository.kt</path>
+          <interface>NutritionAnalysisRepository</interface>
+          <signature>suspend fun analyzePhoto(photoUri: Uri): Result&lt;NutritionData&gt;</signature>
+          <usage>Worker calls this method to send photo to Azure OpenAI for analysis</usage>
+        </file>
+        <file>
+          <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+          <interface>HealthConnectManager</interface>
+          <operations>
+            <operation>suspend fun insertNutritionRecord(calories: Int, description: String, timestamp: Instant): String</operation>
+          </operations>
+          <usage>Worker saves analyzed nutrition data to Health Connect. Throws SecurityException if permissions denied.</usage>
+          <needsExtension>Method already exists (added in Story 1-4), ready to use</needsExtension>
+        </file>
+        <file>
+          <path>app/src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt</path>
+          <interface>PhotoManager</interface>
+          <operations>
+            <operation>suspend fun createPhotoFile(): Uri</operation>
+            <operation>suspend fun resizeAndCompress(sourceUri: Uri): Uri?</operation>
+            <operation>suspend fun deletePhoto(photoUri: Uri): Boolean</operation>
+          </operations>
+          <usage>Worker deletes photo after successful processing or max retries. Method already exists.</usage>
+        </file>
+        <file>
+          <path>app/src/main/java/com/foodie/app/domain/model/NutritionData.kt</path>
+          <dataClass>NutritionData</dataClass>
+          <fields>
+            <field>calories: Int (validated 1-5000)</field>
+            <field>description: String (validated non-blank, max 200 chars)</field>
+          </fields>
+          <usage>Worker extracts calories and description from this model for Health Connect save</usage>
+        </file>
+        <file>
+          <path>app/src/main/java/com/foodie/app/util/Result.kt</path>
+          <sealedClass>Result&lt;T&gt;</sealedClass>
+          <variants>
+            <variant>Success&lt;T&gt;(data: T)</variant>
+            <variant>Error(exception: Throwable, message: String)</variant>
+            <variant>Loading</variant>
+          </variants>
+          <usage>Worker pattern-matches on Result from analyzePhoto() to decide retry vs failure</usage>
+        </file>
+        <file>
+          <path>app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoViewModel.kt</path>
+          <viewModel>CapturePhotoViewModel</viewModel>
+          <dependencies>PhotoManager</dependencies>
+          <needsModification>Add WorkManager injection and enqueue WorkRequest after photo capture</needsModification>
+        </file>
+        <file>
+          <path>app/src/main/java/com/foodie/app/FoodieApplication.kt</path>
+          <class>FoodieApplication</class>
+          <extends>Application</extends>
+          <annotations>@HiltAndroidApp</annotations>
+          <needsModification>Implement Configuration.Provider interface and override getWorkManagerConfiguration()</needsModification>
+        </file>
+      </existingCode>
+
+      <newFiles>
+        <file>
+          <path>app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+          <purpose>Background processing worker coordinating photo → API → Health Connect → cleanup flow</purpose>
+          <annotations>@HiltWorker</annotations>
+          <extends>CoroutineWorker</extends>
+          <dependencies>
+            <dependency>NutritionAnalysisRepository</dependency>
+            <dependency>HealthConnectManager</dependency>
+            <dependency>PhotoManager</dependency>
+            <dependency>@ApplicationContext Context</dependency>
+          </dependencies>
+          <dataKeys>
+            <key>KEY_PHOTO_URI (String)</key>
+            <key>KEY_TIMESTAMP (Long epochSeconds)</key>
+          </dataKeys>
+        </file>
+        <file>
+          <path>app/src/main/java/com/foodie/app/di/WorkManagerModule.kt</path>
+          <purpose>Hilt DI module configuring WorkManager with HiltWorkerFactory</purpose>
+          <annotations>@Module, @InstallIn(SingletonComponent::class)</annotations>
+          <provides>
+            <provide>Configuration (WorkManager config with HiltWorkerFactory)</provide>
+          </provides>
+        </file>
+        <file>
+          <path>app/src/test/java/com/foodie/app/data/worker/AnalyzeMealWorkerTest.kt</path>
+          <purpose>Unit tests for AnalyzeMealWorker</purpose>
+          <scenarios>
+            <scenario>Success: API returns data → Health Connect save → photo deleted → Result.success()</scenario>
+            <scenario>Retryable error: Network failure → Result.retry()</scenario>
+            <scenario>Max retries: 4 attempts exhausted → photo deleted → Result.failure()</scenario>
+            <scenario>Non-retryable: Parse error → photo deleted → Result.failure()</scenario>
+            <scenario>Permission error: SecurityException → photo kept → Result.failure()</scenario>
+          </scenarios>
+        </file>
+        <file>
+          <path>app/src/androidTest/java/com/foodie/app/data/worker/AnalyzeMealWorkerIntegrationTest.kt</path>
+          <purpose>Integration tests for AnalyzeMealWorker with TestListenableWorkerBuilder</purpose>
+        </file>
+      </newFiles>
+    </codeArtifacts>
+
+    <dependencies>
+      <gradle>
+        <dependency>
+          <name>WorkManager</name>
+          <version>2.9.1</version>
+          <artifact>androidx.work:work-runtime-ktx:2.9.1</artifact>
+          <status>Already added in Epic 1</status>
+        </dependency>
+        <dependency>
+          <name>Hilt</name>
+          <version>2.53</version>
+          <artifact>com.google.dagger:hilt-android:2.53</artifact>
+          <status>Already configured</status>
+        </dependency>
+        <dependency>
+          <name>Kotlin Coroutines</name>
+          <version>1.9.0</version>
+          <artifact>org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0</artifact>
+          <status>Already configured</status>
+        </dependency>
+        <dependency>
+          <name>Timber</name>
+          <version>5.0.1</version>
+          <artifact>com.jakewharton.timber:timber:5.0.1</artifact>
+          <status>Already configured</status>
+        </dependency>
+      </gradle>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <architectural>
+      <constraint>WorkManager with HiltWorkerFactory for dependency injection (@HiltWorker annotation)</constraint>
+      <constraint>CoroutineWorker for suspend function support (doWork() is suspend)</constraint>
+      <constraint>Repository pattern: Worker calls repository, not API directly</constraint>
+      <constraint>Result&lt;T&gt; pattern for type-safe error handling without exceptions</constraint>
+      <constraint>Configuration.Provider interface in FoodieApplication for WorkManager config</constraint>
+    </architectural>
+
+    <performance>
+      <constraint>Total processing time target: &lt; 15 seconds typical (photo → API → save)</constraint>
+      <constraint>95th percentile target: &lt; 30 seconds (including slow network)</constraint>
+      <constraint>Worker completes quickly (&lt; 30 seconds) to avoid doze mode interruption</constraint>
+      <constraint>Memory management: Bitmap recycling in ImageUtils (from Story 2-4)</constraint>
+    </performance>
+
+    <reliability>
+      <constraint>Network constraint: WorkManager only runs when NetworkType.CONNECTED</constraint>
+      <constraint>Exponential backoff retry: 1s, 2s, 4s delays (max 4 total attempts)</constraint>
+      <constraint>Work persists across app termination and device reboots</constraint>
+      <constraint>Worker checks runAttemptCount to enforce max 4 attempts (WorkManager doesn't limit automatically)</constraint>
+    </reliability>
+
+    <errorHandling>
+      <constraint>Retryable errors (IOException, network timeout, 5xx): Return Result.retry()</constraint>
+      <constraint>Non-retryable errors (4xx, parse errors, validation): Return Result.failure() immediately</constraint>
+      <constraint>Health Connect permission error (SecurityException): Return Result.failure(), keep photo for manual retry</constraint>
+      <constraint>Always delete photo in failure paths except SecurityException (prevent orphaned files)</constraint>
+    </errorHandling>
+
+    <testing>
+      <constraint>Unit tests: WorkManagerModule DI config, worker logic with mocked dependencies</constraint>
+      <constraint>Integration tests: TestListenableWorkerBuilder for worker execution</constraint>
+      <constraint>Test scenarios: success, retry (network failure), max retries, non-retryable error, permission error</constraint>
+      <constraint>Verify photo deletion in all success/failure paths except SecurityException</constraint>
+    </testing>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>WorkManager Configuration</name>
+      <kind>configuration</kind>
+      <signature>
+        @HiltAndroidApp
+        class FoodieApplication : Application(), Configuration.Provider {
+            @Inject lateinit var workerFactory: HiltWorkerFactory
+            
+            override fun getWorkManagerConfiguration(): Configuration {
+                return Configuration.Builder()
+                    .setWorkerFactory(workerFactory)
+                    .setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.DEBUG else Log.INFO)
+                    .build()
+            }
+        }
+      </signature>
+      <path>app/src/main/java/com/foodie/app/FoodieApplication.kt</path>
+    </interface>
+
+    <interface>
+      <name>WorkManagerModule</name>
+      <kind>hilt-module</kind>
+      <signature>
+        @Module
+        @InstallIn(SingletonComponent::class)
+        object WorkManagerModule {
+            @Provides
+            @Singleton
+            fun provideWorkManagerConfiguration(
+                workerFactory: HiltWorkerFactory
+            ): Configuration {
+                return Configuration.Builder()
+                    .setWorkerFactory(workerFactory)
+                    .setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.DEBUG else Log.INFO)
+                    .build()
+            }
+        }
+      </signature>
+      <path>app/src/main/java/com/foodie/app/di/WorkManagerModule.kt</path>
+    </interface>
+
+    <interface>
+      <name>AnalyzeMealWorker</name>
+      <kind>worker</kind>
+      <signature>
+        @HiltWorker
+        class AnalyzeMealWorker @AssistedInject constructor(
+            @Assisted appContext: Context,
+            @Assisted workerParams: WorkerParameters,
+            private val nutritionAnalysisRepository: NutritionAnalysisRepository,
+            private val healthConnectManager: HealthConnectManager,
+            private val photoManager: PhotoManager
+        ) : CoroutineWorker(appContext, workerParams) {
+            
+            companion object {
+                const val KEY_PHOTO_URI = "photo_uri"
+                const val KEY_TIMESTAMP = "timestamp"
+                const val MAX_ATTEMPTS = 4
+            }
+            
+            override suspend fun doWork(): Result {
+                val photoUri = inputData.getString(KEY_PHOTO_URI)?.toUri() ?: return Result.failure()
+                val timestamp = Instant.ofEpochSecond(inputData.getLong(KEY_TIMESTAMP, 0))
+                
+                return when (val apiResult = nutritionAnalysisRepository.analyzePhoto(photoUri)) {
+                    is com.foodie.app.util.Result.Success -&gt; {
+                        // Save to Health Connect
+                        healthConnectManager.insertNutritionRecord(
+                            calories = apiResult.data.calories,
+                            description = apiResult.data.description,
+                            timestamp = timestamp
+                        )
+                        // Cleanup photo
+                        photoManager.deletePhoto(photoUri)
+                        Result.success()
+                    }
+                    is com.foodie.app.util.Result.Error -&gt; {
+                        // Classify error for retry decision
+                        if (isRetryable(apiResult.exception)) {
+                            if (runAttemptCount >= MAX_ATTEMPTS) {
+                                photoManager.deletePhoto(photoUri)
+                                Result.failure()
+                            } else {
+                                Result.retry()
+                            }
+                        } else {
+                            photoManager.deletePhoto(photoUri)
+                            Result.failure()
+                        }
+                    }
+                }
+            }
+            
+            private fun isRetryable(exception: Throwable): Boolean {
+                return exception is IOException || 
+                       exception is SocketTimeoutException ||
+                       (exception is HttpException &amp;&amp; exception.code() >= 500)
+            }
+        }
+      </signature>
+      <path>app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+    </interface>
+
+    <interface>
+      <name>NutritionAnalysisRepository</name>
+      <kind>repository-interface</kind>
+      <signature>
+        interface NutritionAnalysisRepository {
+            suspend fun analyzePhoto(photoUri: Uri): Result&lt;NutritionData&gt;
+        }
+      </signature>
+      <path>app/src/main/java/com/foodie/app/domain/repository/NutritionAnalysisRepository.kt</path>
+      <implementation>app/src/main/java/com/foodie/app/data/repository/NutritionAnalysisRepositoryImpl.kt</implementation>
+    </interface>
+
+    <interface>
+      <name>HealthConnectManager.insertNutritionRecord</name>
+      <kind>manager-method</kind>
+      <signature>
+        suspend fun insertNutritionRecord(
+            calories: Int,
+            description: String,
+            timestamp: Instant
+        ): String  // Returns Health Connect record ID
+        // Throws SecurityException if permissions not granted
+      </signature>
+      <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+    </interface>
+
+    <interface>
+      <name>PhotoManager.deletePhoto</name>
+      <kind>utility-method</kind>
+      <signature>
+        suspend fun deletePhoto(photoUri: Uri): Boolean  // Returns true if deletion succeeded
+      </signature>
+      <path>app/src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt</path>
+    </interface>
+
+    <interface>
+      <name>WorkRequest Builder</name>
+      <kind>builder-pattern</kind>
+      <signature>
+        val workRequest = OneTimeWorkRequestBuilder&lt;AnalyzeMealWorker&gt;()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                1, TimeUnit.SECONDS  // Initial delay 1s, doubles each retry
+            )
+            .setInputData(
+                workDataOf(
+                    AnalyzeMealWorker.KEY_PHOTO_URI to photoUri.toString(),
+                    AnalyzeMealWorker.KEY_TIMESTAMP to Instant.now().epochSecond
+                )
+            )
+            .build()
+        
+        workManager.enqueue(workRequest)
+      </signature>
+      <usage>CapturePhotoViewModel enqueues this request after photo capture confirmation</usage>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <standard>Unit tests for WorkManagerModule DI configuration (verify Configuration provides HiltWorkerFactory)</standard>
+      <standard>Unit tests for AnalyzeMealWorker with mocked dependencies (repository, healthConnectManager, photoManager)</standard>
+      <standard>Integration tests using TestListenableWorkerBuilder for worker execution</standard>
+      <standard>Test coverage: success scenario, retry scenario (network failure), max retries exhausted, non-retryable error, permission error</standard>
+      <standard>Verify photo deletion in all paths: success → deleted, max retries → deleted, non-retryable → deleted, SecurityException → NOT deleted</standard>
+    </standards>
+
+    <locations>
+      <location>app/src/test/java/com/foodie/app/di/WorkManagerModuleTest.kt</location>
+      <location>app/src/test/java/com/foodie/app/data/worker/AnalyzeMealWorkerTest.kt</location>
+      <location>app/src/androidTest/java/com/foodie/app/data/worker/AnalyzeMealWorkerIntegrationTest.kt</location>
+    </locations>
+
+    <testIdeas>
+      <idea ac="1,4">WorkManager job enqueued with network constraints when CapturePhotoViewModel.onUsePhoto() called</idea>
+      <idea ac="3,5">AnalyzeMealWorker.doWork() calls nutritionAnalysisRepository.analyzePhoto() with correct photo URI</idea>
+      <idea ac="5">AnalyzeMealWorker.doWork() extracts calories and description from NutritionData and saves to Health Connect</idea>
+      <idea ac="6">AnalyzeMealWorker.doWork() calls photoManager.deletePhoto() after successful Health Connect save</idea>
+      <idea ac="7,8">Retry logic: runAttemptCount &lt; 4 and retryable error → Result.retry(), runAttemptCount >= 4 → Result.failure()</idea>
+      <idea ac="9">Retryable errors (IOException, SocketTimeoutException, 5xx) → Result.retry()</idea>
+      <idea ac="10">Non-retryable errors (4xx, JsonSyntaxException, validation) → Result.failure() immediately, photo deleted</idea>
+      <idea ac="11">SecurityException from Health Connect → Result.failure(), photo NOT deleted (manual retry)</idea>
+      <idea ac="4">Worker execution survives brief app termination (integration test with process kill simulation)</idea>
+      <idea ac="7,8">Exponential backoff delays: 1s (attempt 2), 2s (attempt 3), 4s (attempt 4)</idea>
+    </testIdeas>
+  </tests>
+</storyContext>

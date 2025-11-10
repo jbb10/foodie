@@ -641,6 +641,188 @@ fun ProfileScreen(
 
 ---
 
+## Background Processing
+
+Foodie uses WorkManager for reliable, constraint-based background processing. This ensures photo analysis and Health Connect data syncing happen even when the app is backgrounded or the device restarts.
+
+### Architecture
+
+```
+CapturePhotoViewModel
+    │ enqueueUniqueWork()
+    ▼
+WorkManager
+    │ schedules with constraints
+    ▼
+AnalyzeMealWorker (CoroutineWorker)
+    │
+    ├──▶ NutritionAnalysisRepository.analyzePhoto()
+    │       │
+    │       └──▶ Azure OpenAI API
+    │
+    ├──▶ HealthConnectManager.insertNutritionRecord()
+    │       │
+    │       └──▶ Health Connect
+    │
+    └──▶ PhotoManager.deletePhoto()
+```
+
+### Worker: AnalyzeMealWorker
+
+**Location:** `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+
+Coordinates the complete meal photo processing workflow:
+
+1. **Photo Analysis**: Calls Azure OpenAI Vision API to analyze meal photo
+2. **Health Connect Save**: Stores nutrition data in Health Connect
+3. **Photo Cleanup**: Deletes temporary photo file after successful processing
+4. **Performance Monitoring**: Logs API duration, HC save duration, and total time (warns if >20s)
+
+**Key Features:**
+- `@HiltWorker` for dependency injection (NutritionAnalysisRepository, HealthConnectManager, PhotoManager)
+- Network constraint ensures API calls only when online
+- Exponential backoff retry (1s, 2s, 4s delays, max 4 attempts)
+- Error classification: retryable (IOException, SocketTimeoutException) vs non-retryable
+- Photo cleanup on success/max-retries/non-retryable errors; keeps only for SecurityException
+- Comprehensive logging for debugging and performance tracking
+
+**Usage:**
+
+```kotlin
+// In CapturePhotoViewModel.onUsePhoto()
+val workRequest = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
+    .setInputData(
+        workDataOf(
+            KEY_PHOTO_URI to photoUri.toString(),
+            KEY_TIMESTAMP to timestamp.toEpochMilli()
+        )
+    )
+    .setConstraints(
+        Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+    )
+    .setBackoffCriteria(
+        BackoffPolicy.EXPONENTIAL,
+        1L,
+        TimeUnit.SECONDS
+    )
+    .build()
+
+workManager.enqueueUniqueWork(
+    "analyze_meal_$timestamp",
+    ExistingWorkPolicy.KEEP,
+    workRequest
+)
+```
+
+### WorkManager Configuration
+
+**DI Module:** `di/WorkManagerModule.kt`
+
+```kotlin
+@Provides
+@Singleton
+fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
+    return WorkManager.getInstance(context)
+}
+
+@Provides
+@Singleton
+fun provideWorkManagerConfiguration(): Configuration {
+    return Configuration.Builder()
+        .setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.DEBUG else Log.INFO)
+        .build()
+}
+```
+
+**Application Class:** `FoodieApplication.kt`
+
+- Extends `Application`
+- Annotated with `@HiltAndroidApp` for DI
+- WorkManager auto-initializes using configuration from WorkManagerModule
+
+### Retry Logic
+
+**Retryable Errors:**
+- `IOException`: Network issues (no connection, DNS resolution failed, etc.)
+- `SocketTimeoutException`: API timeout (server slow to respond)
+
+**Non-Retryable Errors:**
+- `IllegalArgumentException`: Invalid input data (bad photo URI, missing timestamp)
+- `SecurityException`: Permission denied (can't access photo file)
+- `HttpException` with 400-level status: Client errors (invalid API key, bad request format)
+- All other exceptions
+
+**Retry Schedule:**
+1. Attempt 1: Immediate execution when enqueued
+2. Attempt 2: 1 second backoff
+3. Attempt 3: 2 seconds backoff (exponential)
+4. Attempt 4: 4 seconds backoff (final attempt)
+
+After 4 attempts, worker returns `Result.failure()` and photo is deleted.
+
+### Testing
+
+**Unit Tests:** `app/src/test/java/com/foodie/app/data/worker/AnalyzeMealWorkerTest.kt`
+
+- Mock NutritionAnalysisRepository, HealthConnectManager, PhotoManager
+- Test success path, retry logic, error handling, photo cleanup
+- Verify logging and performance monitoring
+
+**Integration Tests:** `app/src/androidTest/java/com/foodie/app/data/worker/AnalyzeMealWorkerIntegrationTest.kt`
+
+- Use `TestListenableWorkerBuilder` from WorkManager testing library
+- Test worker execution with real WorkManager context
+- Verify retry behavior with exponential backoff
+- Test timeout scenarios and constraint enforcement
+
+**Running Tests:**
+
+```bash
+# Unit tests
+./gradlew :app:test
+
+# Integration tests (requires emulator/device)
+./gradlew :app:connectedAndroidTest
+```
+
+### Performance Expectations
+
+- **API Analysis**: < 10 seconds (typical: 3-5s for 2MB photo)
+- **Health Connect Save**: < 1 second
+- **Total Processing**: < 12 seconds (warns in logs if >20s)
+- **Battery Impact**: Minimal (work scheduled only when network available, no polling)
+
+### Debugging
+
+**Logs:** Filter by `AnalyzeMealWorker` tag
+
+```bash
+adb logcat -s AnalyzeMealWorker
+```
+
+**Key Log Messages:**
+- `Starting meal analysis for photo: <uri>`
+- `API analysis completed in <ms>ms`
+- `Health Connect save completed in <ms>ms`
+- `Total processing time: <ms>ms` (WARNING if >20s)
+- `Photo deleted successfully` / `Failed to delete photo`
+- `Error analyzing meal: <message>` (on retryable errors)
+- `Non-retryable error, failing worker: <message>` (on permanent failures)
+
+**WorkManager Inspection:**
+
+```kotlin
+// Check work status in debug mode
+val workInfos = workManager.getWorkInfosForUniqueWork("analyze_meal_$timestamp").get()
+workInfos.forEach { workInfo ->
+    Timber.d("Work status: ${workInfo.state}")
+}
+```
+
+---
+
 ## Error Handling Pattern
 
 ### Result Wrapper

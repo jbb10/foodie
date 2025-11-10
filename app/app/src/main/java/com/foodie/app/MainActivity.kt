@@ -2,6 +2,7 @@ package com.foodie.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
@@ -40,34 +41,43 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Register permission request launcher
-        val requestPermissions = registerForActivityResult(
-            healthConnectManager.createPermissionRequestContract()
-        ) { granted ->
-            if (granted.containsAll(HealthConnectManager.REQUIRED_PERMISSIONS)) {
-                Timber.i("Health Connect permissions granted")
-            } else {
-                Timber.w("Health Connect permissions denied")
-            }
-        }
-        
         enableEdgeToEdge()
         setContent {
             var showHealthConnectDialog by remember { mutableStateOf(false) }
+            
+            // Register permission request launcher inside setContent
+            val requestPermissions = rememberLauncherForActivityResult(
+                healthConnectManager.createPermissionRequestContract()
+            ) { granted ->
+                Timber.i("Health Connect permission result: granted=${granted.size}, required=${HealthConnectManager.REQUIRED_PERMISSIONS.size}")
+                Timber.i("Granted permissions: $granted")
+                if (granted.containsAll(HealthConnectManager.REQUIRED_PERMISSIONS)) {
+                    Timber.i("Health Connect permissions granted")
+                } else {
+                    Timber.w("Health Connect permissions denied or incomplete")
+                }
+            }
             
             FoodieTheme {
                 // Check Health Connect availability and permissions on launch
                 LaunchedEffect(Unit) {
                     lifecycleScope.launch {
+                        Timber.d("Checking Health Connect availability...")
                         val available = healthConnectManager.isAvailable()
+                        Timber.d("Health Connect available: $available")
+                        
                         if (!available) {
                             showHealthConnectDialog = true
                         } else {
                             // Check permissions
                             val hasPermissions = healthConnectManager.checkPermissions()
+                            Timber.d("Has Health Connect permissions: $hasPermissions")
+                            
                             if (!hasPermissions) {
-                                Timber.d("Requesting Health Connect permissions")
+                                Timber.i("Launching Health Connect permission request...")
                                 requestPermissions.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
+                            } else {
+                                Timber.i("Health Connect permissions already granted")
                             }
                         }
                     }

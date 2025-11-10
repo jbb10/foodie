@@ -127,6 +127,13 @@ fun CapturePhotoScreen(
             }
         }
 
+        is CaptureState.BackgroundProcessingStarted -> {
+            // Background processing started, navigate back
+            LaunchedEffect(Unit) {
+                onPhotoConfirmed(android.net.Uri.EMPTY) // Signal completion, URI not needed
+            }
+        }
+
         is CaptureState.ProcessingComplete -> {
             val processedUri = (state as CaptureState.ProcessingComplete).processedPhotoUri
             PreviewScreen(
@@ -136,7 +143,7 @@ fun CapturePhotoScreen(
                     // Retake will reset state to ReadyToCapture, relaunching camera
                 },
                 onUsePhoto = {
-                    onPhotoConfirmed(processedUri)
+                    viewModel.onUsePhoto()
                 }
             )
         }
