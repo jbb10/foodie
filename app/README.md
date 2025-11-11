@@ -5,6 +5,8 @@ This README documents the MVVM (Model-View-ViewModel) architecture pattern and n
 ## Table of Contents
 
 - [Quick Start & Configuration](#quick-start--configuration)
+  - [Deploy to Phone](#deploy-to-phone)
+  - [Azure OpenAI Setup](#azure-openai-setup)
 - [Architecture Overview](#architecture-overview)
 - [Navigation Structure](#navigation-structure)
 - [Layer Responsibilities](#layer-responsibilities)
@@ -17,7 +19,32 @@ This README documents the MVVM (Model-View-ViewModel) architecture pattern and n
 
 ## Quick Start & Configuration
 
-### Azure OpenAI API Setup (Required for Story 2.4+)
+### Deploy to Phone
+
+**Connect your phone:**
+```bash
+# USB: Enable Developer Options + USB Debugging on phone, then plug in
+# Wireless: Settings → Developer Options → Wireless Debugging → Pair
+
+adb devices  # should show your phone
+```
+
+**Debug version (for testing):**
+```bash
+cd app
+./gradlew installDebug
+```
+
+**Release version (for daily use):**
+```bash
+cd app
+./gradlew installRelease
+```
+
+**Both at once:**
+Debug and release can coexist if you want to test changes without losing your production data. Just install both.
+
+### Azure OpenAI Setup
 
 The app requires Azure OpenAI credentials to analyze meal photos and estimate calories:
 
@@ -46,6 +73,11 @@ The app requires Azure OpenAI credentials to analyze meal photos and estimate ca
 **Note:** `local.properties` is git-ignored for security. Never commit API keys to version control.
 
 **Future:** Story 5.2 will move credentials to in-app settings with EncryptedSharedPreferences.
+
+### Permissions
+
+**Android 13+ Notification Permission**  
+On Android 13+, the app prompts for notification permission when you capture your first meal. Grant it so you can see analysis progress.
 
 ---
 

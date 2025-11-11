@@ -376,6 +376,42 @@ So that I can track meals in under 5 seconds without any friction.
 
 ---
 
+### Story 2.8: Foreground Meal Analysis Service
+
+As a user,
+I want the AI analysis to run inside a visible foreground service after I confirm a photo,
+So that I can immediately resume what I was doing while knowing progress is happening reliably.
+
+**Acceptance Criteria:**
+
+**Given** a photo has been captured and confirmed
+**When** background processing begins
+**Then** a foreground service (via WorkManager foreground execution) starts with notification text "Analyzing meal…"
+
+**And** the user can immediately return to the lock screen or their previous app without blocking UI
+
+**And** the foreground operation calls the Azure OpenAI API with the captured photo
+
+**And** the notification shows the Foodie icon, concise status text, and complies with Android 13+ notification permission flow
+
+**And** the notification dismisses itself automatically on successful completion (or updates with failure messaging)
+
+**And** the end-to-end processing time (photo → API → Health Connect save) remains under 15 seconds in typical conditions
+
+**And** the temporary photo file is deleted after successful processing or when retries are exhausted
+
+**And** the foreground work survives short app terminations (WorkManager reschedules if killed) and resumes the notification
+
+**And** all errors are surfaced through structured logging with notification updates when appropriate
+
+**Prerequisites:** Story 2.5 (background processing service), Story 2.6 (end-to-end integration)
+
+**Context:** This story addresses the gap between Epic 2.4's original specification (which required foreground service with notification) and Story 2.5's implementation (which used WorkManager without visible notification). User feedback and Android platform requirements indicate that visible progress feedback improves trust and meets Android 8+ foreground service requirements for long-running background work.
+
+**Technical Notes:** Upgrade AnalyzeMealWorker to use `setForegroundAsync()` with `ForegroundInfo` containing notification. Create notification channel for meal analysis. Handle Android 13+ notification permission requests. Use `NotificationCompat.Builder` for Material You styling. Update notification for major milestones (encoding, API call, saving). Auto-dismiss on success, update with failure messaging on error. Test notification persistence across app process death and WorkManager retry attempts.
+
+---
+
 ## Epic 3: Data Management & Review
 
 **Goal:** Enable users to view, edit, and delete their nutrition entries, providing transparency and control over their tracking data.

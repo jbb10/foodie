@@ -12,8 +12,10 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.foodie.app.R
 import com.foodie.app.data.local.cache.PhotoManager
 import com.foodie.app.data.worker.AnalyzeMealWorker
+import com.foodie.app.notifications.NotificationPermissionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,6 +54,12 @@ sealed class CaptureState {
     /** Background processing enqueued, user can return to previous activity */
     data object BackgroundProcessingStarted : CaptureState()
 
+    /** Notification permission required before scheduling foreground work */
+    data object NotificationPermissionRequired : CaptureState()
+
+    /** Notification permission denied by user */
+    data object NotificationPermissionDenied : CaptureState()
+
     /** Error occurred during capture or processing */
     data class Error(val message: String) : CaptureState()
 }
@@ -87,6 +95,10 @@ class CapturePhotoViewModel @Inject constructor(
     private val photoManager: PhotoManager,
     private val workManager: WorkManager
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "CapturePhotoViewModel"
+    }
 
     private val _state = MutableStateFlow<CaptureState>(CaptureState.Idle)
     val state: StateFlow<CaptureState> = _state.asStateFlow()
@@ -180,9 +192,9 @@ class CapturePhotoViewModel @Inject constructor(
     /**
      * Called when user taps Use Photo button.
      *
-     * Enqueues background processing job with WorkManager and transitions
-     * to BackgroundProcessingStarted state, allowing user to immediately
-     * return to their previous activity.
+     * Enqueues background processing job with WorkManager. If notification
+     * permission is missing (shouldn't happen if first-launch flow completed),
+     * prompts user to grant it.
      *
      * WorkManager job will:
      * 1. Call Azure OpenAI API for nutrition analysis
@@ -190,53 +202,93 @@ class CapturePhotoViewModel @Inject constructor(
      * 3. Delete temporary photo file
      * 4. Retry on network failures with exponential backoff (1s, 2s, 4s delays)
      */
-    fun onUsePhoto() {
-        Timber.d("Use photo requested, enqueuing background processing")
-        
+    fun onUsePhoto(context: Context, skipPermissionCheck: Boolean = false) {
+        Timber.d("Use photo requested (skipPermissionCheck=%s)", skipPermissionCheck)
+
         viewModelScope.launch {
-            try {
-                val photoUri = processedPhotoUri
-                    ?: throw IllegalStateException("No processed photo URI available")
-                
-                val timestamp = Instant.now()
-                
-                // Build WorkRequest with network constraints and retry policy
-                val workRequest = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
-                    .setInputData(
-                        workDataOf(
-                            AnalyzeMealWorker.KEY_PHOTO_URI to photoUri.toString(),
-                            AnalyzeMealWorker.KEY_TIMESTAMP to timestamp.epochSecond
-                        )
-                    )
-                    .setConstraints(
-                        Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build()
-                    )
-                    .setBackoffCriteria(
-                        BackoffPolicy.EXPONENTIAL,
-                        1, TimeUnit.SECONDS  // Initial delay 1s, doubles each retry
-                    )
-                    .addTag("analyze_meal")
-                    .build()
-                
-                // Enqueue work
-                workManager.enqueue(workRequest)
-                
-                Timber.d(
-                    "Work enqueued: id=${workRequest.id}, uri=$photoUri, timestamp=$timestamp"
-                )
-                
-                // Transition to background processing state
-                _state.value = CaptureState.BackgroundProcessingStarted
-                
-                // Clear processed photo URI (WorkManager now owns the file)
-                processedPhotoUri = null
-                
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to enqueue background processing")
-                _state.value = CaptureState.Error("Failed to start processing: ${e.message}")
+            // Only check notification permission if user skipped first-launch flow
+            // (e.g., went straight to widget without opening app)
+            if (!skipPermissionCheck &&
+                NotificationPermissionManager.isPermissionRequired() &&
+                !hasNotificationPermission(context)
+            ) {
+                Timber.w("Notification permission missing - prompting user (first launch may have been skipped)")
+                _state.value = CaptureState.NotificationPermissionRequired
+                return@launch
             }
+
+            enqueueAnalysisWork()
+        }
+    }
+
+    fun onNotificationPermissionResult(granted: Boolean, context: Context) {
+        if (granted) {
+            Timber.d("Notification permission granted for foreground work")
+            // Proceed with analysis now that permission is granted
+            onUsePhoto(context, skipPermissionCheck = true)
+        } else {
+            Timber.w("Notification permission denied; user must enable before proceeding")
+            _state.value = CaptureState.NotificationPermissionDenied
+        }
+    }
+
+    fun isNotificationPermissionRequired(): Boolean = NotificationPermissionManager.isPermissionRequired()
+
+    fun getProcessedPhotoUri(): Uri? = processedPhotoUri
+
+    fun retryNotificationPermission() {
+        _state.value = CaptureState.NotificationPermissionRequired
+    }
+
+    private fun hasNotificationPermission(context: Context): Boolean {
+        val granted = NotificationPermissionManager.hasPermission(context)
+        if (!granted) {
+            Timber.w("Notification permission missing for foreground WorkManager execution")
+        }
+        return granted
+    }
+
+    private suspend fun enqueueAnalysisWork() {
+        try {
+            val photoUri = processedPhotoUri
+                ?: throw IllegalStateException("No processed photo URI available")
+
+            val timestamp = Instant.now()
+
+            val workRequest = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
+                .setInputData(
+                    workDataOf(
+                        AnalyzeMealWorker.KEY_PHOTO_URI to photoUri.toString(),
+                        AnalyzeMealWorker.KEY_TIMESTAMP to timestamp.epochSecond
+                    )
+                )
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
+                .setBackoffCriteria(
+                    BackoffPolicy.EXPONENTIAL,
+                    1, TimeUnit.SECONDS
+                )
+                .addTag("analyze_meal")
+                .build()
+
+            workManager.enqueue(workRequest)
+
+            val elapsed = System.currentTimeMillis() - screenLaunchTime
+            Timber.tag(TAG).i(
+                "Meal analysis enqueued: id=%s, elapsed=%dms",
+                workRequest.id,
+                elapsed
+            )
+
+            _state.value = CaptureState.BackgroundProcessingStarted
+            processedPhotoUri = null
+
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to enqueue background processing")
+            _state.value = CaptureState.Error("Failed to start processing: ${e.message}")
         }
     }
 

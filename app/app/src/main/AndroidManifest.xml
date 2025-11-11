@@ -7,6 +7,11 @@
     
     <!-- Camera permission for photo capture (Story 2-3) -->
     <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Notification permission (Android 13+) for foreground WorkManager visibility (Story 2-8) -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        tools:targetApi="33" />
     
     <!-- Health Connect permissions -->
     <uses-permission android:name="android.permission.health.READ_NUTRITION" />
@@ -123,6 +128,13 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- WorkManager foreground service (Story 2-8) -->
+        <!-- Required for setForegroundAsync() API -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
     </application>
 
 </manifest>

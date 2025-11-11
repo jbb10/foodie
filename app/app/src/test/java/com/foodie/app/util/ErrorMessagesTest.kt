@@ -1,6 +1,7 @@
 package com.foodie.app.util
 
 import com.google.common.truth.Truth.assertThat
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Test
 import retrofit2.HttpException
 import retrofit2.Response
@@ -47,7 +48,7 @@ class ErrorMessagesTest {
 
     @Test
     fun `toUserMessage maps HttpException 401 to authentication message`() {
-        val exception = HttpException(Response.error<Any>(401, okhttp3.ResponseBody.create(null, "")))
+        val exception = HttpException(Response.error<Any>(401, "".toResponseBody(null)))
 
         val message = ErrorMessages.toUserMessage(exception)
 
@@ -58,7 +59,7 @@ class ErrorMessagesTest {
 
     @Test
     fun `toUserMessage maps HttpException 403 to authentication message`() {
-        val exception = HttpException(Response.error<Any>(403, okhttp3.ResponseBody.create(null, "")))
+        val exception = HttpException(Response.error<Any>(403, "".toResponseBody(null)))
 
         val message = ErrorMessages.toUserMessage(exception)
 
@@ -67,7 +68,7 @@ class ErrorMessagesTest {
 
     @Test
     fun `toUserMessage maps HttpException 429 to rate limit message`() {
-        val exception = HttpException(Response.error<Any>(429, okhttp3.ResponseBody.create(null, "")))
+        val exception = HttpException(Response.error<Any>(429, "".toResponseBody(null)))
 
         val message = ErrorMessages.toUserMessage(exception)
 
@@ -77,7 +78,7 @@ class ErrorMessagesTest {
 
     @Test
     fun `toUserMessage maps HttpException 500 to server error message`() {
-        val exception = HttpException(Response.error<Any>(500, okhttp3.ResponseBody.create(null, "")))
+        val exception = HttpException(Response.error<Any>(500, "".toResponseBody(null)))
 
         val message = ErrorMessages.toUserMessage(exception)
 
@@ -87,7 +88,7 @@ class ErrorMessagesTest {
 
     @Test
     fun `toUserMessage maps HttpException 503 to server error message`() {
-        val exception = HttpException(Response.error<Any>(503, okhttp3.ResponseBody.create(null, "")))
+        val exception = HttpException(Response.error<Any>(503, "".toResponseBody(null)))
 
         val message = ErrorMessages.toUserMessage(exception)
 
@@ -96,7 +97,7 @@ class ErrorMessagesTest {
 
     @Test
     fun `toUserMessage maps HttpException 404 to generic request failed message`() {
-        val exception = HttpException(Response.error<Any>(404, okhttp3.ResponseBody.create(null, "")))
+        val exception = HttpException(Response.error<Any>(404, "".toResponseBody(null)))
 
         val message = ErrorMessages.toUserMessage(exception)
 
@@ -160,9 +161,9 @@ class ErrorMessagesTest {
             UnknownHostException(),
             SocketTimeoutException(),
             IOException(),
-            HttpException(Response.error<Any>(401, okhttp3.ResponseBody.create(null, ""))),
-            HttpException(Response.error<Any>(429, okhttp3.ResponseBody.create(null, ""))),
-            HttpException(Response.error<Any>(500, okhttp3.ResponseBody.create(null, ""))),
+            HttpException(Response.error<Any>(401, "".toResponseBody(null))),
+            HttpException(Response.error<Any>(429, "".toResponseBody(null))),
+            HttpException(Response.error<Any>(500, "".toResponseBody(null))),
             SecurityException(),
             IllegalStateException("Health Connect unavailable"),
             IllegalStateException("Generic error"),
@@ -183,7 +184,7 @@ class ErrorMessagesTest {
             UnknownHostException(),
             SecurityException(),
             IllegalStateException("Health Connect unavailable"),
-            HttpException(Response.error<Any>(401, okhttp3.ResponseBody.create(null, "")))
+            HttpException(Response.error<Any>(401, "".toResponseBody(null)))
         )
 
         exceptions.forEach { exception ->

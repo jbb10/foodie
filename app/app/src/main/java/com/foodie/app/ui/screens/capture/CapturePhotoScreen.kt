@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.foodie.app.R
+import com.foodie.app.notifications.NotificationPermissionManager
 import timber.log.Timber
 
 /**
@@ -81,6 +82,12 @@ fun CapturePhotoScreen(
         }
     }
 
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        viewModel.onNotificationPermissionResult(granted, context)
+    }
+
     // Handle state changes
     LaunchedEffect(state) {
         when (state) {
@@ -94,6 +101,13 @@ fun CapturePhotoScreen(
             is CaptureState.ProcessingComplete -> {
                 val processedUri = (state as CaptureState.ProcessingComplete).processedPhotoUri
                 // Don't auto-proceed - wait for preview screen interaction
+            }
+            is CaptureState.NotificationPermissionRequired -> {
+                if (viewModel.isNotificationPermissionRequired()) {
+                    notificationPermissionLauncher.launch(NotificationPermissionManager.PERMISSION)
+                } else {
+                    viewModel.onNotificationPermissionResult(granted = true, context = context)
+                }
             }
             else -> {}
         }
@@ -140,6 +154,36 @@ fun CapturePhotoScreen(
             }
         }
 
+        is CaptureState.NotificationPermissionRequired -> {
+            // Keep showing preview while permission dialog is displayed
+            // The LaunchedEffect above will trigger the permission request
+            viewModel.getProcessedPhotoUri()?.let { processedUri ->
+                PreviewScreen(
+                    photoUri = processedUri,
+                    onRetake = {
+                        viewModel.onRetake()
+                    },
+                    onUsePhoto = { ctx ->
+                        // Do nothing - already waiting for permission result
+                    },
+                    confirmationEnabled = false
+                )
+            }
+        }
+
+        is CaptureState.NotificationPermissionDenied -> {
+            NotificationPermissionDeniedScreen(
+                onRetry = { viewModel.retryNotificationPermission() },
+                onOpenSettings = {
+                    val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                    }
+                    context.startActivity(intent)
+                },
+                onCancel = onNavigateBack
+            )
+        }
+
         is CaptureState.ProcessingComplete -> {
             val processedUri = (state as CaptureState.ProcessingComplete).processedPhotoUri
             PreviewScreen(
@@ -148,8 +192,8 @@ fun CapturePhotoScreen(
                     viewModel.onRetake()
                     // Retake will reset state to ReadyToCapture, relaunching camera
                 },
-                onUsePhoto = {
-                    viewModel.onUsePhoto()
+                onUsePhoto = { ctx ->
+                    viewModel.onUsePhoto(ctx)
                 }
             )
         }
@@ -267,6 +311,48 @@ private fun PermissionDeniedScreen(
                 }
                 Button(onClick = onOpenSettings) {
                     Text(stringResource(R.string.capture_open_settings))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationPermissionDeniedScreen(
+    onRetry: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.capture_notification_permission_title),
+                style = MaterialTheme.typography.headlineSmall
+            )
+
+            Text(
+                text = stringResource(R.string.capture_notification_permission_denied),
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(onClick = onCancel) {
+                    Text(stringResource(R.string.capture_cancel))
+                }
+                OutlinedButton(onClick = onOpenSettings) {
+                    Text(stringResource(R.string.capture_notification_permission_open_settings))
+                }
+                Button(onClick = onRetry) {
+                    Text(stringResource(R.string.capture_notification_permission_retry))
                 }
             }
         }

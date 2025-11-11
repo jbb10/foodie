@@ -351,10 +351,20 @@ foodie/
 - **Version:** 2.9.1
 - **Purpose:** Reliable background processing for AI analysis
 - **Workers:**
-  - `AnalyzeMealWorker` - Analyzes photo, calls Azure OpenAI, saves to Health Connect
+    - `AnalyzeMealWorker` - Analyzes photo, calls Azure OpenAI, saves to Health Connect
 - **Constraints:** NetworkType.CONNECTED
 - **Retry Policy:** Exponential backoff, max 3 retries
-- **No Foreground Service:** WorkManager handles background reliability
+- **Foreground Execution:** `setForegroundAsync()` + notification channel (`meal_analysis`) keep work visible and compliant with Android 13+
+
+**Pre-Story 2.8 Gaps Identified:**
+- No persistent notification, leaving users without feedback during 10–15s processing window.
+- Notification permission handling absent for Android 13+, risking `ForegroundServiceStartNotAllowedException`.
+- Foreground restart path undocumented; WorkManager resumed silently after process death with no notification restoration.
+
+**Resolution (Story 2.8):**
+- Introduce `MealAnalysisForegroundNotifier` to build `ForegroundInfo` with Foodie icon, "Analyzing meal…" copy, and indeterminate progress.
+- Register `meal_analysis` notification channel at app launch and gate work enqueue on `POST_NOTIFICATIONS` permission when required.
+- Ensure worker re-enters foreground on each retry, restoring notification after process death so execution remains user-visible.
 
 #### Kotlin Coroutines + Flow
 - **Version:** 1.9.0
@@ -1914,6 +1924,16 @@ adb shell pm grant com.foodie.app android.permission.health.WRITE_NUTRITION
 - No real-time progress updates (user pockets phone anyway)
 - WorkManager constraints ensure network availability
 - User notified only on final success/failure
+
+#### Appendix 004-A: Foreground Worker Compliance (Story 2.8)
+
+- **Trigger:** Android 13+ foreground service policy requires visible notification for long-running background analysis.
+- **Approach:** Retain WorkManager-only orchestration while calling `setForegroundAsync()` with `MealAnalysisForegroundNotifier` to surface an ongoing notification.
+- **Justification:** Meets platform compliance without introducing a dedicated `ForegroundService`, keeping ADR-004 core decision intact.
+- **Implications:**
+    - Notification channel `meal_analysis` registered in `FoodieApplication` (IMPORTANCE_LOW) to provide silent but visible progress.
+    - AnalyzeMealWorker re-requests foreground state on retries/process restarts, preserving reliability guarantees from WorkManager.
+    - Capture flow must request `POST_NOTIFICATIONS` permission before enqueue on Android 13+ to avoid start failures.
 
 ### ADR-005: Health Connect as Single Source of Truth (No Local Database)
 

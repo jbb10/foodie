@@ -1,5 +1,6 @@
 package com.foodie.app.ui.screens.capture
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -49,16 +50,23 @@ import kotlinx.coroutines.delay
 fun PreviewScreen(
     photoUri: Uri,
     onRetake: () -> Unit,
-    onUsePhoto: () -> Unit
+    onUsePhoto: (Context) -> Unit,
+    confirmationEnabled: Boolean = true
 ) {
     val context = LocalContext.current
     var showCheckmark by remember { mutableStateOf(false) }
 
+    LaunchedEffect(confirmationEnabled) {
+        if (!confirmationEnabled) {
+            showCheckmark = false
+        }
+    }
+
     // Animate checkmark fade-in and trigger callback after delay
     LaunchedEffect(showCheckmark) {
-        if (showCheckmark) {
+        if (showCheckmark && confirmationEnabled) {
             delay(700) // Display checkmark for 700ms (AC#9)
-            onUsePhoto()
+            onUsePhoto(context)
         }
     }
 
@@ -135,6 +143,7 @@ fun PreviewScreen(
                     // Use Photo button (right side, primary style)
                     Button(
                         onClick = { showCheckmark = true }, // Trigger checkmark animation
+                        enabled = confirmationEnabled,
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp), // > 48dp for easy thumb access

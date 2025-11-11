@@ -3,6 +3,7 @@ package com.foodie.app
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.foodie.app.data.worker.foreground.MealAnalysisNotificationSpec
 import com.foodie.app.util.ReleaseTree
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
@@ -36,6 +37,8 @@ class FoodieApplication : Application(), Configuration.Provider {
         }
         
         Timber.d("FoodieApplication initialized with HiltWorkerFactory")
+
+        MealAnalysisNotificationSpec.ensureChannel(this)
     }
     
     override val workManagerConfiguration: Configuration

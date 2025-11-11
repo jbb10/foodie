@@ -10,9 +10,14 @@
     <string name="capture_launching_camera">Launching camera…</string>
     <string name="capture_processing_photo">Processing photo…</string>
     <string name="capture_preparing_camera">Preparing camera…</string>
+    <string name="capture_requesting_notification_permission">Requesting notification permission…</string>
     <string name="capture_error_title">Camera Error</string>
     <string name="capture_permission_denied_title">Camera Permission Required</string>
     <string name="capture_permission_denied_message">Camera access is needed to photograph meals. Please grant permission in app settings.</string>
+    <string name="capture_notification_permission_denied">Notification permission is required so Foodie can show meal analysis progress. Please grant notification access and try again.</string>
+    <string name="capture_notification_permission_title">Allow Notifications to Track Progress</string>
+    <string name="capture_notification_permission_retry">Try Again</string>
+    <string name="capture_notification_permission_open_settings">Notification Settings</string>
     <string name="capture_cancel">Cancel</string>
     <string name="capture_retry">Retry</string>
     <string name="capture_open_settings">Open Settings</string>
@@ -21,4 +26,14 @@
     <string name="preview_photo_description">Captured meal photo preview</string>
     <string name="preview_retake">Retake</string>
     <string name="preview_use_photo">Use Photo</string>
+    <string name="notification_meal_analysis_title">Analyzing meal…</string>
+    <string name="notification_meal_analysis_success_title">Meal analyzed</string>
+    <string name="notification_meal_analysis_success_body">Saved %1$d kcal for %2$s</string>
+    <string name="notification_meal_analysis_failure_title">Meal analysis failed</string>
+    <string name="notification_meal_analysis_failure_body">%1$s</string>
+    <string name="notification_meal_analysis_failure_generic">Something went wrong while analyzing your meal. Please try again.</string>
+    <string name="notification_meal_analysis_status_preparing">Preparing meal analysis…</string>
+    <string name="notification_meal_analysis_status_uploading">Uploading meal photo…</string>
+    <string name="notification_meal_analysis_status_calling_api">Contacting Foodie AI…</string>
+    <string name="notification_meal_analysis_status_saving">Saving nutrition data…</string>
 </resources>

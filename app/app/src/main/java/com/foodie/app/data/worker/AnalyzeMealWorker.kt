@@ -1,14 +1,20 @@
 package com.foodie.app.data.worker
 
+import android.app.ForegroundServiceStartNotAllowedException
 import android.content.Context
 import android.net.Uri
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.foodie.app.data.local.cache.PhotoManager
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
+import com.foodie.app.data.worker.foreground.MealAnalysisForegroundNotifier
+import com.foodie.app.data.worker.foreground.MealAnalysisNotificationSpec
+import com.foodie.app.domain.model.NutritionData
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
+import com.foodie.app.R
 import com.foodie.app.util.Result as ApiResult
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -68,7 +74,8 @@ class AnalyzeMealWorker @AssistedInject constructor(
     @Assisted private val workerParams: WorkerParameters,
     private val nutritionAnalysisRepository: NutritionAnalysisRepository,
     private val healthConnectManager: HealthConnectManager,
-    private val photoManager: PhotoManager
+    private val photoManager: PhotoManager,
+    private val foregroundNotifier: MealAnalysisForegroundNotifier
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -89,6 +96,48 @@ class AnalyzeMealWorker @AssistedInject constructor(
          * Attempts: 1 (immediate), 2 (1s delay), 3 (2s delay), 4 (4s delay)
          */
         private const val MAX_ATTEMPTS = 4
+    }
+
+    private val notificationManager by lazy { NotificationManagerCompat.from(appContext) }
+
+    private suspend fun startForeground(statusTextRes: Int): androidx.work.ListenableWorker.Result? {
+        val statusText = appContext.getString(statusTextRes)
+        return try {
+            setForeground(foregroundNotifier.createForegroundInfo(id, statusText))
+            null
+        } catch (e: ForegroundServiceStartNotAllowedException) {
+            Timber.tag(TAG).e(e, "Foreground service start blocked; scheduling retry")
+            androidx.work.ListenableWorker.Result.retry()
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to enter foreground state")
+            androidx.work.ListenableWorker.Result.retry()
+        }
+    }
+
+    private suspend fun updateForeground(statusTextRes: Int, progressPercent: Int? = null) {
+        val statusText = appContext.getString(statusTextRes)
+        try {
+            setForeground(foregroundNotifier.createForegroundInfo(id, statusText, progressPercent))
+        } catch (e: Exception) {
+            Timber.tag(TAG).w(e, "Unable to update foreground notification")
+        }
+    }
+
+    private fun notifySuccess(data: NutritionData) {
+        notificationManager.notify(
+            MealAnalysisNotificationSpec.COMPLETION_NOTIFICATION_ID,
+            foregroundNotifier.createCompletionNotification(data)
+        )
+    }
+
+    private fun notifyFailure(message: String?) {
+        val fallback = appContext.getString(R.string.notification_meal_analysis_failure_generic)
+        val displayMessage = message?.takeIf { it.isNotBlank() } ?: fallback
+
+        notificationManager.notify(
+            MealAnalysisNotificationSpec.COMPLETION_NOTIFICATION_ID,
+            foregroundNotifier.createFailureNotification(id, displayMessage)
+        )
     }
 
     /**
@@ -116,6 +165,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
         
         if (photoUriString == null) {
             Timber.tag(TAG).e("Photo URI missing from input data")
+            notifyFailure("Photo URI missing from input data")
             return androidx.work.ListenableWorker.Result.failure()
         }
         
@@ -126,12 +176,16 @@ class AnalyzeMealWorker @AssistedInject constructor(
             "Starting meal analysis (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): " +
             "uri=$photoUri, timestamp=$timestamp"
         )
+
+        startForeground(R.string.notification_meal_analysis_status_preparing)?.let { return it }
+        updateForeground(R.string.notification_meal_analysis_status_uploading, progressPercent = 10)
         
-        return try {
+        try {
             // Verify photo file exists
             // Note: This is a basic check - actual file existence will be verified during API call
             
             // Call API for nutrition analysis
+            updateForeground(R.string.notification_meal_analysis_status_calling_api, progressPercent = 30)
             val apiStartTime = System.currentTimeMillis()
             val apiResult = nutritionAnalysisRepository.analyzePhoto(photoUri)
             val apiDuration = System.currentTimeMillis() - apiStartTime
@@ -147,6 +201,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
                     )
                     
                     // Save to Health Connect
+                    updateForeground(R.string.notification_meal_analysis_status_saving, progressPercent = 80)
                     val saveStartTime = System.currentTimeMillis()
                     try {
                         val recordId = healthConnectManager.insertNutritionRecord(
@@ -180,7 +235,8 @@ class AnalyzeMealWorker @AssistedInject constructor(
                             )
                         }
                         
-                        androidx.work.ListenableWorker.Result.success()
+                        notifySuccess(nutritionData)
+                        return androidx.work.ListenableWorker.Result.success()
                         
                     } catch (e: SecurityException) {
                         // Health Connect permission denied - keep photo for manual retry
@@ -188,7 +244,8 @@ class AnalyzeMealWorker @AssistedInject constructor(
                             e,
                             "Health Connect permission denied - keeping photo for manual intervention"
                         )
-                        androidx.work.ListenableWorker.Result.failure()
+                        notifyFailure(e.message)
+                        return androidx.work.ListenableWorker.Result.failure()
                     } catch (e: IllegalArgumentException) {
                         // Validation error (calories out of range or blank description)
                         // This should not happen if API returns valid data, but handle defensively
@@ -197,7 +254,8 @@ class AnalyzeMealWorker @AssistedInject constructor(
                             "Invalid nutrition data from API - deleting photo"
                         )
                         photoManager.deletePhoto(photoUri)
-                        androidx.work.ListenableWorker.Result.failure()
+                        notifyFailure(e.message)
+                        return androidx.work.ListenableWorker.Result.failure()
                     }
                 }
                 
@@ -213,14 +271,16 @@ class AnalyzeMealWorker @AssistedInject constructor(
                                 "Max retry attempts exhausted ($MAX_ATTEMPTS), deleting photo"
                             )
                             photoManager.deletePhoto(photoUri)
-                            androidx.work.ListenableWorker.Result.failure()
+                            notifyFailure(apiResult.message ?: exception.message)
+                            return androidx.work.ListenableWorker.Result.failure()
                         } else {
                             // Retry with exponential backoff
                             Timber.tag(TAG).w(
                                 exception,
                                 "Retryable error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): ${apiResult.message}"
                             )
-                            androidx.work.ListenableWorker.Result.retry()
+                            updateForeground(R.string.notification_meal_analysis_status_calling_api)
+                            return androidx.work.ListenableWorker.Result.retry()
                         }
                     } else {
                         // Non-retryable error - delete photo and fail immediately
@@ -229,14 +289,16 @@ class AnalyzeMealWorker @AssistedInject constructor(
                             "Non-retryable error: ${apiResult.message}, deleting photo"
                         )
                         photoManager.deletePhoto(photoUri)
-                        androidx.work.ListenableWorker.Result.failure()
+                        notifyFailure(apiResult.message ?: exception.message)
+                        return androidx.work.ListenableWorker.Result.failure()
                     }
                 }
                 
                 is ApiResult.Loading -> {
                     // Should never happen in repository response, but handle gracefully
                     Timber.tag(TAG).e("Unexpected Loading state from repository")
-                    androidx.work.ListenableWorker.Result.failure()
+                    notifyFailure("Unexpected repository state")
+                    return androidx.work.ListenableWorker.Result.failure()
                 }
             }
             
@@ -244,7 +306,8 @@ class AnalyzeMealWorker @AssistedInject constructor(
             // Unexpected exception - delete photo and fail
             Timber.tag(TAG).e(e, "Unexpected exception in worker, deleting photo")
             photoManager.deletePhoto(photoUri)
-            androidx.work.ListenableWorker.Result.failure()
+            notifyFailure(e.message)
+            return androidx.work.ListenableWorker.Result.failure()
         }
     }
     

@@ -67,6 +67,16 @@ android {
     
     kotlinOptions {
         jvmTarget = "17"
+        
+        // Strict compilation - treat all warnings as errors
+        allWarningsAsErrors = true
+        
+        // Enable additional warnings
+        freeCompilerArgs += listOf(
+            "-Xjsr305=strict",                    // Strict null-safety for Java interop
+            "-opt-in=kotlin.RequiresOptIn",       // Opt-in APIs
+            "-Xcontext-receivers"                 // Context receivers (experimental)
+        )
     }
     
     buildFeatures {

@@ -45,41 +45,91 @@ class MainActivity : ComponentActivity() {
         setContent {
             var showHealthConnectDialog by remember { mutableStateOf(false) }
             
-            // Register permission request launcher inside setContent
-            val requestPermissions = rememberLauncherForActivityResult(
+            // Track first launch for one-time permission requests
+            val prefs = getSharedPreferences("foodie_prefs", MODE_PRIVATE)
+            val isFirstLaunch = remember { prefs.getBoolean("first_launch", true) }
+            
+            // Track whether to request notification permission after HC permissions
+            var shouldRequestNotificationPermission by remember { mutableStateOf(false) }
+            
+            // Register notification permission launcher (Android 13+)
+            val requestNotificationPermission = rememberLauncherForActivityResult(
+                androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+            ) { granted ->
+                Timber.i("Notification permission result: granted=$granted")
+                shouldRequestNotificationPermission = false
+            }
+            
+            // Register Health Connect permission launcher
+            val requestHealthConnectPermissions = rememberLauncherForActivityResult(
                 healthConnectManager.createPermissionRequestContract()
             ) { granted ->
                 Timber.i("Health Connect permission result: granted=${granted.size}, required=${HealthConnectManager.REQUIRED_PERMISSIONS.size}")
-                Timber.i("Granted permissions: $granted")
                 if (granted.containsAll(HealthConnectManager.REQUIRED_PERMISSIONS)) {
                     Timber.i("Health Connect permissions granted")
                 } else {
                     Timber.w("Health Connect permissions denied or incomplete")
                 }
+                
+                // After Health Connect permissions handled, request notification permission
+                if (shouldRequestNotificationPermission) {
+                    shouldRequestNotificationPermission = false
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                        val hasNotificationPermission = checkSelfPermission(
+                            android.Manifest.permission.POST_NOTIFICATIONS
+                        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                        
+                        if (!hasNotificationPermission) {
+                            Timber.i("Requesting notification permission after HC...")
+                            requestNotificationPermission.launch(
+                                android.Manifest.permission.POST_NOTIFICATIONS
+                            )
+                        }
+                    }
+                }
             }
             
             FoodieTheme {
-                // Check Health Connect availability and permissions on launch
-                LaunchedEffect(Unit) {
-                    lifecycleScope.launch {
-                        Timber.d("Checking Health Connect availability...")
+                // First-launch permission flow
+                LaunchedEffect(isFirstLaunch) {
+                    if (isFirstLaunch) {
+                        Timber.i("🎯 First launch detected - requesting all permissions")
+                        
+                        // 1. Check Health Connect availability
                         val available = healthConnectManager.isAvailable()
                         Timber.d("Health Connect available: $available")
                         
                         if (!available) {
                             showHealthConnectDialog = true
+                            return@LaunchedEffect
+                        }
+                        
+                        // 2. Request Health Connect permissions
+                        val hasHealthPermissions = healthConnectManager.checkPermissions()
+                        if (!hasHealthPermissions) {
+                            Timber.i("Requesting Health Connect permissions...")
+                            // Set flag to request notification permission after HC callback
+                            shouldRequestNotificationPermission = true
+                            requestHealthConnectPermissions.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
                         } else {
-                            // Check permissions
-                            val hasPermissions = healthConnectManager.checkPermissions()
-                            Timber.d("Has Health Connect permissions: $hasPermissions")
-                            
-                            if (!hasPermissions) {
-                                Timber.i("Launching Health Connect permission request...")
-                                requestPermissions.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
-                            } else {
-                                Timber.i("Health Connect permissions already granted")
+                            // Already have HC permissions, request notification directly
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                val hasNotificationPermission = checkSelfPermission(
+                                    android.Manifest.permission.POST_NOTIFICATIONS
+                                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                                
+                                if (!hasNotificationPermission) {
+                                    Timber.i("Requesting notification permission...")
+                                    requestNotificationPermission.launch(
+                                        android.Manifest.permission.POST_NOTIFICATIONS
+                                    )
+                                }
                             }
                         }
+                        
+                        // Mark first launch complete
+                        prefs.edit().putBoolean("first_launch", false).apply()
+                        Timber.i("✅ First launch permissions requested")
                     }
                 }
                 

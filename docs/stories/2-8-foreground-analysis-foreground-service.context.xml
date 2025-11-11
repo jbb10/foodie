@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context version="1.0">
+  <meta>
+    <story-id>2.8</story-id>
+    <story-title>Foreground Meal Analysis Service</story-title>
+    <generated-date>2025-11-11</generated-date>
+    <epic-id>2</epic-id>
+    <epic-name>AI-Powered Meal Capture</epic-name>
+    <prerequisites>
+      <story id="2.5" status="completed">WorkManager Background Processing</story>
+      <story id="2.6" status="completed">Health Connect Save Implementation</story>
+      <story id="2.7" status="completed">Performance Measurement for Photo Capture Flow</story>
+    </prerequisites>
+  </meta>
+
+  <purpose>
+    <overview>
+      Implement foreground notification for AnalyzeMealWorker to comply with Android 13+ 
+      background processing UX requirements. This story addresses a gap from Story 2.4 where 
+      WorkManager was implemented without foreground execution, which is required for long-running 
+      background tasks that users should be aware of.
+    </overview>
+    <business-value>
+      - Ensures Android 13+ compliance for background processing visibility
+      - Improves user trust through transparent background operation communication
+      - Prevents task termination on Android 13+ by declaring foreground execution
+      - Provides user feedback for long-running API calls (15+ seconds)
+    </business-value>
+    <technical-scope>
+      - Add foreground notification channel configuration to FoodieApplication
+      - Create MealAnalysisForegroundNotifier helper class for notification management
+      - Modify AnalyzeMealWorker to call setForegroundAsync() at doWork() start
+      - Implement notification with app icon, "Analyzing meal..." text, indeterminate progress
+      - Request POST_NOTIFICATIONS permission for Android 13+ (Tiramisu)
+      - Add WorkManager foreground notification tests
+    </technical-scope>
+  </purpose>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <source>docs/epics.md</source>
+        <section>Epic 2: AI-Powered Meal Capture - Story 2.8</section>
+        <lines>375-440</lines>
+        <relevance>Complete story specification with 9 acceptance criteria and 8 tasks</relevance>
+        <excerpt>
+### Story 2.8: Foreground Meal Analysis Service
+
+**As a** user  
+**I want** visible feedback when meals are being analyzed in the background  
+**So that** I know processing is happening and Android allows the task to complete
+
+**Context:** Story 2.4 implemented WorkManager for background processing but did not include 
+foreground notification support required for Android 13+ long-running tasks. This story adds 
+the missing foreground execution layer to ensure compliance and user visibility.
+
+**Prerequisites:**
+- Story 2.5 (WorkManager Background Processing) - Provides AnalyzeMealWorker foundation
+- Story 2.6 (Health Connect Save Implementation) - Ensures complete processing flow
+
+**Acceptance Criteria:**
+1. Notification channel "Meal Analysis" created at app initialization
+2. AnalyzeMealWorker calls setForegroundAsync() with ForegroundInfo at start of doWork()
+3. Notification shows app icon, "Analyzing meal..." text, and indeterminate progress bar
+4. Notification automatically dismissed when worker completes (success or failure)
+5. POST_NOTIFICATIONS permission requested on Android 13+ before background processing
+6. No notification shown on Android 12 and below (WorkManager handles this automatically)
+7. Unit tests verify MealAnalysisForegroundNotifier creates correct ForegroundInfo
+8. Integration tests verify AnalyzeMealWorker executes in foreground context
+9. Manual testing validates notification appears and dismisses correctly on Android 13+ device
+        </excerpt>
+      </doc>
+
+      <doc>
+        <source>docs/tech-spec-epic-2.md</source>
+        <section>Background Processing Module</section>
+        <lines>112-150</lines>
+        <relevance>Defines AnalyzeMealWorker responsibilities and WorkManager configuration</relevance>
+        <excerpt>
+**Background Processing Module (data/worker/):**
+
+| Component | Responsibility | Execution Context | Constraints | Retry Policy |
+|-----------|----------------|-------------------|-------------|--------------|
+| `AnalyzeMealWorker` (CoroutineWorker) | Orchestrate photo → API → Health Connect → cleanup | WorkManager background thread | NetworkType.CONNECTED | Exponential backoff, max 3 retries (1s, 2s, 4s delays) |
+| `WorkManagerModule` (Hilt DI) | Configure WorkManager with HiltWorkerFactory | Application onCreate() | None | N/A |
+
+**Worker Responsibilities:**
+1. Read photo URI from WorkManager input data
+2. Load and base64-encode image
+3. Call `NutritionAnalysisRepository.analyzePhoto()`
+4. Parse API response to extract calories + description
+5. Validate nutrition data (calories in 1..5000 range)
+6. Save to Health Connect via `HealthConnectManager.insertNutritionRecord()`
+7. Delete photo file from cache directory
+8. Return `Result.success()` or `Result.retry()` based on error type
+        </excerpt>
+      </doc>
+
+      <doc>
+        <source>docs/architecture.md</source>
+        <section>WorkManager (Background Processing)</section>
+        <lines>350-360</lines>
+        <relevance>Defines WorkManager integration approach and constraints</relevance>
+        <excerpt>
+#### WorkManager (Background Processing)
+- **Version:** 2.9.1
+- **Purpose:** Reliable background processing for AI analysis
+- **Workers:**
+  - `AnalyzeMealWorker` - Analyzes photo, calls Azure OpenAI, saves to Health Connect
+- **Constraints:** NetworkType.CONNECTED
+- **Retry Policy:** Exponential backoff, max 3 retries
+- **No Foreground Service:** WorkManager handles background reliability
+        </excerpt>
+      </doc>
+
+      <doc>
+        <source>docs/architecture.md</source>
+        <section>ADR-004: WorkManager without Foreground Service</section>
+        <lines>1901-1915</lines>
+        <relevance>Original architectural decision that Story 2.8 modifies with foreground notification</relevance>
+        <excerpt>
+### ADR-004: WorkManager without Foreground Service
+
+**Decision:** Use WorkManager alone, avoid Foreground Service
+
+**Rationale:**
+- WorkManager handles background reliability automatically
+- No persistent notification needed (better UX)
+- Battery optimization handled by framework
+- Retry logic built-in
+- Simpler implementation
+
+**Consequences:**
+- Processing may be delayed if device in Doze mode (acceptable for nutrition logging)
+- No real-time progress updates (user pockets phone anyway)
+- WorkManager constraints ensure network availability
+- User notified only on final success/failure
+
+**NOTE:** Story 2.8 adds foreground notification to this decision for Android 13+ compliance 
+without changing the core "no foreground service" approach.
+        </excerpt>
+      </doc>
+
+      <doc>
+        <source>docs/PRD.md</source>
+        <section>User Experience - "Invisible Tracking"</section>
+        <lines>N/A (grep search results)</lines>
+        <relevance>Core product requirement emphasizing frictionless capture with automatic background processing</relevance>
+        <excerpt>
+Core concept: "invisible tracking" - Users capture meals in under 5 seconds, then pocket phone 
+while processing happens automatically in background. No mention of visible notifications in 
+original PRD, but Android 13+ platform requirements necessitate foreground notification for 
+long-running background tasks (Story 2.8 addresses this gap).
+        </excerpt>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <lines>1-277</lines>
+        <purpose>Existing WorkManager worker that will be modified to call setForegroundAsync()</purpose>
+        <key-elements>
+          - @HiltWorker with DI for NutritionAnalysisRepository, HealthConnectManager, PhotoManager
+          - doWork() orchestration: Read URI → Load photo → Call API → Save HC → Delete photo
+          - Input keys: KEY_PHOTO_URI (String), KEY_TIMESTAMP (Long)
+          - Retry strategy: MAX_ATTEMPTS=4, exponential backoff via BackoffPolicy.EXPONENTIAL
+          - Performance logging: Tracks API duration, save duration, total processing time
+          - Error handling: isRetryableError() distinguishes IOException from client errors
+          - Photo cleanup: Deletes on success, max retry exhaustion, or non-retryable error
+        </key-elements>
+        <interfaces-to-reuse>
+          <interface>
+            <name>NutritionAnalysisRepository.analyzePhoto(photoUri: Uri, timestamp: Instant)</name>
+            <returns>ApiResult&lt;NutritionData&gt; (Success/Error/Loading sealed class)</returns>
+          </interface>
+          <interface>
+            <name>HealthConnectManager.insertNutritionRecord(calories: Int, description: String, timestamp: Instant)</name>
+            <returns>String (Health Connect record ID)</returns>
+          </interface>
+          <interface>
+            <name>PhotoManager.deletePhoto(photoUri: Uri)</name>
+            <returns>Boolean (true if deleted successfully)</returns>
+          </interface>
+        </interfaces-to-reuse>
+        <constraints>
+          - Worker must complete setForegroundAsync() call before long-running work
+          - Performance targets: API &lt; 10s, Save &lt; 2s, Total &lt; 15s (logged warnings if exceeded)
+          - Thread: Executed on WorkManager background thread (CoroutineWorker)
+          - No UI updates allowed - all feedback via Timber logging and final Result
+        </constraints>
+      </file>
+
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/FoodieApplication.kt</path>
+        <lines>1-100</lines>
+        <purpose>Application class where notification channel will be created at app initialization</purpose>
+        <key-elements>
+          - @HiltAndroidApp for Hilt DI initialization
+          - onCreate(): Initializes Timber logging (DebugTree/ReleaseTree based on BuildConfig.DEBUG)
+          - Implements Configuration.Provider for WorkManager custom configuration
+          - workManagerConfiguration: Injects HiltWorkerFactory for @HiltWorker DI support
+          - No notification channel setup currently - Story 2.8 will add this
+        </key-elements>
+        <modification-needed>
+          Add createNotificationChannel() call in onCreate() to register "Meal Analysis" channel 
+          with NotificationManager before WorkManager can use it for foreground notifications.
+        </modification-needed>
+      </file>
+
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoViewModel.kt</path>
+        <lines>1-330</lines>
+        <purpose>ViewModel that enqueues AnalyzeMealWorker - understanding enqueue flow helps validate foreground notification trigger</purpose>
+        <key-elements>
+          - enqueueBackgroundProcessing(photoUri: Uri, timestamp: Instant): Creates OneTimeWorkRequest with constraints
+          - WorkManager constraints: NetworkType.CONNECTED, exponential backoff (1s initial delay)
+          - Worker input data: KEY_PHOTO_URI, KEY_TIMESTAMP passed via workDataOf()
+          - State management: Transitions to BackgroundProcessingStarted after enqueue
+          - Performance tracking: screenLaunchTime for Story 2-7 metrics
+        </key-elements>
+        <relevance>
+          Shows how AnalyzeMealWorker is triggered from UI layer. Foreground notification 
+          setup must happen before worker's doWork() executes, regardless of enqueue timing.
+        </relevance>
+      </file>
+
+      <file>
+        <path>app/app/build.gradle.kts</path>
+        <lines>1-150</lines>
+        <purpose>Gradle configuration with dependencies and SDK versions</purpose>
+        <key-elements>
+          - minSdk = 28 (Android 9.0), targetSdk = 35 (Android 15), compileSdk = 36
+          - WorkManager: libs.androidx.work.runtime.ktx (version managed in gradle/libs.versions.toml)
+          - Hilt: libs.hilt.android, libs.androidx.hilt.work, KSP for annotation processing
+          - Testing: libs.androidx.work.testing for WorkManager tests
+          - BuildConfig enabled for API key configuration from local.properties
+        </key-elements>
+        <dependencies-needed>
+          - WorkManager 2.9.1 (already included via libs.androidx.work.runtime.ktx)
+          - Core KTX for NotificationCompat and NotificationManager APIs (already included)
+          - No new dependencies required for foreground notification implementation
+        </dependencies-needed>
+      </file>
+    </code>
+
+    <dependencies>
+      <ecosystem>
+        <package>
+          <name>androidx.work:work-runtime-ktx</name>
+          <version>2.9.1</version>
+          <purpose>WorkManager with CoroutineWorker support and setForegroundAsync() API</purpose>
+          <docs>https://developer.android.com/reference/androidx/work/package-summary</docs>
+        </package>
+        <package>
+          <name>androidx.core:core-ktx</name>
+          <version>Managed by BOM</version>
+          <purpose>NotificationCompat.Builder and NotificationManagerCompat APIs</purpose>
+          <docs>https://developer.android.com/reference/androidx/core/app/NotificationCompat</docs>
+        </package>
+        <package>
+          <name>dagger.hilt.android</name>
+          <version>2.51.1</version>
+          <purpose>Dependency injection for CoroutineWorker via @HiltWorker</purpose>
+          <docs>https://dagger.dev/hilt/</docs>
+        </package>
+        <package>
+          <name>timber</name>
+          <version>Managed in libs.versions.toml</version>
+          <purpose>Logging for foreground notification lifecycle and error handling</purpose>
+          <docs>https://github.com/JakeWharton/timber</docs>
+        </package>
+      </ecosystem>
+
+      <platform>
+        <api>
+          <name>NotificationCompat</name>
+          <min-sdk>28</min-sdk>
+          <purpose>Build foreground notification with app icon, text, and progress bar</purpose>
+          <key-classes>NotificationCompat.Builder, NotificationManagerCompat</key-classes>
+        </api>
+        <api>
+          <name>WorkManager.setForegroundAsync()</name>
+          <min-sdk>28</min-sdk>
+          <purpose>Declare worker as foreground to prevent Android 13+ termination</purpose>
+          <key-classes>ForegroundInfo, CoroutineWorker</key-classes>
+        </api>
+        <api>
+          <name>NotificationChannel</name>
+          <min-sdk>26</min-sdk>
+          <purpose>Register "Meal Analysis" channel for foreground notifications</purpose>
+          <key-classes>NotificationChannel, NotificationManager</key-classes>
+        </api>
+        <api>
+          <name>POST_NOTIFICATIONS Permission</name>
+          <min-sdk>33 (Android 13)</min-sdk>
+          <purpose>Required runtime permission for posting notifications on Android 13+</purpose>
+          <manifest-entry>android.permission.POST_NOTIFICATIONS</manifest-entry>
+        </api>
+      </platform>
+    </dependencies>
+
+    <architecture>
+      <patterns>
+        <pattern>
+          <name>MVVM with Repository Pattern</name>
+          <application>
+            - ViewModel (CapturePhotoViewModel) enqueues WorkManager jobs
+            - Worker (AnalyzeMealWorker) orchestrates data layer operations
+            - Repository (NutritionAnalysisRepository) handles API calls
+            - Health Connect Manager wraps data persistence
+            - MealAnalysisForegroundNotifier (new helper) creates ForegroundInfo
+          </application>
+        </pattern>
+        <pattern>
+          <name>Dependency Injection with Hilt</name>
+          <application>
+            - @HiltAndroidApp on FoodieApplication
+            - @HiltWorker on AnalyzeMealWorker with constructor injection
+            - @Inject on MealAnalysisForegroundNotifier (new helper)
+            - WorkManagerModule provides HiltWorkerFactory
+          </application>
+        </pattern>
+        <pattern>
+          <name>WorkManager Background Processing</name>
+          <application>
+            - OneTimeWorkRequest with NetworkType.CONNECTED constraint
+            - ExponentialBackoffPolicy for retries (1s, 2s, 4s delays)
+            - setForegroundAsync() called at start of doWork() for Android 13+ compliance
+            - Result.success()/retry()/failure() based on processing outcome
+          </application>
+        </pattern>
+        <pattern>
+          <name>Notification Channel Management</name>
+          <application>
+            - NotificationChannel created once in FoodieApplication.onCreate()
+            - Channel ID: "meal_analysis_channel" (constant)
+            - Importance: NotificationManager.IMPORTANCE_LOW (no sound/vibration)
+            - ForegroundInfo built with NotificationCompat.Builder in helper class
+          </application>
+        </pattern>
+      </patterns>
+
+      <constraints>
+        <constraint>
+          <type>Platform</type>
+          <description>
+            Android 13+ requires POST_NOTIFICATIONS runtime permission before posting 
+            any notifications. Must be requested before AnalyzeMealWorker execution.
+          </description>
+        </constraint>
+        <constraint>
+          <type>WorkManager</type>
+          <description>
+            setForegroundAsync() must complete before long-running work starts. If called 
+            too late, Android may terminate the worker. Call immediately at doWork() start.
+          </description>
+        </constraint>
+        <constraint>
+          <type>Notification Channel</type>
+          <description>
+            NotificationChannel must be created before posting notifications. Create in 
+            FoodieApplication.onCreate() to ensure availability when worker executes.
+          </description>
+        </constraint>
+        <constraint>
+          <type>Performance</type>
+          <description>
+            Notification creation must not add measurable latency to worker execution. 
+            Use lightweight NotificationCompat.Builder without bitmaps or complex layouts.
+          </description>
+        </constraint>
+      </constraints>
+    </architecture>
+  </artifacts>
+
+  <tests>
+    <standards>
+      <standard>
+        <name>Unit Testing with JUnit + MockK</name>
+        <approach>
+          - Use MockK for mocking dependencies (Context, NotificationManager)
+          - Test MealAnalysisForegroundNotifier.createForegroundInfo() returns correct ForegroundInfo
+          - Verify notification has correct channel ID, icon, title, text, progress bar
+          - Validate notification auto-cancel flag and ongoing flag settings
+          - Assert ForegroundInfo.notificationId matches expected value
+        </approach>
+        <examples>
+          - app/app/src/test/java/com/foodie/app/domain/model/NutritionDataTest.kt (validation tests)
+          - app/app/src/test/java/com/foodie/app/di/WorkManagerModuleTest.kt (DI configuration tests)
+        </examples>
+      </standard>
+
+      <standard>
+        <name>WorkManager Testing</name>
+        <approach>
+          - Use WorkManagerTestInitHelper.initializeTestWorkManager() in @Before
+          - Create TestListenableWorkerBuilder for AnalyzeMealWorker
+          - Mock dependencies: NutritionAnalysisRepository, HealthConnectManager, PhotoManager
+          - Verify worker calls setForegroundAsync() before repository.analyzePhoto()
+          - Assert worker completes with Result.success() when notification posted correctly
+          - Test error handling: Worker fails gracefully if notification creation throws
+        </approach>
+        <library>androidx.work:work-testing (already in build.gradle.kts)</library>
+      </standard>
+
+      <standard>
+        <name>Instrumented Testing (Optional)</name>
+        <approach>
+          - Use real NotificationManager and WorkManager on test device
+          - Enqueue AnalyzeMealWorker with test photo URI
+          - Assert notification appears in status bar via UiAutomator
+          - Verify notification dismisses automatically when worker completes
+          - Test Android 13+ POST_NOTIFICATIONS permission flow
+        </approach>
+        <library>androidx.test.uiautomator (for notification verification)</library>
+      </standard>
+    </standards>
+
+    <locations>
+      <unit-tests>
+        <path>app/app/src/test/java/com/foodie/app/data/worker/MealAnalysisForegroundNotifierTest.kt</path>
+        <description>Unit tests for ForegroundInfo creation logic</description>
+      </unit-tests>
+      <integration-tests>
+        <path>app/app/src/androidTest/java/com/foodie/app/data/worker/AnalyzeMealWorkerForegroundTest.kt</path>
+        <description>Integration tests verifying worker executes in foreground context</description>
+      </integration-tests>
+    </locations>
+
+    <ideas>
+      <idea>
+        <description>
+          Test that setForegroundAsync() is called BEFORE repository.analyzePhoto() using 
+          MockK's verifyOrder {} block. This ensures foreground notification appears before 
+          long-running API call starts.
+        </description>
+      </idea>
+      <idea>
+        <description>
+          Use TestListenableWorkerBuilder to inject mocked dependencies and verify worker 
+          behavior without network calls. Mock NutritionAnalysisRepository to return 
+          immediate success/error for predictable test execution.
+        </description>
+      </idea>
+      <idea>
+        <description>
+          Test notification dismissal by verifying ForegroundInfo is created with correct 
+          notificationId, then confirming worker completes with Result.success(). WorkManager 
+          automatically dismisses notification when worker finishes.
+        </description>
+      </idea>
+      <idea>
+        <description>
+          Validate POST_NOTIFICATIONS permission handling by checking if permission is granted 
+          before worker execution on Android 13+ test devices. Use ContextCompat.checkSelfPermission 
+          in test setup to ensure permission state.
+        </description>
+      </idea>
+    </ideas>
+  </tests>
+
+  <implementation-notes>
+    <note priority="high">
+      <title>setForegroundAsync() Call Timing</title>
+      <detail>
+        Call setForegroundAsync() IMMEDIATELY at the start of doWork(), before any long-running 
+        operations. Delaying this call risks Android terminating the worker on Android 13+. 
+        The ForegroundInfo object should be created synchronously (no suspend calls needed).
+      </detail>
+    </note>
+
+    <note priority="high">
+      <title>Notification Channel Creation</title>
+      <detail>
+        Create NotificationChannel in FoodieApplication.onCreate() using NotificationManager. 
+        Channel ID must match the channel used in NotificationCompat.Builder. Use IMPORTANCE_LOW 
+        to avoid sound/vibration (background processing should be silent).
+      </detail>
+    </note>
+
+    <note priority="medium">
+      <title>POST_NOTIFICATIONS Permission</title>
+      <detail>
+        Android 13+ requires POST_NOTIFICATIONS runtime permission. This should be requested 
+        BEFORE enqueuing AnalyzeMealWorker. Add permission check to CapturePhotoViewModel or 
+        FoodieApplication initialization. If permission denied, worker may fail silently.
+      </detail>
+    </note>
+
+    <note priority="medium">
+      <title>MealAnalysisForegroundNotifier Design</title>
+      <detail>
+        Create a dedicated helper class (MealAnalysisForegroundNotifier) with a single 
+        createForegroundInfo(context: Context) method. This separates notification logic from 
+        worker logic, making both easier to test. Inject this helper into AnalyzeMealWorker 
+        via Hilt @Inject constructor.
+      </detail>
+    </note>
+
+    <note priority="low">
+      <title>Notification Icon and Text</title>
+      <detail>
+        Use app launcher icon (R.drawable.ic_launcher_foreground or app icon resource). 
+        Title: "Analyzing meal", Text: "Processing your nutrition data". Progress: 
+        Indeterminate progress bar via setProgress(0, 0, true). No action buttons needed.
+      </detail>
+    </note>
+
+    <note priority="low">
+      <title>Backward Compatibility</title>
+      <detail>
+        WorkManager automatically skips foreground notification on Android 12 and below. 
+        No need for explicit SDK version checks in worker code. NotificationChannel creation 
+        is safe on all API levels (no-op below API 26).
+      </detail>
+    </note>
+  </implementation-notes>
+
+  <dev-agent-record>
+    <story-file>docs/stories/2-8-foreground-analysis-foreground-service.md</story-file>
+    <context-file>docs/stories/2-8-foreground-analysis-foreground-service.context.xml</context-file>
+    <validation-report>docs/stories/validation-report-2-8-foreground-analysis-20251111.md</validation-report>
+    <epic-reference>docs/epics.md (lines 375-440)</epic-reference>
+    <tech-spec-reference>docs/tech-spec-epic-2.md (Background Processing Module section)</tech-spec-reference>
+    <architecture-reference>docs/architecture.md (WorkManager section, ADR-004)</architecture-reference>
+    <sprint-tracking>docs/sprint-status.yaml (entry: 2-8-foreground-analysis-foreground-service: drafted)</sprint-tracking>
+    
+    <continuity>
+      <previous-story id="2.7" status="completed">
+        Performance Measurement for Photo Capture Flow - Manual testing completed successfully. 
+        Modified 3 files: CapturePhotoViewModel.kt (performance tracking), CapturePhotoScreen.kt 
+        (UI updates), AnalyzeMealWorker.kt (performance logging). Validated that photo capture 
+        completes within 5-second target and background processing completes within 15-second typical.
+      </previous-story>
+      
+      <gap-addressed>
+        Story 2.4 originally implemented AnalyzeMealWorker without foreground notification support. 
+        This created a compliance gap for Android 13+ devices where long-running background tasks 
+        require foreground execution declaration. Story 2.8 addresses this gap by adding foreground 
+        notification layer while preserving the original ADR-004 decision to avoid foreground services.
+      </gap-addressed>
+    </continuity>
+    
+    <files-to-modify>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/FoodieApplication.kt</path>
+        <change>Add createNotificationChannel() call in onCreate() to register "Meal Analysis" channel</change>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <change>Add setForegroundAsync(createForegroundInfo()) call at start of doWork()</change>
+      </file>
+      <file>
+        <path>app/app/src/main/AndroidManifest.xml</path>
+        <change>Add POST_NOTIFICATIONS permission for Android 13+</change>
+      </file>
+    </files-to-modify>
+    
+    <files-to-create>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/MealAnalysisForegroundNotifier.kt</path>
+        <purpose>Helper class to create ForegroundInfo with notification configuration</purpose>
+      </file>
+      <file>
+        <path>app/app/src/test/java/com/foodie/app/data/worker/MealAnalysisForegroundNotifierTest.kt</path>
+        <purpose>Unit tests for ForegroundInfo creation and notification configuration</purpose>
+      </file>
+      <file>
+        <path>app/app/src/androidTest/java/com/foodie/app/data/worker/AnalyzeMealWorkerForegroundTest.kt</path>
+        <purpose>Integration tests verifying worker executes in foreground context</purpose>
+      </file>
+    </files-to-create>
+  </dev-agent-record>
+</story-context>
