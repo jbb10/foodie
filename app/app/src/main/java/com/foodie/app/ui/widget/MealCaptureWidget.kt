@@ -82,40 +82,22 @@ object MealCaptureWidget : GlanceAppWidget() {
     /**
      * Composable widget content with Material3 theming.
      *
-     * Displays a vertical layout with:
-     * - App icon (centered, 48dp size for lock screen visibility)
-     * - "Log Meal" text (centered, white color for lock screen contrast)
-     *
+     * Displays the app icon as a 1x1 clickable widget.
      * The entire widget is clickable and launches the deep link intent.
      *
      * @param context Android context for creating navigation intent
      */
     @Composable
     private fun WidgetContent(context: Context) {
-        Column(
+        // Simple 1x1 icon widget - uses dedicated widget icon
+        Image(
+            provider = ImageProvider(R.mipmap.ic_widget_foreground),
+            contentDescription = "Log Meal",
             modifier = GlanceModifier
                 .fillMaxSize()
-                .clickable(onClick = actionStartActivity(createDeepLinkIntent(context)))
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // App icon - sized for lock screen visibility
-            Image(
-                provider = ImageProvider(R.drawable.ic_launcher_foreground),
-                contentDescription = "Foodie app icon",
-                modifier = GlanceModifier.size(48.dp),
-                contentScale = ContentScale.Fit
-            )
-
-            // "Log Meal" text - white for lock screen contrast
-            Text(
-                text = "Log Meal",
-                style = TextStyle(
-                    color = ColorProvider(androidx.compose.ui.graphics.Color.White)
-                )
-            )
-        }
+                .clickable(onClick = actionStartActivity(createDeepLinkIntent(context))),
+            contentScale = ContentScale.Fit
+        )
     }
 
     /**
