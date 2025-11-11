@@ -34,6 +34,10 @@ So that users get automatic nutrition data without manual entry.
 
 11. **And** API key and endpoint are retrieved from secure storage (Android Keystore)
 
+## Follow-Up Notes
+
+- **2025-11-11:** Current Responses API fallback returns a valid payload when the photo contains no recognizable food, yielding `calories = 0`. NutritionData validation rejects this (requires 1..5000). We need to decide whether to relax the validation, convert this scenario into a graceful “no food detected” flow, or adjust the prompt so Azure returns an explicit error instead of zero calories.
+
 ## Tasks / Subtasks
 
 - [ ] **Task 1: Create Azure OpenAI API Data Transfer Objects** (AC: #1-8)

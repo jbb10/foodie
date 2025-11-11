@@ -11,7 +11,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,6 +53,7 @@ fun CapturePhotoScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val hapticFeedback = LocalHapticFeedback.current
 
     // Camera permission launcher
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -68,6 +71,9 @@ fun CapturePhotoScreen(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
+            // Haptic feedback on successful photo capture (AC#8)
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+            Timber.d("Photo captured with haptic feedback")
             viewModel.onPhotoCaptured()
         } else {
             Timber.d("Camera cancelled or failed")

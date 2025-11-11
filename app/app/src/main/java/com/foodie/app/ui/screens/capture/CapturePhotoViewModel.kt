@@ -93,6 +93,15 @@ class CapturePhotoViewModel @Inject constructor(
 
     private var currentPhotoUri: Uri? = null
     private var processedPhotoUri: Uri? = null
+    
+    // Performance tracking (Story 2-7, AC#1)
+    private var screenLaunchTime: Long = 0L
+
+    init {
+        // Track screen launch time for widget → camera launch performance measurement
+        screenLaunchTime = System.currentTimeMillis()
+        Timber.d("CapturePhotoScreen launched at $screenLaunchTime")
+    }
 
     /**
      * Checks camera permission and prepares for capture.
@@ -241,7 +250,14 @@ class CapturePhotoViewModel @Inject constructor(
             try {
                 currentPhotoUri = photoManager.createPhotoFile()
                 _state.value = CaptureState.ReadyToCapture(currentPhotoUri!!)
-                Timber.d("Ready to capture: $currentPhotoUri")
+                
+                // Performance logging: widget → camera ready (AC#1)
+                val prepDuration = System.currentTimeMillis() - screenLaunchTime
+                Timber.d("Camera ready in ${prepDuration}ms from screen launch (target: <500ms)")
+                
+                if (prepDuration > 500) {
+                    Timber.w("Camera preparation exceeded 500ms target: ${prepDuration}ms")
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to prepare for capture")
                 _state.value = CaptureState.Error("Failed to prepare camera: ${e.message}")

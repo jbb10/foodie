@@ -151,10 +151,23 @@ Return only the JSON object, no other text."""
                 )
             }
 
-            Timber.tag(TAG).d("Received response: status=${response.status}, outputText length=${response.outputText?.length}")
+            val outputTextFromArray = response.output
+                ?.asSequence()
+                ?.flatMap { it.content.orEmpty().asSequence() }
+                ?.firstOrNull { content ->
+                    content.type.equals("output_text", ignoreCase = true) ||
+                        content.type.equals("text", ignoreCase = true)
+                }
+                ?.text
+
+            val outputText = response.outputText?.takeIf { it.isNotBlank() }
+                ?: outputTextFromArray?.takeIf { it.isNotBlank() }
+
+            Timber.tag(TAG).d(
+                "Received response: status=${response.status}, directLength=${response.outputText?.length}, fallbackLength=${outputTextFromArray?.length}"
+            )
 
             // Step 5: Parse output_text as JSON
-            val outputText = response.outputText
             if (outputText.isNullOrBlank()) {
                 Timber.tag(TAG).e("Response output_text is null or blank")
                 return Result.Error(
@@ -162,6 +175,8 @@ Return only the JSON object, no other text."""
                     message = "API returned empty response"
                 )
             }
+
+            Timber.tag(TAG).d("Resolved output text: $outputText")
 
             val apiNutrition = try {
                 gson.fromJson(outputText, ApiNutritionResponse::class.java)

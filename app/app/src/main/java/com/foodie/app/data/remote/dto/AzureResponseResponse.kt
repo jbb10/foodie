@@ -51,9 +51,35 @@ data class AzureResponseResponse(
     @SerializedName("output_text")
     val outputText: String? = null,
     @SerializedName("output")
-    val output: List<Map<String, Any>>? = null,
+    val output: List<AzureResponseOutput>? = null,
     @SerializedName("usage")
     val usage: TokenUsage? = null
+)
+
+/**
+ * Structured response item emitted by the Azure Responses API.
+ */
+data class AzureResponseOutput(
+    @SerializedName("id")
+    val id: String? = null,
+    @SerializedName("type")
+    val type: String? = null,
+    @SerializedName("role")
+    val role: String? = null,
+    @SerializedName("status")
+    val status: String? = null,
+    @SerializedName("content")
+    val content: List<AzureResponseContent>? = null
+)
+
+/**
+ * Content block inside an Azure Responses output item.
+ */
+data class AzureResponseContent(
+    @SerializedName("type")
+    val type: String,
+    @SerializedName("text")
+    val text: String? = null
 )
 
 /**

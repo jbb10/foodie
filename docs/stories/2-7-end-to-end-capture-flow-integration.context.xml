@@ -1,0 +1,275 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>7</storyId>
+    <title>End-to-End Capture Flow Integration</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-7-end-to-end-capture-flow-integration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>the complete flow from widget tap to saved data to work seamlessly</iWant>
+    <soThat>I can track meals in under 5 seconds without any friction</soThat>
+    <tasks>
+      <task id="1">Verify Component Integration - Validate widget → camera → background processing → Health Connect flow</task>
+      <task id="2">Performance Measurement and Optimization - Measure timing at each step, verify &lt; 500ms widget launch, &lt; 15s processing</task>
+      <task id="3">Add Haptic Feedback - Haptic confirmation on photo capture</task>
+      <task id="4">Add Visual Confirmation Checkmark - Brief checkmark display on photo confirmation</task>
+      <task id="5">End-to-End Integration Testing - Complete flow validation on physical device with actual food photos</task>
+      <task id="6">Edge Case Validation - Test small/large photos, rapid captures, poor lighting, device rotation</task>
+      <task id="7">User Experience Refinement - Review flow for friction points, verify seamless feel</task>
+      <task id="8">Documentation and Completion - Document integration findings, performance measurements, completion notes</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Widget tap → camera launch happens in &lt; 500ms</criterion>
+    <criterion id="2">Photo capture + confirmation takes &lt; 5 seconds total</criterion>
+    <criterion id="3">User can return to previous activity immediately after confirmation</criterion>
+    <criterion id="4">Background processing completes in &lt; 15 seconds</criterion>
+    <criterion id="5">Nutrition data appears in Health Connect automatically</criterion>
+    <criterion id="6">Temporary photo is deleted after successful save</criterion>
+    <criterion id="7">Entire flow feels seamless with no visible delays or interruptions</criterion>
+    <criterion id="8">Haptic feedback occurs on photo capture (physical confirmation)</criterion>
+    <criterion id="9">Visual checkmark briefly displays on successful capture</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Foodie Epic Breakdown</title>
+        <section>Epic 2, Story 2.7: End-to-End Capture Flow Integration</section>
+        <snippet>Integration story validating all Epic 2 components work together end-to-end. Tests complete flow on real device with actual food photos. Measures timing at each step. No new code expected - validates existing integration points.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: AI-Powered Meal Capture</title>
+        <section>Success Criteria and Acceptance Criteria (Authoritative)</section>
+        <snippet>Widget launches camera in &lt; 3 seconds from device wake (with biometric unlock). Photo capture + confirmation completes in &lt; 5 seconds (one-handed operation validated). Background processing completes in &lt; 15 seconds typical. Temporary photos deleted after successful Health Connect save.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Functional Requirements FR-1 to FR-5</section>
+        <snippet>FR-1: Meal capture in under 5 seconds total (widget → photo confirmation). FR-2: Background AI analysis and Health Connect save (&lt; 15 seconds). FR-3: One-handed operation while holding plate. FR-5: Seamless flow with minimal cognitive load.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Performance Requirements</section>
+        <snippet>Cold app launch &lt; 2 seconds. Screen transitions &lt; 200ms. API calls complete in &lt; 10 seconds (Azure OpenAI). Health Connect operations &lt; 500ms (local SQLite writes).</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-0-deep-linking-validation.md</path>
+        <title>Story 2.0: Deep Linking Validation</title>
+        <section>Completion Notes</section>
+        <snippet>Deep link foodie://capture routes to CapturePhotoScreen correctly from widget PendingIntent. Tested via ADB and instrumentation tests. Handles all app states (cold start, background, foreground).</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-2-lock-screen-widget-implementation.md</path>
+        <title>Story 2.2: Home Screen Widget Implementation</title>
+        <section>Completion Notes and Manual Testing</section>
+        <snippet>Widget launches camera via deep link in ~2-3 seconds with biometric unlock. GlanceAppWidget implementation with PendingIntent to foodie://capture. Manual testing confirmed widget persistence after reboot and home screen behavior.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-3-camera-integration-with-photo-capture.md</path>
+        <title>Story 2.3: Camera Integration with Photo Capture</title>
+        <section>Completion Notes</section>
+        <snippet>System camera intent implementation with 2MP resize + 80% JPEG compression via PhotoManager. Preview screen with Retake/Use Photo buttons (56dp height). Photo saved to cache directory with FileProvider. Deep link routes to CapturePhotoScreen.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-4-azure-openai-api-client.md</path>
+        <title>Story 2.4: Azure OpenAI API Client</title>
+        <section>Completion Notes</section>
+        <snippet>NutritionAnalysisRepository with Azure OpenAI Responses API integration. Base64 image encoding, JSON parsing for calories + description. Error classification (retryable vs non-retryable). Performance logging for API duration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-5-background-processing-service.md</path>
+        <title>Story 2.5: Background Processing Service</title>
+        <section>Completion Notes</section>
+        <snippet>AnalyzeMealWorker with WorkManager + Hilt integration. Orchestrates photo → API → Health Connect → cleanup flow. Exponential backoff retry (1s, 2s, 4s delays, max 4 attempts). Performance logging tracks total processing duration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-6-health-connect-nutrition-data-save.md</path>
+        <title>Story 2.6: Health Connect Nutrition Data Save</title>
+        <section>Completion Notes and Testing</section>
+        <snippet>Health Connect insertNutritionRecord() with energy (calories) + name (description) fields. Time zone handling with ZoneOffset.systemDefault(). Comprehensive unit + integration tests (16 total). Error handling for SecurityException (keeps photo) and IllegalArgumentException (deletes photo).</snippet>
+      </doc>
+    </docs>
+    
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/widget/MealCaptureWidget.kt</path>
+        <kind>widget</kind>
+        <symbol>MealCaptureWidget</symbol>
+        <lines>54-120</lines>
+        <reason>GlanceAppWidget implementation triggering deep link foodie://capture via PendingIntent. Entry point for complete flow.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+        <kind>navigation</kind>
+        <symbol>NavGraph</symbol>
+        <lines>89-106</lines>
+        <reason>Camera Capture screen route with deep link foodie://capture. Routes widget tap to CapturePhotoScreen.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoScreen.kt</path>
+        <kind>screen</kind>
+        <symbol>CapturePhotoScreen</symbol>
+        <lines>1-200</lines>
+        <reason>Camera capture coordinator with permission handling, system camera intent launch, and photo processing. Calls onPhotoConfirmed callback to trigger background processing.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>CapturePhotoViewModel</symbol>
+        <lines>175-215</lines>
+        <reason>onUsePhoto() method enqueues AnalyzeMealWorker with WorkManager. Triggers background processing flow.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/capture/PreviewScreen.kt</path>
+        <kind>screen</kind>
+        <symbol>PreviewScreen</symbol>
+        <lines>1-100</lines>
+        <reason>Photo preview confirmation UI with Retake/Use Photo buttons. Location to add visual checkmark animation (AC#9).</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <kind>worker</kind>
+        <symbol>AnalyzeMealWorker</symbol>
+        <lines>69-200</lines>
+        <reason>Background processing worker orchestrating photo → API → Health Connect → cleanup flow. Core integration component.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/NutritionAnalysisRepository.kt</path>
+        <kind>repository</kind>
+        <symbol>NutritionAnalysisRepository</symbol>
+        <lines>1-200</lines>
+        <reason>Azure OpenAI API integration for photo analysis. Called by AnalyzeMealWorker to get nutrition data.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>manager</kind>
+        <symbol>HealthConnectManager.insertNutritionRecord</symbol>
+        <lines>116-144</lines>
+        <reason>Health Connect nutrition record insertion. Called by AnalyzeMealWorker to save calories + description.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt</path>
+        <kind>manager</kind>
+        <symbol>PhotoManager</symbol>
+        <lines>1-300</lines>
+        <reason>Photo file management (create, resize, compress, delete). Used throughout flow for photo lifecycle.</reason>
+      </artifact>
+    </code>
+    
+    <dependencies>
+      <android>
+        <package name="androidx.work:work-runtime-ktx" version="2.9.1" usage="WorkManager for background processing" />
+        <package name="androidx.glance:glance-appwidget" version="1.1.1" usage="Home screen widget framework" />
+        <package name="androidx.health.connect:connect-client" version="1.1.0" usage="Health Connect SDK for nutrition data" />
+        <package name="com.squareup.retrofit2:retrofit" version="2.11.0" usage="HTTP client for Azure OpenAI API" />
+        <package name="com.google.dagger:hilt-android" version="2.51.1" usage="Dependency injection" />
+        <package name="com.jakewharton.timber:timber" version="5.0.1" usage="Logging framework for performance tracking" />
+        <package name="io.coil-kt:coil-compose" version="2.7.0" usage="Image loading for photo preview" />
+      </android>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Integration story - No new architecture or code expected, only validation and minor UX polish (haptic feedback + visual checkmark)</constraint>
+    <constraint>Performance targets: Widget → camera &lt; 500ms, capture + confirmation &lt; 5 seconds total, background processing &lt; 15 seconds</constraint>
+    <constraint>Manual testing required: Physical device with actual food photos, one-handed operation validation, biometric unlock timing</constraint>
+    <constraint>Haptic feedback: Use HapticFeedbackConstants.LONG_PRESS or similar on photo capture (LocalView.current.performHapticFeedback)</constraint>
+    <constraint>Visual checkmark: Brief display (500-1000ms) on photo confirmation using Material Icon (Icons.Default.CheckCircle) with fade animation</constraint>
+    <constraint>Performance logging: Add timing measurements at each flow step (widget launch, photo capture, background processing duration)</constraint>
+    <constraint>All existing tests must pass: ./gradlew test connectedAndroidTest (no test coverage regressions)</constraint>
+    <constraint>Testing strategy: Manual end-to-end validation on physical device is PRIMARY testing method (not automated tests)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>MealCaptureWidget Deep Link</name>
+      <kind>deep-link</kind>
+      <signature>PendingIntent with foodie://capture URI → launches MainActivity → NavGraph routes to CapturePhotoScreen</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/widget/MealCaptureWidget.kt</path>
+    </interface>
+    <interface>
+      <name>CapturePhotoScreen.onPhotoConfirmed</name>
+      <kind>callback</kind>
+      <signature>onPhotoConfirmed: (Uri) -> Unit - Called when user taps Use Photo button</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoScreen.kt</path>
+    </interface>
+    <interface>
+      <name>CapturePhotoViewModel.onUsePhoto</name>
+      <kind>viewmodel-method</kind>
+      <signature>fun onUsePhoto() - Enqueues AnalyzeMealWorker with photo URI and timestamp</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoViewModel.kt</path>
+    </interface>
+    <interface>
+      <name>AnalyzeMealWorker.doWork</name>
+      <kind>worker-method</kind>
+      <signature>override suspend fun doWork(): Result - Orchestrates photo → API → Health Connect → cleanup</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+    </interface>
+    <interface>
+      <name>NutritionAnalysisRepository.analyzePhoto</name>
+      <kind>repository-method</kind>
+      <signature>suspend fun analyzePhoto(photoUri: Uri): Result&lt;NutritionData&gt; - Calls Azure OpenAI API with photo</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/repository/NutritionAnalysisRepository.kt</path>
+    </interface>
+    <interface>
+      <name>HealthConnectManager.insertNutritionRecord</name>
+      <kind>manager-method</kind>
+      <signature>suspend fun insertNutritionRecord(calories: Int, description: String, timestamp: Instant): String</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+    </interface>
+    <interface>
+      <name>PhotoManager.deletePhoto</name>
+      <kind>manager-method</kind>
+      <signature>suspend fun deletePhoto(uri: Uri): Boolean - Deletes photo from cache directory</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt</path>
+    </interface>
+    <interface>
+      <name>HapticFeedbackConstants</name>
+      <kind>android-api</kind>
+      <signature>LocalView.current.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) - Trigger haptic feedback</signature>
+      <path>External: Android Framework</path>
+    </interface>
+    <interface>
+      <name>Compose Animation for Checkmark</name>
+      <kind>compose-api</kind>
+      <signature>animateFloatAsState(targetValue) + LaunchedEffect + delay() for fade-in/out animation</signature>
+      <path>External: Jetpack Compose Animation</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Integration validation story requires manual end-to-end testing on physical device with actual food photos. No new unit tests expected (all components already have comprehensive test coverage from Stories 2-0 through 2-6). Focus on performance measurement, timing validation, and UX refinement through manual testing procedures documented in User Demo section.</standards>
+    
+    <locations>
+      <location>Manual testing on physical device (primary validation method)</location>
+      <location>User Demo section in story file provides step-by-step testing procedures</location>
+      <location>Existing tests: app/app/src/test/ and app/app/src/androidTest/ (must continue passing)</location>
+    </locations>
+    
+    <ideas>
+      <idea ac="1,2">Manual test: Measure widget tap → camera launch time with stopwatch (target &lt; 500ms from widget tap, &lt; 3s from wake with biometric unlock)</idea>
+      <idea ac="2">Manual test: Measure photo capture → confirmation time (target &lt; 5 seconds total including framing food)</idea>
+      <idea ac="3">Manual test: Verify user can return to previous app/home screen immediately after tapping Use Photo (no blocking UI)</idea>
+      <idea ac="4">Manual test: Monitor Logcat for AnalyzeMealWorker performance logs (target total processing &lt; 15 seconds)</idea>
+      <idea ac="5">Manual test: Verify nutrition data appears in Health Connect app (Settings → Health Connect → Nutrition) and Google Fit after processing</idea>
+      <idea ac="6">Manual test: Verify photo file deleted from cache directory after successful processing (Android Studio Device File Explorer → /data/data/com.foodie.app/cache/photos/)</idea>
+      <idea ac="7">Manual test: One-handed operation validation while holding plate (thumb can reach all buttons, flow feels natural)</idea>
+      <idea ac="8">Implementation: Add LocalView.current.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) in CapturePhotoScreen when camera intent returns success</idea>
+      <idea ac="9">Implementation: Add checkmark Icon (Icons.Default.CheckCircle) with animateFloatAsState fade-in in PreviewScreen, display for 500ms before calling onPhotoConfirmed</idea>
+      <idea ac="All">Manual test: Complete flow 3-5 times to get average timing and identify any friction points or bottlenecks</idea>
+      <idea ac="All">Manual test: Test with different network conditions (WiFi vs mobile data) to verify background processing timing</idea>
+      <idea ac="All">Regression test: Run ./gradlew test connectedAndroidTest to verify all existing tests still pass</idea>
+    </ideas>
+  </tests>
+</story-context>
