@@ -2150,8 +2150,165 @@ This section provides authoritative documentation links for all technologies use
 
 ---
 
+## Secret Management Pattern
+
+### BuildConfig Pattern for API Credentials
+
+**Overview:** Foodie uses BuildConfig to securely load Azure OpenAI credentials from `local.properties` during build time. This pattern prevents hardcoded secrets in code while enabling local development.
+
+**Pattern Established:** Epic 2 Story 2-4
+
+**Implementation:**
+
+1. **local.properties Configuration** (gitignored):
+```properties
+# local.properties (NOT committed to git)
+azure.openai.api.key="your-api-key-here"
+azure.openai.endpoint="https://your-resource.openai.azure.com"
+azure.openai.model="gpt-4.1"
+```
+
+2. **Build Configuration** (app/build.gradle.kts):
+```kotlin
+android {
+    defaultConfig {
+        // Load properties from local.properties
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(FileInputStream(localPropertiesFile))
+        }
+
+        // Inject into BuildConfig
+        buildConfigField("String", "AZURE_OPENAI_API_KEY",
+            "\"${localProperties.getProperty("azure.openai.api.key", "")}\"")
+        buildConfigField("String", "AZURE_OPENAI_ENDPOINT",
+            "\"${localProperties.getProperty("azure.openai.endpoint", "")}\"")
+        buildConfigField("String", "AZURE_OPENAI_MODEL",
+            "\"${localProperties.getProperty("azure.openai.model", "gpt-4.1")}\"")
+    }
+
+    buildFeatures {
+        buildConfig = true  // Enable BuildConfig generation
+    }
+}
+```
+
+3. **Usage in Code:**
+```kotlin
+// Access credentials via BuildConfig
+val apiKey = BuildConfig.AZURE_OPENAI_API_KEY
+val endpoint = BuildConfig.AZURE_OPENAI_ENDPOINT
+val model = BuildConfig.AZURE_OPENAI_MODEL
+```
+
+**Security Rationale:**
+- ✅ Never commits secrets to version control (local.properties gitignored)
+- ✅ Build-time injection (credentials compiled into BuildConfig)
+- ✅ Type-safe access (BuildConfig fields are compile-time constants)
+- ❌ NOT production-grade (secrets visible in APK, no runtime encryption)
+
+**Migration Path:**
+Epic 5 Story 5-2 will migrate to **EncryptedSharedPreferences** for production-grade secret management:
+- Runtime configuration (no rebuild required for credential changes)
+- Hardware-backed encryption (Android Keystore)
+- User-configurable API credentials via Settings screen
+
+**Use BuildConfig for:** Development, prototypes, API keys that will later move to settings
+**Don't use BuildConfig for:** Production secrets, PII, long-term credential storage
+
+---
+
+## Material 3 Compose Implementation Gaps
+
+### Overview
+
+Material 3 design specifications exist for Android, but **not all patterns have Compose implementations**. Some Material Design components and motion patterns are only available in the View-based `com.google.android.material` library, requiring manual implementation in Compose projects.
+
+**Discovery:** Epic 2 (Navigation animation polish work)
+
+### Navigation Motion Transitions
+
+**Gap Identified:** Material Components Android provides motion classes (`MaterialSharedAxis`, `MaterialContainerTransform`, `MaterialFadeThrough`) for View-based navigation, but **Jetpack Compose Navigation does NOT provide Material Motion transitions**.
+
+**Impact:**
+- Default Compose Navigation uses crossfade transitions (non-native feeling)
+- Material 3 motion patterns must be manually implemented using Compose animation APIs
+
+**Manual Implementation Required:**
+
+1. **Material 3 Shared Axis Pattern** (horizontal slide transitions):
+```kotlin
+// NavGraph.kt
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideIntoContainer
+import androidx.compose.animation.slideOutOfContainer
+
+composable(
+    route = Screen.MealDetail.route,
+    enterTransition = {
+        slideIntoContainer(
+            AnimatedContentTransitionScope.SlideDirection.Left,
+            animationSpec = tween(300, easing = FastOutSlowInEasing)
+        )
+    },
+    exitTransition = {
+        slideOutOfContainer(
+            AnimatedContentTransitionScope.SlideDirection.Right,
+            animationSpec = tween(250, easing = FastOutSlowInEasing)
+        )
+    }
+) { /* Screen content */ }
+```
+
+2. **Material 3 Motion Specifications Applied:**
+- **Easing Curve:** `FastOutSlowInEasing` (cubic-bezier 0.4, 0.0, 0.2, 1)
+- **Enter Duration:** 300ms (Material 3 `motionDurationLong1`)
+- **Exit Duration:** 250ms (Material 3 `motionDurationMedium2`)
+- **Direction:** Slide left for forward navigation, slide right for backward
+
+**Why Manual Implementation:**
+- Material Components Android motion classes are `View`-only (not compatible with Compose)
+- Compose Navigation is unopinionated about animations (framework doesn't include Material Motion)
+- Must follow Material 3 specs manually using `slideIntoContainer`/`slideOutOfContainer` + correct easing curves
+
+**Reference:**
+- [Material 3 Motion Specs](https://m3.material.io/styles/motion/overview)
+- [Material 3 Easing & Duration](https://m3.material.io/styles/motion/easing-and-duration)
+- Implementation: `app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt`
+
+### Other Known Compose vs View Gaps
+
+1. **Material Components Transitions** (View-only):
+   - `MaterialContainerTransform` - Shared element container transitions
+   - `MaterialElevationScale` - Elevation-based scaling
+   - `MaterialFadeThrough` - Fade-through transitions
+   - **Compose Alternative:** Manual implementation using `androidx.compose.animation` APIs
+
+2. **Bottom App Bar Fab Cradle** (View-only):
+   - View-based `BottomAppBar` has `fabCradleMargin` for notched FABs
+   - Compose `BottomAppBar` does NOT support notched FABs natively
+   - **Compose Alternative:** Custom shape with `CutoutShape` or accept standard FAB placement
+
+3. **Material Motion System** (View-specific):
+   - Complete motion system with predefined patterns in Material Components Android
+   - **Compose Alternative:** Manual implementation following Material 3 motion specifications
+
+**Recommendation:**
+Always check Material Components documentation for "View" vs "Compose" compatibility. When Compose implementations are missing, follow Material 3 design specifications using Compose animation APIs rather than bridging to View-based components.
+
+**Resources:**
+- [Material 3 Design Kit](https://m3.material.io/)
+- [Material Components Android (View)](https://github.com/material-components/material-components-android)
+- [Compose Material 3](https://developer.android.com/jetpack/compose/designsystems/material3)
+- [Compose Animation](https://developer.android.com/jetpack/compose/animation)
+
+---
+
 _Generated by BMAD Decision Architecture Workflow v1.3.2_  
 _Date: 2025-11-08_  
 _Updated: 2025-11-09 (Added Official Documentation References)_  
+_Updated: 2025-11-12 (Added Secret Management Pattern, Material 3 Compose Gaps - Epic 2 Retrospective AI-4, AI-6)_  
 _For: BMad_  
 _Architect: Winston_

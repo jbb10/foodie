@@ -1,6 +1,11 @@
 package com.foodie.app.ui.navigation
 
 import android.app.Activity
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,6 +27,15 @@ import com.foodie.app.ui.screens.settings.SettingsScreen
  * This configures the app's single-activity navigation using Jetpack Navigation Compose.
  * All screens are Composable functions, and navigation actions are wired through callbacks
  * to maintain unidirectional data flow and screen testability.
+ *
+ * Navigation uses Material 3 slide transitions for native Android feel:
+ * - Forward navigation: slide left (300ms, emphasized easing)
+ * - Back navigation: slide right (250ms, emphasized easing)
+ * - Easing: FastOutSlowInEasing (Material 3 standard)
+ *
+ * Note: Compose Navigation doesn't provide Material Motion transitions out-of-the-box.
+ * These manual transitions implement Material 3's Shared Axis pattern (X-axis) which
+ * Google provides for View-based Android but not yet for Compose.
  *
  * Architecture:
  * - Single Activity pattern: MainActivity hosts this NavHost
@@ -58,7 +72,29 @@ fun NavGraph(
             deepLinks = listOf(
                 navDeepLink { uriPattern = "foodie://home" }, // Legacy - Story 1-3
                 navDeepLink { uriPattern = "foodie://meals" } // Primary - Story 2-0
-            )
+            ),
+            enterTransition = {
+                // Slide from right when returning from detail/settings
+                when (initialState.destination.route) {
+                    Screen.MealDetail.route, Screen.Settings.route ->
+                        slideIntoContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Right,
+                            animationSpec = tween(300, easing = FastOutSlowInEasing)
+                        )
+                    else -> fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                }
+            },
+            exitTransition = {
+                // Slide to left when navigating to detail/settings
+                when (targetState.destination.route) {
+                    Screen.MealDetail.route, Screen.Settings.route ->
+                        slideOutOfContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Left,
+                            animationSpec = tween(250, easing = FastOutSlowInEasing)
+                        )
+                    else -> fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
+                }
+            }
         ) {
             MealListScreen(
                 onMealClick = { mealId ->
@@ -80,7 +116,19 @@ fun NavGraph(
             ),
             deepLinks = listOf(
                 navDeepLink { uriPattern = "foodie://meals/{mealId}" } // Story 2-0
-            )
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(250, easing = FastOutSlowInEasing)
+                )
+            }
         ) { backStackEntry ->
             val mealId = backStackEntry.arguments?.getString("mealId") ?: ""
             MealDetailScreen(
@@ -96,7 +144,13 @@ fun NavGraph(
             route = Screen.CameraCapture.route,
             deepLinks = listOf(
                 navDeepLink { uriPattern = "foodie://capture" } // Widget - Story 2-2
-            )
+            ),
+            enterTransition = {
+                fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
+            },
+            exitTransition = {
+                fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
+            }
         ) {
             CapturePhotoScreen(
                 onPhotoConfirmed = { photoUri ->
@@ -112,7 +166,21 @@ fun NavGraph(
         }
 
         // Settings screen
-        composable(route = Screen.Settings.route) {
+        composable(
+            route = Screen.Settings.route,
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(250, easing = FastOutSlowInEasing)
+                )
+            }
+        ) {
             SettingsScreen(
                 onNavigateBack = {
                     navController.popBackStack()

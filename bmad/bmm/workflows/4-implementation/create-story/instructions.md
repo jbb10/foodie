@@ -239,7 +239,51 @@ Will update existing story file rather than creating new one.
 
   <step n="6" goal="Assemble acceptance criteria and tasks">
     <action>Assemble acceptance criteria list from tech_spec or epics. If gaps exist, derive minimal, testable criteria from PRD verbatim phrasing (NO invention).</action>
-    <action>Create tasks/subtasks directly mapped to ACs. Include explicit testing subtasks per testing-strategy and existing tests framework. Cite architecture/source documents for any technical mandates.</action>
+    
+    <action>**CRITICAL: Task 1 MUST be Documentation Research with Deliverable Checkpoint**
+    
+    **MANDATE from Epic 2 Retrospective (AI-1):**
+    Every story MUST include Task 1 as explicit documentation research with deliverable checkpoint. This prevents wasted implementation effort on platform limitations or incorrect approaches.
+    
+    **Task 1 Template:**
+    ```
+    **Task 1: Documentation Research & Technical Validation** ⚠️ COMPLETE BEFORE PROCEEDING TO IMPLEMENTATION
+    
+    **Objective:** Validate technical approach and identify platform limitations before implementation
+    
+    **Required Research:**
+    1. Review official documentation (using the tool call Fetch web page) for [primary SDK/API/framework used in this story]
+       - Starting point: [Official docs URL from architecture.md]
+       - Focus: [Specific features/patterns needed for this story]
+    
+    2. Validate assumptions:
+       - ✓ [Assumption 1 from epic/PRD to verify]
+       - ✓ [Assumption 2 from epic/PRD to verify]
+       - ✓ [Platform capability to confirm]
+    
+    3. Identify constraints:
+       - Platform limitations (e.g., Android version requirements, API restrictions)
+       - Configuration requirements
+       - Performance considerations
+    
+    **Deliverable Checkpoint:** ✅ REQUIRED
+    Document findings in Dev Notes before proceeding to Task 2:
+    - [ ] Platform limitations identified (or confirmed none exist)
+    - [ ] Technical approach validated
+    - [ ] Alternative approaches considered (if needed)
+    - [ ] Risks/unknowns flagged for review
+    
+    **If Playwright MCP Recommended:** [Include Playwright guidance for complex SDKs]
+    
+    ⚠️ Do NOT proceed to implementation tasks until research checkpoint is complete
+    ```
+    
+    **Why This Matters:**
+    - Epic 2 Story 2-2: Documentation research discovered lock screen widget platform limitation BEFORE implementation, saving days of wasted effort
+    - Research first = pivot early, not after code is written
+    </action>
+    
+    <action>Create remaining tasks/subtasks directly mapped to ACs. Include explicit testing subtasks per testing-strategy and existing tests framework. Cite architecture/source documents for any technical mandates.</action>
     <template-output file="{default_output_file}">acceptance_criteria</template-output>
     <template-output file="{default_output_file}">tasks_subtasks</template-output>
   </step>

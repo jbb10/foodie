@@ -66,6 +66,43 @@ Instrumentation tests are **REQUIRED** when the story involves:
 - [ ] **Instrumentation tests written** (if applicable based on above criteria)
 - [ ] **All instrumentation tests passing** - `./gradlew connectedAndroidTest` succeeds (if applicable)
 
+#### **Physical Device Testing - CONDITIONAL** ⚠️ ADDED FROM EPIC 2 RETROSPECTIVE (AI-5)
+
+Physical device testing is **REQUIRED** when the story involves:
+
+1. **WorkManager & Background Processing**
+   - WorkManager jobs and worker implementations
+   - Background task execution and retry logic
+   - Work constraints and scheduling behavior
+   - **Rationale:** Emulator WorkManager caching can mask real behavior (Epic 2 Story 2-5 discovery)
+
+2. **Notifications & Foreground Services**
+   - Notification channel creation and display
+   - Notification permission flows (Android 13+)
+   - Foreground service notifications
+   - Silent vs. visible notification behavior
+
+3. **Performance-Sensitive Features**
+   - Camera launch timing and responsiveness
+   - API call latency and timeout behavior
+   - UI animation smoothness (Material 3 transitions)
+   - Large data set rendering performance
+
+4. **Platform-Specific Behavior**
+   - Deep linking from widgets or external apps
+   - Permission request flows (camera, notifications, Health Connect)
+   - Hardware interactions (camera, sensors)
+   - System integration points
+
+- [ ] **Physical device testing completed** (if applicable based on above criteria)
+- [ ] **Device model & Android version documented** in Dev Notes (e.g., "Pixel 8 Pro, Android 16")
+- [ ] **Real-world timing metrics captured** where applicable (e.g., "< 3s wake-to-camera")
+- [ ] **Platform-specific behaviors validated** (e.g., notification permission, foreground service)
+
+**Emulator Testing Autonomy:** ✅ ADDED FROM EPIC 2 RETROSPECTIVE (AI-2)
+
+Developers have **full autonomy** to boot emulator when needed for testing. 10-second emulator startup delays are **acceptable** for quality validation. No permission required - use your judgment.
+
 #### **Test Quality Standards**
 
 - [ ] Tests follow naming convention: `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
