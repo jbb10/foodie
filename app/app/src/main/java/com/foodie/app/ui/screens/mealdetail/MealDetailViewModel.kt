@@ -124,7 +124,7 @@ class MealDetailViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true, error = null) }
+            _uiState.update { it.copy(isSaving = true, error = null, successMessage = null) }
 
             val result = updateMealEntryUseCase(
                 recordId = currentState.recordId,
@@ -136,14 +136,21 @@ class MealDetailViewModel @Inject constructor(
             when (result) {
                 is Result.Success -> {
                     Timber.tag(TAG).i("Meal entry updated successfully: ${currentState.recordId}")
-                    _uiState.update { it.copy(isSaving = false, shouldNavigateBack = true) }
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            shouldNavigateBack = true,
+                            successMessage = "Entry updated"
+                        )
+                    }
                 }
                 is Result.Error -> {
                     Timber.tag(TAG).e(result.exception, "Failed to update meal entry")
                     _uiState.update {
                         it.copy(
                             isSaving = false,
-                            error = result.exception.message ?: "Failed to update entry. Please try again."
+                            error = result.message ?: "Failed to update entry. Please try again.",
+                            successMessage = null
                         )
                     }
                 }
@@ -156,7 +163,7 @@ class MealDetailViewModel @Inject constructor(
 
     private fun handleCancelClicked() {
         Timber.tag(TAG).d("User cancelled edit")
-        _uiState.update { it.copy(shouldNavigateBack = true) }
+        _uiState.update { it.copy(shouldNavigateBack = true, successMessage = null) }
     }
 
     private fun handleErrorDismissed() {
@@ -167,6 +174,6 @@ class MealDetailViewModel @Inject constructor(
      * Reset navigation state after navigation completes.
      */
     fun onNavigationHandled() {
-        _uiState.update { it.copy(shouldNavigateBack = false) }
+        _uiState.update { it.copy(shouldNavigateBack = false, successMessage = null) }
     }
 }

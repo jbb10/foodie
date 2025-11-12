@@ -17,7 +17,8 @@ data class MealDetailState(
     val descriptionError: String? = null,
     val isSaving: Boolean = false,
     val error: String? = null,
-    val shouldNavigateBack: Boolean = false
+    val shouldNavigateBack: Boolean = false,
+    val successMessage: String? = null
 ) {
     /**
      * Checks if there are any validation errors that would prevent saving.

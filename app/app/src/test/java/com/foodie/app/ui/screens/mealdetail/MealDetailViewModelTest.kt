@@ -226,6 +226,7 @@ class MealDetailViewModelTest {
         assertThat(state.isSaving).isFalse()
         assertThat(state.shouldNavigateBack).isTrue()
         assertThat(state.error).isNull()
+        assertThat(state.successMessage).isEqualTo("Entry updated")
     }
 
     @Test
@@ -241,6 +242,7 @@ class MealDetailViewModelTest {
         verify(updateMealEntryUseCase, never()).invoke(any(), any(), any(), any())
         val state = viewModel.uiState.value
         assertThat(state.shouldNavigateBack).isFalse()
+        assertThat(state.successMessage).isNull()
     }
 
     @Test
@@ -264,6 +266,7 @@ class MealDetailViewModelTest {
         assertThat(state.isSaving).isFalse()
         assertThat(state.shouldNavigateBack).isTrue()
         assertThat(state.error).isNull()
+        assertThat(state.successMessage).isEqualTo("Entry updated")
     }
 
     @Test
@@ -282,6 +285,45 @@ class MealDetailViewModelTest {
         assertThat(state.isSaving).isFalse()
         assertThat(state.shouldNavigateBack).isFalse()
         assertThat(state.error).isEqualTo(errorMessage)
+        assertThat(state.successMessage).isNull()
+    }
+
+    @Test
+    fun `SaveClicked with permission error should surface friendly message`() = runTest {
+        // Given
+        val friendlyMessage = "Permission denied. Please grant Health Connect access in settings."
+        whenever(updateMealEntryUseCase(any(), any(), any(), any()))
+            .thenReturn(Result.Error(SecurityException("Permissions not granted"), friendlyMessage))
+
+        // When
+        viewModel.onEvent(MealDetailEvent.SaveClicked)
+        advanceUntilIdle()
+
+        // Then
+        val state = viewModel.uiState.value
+        assertThat(state.isSaving).isFalse()
+        assertThat(state.shouldNavigateBack).isFalse()
+        assertThat(state.error).isEqualTo(friendlyMessage)
+        assertThat(state.successMessage).isNull()
+    }
+
+    @Test
+    fun `SaveClicked with Health Connect unavailable should show guidance`() = runTest {
+        // Given
+        val friendlyMessage = "Health Connect is not available. Please install it from the Play Store."
+        whenever(updateMealEntryUseCase(any(), any(), any(), any()))
+            .thenReturn(Result.Error(IllegalStateException("Health Connect not available"), friendlyMessage))
+
+        // When
+        viewModel.onEvent(MealDetailEvent.SaveClicked)
+        advanceUntilIdle()
+
+        // Then
+        val state = viewModel.uiState.value
+        assertThat(state.isSaving).isFalse()
+        assertThat(state.shouldNavigateBack).isFalse()
+        assertThat(state.error).isEqualTo(friendlyMessage)
+        assertThat(state.successMessage).isNull()
     }
 
     @Test
@@ -293,6 +335,7 @@ class MealDetailViewModelTest {
         verify(updateMealEntryUseCase, never()).invoke(any(), any(), any(), any())
         val state = viewModel.uiState.value
         assertThat(state.shouldNavigateBack).isTrue()
+        assertThat(state.successMessage).isNull()
     }
 
     @Test

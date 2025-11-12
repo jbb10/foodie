@@ -1,0 +1,268 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3</storyId>
+    <title>Update Health Connect Entry</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-3-update-health-connect-entry.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>my edits to be saved back to Health Connect</iWant>
+    <soThat>my corrected data is available to all health apps</soThat>
+    <tasks>
+      <task id="1" critical="true">
+        <title>Documentation Research &amp; Technical Validation</title>
+        <objective>Validate Health Connect update API behavior and error handling patterns before integration testing</objective>
+        <checkpoint>Document findings in Dev Notes: Platform limitations, technical approach validation, error handling patterns, cross-app visibility requirements</checkpoint>
+      </task>
+      <task id="2">
+        <title>Integration Testing - Update Flow</title>
+        <subtasks>
+          <item>Verify existing HealthConnectRepository.updateNutritionRecord() method implementation</item>
+          <item>Write integration test: Query existing record → Update via repository → Verify old record deleted</item>
+          <item>Write integration test: Verify new record inserted with updated calories and description</item>
+          <item>Write integration test: Verify original timestamp preserved (startTime, endTime, zoneOffset)</item>
+          <item>Write integration test: Verify update triggers list refresh and shows new data</item>
+          <item>Manual test: Edit meal entry → Save → Verify navigation back to list view</item>
+          <item>Manual test: Verify toast message "Entry updated" displays after successful save</item>
+        </subtasks>
+        <acceptanceCriteria>1-6</acceptanceCriteria>
+      </task>
+      <task id="3">
+        <title>Error Handling Integration</title>
+        <subtasks>
+          <item>Test Health Connect permission denied scenario</item>
+          <item>Verify error handling when delete succeeds but insert fails</item>
+          <item>Test SecurityException handling (permissions revoked mid-operation)</item>
+          <item>Test IllegalStateException handling (Health Connect unavailable)</item>
+          <item>Verify error messages are user-friendly</item>
+          <item>Manual test: Revoke permissions → Attempt update → Verify error message</item>
+          <item>Manual test: Disable Health Connect → Attempt update → Verify graceful degradation</item>
+        </subtasks>
+        <acceptanceCriteria>8</acceptanceCriteria>
+      </task>
+      <task id="4">
+        <title>Cross-App Validation</title>
+        <subtasks>
+          <item>Manual test: Update meal entry in Foodie app</item>
+          <item>Verify updated data appears in Google Fit app</item>
+          <item>Verify updated data appears in Health Connect system app</item>
+          <item>Verify timestamp consistency across apps</item>
+          <item>Verify calories and description match across apps</item>
+          <item>Document cross-app validation process in Dev Notes</item>
+        </subtasks>
+        <acceptanceCriteria>7</acceptanceCriteria>
+      </task>
+      <task id="5">
+        <title>ViewModel Integration Validation</title>
+        <subtasks>
+          <item>Verify MealDetailViewModel.onEvent(SaveClicked) calls UpdateMealEntryUseCase</item>
+          <item>Verify use case calls HealthConnectRepository.updateNutritionRecord()</item>
+          <item>Verify ViewModel navigates back on Result.Success</item>
+          <item>Verify ViewModel shows error message on Result.Error</item>
+          <item>Write unit test: ViewModel save success → navigation triggered</item>
+          <item>Write unit test: ViewModel save error → error state updated, no navigation</item>
+          <item>Verify MealListViewModel refreshes data when returning from detail screen</item>
+        </subtasks>
+        <acceptanceCriteria>4, 5, 6</acceptanceCriteria>
+      </task>
+      <task id="6">
+        <title>End-to-End Validation</title>
+        <subtasks>
+          <item>Manual test complete flow: List → Tap entry → Edit calories → Save → Verify list updated</item>
+          <item>Manual test: Edit description → Save → Verify list shows new description</item>
+          <item>Manual test: Edit both fields → Save → Verify both updated in list</item>
+          <item>Manual test: Verify no duplicate entries created</item>
+          <item>Verify performance: Update completes in &lt;1 second</item>
+          <item>Run full instrumentation test suite (./gradlew connectedAndroidTest)</item>
+          <item>Document any edge cases or issues discovered</item>
+        </subtasks>
+        <acceptanceCriteria>All</acceptanceCriteria>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Given I have edited a meal entry and tap "Save", When the save operation executes, Then the old NutritionRecord is deleted from Health Connect</criterion>
+    <criterion id="2">And a new NutritionRecord is inserted with updated calories and description</criterion>
+    <criterion id="3">And the original timestamp (startTime/endTime) is preserved</criterion>
+    <criterion id="4">And a toast message displays: "Entry updated"</criterion>
+    <criterion id="5">And I am navigated back to the list view</criterion>
+    <criterion id="6">And the list view shows the updated entry immediately</criterion>
+    <criterion id="7">And the update is visible in other Health Connect apps (Google Fit)</criterion>
+    <criterion id="8">And errors are handled gracefully (show error message if Health Connect operation fails)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Story 3.3: Update Health Connect Entry</title>
+        <section>Epic 3 - Story 3.3</section>
+        <snippet>Implement HealthConnectRepository.updateNutrition() method using delete + insert pattern. Preserve metadata (timestamps, zones). Use coroutines for async operation. Handle permission errors. Refresh list view data after successful update.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Health Connect Data Storage</title>
+        <section>Health Connect (Data Storage)</section>
+        <snippet>Update: deleteNutritionRecord(recordId) + insertNutritionRecord() (delete and re-insert pattern). Single Source of Truth: Health Connect stores all nutrition data (calories + descriptions + timestamps)</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Health Connect Data Model</title>
+        <section>Health Connect Data Model</section>
+        <snippet>NutritionRecord stores energy (calories), name (description), startTime/endTime (timestamp), and zoneOffset. No direct update support - requires delete + re-insert pattern.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3-2-edit-meal-entry-screen.md</path>
+        <title>Story 3.2: Edit Meal Entry Screen</title>
+        <section>Dev Notes - Learnings</section>
+        <snippet>Update Repository Method Already Exists: HealthConnectRepository.updateNutritionRecord() implemented in Story 2.6, tested in Story 3.2 (6 unit tests passing). Delete+insert pattern validated. ViewModel integration complete with 24 unit tests passing.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>manager</kind>
+        <symbol>updateNutritionRecord</symbol>
+        <lines>177-203</lines>
+        <reason>Implements Health Connect update pattern: delete old record + insert new record with preserved timestamp</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/HealthConnectRepository.kt</path>
+        <kind>repository</kind>
+        <symbol>updateNutritionRecord</symbol>
+        <lines>80-95</lines>
+        <reason>Repository method that delegates to HealthConnectManager, returns Result wrapper for error handling</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/usecase/UpdateMealEntryUseCase.kt</path>
+        <kind>usecase</kind>
+        <symbol>UpdateMealEntryUseCase.invoke</symbol>
+        <lines>1-68</lines>
+        <reason>Domain layer use case with validation (calories 1-5000, description non-blank max 200 chars)</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>MealDetailViewModel.handleSaveClicked</symbol>
+        <lines>111-159</lines>
+        <reason>ViewModel save handler: calls use case, updates state (isSaving, error, shouldNavigateBack)</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/test/java/com/foodie/app/data/repository/HealthConnectRepositoryTest.kt</path>
+        <kind>test</kind>
+        <symbol>HealthConnectRepositoryTest</symbol>
+        <lines>1-295</lines>
+        <reason>Unit tests for repository - 6 update tests passing, demonstrates mocking pattern with Truth assertions</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/test/java/com/foodie/app/domain/usecase/UpdateMealEntryUseCaseTest.kt</path>
+        <kind>test</kind>
+        <symbol>UpdateMealEntryUseCaseTest</symbol>
+        <lines>1-end</lines>
+        <reason>Use case validation tests - 10 tests passing covering validation rules and error handling</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/test/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModelTest.kt</path>
+        <kind>test</kind>
+        <symbol>MealDetailViewModelTest</symbol>
+        <lines>1-end</lines>
+        <reason>ViewModel tests - 24 tests passing covering form state, validation, save flow, navigation</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <android>
+        <dependency name="androidx.health.connect:connect-client" version="1.1.0" />
+        <dependency name="androidx.core:core-ktx" version="1.15.0" />
+        <dependency name="androidx.lifecycle:lifecycle-viewmodel-compose" version="2.8.7" />
+        <dependency name="androidx.hilt:hilt-navigation-compose" version="1.2.0" />
+        <dependency name="com.google.dagger:hilt-android" version="2.53" />
+        <dependency name="org.jetbrains.kotlinx:kotlinx-coroutines-android" version="1.9.0" />
+        <dependency name="com.jakewharton.timber:timber" version="5.0.1" />
+      </android>
+      <testing>
+        <dependency name="junit:junit" version="4.13.2" />
+        <dependency name="org.mockito:mockito-core" version="5.10.0" />
+        <dependency name="org.mockito.kotlin:mockito-kotlin" version="5.4.0" />
+        <dependency name="org.jetbrains.kotlinx:kotlinx-coroutines-test" version="1.9.0" />
+        <dependency name="androidx.arch.core:core-testing" version="2.2.0" />
+        <dependency name="com.google.truth:truth" version="1.4.4" />
+        <dependency name="androidx.test.ext:junit" version="1.2.1" />
+        <dependency name="androidx.compose.ui:ui-test-junit4" />
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Follow MVVM architecture pattern: UI → ViewModel → UseCase → Repository → HealthConnectManager</constraint>
+    <constraint>All Health Connect operations must be suspend functions and return Result&lt;T&gt; wrapper</constraint>
+    <constraint>Update pattern: Delete old NutritionRecord + Insert new record with preserved timestamp (non-atomic)</constraint>
+    <constraint>Preserve original startTime, endTime, and zoneOffset from original record</constraint>
+    <constraint>Handle SecurityException (permissions), IllegalStateException (Health Connect unavailable)</constraint>
+    <constraint>Use Timber for logging: Timber.tag(TAG).i/d/e() with specific tags</constraint>
+    <constraint>Performance target: Update operation completes in &lt;1 second</constraint>
+    <constraint>Error messages must be user-friendly (no technical jargon)</constraint>
+    <constraint>Navigation: ViewModel sets shouldNavigateBack flag, Screen observes and navigates</constraint>
+    <constraint>List refresh: MealListScreen uses LaunchedEffect(Unit) to reload data when returning from detail screen</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>HealthConnectRepository.updateNutritionRecord</name>
+      <kind>suspend function</kind>
+      <signature>suspend fun updateNutritionRecord(recordId: String, calories: Int, description: String, timestamp: Instant): Result&lt;Unit&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/repository/HealthConnectRepository.kt:80-95</path>
+    </interface>
+    <interface>
+      <name>UpdateMealEntryUseCase.invoke</name>
+      <kind>suspend operator function</kind>
+      <signature>suspend operator fun invoke(recordId: String, calories: Int, description: String, timestamp: Instant): Result&lt;Unit&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/usecase/UpdateMealEntryUseCase.kt:31-68</path>
+    </interface>
+    <interface>
+      <name>MealDetailViewModel.onEvent</name>
+      <kind>function</kind>
+      <signature>fun onEvent(event: MealDetailEvent)</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModel.kt:70-78</path>
+    </interface>
+    <interface>
+      <name>HealthConnectManager.updateNutritionRecord</name>
+      <kind>suspend function</kind>
+      <signature>suspend fun updateNutritionRecord(recordId: String, calories: Int, description: String, timestamp: Instant)</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt:177-203</path>
+    </interface>
+    <interface>
+      <name>HealthConnectClient.deleteRecords</name>
+      <kind>Health Connect SDK API</kind>
+      <signature>suspend fun deleteRecords(recordType: KClass&lt;out Record&gt;, recordIdsList: List&lt;String&gt;, clientRecordIdsList: List&lt;String&gt;)</signature>
+      <path>androidx.health.connect.client.HealthConnectClient</path>
+    </interface>
+    <interface>
+      <name>Result sealed class</name>
+      <kind>domain wrapper</kind>
+      <signature>sealed class Result&lt;out T&gt; { data class Success&lt;T&gt;(val data: T), data class Error(val exception: Exception), object Loading }</signature>
+      <path>app/app/src/main/java/com/foodie/app/util/Result.kt</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Unit tests use JUnit 4.13.2, Mockito/Mockito-Kotlin for mocking, Truth library for assertions (assertThat(x).isEqualTo(y)), and kotlinx-coroutines-test for suspend function testing with runTest {}. Test naming: methodName_whenCondition_thenExpectedResult. Instrumentation tests use AndroidJUnit, Compose UI test framework, and Hilt testing support. All tests must pass before story completion. Repository layer: mock HealthConnectManager. UseCase layer: mock repository. ViewModel layer: mock use case, use InstantTaskExecutorRule for LiveData/StateFlow.
+    </standards>
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/**/*Test.kt</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/**/*Test.kt</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2,3">Integration test: Insert nutrition record → Update with new values → Query and verify old record deleted, new record exists with updated calories/description, timestamp preserved</idea>
+      <idea ac="4,5,6">ViewModel test: Trigger SaveClicked event → Verify use case called → Assert shouldNavigateBack = true, verify toast message logic</idea>
+      <idea ac="7">Manual cross-app test: Update entry in Foodie → Open Google Fit → Verify updated data visible with matching timestamp</idea>
+      <idea ac="8">Error handling test: Mock SecurityException from repository → Verify ViewModel sets user-friendly error message, no navigation</idea>
+      <idea ac="8">Error handling test: Mock delete success but insert failure → Verify error logged, user-friendly message shown</idea>
+      <idea ac="all">End-to-end test: Navigate to detail screen → Edit calories → Save → Verify list refreshed, updated entry visible, no duplicates</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -193,13 +193,18 @@ class HealthConnectManager @Inject constructor(
     ) {
         Timber.tag(TAG).d("Updating nutrition record: $recordId")
         
-        // Delete old record
-        deleteNutritionRecord(recordId)
-        
-        // Insert new record with preserved timestamp
-        val newRecordId = insertNutritionRecord(calories, description, timestamp)
-        
-        Timber.tag(TAG).i("Updated nutrition record: $recordId → $newRecordId")
+        try {
+            // Delete old record
+            deleteNutritionRecord(recordId)
+
+            // Insert new record with preserved timestamp
+            val newRecordId = insertNutritionRecord(calories, description, timestamp)
+
+            Timber.tag(TAG).i("Updated nutrition record: $recordId → $newRecordId")
+        } catch (exception: Exception) {
+            Timber.tag(TAG).e(exception, "Failed to update nutrition record: $recordId")
+            throw exception
+        }
     }
 
     /**
