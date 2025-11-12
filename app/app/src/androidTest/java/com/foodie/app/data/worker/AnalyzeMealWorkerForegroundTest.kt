@@ -19,19 +19,16 @@ import com.foodie.app.data.worker.foreground.MealAnalysisNotificationSpec
 import com.foodie.app.domain.model.NutritionData
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
 import com.foodie.app.util.Result as ApiResult
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.atLeastOnce
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
@@ -51,10 +48,10 @@ class AnalyzeMealWorkerForegroundTest {
             .build()
         WorkManagerTestInitHelper.initializeTestWorkManager(context, config)
 
-        nutritionRepository = mock()
-        healthConnectManager = mock()
-        photoManager = mock()
-        foregroundNotifier = mock()
+        nutritionRepository = mockk()
+        healthConnectManager = mockk()
+        photoManager = mockk()
+        foregroundNotifier = mockk()
 
         val notification = NotificationCompat.Builder(context, MealAnalysisNotificationSpec.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -62,17 +59,17 @@ class AnalyzeMealWorkerForegroundTest {
             .setContentText("Preparing meal analysis…")
             .build()
 
-        whenever(foregroundNotifier.createForegroundInfo(any(), any(), anyOrNull())).thenReturn(
+        every { foregroundNotifier.createForegroundInfo(any(), any(), any()) } returns
             androidx.work.ForegroundInfo(MealAnalysisNotificationSpec.ONGOING_NOTIFICATION_ID, notification)
-        )
-        whenever(foregroundNotifier.createCompletionNotification(any())).thenReturn(notification)
-        whenever(foregroundNotifier.createFailureNotification(any(), any())).thenReturn(notification)
+        every { foregroundNotifier.createCompletionNotification(any()) } returns notification
+        every { foregroundNotifier.createFailureNotification(any(), any()) } returns notification
 
-        whenever(nutritionRepository.analyzePhoto(any())).thenReturn(
-            ApiResult.Success(NutritionData(calories = 480, description = "Veggie bowl"))
-        )
-        whenever(healthConnectManager.insertNutritionRecord(any(), any(), any())).thenReturn("record-123")
-        whenever(photoManager.deletePhoto(any())).thenReturn(true)
+        runBlocking {
+            coEvery { nutritionRepository.analyzePhoto(any()) } returns
+                ApiResult.Success(NutritionData(calories = 480, description = "Veggie bowl"))
+            coEvery { healthConnectManager.insertNutritionRecord(any(), any(), any()) } returns "record-123"
+            coEvery { photoManager.deletePhoto(any()) } returns true
+        }
     }
 
     @Test
@@ -90,16 +87,15 @@ class AnalyzeMealWorkerForegroundTest {
         val result = worker.doWork()
 
         assertTrue(result is ListenableWorker.Result.Success)
-        verify(foregroundNotifier, atLeastOnce()).createForegroundInfo(eq(worker.id), any(), anyOrNull())
-        verify(foregroundNotifier).createCompletionNotification(any())
-        verify(photoManager, atLeastOnce()).deletePhoto(any())
+        verify(atLeast = 1) { foregroundNotifier.createForegroundInfo(worker.id, any(), any()) }
+        verify { foregroundNotifier.createCompletionNotification(any()) }
+        coVerify(atLeast = 1) { photoManager.deletePhoto(any()) }
     }
 
     @Test
     fun doWork_nonRetryableErrorDeletesPhotoAndReportsFailure() = runBlocking {
-        whenever(nutritionRepository.analyzePhoto(any())).thenReturn(
+        coEvery { nutritionRepository.analyzePhoto(any()) } returns
             ApiResult.Error(IllegalArgumentException("Invalid payload"))
-        )
 
         val inputData = androidx.work.workDataOf(
             AnalyzeMealWorker.KEY_PHOTO_URI to "content://foodie/photos/456",
@@ -114,17 +110,16 @@ class AnalyzeMealWorkerForegroundTest {
         val result = worker.doWork()
 
         assertTrue(result is ListenableWorker.Result.Failure)
-        verify(photoManager, atLeastOnce()).deletePhoto(any())
-        verify(foregroundNotifier, atLeastOnce()).createForegroundInfo(eq(worker.id), any(), anyOrNull())
-        verify(foregroundNotifier).createFailureNotification(eq(worker.id), any())
-        verify(foregroundNotifier, never()).createCompletionNotification(any())
+        coVerify(atLeast = 1) { photoManager.deletePhoto(any()) }
+        verify(atLeast = 1) { foregroundNotifier.createForegroundInfo(worker.id, any(), any()) }
+        verify { foregroundNotifier.createFailureNotification(worker.id, any()) }
+        verify(exactly = 0) { foregroundNotifier.createCompletionNotification(any()) }
     }
 
     @Test
     fun doWork_maxRetriesExceededDeletesPhotoAndFails() = runBlocking {
-        whenever(nutritionRepository.analyzePhoto(any())).thenReturn(
+        coEvery { nutritionRepository.analyzePhoto(any()) } returns
             ApiResult.Error(IOException("Timeout"))
-        )
 
         val inputData = androidx.work.workDataOf(
             AnalyzeMealWorker.KEY_PHOTO_URI to "content://foodie/photos/789",
@@ -140,8 +135,8 @@ class AnalyzeMealWorkerForegroundTest {
         val result = worker.doWork()
 
         assertTrue(result is ListenableWorker.Result.Failure)
-        verify(photoManager, atLeastOnce()).deletePhoto(any())
-        verify(foregroundNotifier).createFailureNotification(eq(worker.id), any())
+        coVerify(atLeast = 1) { photoManager.deletePhoto(any()) }
+        verify { foregroundNotifier.createFailureNotification(worker.id, any()) }
     }
 
     private fun testWorkerFactory(): WorkerFactory = object : WorkerFactory() {

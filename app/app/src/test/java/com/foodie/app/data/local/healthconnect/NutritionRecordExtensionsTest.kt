@@ -46,7 +46,7 @@ class NutritionRecordExtensionsTest {
     }
     
     @Test
-    fun `toDomainModel should handle null name by using empty string`() {
+    fun `toDomainModel should use fallback description when name is null`() {
         // Given
         val timestamp = Instant.now()
         val calories = 300
@@ -62,12 +62,12 @@ class NutritionRecordExtensionsTest {
             metadata = Metadata.autoRecorded(device = Device(type = Device.TYPE_PHONE))
         )
         
-        // When/Then - Should throw because MealEntry validates description is not blank
-        val exception = org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
-            nutritionRecord.toDomainModel()
-        }
-        
-        assertThat(exception.message).contains("Description cannot be blank")
+        // When
+        val mealEntry = nutritionRecord.toDomainModel()
+
+        // Then
+        assertThat(mealEntry.description).isEqualTo("Unknown meal")
+        assertThat(mealEntry.calories).isEqualTo(calories)
     }
     
     @Test

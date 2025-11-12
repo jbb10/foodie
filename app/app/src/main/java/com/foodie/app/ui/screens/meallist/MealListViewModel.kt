@@ -1,75 +1,149 @@
 package com.foodie.app.ui.screens.meallist
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.foodie.app.data.repository.HealthConnectRepository
-import com.foodie.app.ui.base.BaseViewModel
+import com.foodie.app.domain.model.MealEntry
+import com.foodie.app.domain.usecase.GetMealHistoryUseCase
 import com.foodie.app.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 /**
  * ViewModel for the Meal List screen.
  *
  * Manages meal list state with proper error handling using MealListState.
- * Demonstrates the error handling pattern: Result<T> → UI state with error field.
+ * Loads meal history from the last 7 days and groups entries by date.
  */
 @HiltViewModel
 class MealListViewModel @Inject constructor(
-    private val healthConnectRepository: HealthConnectRepository
-) : BaseViewModel() {
+    private val getMealHistoryUseCase: GetMealHistoryUseCase
+) : ViewModel() {
     
     private val _state = MutableStateFlow(MealListState())
     val state: StateFlow<MealListState> = _state.asStateFlow()
     
-    private val _testResult = MutableStateFlow<String?>(null)
-    val testResult: StateFlow<String?> = _testResult.asStateFlow()
+    init {
+        loadMeals()
+    }
     
     /**
-     * Loads meal entries from Health Connect for the last 30 days.
-     *
-     * Demonstrates error state handling pattern:
-     * - Loading: isLoading = true, error = null
-     * - Success: meals populated, isLoading = false, error = null
-     * - Error: isLoading = false, error = user-friendly message
+     * Loads meal entries from Health Connect for the last 7 days.
+     * Groups meals by date with headers like "Today", "Yesterday", "Nov 7".
      */
     fun loadMeals() {
+        fetchMeals(isRefresh = false)
+    }
+    
+    /**
+     * Refreshes the meal list (called by pull-to-refresh).
+     */
+    fun refresh() {
+        fetchMeals(isRefresh = true)
+    }
+    
+    private fun fetchMeals(isRefresh: Boolean) {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
-            
-            val endTime = Instant.now()
-            val startTime = endTime.minusSeconds(30L * 24 * 60 * 60) // 30 days ago
-            
-            when (val result = healthConnectRepository.queryNutritionRecords(startTime, endTime)) {
-                is Result.Success -> {
-                    _state.update { 
-                        it.copy(
-                            meals = result.data,
-                            isLoading = false,
-                            error = null
-                        )
+            val startTimeMs = System.currentTimeMillis()
+            if (isRefresh) {
+                _state.update { it.copy(isRefreshing = true, error = null) }
+            } else {
+                _state.update { it.copy(isLoading = true, error = null) }
+            }
+
+            getMealHistoryUseCase().collectLatest { result ->
+                when (result) {
+                    is Result.Success -> {
+                        val groupedMeals = groupMealsByDate(result.data)
+                        _state.update {
+                            it.copy(
+                                mealsByDate = groupedMeals,
+                                isLoading = false,
+                                isRefreshing = false,
+                                error = null,
+                                emptyStateVisible = result.data.isEmpty()
+                            )
+                        }
+                        logLoadDuration(isRefresh, startTimeMs, resultCount = result.data.size, isError = false)
                     }
-                    Timber.i("Loaded ${result.data.size} meal entries")
-                }
-                is Result.Error -> {
-                    _state.update { 
-                        it.copy(
-                            isLoading = false,
-                            error = result.message
-                        )
+                    is Result.Error -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isRefreshing = false,
+                                error = result.message
+                            )
+                        }
+                        logLoadDuration(isRefresh, startTimeMs, resultCount = 0, isError = true)
+                        Timber.e(result.exception, "Failed to ${if (isRefresh) "refresh" else "load"} meals: ${result.message}")
                     }
-                    Timber.e(result.exception, "Failed to load meals: ${result.message}")
-                }
-                is Result.Loading -> {
-                    // Already handling loading state
+                    is Result.Loading -> {
+                        // Already handled by initial state update
+                    }
                 }
             }
+        }
+    }
+
+    private fun logLoadDuration(isRefresh: Boolean, startTimeMs: Long, resultCount: Int, isError: Boolean) {
+        val elapsed = System.currentTimeMillis() - startTimeMs
+        val action = if (isRefresh) "refresh" else "load"
+        val message = "Meal list $action completed in ${elapsed}ms (${if (isError) "error" else "$resultCount entries"})"
+        if (elapsed > 500) {
+            Timber.w(message)
+        } else {
+            Timber.i(message)
+        }
+    }
+
+    /**
+     * Groups meal entries by date with headers like "Today", "Yesterday", or formatted date.
+     * Sorts groups chronologically with newest dates first.
+     */
+    private fun groupMealsByDate(meals: List<MealEntry>): Map<String, List<MealEntry>> {
+        val today = LocalDate.now()
+        val yesterday = today.minusDays(1)
+        val dateFormatter = DateTimeFormatter.ofPattern("MMM d")
+        
+        // First, create a map of header to (date, meals) for proper sorting
+        val groupedWithDates = meals
+            .groupBy { meal ->
+                val zoneId = meal.zoneOffset?.let { ZoneId.ofOffset("UTC", it) } ?: ZoneId.systemDefault()
+                val mealDate = meal.timestamp.atZone(zoneId).toLocalDate()
+                Timber.d(
+                    "Meal grouping: id=%s, timestamp=%s, localDate=%s, zoneOffset=%s, today=%s, yesterday=%s",
+                    meal.id,
+                    meal.timestamp,
+                    mealDate,
+                    meal.zoneOffset,
+                    today,
+                    yesterday
+                )
+                mealDate
+            }
+            .map { (mealDate, mealsForDate) ->
+                val header = when (mealDate) {
+                    today -> "Today"
+                    yesterday -> "Yesterday"
+                    else -> mealDate.format(dateFormatter)
+                }
+                Triple(header, mealDate, mealsForDate)
+            }
+            .sortedByDescending { it.second } // Sort by actual date, newest first
+        
+        // Convert to map preserving sorted order using LinkedHashMap
+        return groupedWithDates.associate { (header, _, mealsForDate) ->
+            header to mealsForDate
         }
     }
     
@@ -81,70 +155,21 @@ class MealListViewModel @Inject constructor(
         loadMeals()
     }
     
+
+    /**
+     * Handles delete confirmation for future delete workflow (Story 3.4).
+     * Currently logs intent to delete so UX matches acceptance criteria.
+     */
+    fun onDeleteMealConfirmed(meal: MealEntry) {
+        Timber.i(
+            "Delete requested for meal id=%s (deferred to Story 3.4)",
+            meal.id
+        )
+    }
     /**
      * Clears the current error message without reloading.
      */
     fun clearError() {
         _state.update { it.copy(error = null) }
-    }
-    
-    /**
-     * Tests Health Connect integration with a round-trip write + read operation.
-     *
-     * Inserts a test meal record, queries it back, and reports success/failure.
-     * This validates the complete Health Connect integration stack.
-     */
-    fun testHealthConnect() {
-        viewModelScope.launch {
-            Timber.d("Starting Health Connect test")
-            
-            val calories = 500
-            val description = "Test meal"
-            val timestamp = Instant.now()
-            
-            // Insert test record
-            when (val insertResult = healthConnectRepository.insertNutritionRecord(calories, description, timestamp)) {
-                is Result.Success -> {
-                    val recordId = insertResult.data
-                    Timber.d("Test insert successful: $recordId")
-                    
-                    // Query records to validate round-trip
-                    val startTime = timestamp.minusSeconds(3600)
-                    val endTime = timestamp.plusSeconds(3600)
-                    
-                    when (val queryResult = healthConnectRepository.queryNutritionRecords(startTime, endTime)) {
-                        is Result.Success -> {
-                            val entries = queryResult.data
-                            val testEntry = entries.find { it.id == recordId }
-                            
-                            if (testEntry != null) {
-                                _testResult.value = "Test successful - $calories cal saved and retrieved"
-                                Timber.i("Health Connect test PASSED: round-trip successful")
-                            } else {
-                                _testResult.value = "Test failed: record not found after insert"
-                                Timber.e("Health Connect test FAILED: record not found")
-                            }
-                        }
-                        is Result.Error -> {
-                            _testResult.value = "Test failed: ${queryResult.message}"
-                            Timber.e(queryResult.exception, "Health Connect test FAILED: query error")
-                        }
-                        is Result.Loading -> { /* Not expected */ }
-                    }
-                }
-                is Result.Error -> {
-                    _testResult.value = "Test failed: ${insertResult.message}"
-                    Timber.e(insertResult.exception, "Health Connect test FAILED: insert error")
-                }
-                is Result.Loading -> { /* Not expected */ }
-            }
-        }
-    }
-    
-    /**
-     * Clears the test result message.
-     */
-    fun clearTestResult() {
-        _testResult.value = null
     }
 }

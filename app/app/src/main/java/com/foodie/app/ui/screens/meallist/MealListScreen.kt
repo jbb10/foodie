@@ -1,7 +1,9 @@
 package com.foodie.app.ui.screens.meallist
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,13 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
+import androidx.annotation.VisibleForTesting
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,16 +26,24 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.foodie.app.R
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.ui.theme.FoodieTheme
 import java.time.Instant
@@ -43,14 +53,8 @@ import java.time.format.DateTimeFormatter
 /**
  * Meal list screen (home screen) displaying all meal entries.
  *
- * Demonstrates error handling pattern: observes error state from ViewModel
- * and displays user-friendly Snackbar with retry action.
- *
- * Current implementation shows test data. Future stories will add:
- * - Real data loading from Health Connect with error handling
- * - Pull-to-refresh for syncing data
- * - Search and filter capabilities
- * - Meal entry deletion
+ * Shows meals from the last 7 days grouped by date with headers like "Today", "Yesterday".
+ * Supports pull-to-refresh gesture and displays appropriate empty/error/loading states.
  *
  * @param onMealClick Callback invoked when a meal is tapped (passes meal ID)
  * @param onSettingsClick Callback invoked when settings button is tapped
@@ -65,17 +69,8 @@ fun MealListScreen(
     modifier: Modifier = Modifier,
     viewModel: MealListViewModel = hiltViewModel()
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val testResult by viewModel.testResult.collectAsState()
     val state by viewModel.state.collectAsState()
-    
-    // Show snackbar when test result changes
-    LaunchedEffect(testResult) {
-        testResult?.let { message ->
-            snackbarHostState.showSnackbar(message)
-            viewModel.clearTestResult()
-        }
-    }
+    val snackbarHostState = remember { SnackbarHostState() }
     
     // Show error snackbar with retry action
     LaunchedEffect(state.error) {
@@ -85,46 +80,43 @@ fun MealListScreen(
                 actionLabel = "Retry",
                 withDismissAction = true
             )
-            if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+            if (result == SnackbarResult.ActionPerformed) {
                 viewModel.retryLoadMeals()
             } else {
                 viewModel.clearError()
             }
         }
     }
-    
-    // Temporary test data - will be replaced with ViewModel in Epic 3
-    val testMeals = listOf(
-        MealEntry(
-            id = "meal-001",
-            timestamp = Instant.now().minusSeconds(3600),
-            description = "Grilled chicken with quinoa and vegetables",
-            calories = 450
-        ),
-        MealEntry(
-            id = "meal-002",
-            timestamp = Instant.now().minusSeconds(7200),
-            description = "Greek yogurt with berries and granola",
-            calories = 280
-        ),
-        MealEntry(
-            id = "meal-003",
-            timestamp = Instant.now().minusSeconds(14400),
-            description = "Salmon salad with avocado",
-            calories = 520
-        ),
-        MealEntry(
-            id = "meal-004",
-            timestamp = Instant.now().minusSeconds(21600),
-            description = "Oatmeal with banana and almonds",
-            calories = 340
-        )
+
+    MealListScreenContent(
+        state = state,
+        snackbarHostState = snackbarHostState,
+        onRefresh = viewModel::refresh,
+        onMealClick = onMealClick,
+        onSettingsClick = onSettingsClick,
+        onDeleteConfirmed = viewModel::onDeleteMealConfirmed,
+        modifier = modifier
     )
+}
+
+@VisibleForTesting
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun MealListScreenContent(
+    state: MealListState,
+    snackbarHostState: SnackbarHostState,
+    onRefresh: () -> Unit,
+    onMealClick: (String) -> Unit,
+    onSettingsClick: () -> Unit,
+    onDeleteConfirmed: (MealEntry) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var mealPendingDelete by remember { mutableStateOf<MealEntry?>(null) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Foodie") },
+                title = { Text(stringResource(id = R.string.app_name)) },
                 actions = {
                     IconButton(onClick = onSettingsClick) {
                         Icon(
@@ -136,40 +128,105 @@ fun MealListScreen(
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { /* Future: Add meal entry */ }) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add meal"
-                )
-            }
-        },
         modifier = modifier
     ) { paddingValues ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = onRefresh,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(paddingValues)
         ) {
-            // Health Connect test button (Story 1.4)
-            item {
-                Button(
-                    onClick = { viewModel.testHealthConnect() },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Test Health Connect")
+            when {
+                state.isLoading -> {
+                    // Show loading indicator on first load
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                state.emptyStateVisible -> {
+                    // Show empty state
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.meal_list_empty_state),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(32.dp)
+                        )
+                    }
+                }
+                else -> {
+                    // Show meal list
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        state.mealsByDate.forEach { (dateHeader, meals) ->
+                            // Date header
+                            item(key = "header_$dateHeader") {
+                                Text(
+                                    text = dateHeader,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            
+                            // Meals for this date
+                            items(
+                                items = meals,
+                                key = { meal -> meal.id }
+                            ) { meal ->
+                                MealListItem(
+                                    meal = meal,
+                                    onClick = { onMealClick(meal.id) },
+                                    onLongClick = { mealPendingDelete = meal }
+                                )
+                            }
+                        }
+                    }
                 }
             }
-            
-            items(testMeals) { meal ->
-                MealListItem(
-                    meal = meal,
-                    onClick = { onMealClick(meal.id) }
-                )
-            }
         }
+    }
+
+    mealPendingDelete?.let { meal ->
+        AlertDialog(
+            onDismissRequest = {
+                mealPendingDelete = null
+            },
+            title = { Text(text = stringResource(id = R.string.meal_list_delete_title)) },
+            text = {
+                Text(
+                    text = stringResource(
+                        id = R.string.meal_list_delete_message,
+                        meal.description
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteConfirmed(meal)
+                        mealPendingDelete = null
+                    }
+                ) {
+                    Text(text = stringResource(id = R.string.meal_list_delete_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mealPendingDelete = null }) {
+                    Text(text = stringResource(id = R.string.meal_list_delete_cancel))
+                }
+            }
+        )
     }
 }
 
@@ -177,20 +234,27 @@ fun MealListScreen(
  * Individual meal item card in the list.
  *
  * Displays meal description, timestamp, and calories in a tappable card.
+ * Supports long-press for future delete functionality.
  *
  * @param meal The meal entry to display
  * @param onClick Callback invoked when the card is tapped
+ * @param onLongClick Callback invoked when the card is long-pressed
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MealListItem(
     meal: MealEntry,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -216,24 +280,41 @@ private fun MealListItem(
 }
 
 /**
- * Formats a timestamp for display (e.g., "Today at 2:30 PM").
+ * Formats a timestamp for display (e.g., "2:30 PM").
  *
  * @param timestamp The instant to format
  * @return Formatted timestamp string
  */
 private fun formatTimestamp(timestamp: Instant): String {
-    val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' h:mm a")
-        .withZone(ZoneId.systemDefault())
-    return formatter.format(timestamp)
+    return TIME_FORMATTER.format(timestamp)
 }
+
+private val TIME_FORMATTER: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("h:mm a").withZone(ZoneId.systemDefault())
 
 @Preview(showBackground = true)
 @Composable
 private fun MealListScreenPreview() {
     FoodieTheme {
-        MealListScreen(
+        val sampleMeals = listOf(
+            MealEntry(
+                id = "1",
+                timestamp = Instant.now(),
+                description = "Avocado toast",
+                calories = 320
+            )
+        )
+        val state = MealListState(
+            mealsByDate = mapOf("Today" to sampleMeals)
+        )
+        val snackbarHostState = remember { SnackbarHostState() }
+        MealListScreenContent(
+            state = state,
+            snackbarHostState = snackbarHostState,
+            onRefresh = {},
             onMealClick = {},
-            onSettingsClick = {}
+            onSettingsClick = {},
+            onDeleteConfirmed = {}
         )
     }
 }

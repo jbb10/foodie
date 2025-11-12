@@ -1,0 +1,99 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.1</storyId>
+    <title>Meal Entry List View</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-1-meal-entry-list-view.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user,</asA>
+    <iWant>to see a list of my recent meal entries with calories and descriptions,</iWant>
+    <soThat>I can review what I've tracked and verify accuracy.</soThat>
+    <tasks>
+- [ ] **Task 1: Documentation Research &amp; Technical Validation** COMPLETE BEFORE PROCEEDING TO IMPLEMENTATION
+- [ ] **Task 2: Data Layer Implementation** (AC: #1, #2, #5)
+- [ ] **Task 3: Domain Layer Implementation** (AC: #1, #2)
+- [ ] **Task 4: ViewModel Implementation** (AC: #1-7)
+- [ ] **Task 5: UI Implementation** (AC: #1-9)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1.  **Given** I have logged meals in Health Connect,
+    **When** I open the Foodie app to the main screen,
+    **Then** a list displays all nutrition entries from the last 7 days.
+2.  **And** entries are sorted newest first (reverse chronological).
+3.  **And** each entry shows: timestamp, food description, and calorie count.
+4.  **And** entries are grouped by date headers ("Today", "Yesterday", "Nov 7").
+5.  **And** the list loads in under 500ms.
+6.  **Given** I have not logged any meals in Health Connect,
+    **When** I open the Foodie app,
+    **Then** an empty state displays: "No meals logged yet. Use the widget to capture your first meal!"
+7.  **Given** I am viewing the meal list,
+    **When** I pull down on the list (swipe-to-refresh gesture),
+    **Then** a loading indicator displays and the list reloads data from Health Connect.
+8.  **And** tapping an entry navigates to the edit screen.
+9.  **And** long-pressing an entry shows a delete confirmation dialog.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc source="docs/PRD.md" />
+      <doc source="docs/architecture.md" />
+      <doc source="docs/epics.md" />
+      <doc source="docs/tech-spec-epic-3.md" />
+    </docs>
+    <code>
+      <file path="app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt" />
+      <file path="app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt" />
+      <file path="app/src/main/java/com/foodie/app/data/repositories/HealthConnectRepository.kt" />
+      <file path="app/src/main/java/com/foodie/app/domain/usecases/GetMealHistoryUseCase.kt" />
+      <file path="app/src/main/java/com/foodie/app/data/sources/local/HealthConnectManager.kt" />
+    </code>
+    <dependencies>
+      <dependency id="androidx.health.connect:connect-client" version="1.1.0" />
+      <dependency id="androidx.compose.foundation:foundation" />
+      <dependency id="androidx.compose.material3:material3" />
+      <dependency id="androidx.lifecycle:lifecycle-viewmodel-compose" />
+      <dependency id="androidx.navigation:navigation-compose" />
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="technical" source="docs/architecture.md#Health Connect (Data Storage)">Health Connect is the single source of truth; no local database.</constraint>
+    <constraint type="technical" source="docs/tech-spec-epic-3.md#APIs and Interfaces">Updates to Health Connect must use a delete-and-reinsert pattern.</constraint>
+    <constraint type="performance" source="docs/tech-spec-epic-3.md#Performance">List view must load in under 500ms.</constraint>
+    <constraint type="ui" source="docs/epics.md#Story 3.1">Entries must be grouped by date headers (e.g., "Today", "Yesterday").</constraint>
+  </constraints>
+  <interfaces>
+    <interface type="repository" name="HealthConnectRepository" path="app/src/main/java/com/foodie/app/data/repositories/HealthConnectRepository.kt">
+      <method name="getMealHistory" return="Flow&lt;Result&lt;List&lt;MealEntry&gt;&gt;&gt;" />
+    </interface>
+    <interface type="viewmodel" name="MealListViewModel" path="app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt">
+      <state name="MealListState" properties="mealsByDate, isLoading, error" />
+      <event name="Refresh" />
+      <event name="DeleteMeal" />
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      <standard from="docs/tech-spec-epic-3.md#Test Strategy Summary">Unit tests for ViewModels, Use Cases, and Repositories (>80% coverage).</standard>
+      <standard from="docs/tech-spec-epic-3.md#Test Strategy Summary">Compose UI tests for screen components and navigation.</standard>
+    </standards>
+    <locations>
+      <location type="unit" path="app/src/test/java/com/foodie/app/ui/screens/meallist/MealListViewModelTest.kt" />
+      <location type="unit" path="app/src/test/java/com/foodie/app/domain/usecases/GetMealHistoryUseCaseTest.kt" />
+      <location type="instrumentation" path="app/src/androidTest/java/com/foodie/app/ui/screens/meallist/MealListScreenTest.kt" />
+    </locations>
+    <ideas>
+      <idea>Test that pull-to-refresh correctly re-fetches data from a mocked repository.</idea>
+      <idea>Verify that the date grouping logic correctly handles entries spanning across midnight and multiple days.</idea>
+      <idea>Test the empty state UI when the repository returns an empty list.</idea>
+      <idea>Ensure that long-pressing an item correctly triggers the delete confirmation dialog.</idea>
+    </ideas>
+  </tests>
+</story-context>

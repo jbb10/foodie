@@ -6,8 +6,11 @@ import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.util.Result
 import com.foodie.app.util.logDebug
 import com.foodie.app.util.runCatchingResult
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import timber.log.Timber
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -98,5 +101,25 @@ class HealthConnectRepository @Inject constructor(
         logDebug("Deleting nutrition record: $recordId")
         healthConnectManager.deleteNutritionRecord(recordId)
         Timber.tag(TAG).i("Delete successful: $recordId")
+    }
+
+    /**
+     * Retrieves a flow of meal history from the last 7 days.
+     *
+     * @return A Flow that emits a Result containing a list of MealEntry objects.
+     */
+    fun getMealHistory(): Flow<Result<List<MealEntry>>> = flow {
+        emit(Result.Loading)
+        val result = runCatchingResult {
+            logDebug("Fetching meal history for the last 7 days")
+            val endTime = Instant.now()
+            val startTime = endTime.minus(7, ChronoUnit.DAYS)
+            val records = healthConnectManager.queryNutritionRecords(startTime, endTime)
+            val mealEntries = records.map { it.toDomainModel() }
+                .sortedByDescending { it.timestamp }
+            Timber.tag(TAG).i("Meal history query successful: ${mealEntries.size} entries")
+            mealEntries
+        }
+        emit(result)
     }
 }

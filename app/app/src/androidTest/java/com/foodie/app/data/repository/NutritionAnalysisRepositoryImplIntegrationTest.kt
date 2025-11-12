@@ -11,6 +11,8 @@ import com.foodie.app.data.remote.dto.AzureResponseResponse
 import com.foodie.app.util.ImageUtils
 import com.foodie.app.util.Result
 import com.google.gson.Gson
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -18,8 +20,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.google.common.truth.Truth.assertThat
@@ -61,11 +61,11 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         gson = Gson()
 
         // Mock dependencies
-        mockSecurePreferences = mock()
-        mockImageUtils = mock()
+    mockSecurePreferences = mockk(relaxed = true)
+    mockImageUtils = mockk()
 
         // Configure mocks
-        whenever(mockSecurePreferences.azureOpenAiModel).thenReturn("gpt-4.1")
+    every { mockSecurePreferences.azureOpenAiModel } returns "gpt-4.1"
 
         // Create Retrofit with mock server base URL
         val retrofit = Retrofit.Builder()
@@ -95,7 +95,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         val mockUri = Uri.parse("content://mock/photo.jpg")
         val base64Image = "data:image/jpeg;base64,test123"
         
-        whenever(mockImageUtils.encodeImageToBase64DataUrl(mockUri)).thenReturn(base64Image)
+    every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         val mockResponse = """
             {
@@ -133,7 +133,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         val mockUri = Uri.parse("content://mock/photo.jpg")
         val base64Image = "data:image/jpeg;base64,test123"
         
-        whenever(mockImageUtils.encodeImageToBase64DataUrl(mockUri)).thenReturn(base64Image)
+    every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         // Simulate network error by enqueueing no response (server closes connection)
         mockWebServer.shutdown()
@@ -153,7 +153,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         val mockUri = Uri.parse("content://mock/photo.jpg")
         val base64Image = "data:image/jpeg;base64,test123"
         
-        whenever(mockImageUtils.encodeImageToBase64DataUrl(mockUri)).thenReturn(base64Image)
+    every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         mockWebServer.enqueue(
             MockResponse()
@@ -176,7 +176,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         val mockUri = Uri.parse("content://mock/photo.jpg")
         val base64Image = "data:image/jpeg;base64,test123"
         
-        whenever(mockImageUtils.encodeImageToBase64DataUrl(mockUri)).thenReturn(base64Image)
+    every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         mockWebServer.enqueue(
             MockResponse()
@@ -199,7 +199,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         val mockUri = Uri.parse("content://mock/photo.jpg")
         val base64Image = "data:image/jpeg;base64,test123"
         
-        whenever(mockImageUtils.encodeImageToBase64DataUrl(mockUri)).thenReturn(base64Image)
+    every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         val mockResponse = """
             {

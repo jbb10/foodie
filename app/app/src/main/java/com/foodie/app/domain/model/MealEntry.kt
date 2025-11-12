@@ -1,6 +1,7 @@
 package com.foodie.app.domain.model
 
 import java.time.Instant
+import java.time.ZoneOffset
 
 /**
  * Domain model representing a meal entry in the nutrition tracking system.
@@ -20,7 +21,8 @@ data class MealEntry(
     val id: String,
     val timestamp: Instant,
     val description: String,
-    val calories: Int
+    val calories: Int,
+    val zoneOffset: ZoneOffset? = null
 ) {
     init {
         require(calories in 1..5000) {

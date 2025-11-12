@@ -3,13 +3,12 @@ package com.foodie.app
 import android.app.Application
 import android.content.Context
 import androidx.test.runner.AndroidJUnitRunner
-import dagger.hilt.android.testing.HiltTestApplication
 
 /**
  * Custom test runner for Hilt instrumentation tests.
  *
- * This runner replaces the default Application with HiltTestApplication
- * to enable Hilt dependency injection in tests.
+ * This runner replaces the default Application with FoodieTestApplication
+ * to enable Hilt dependency injection and WorkManager configuration in tests.
  */
 class HiltTestRunner : AndroidJUnitRunner() {
     
@@ -18,6 +17,6 @@ class HiltTestRunner : AndroidJUnitRunner() {
         className: String?,
         context: Context?
     ): Application {
-        return super.newApplication(cl, HiltTestApplication::class.java.name, context)
+        return super.newApplication(cl, FoodieTestApplication_Application::class.java.name, context)
     }
 }

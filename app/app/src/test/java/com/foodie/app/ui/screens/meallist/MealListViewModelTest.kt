@@ -1,12 +1,13 @@
 package com.foodie.app.ui.screens.meallist
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.foodie.app.data.repository.HealthConnectRepository
 import com.foodie.app.domain.model.MealEntry
+import com.foodie.app.domain.usecase.GetMealHistoryUseCase
 import com.foodie.app.util.Result
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -15,15 +16,16 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 /**
  * Unit tests for MealListViewModel.
  *
- * Tests verify Health Connect test operation and result handling.
+ * Tests verify meal history loading, date grouping, error handling, and refresh functionality.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MealListViewModelTest {
@@ -33,14 +35,13 @@ class MealListViewModelTest {
     
     private val testDispatcher = UnconfinedTestDispatcher()
     
-    private lateinit var healthConnectRepository: HealthConnectRepository
+    private lateinit var getMealHistoryUseCase: GetMealHistoryUseCase
     private lateinit var viewModel: MealListViewModel
     
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        healthConnectRepository = mock()
-        viewModel = MealListViewModel(healthConnectRepository)
+        getMealHistoryUseCase = mock()
     }
     
     @After
@@ -49,115 +50,48 @@ class MealListViewModelTest {
     }
     
     @Test
-    fun `testHealthConnect should show success message when round-trip succeeds`() = runTest {
+    fun `init loads meals automatically`() = runTest {
         // Given
-        val recordId = "test-record-123"
-        val calories = 500
-        val description = "Test meal"
-        
-        whenever(healthConnectRepository.insertNutritionRecord(any(), any(), any()))
-            .thenReturn(Result.Success(recordId))
-        
-        val mealEntry = MealEntry(
-            id = recordId,
-            timestamp = Instant.now(),
-            description = description,
-            calories = calories
+        val testMeals = listOf(
+            MealEntry("1", Instant.now(), "Breakfast", 500)
         )
-        
-        whenever(healthConnectRepository.queryNutritionRecords(any(), any()))
-            .thenReturn(Result.Success(listOf(mealEntry)))
-        
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+
         // When
-        viewModel.testHealthConnect()
-        
+        viewModel = MealListViewModel(getMealHistoryUseCase)
+
         // Then
-        val result = viewModel.testResult.value
-        assertThat(result).isNotNull()
-        assertThat(result).contains("Test successful")
-        assertThat(result).contains("500 cal")
+        val state = viewModel.state.value
+        assertThat(state.mealsByDate).containsKey("Today")
+        assertThat(state.isLoading).isFalse()
+        assertThat(state.error).isNull()
     }
-    
+
     @Test
-    fun `testHealthConnect should show error message when insert fails`() = runTest {
+    fun `loadMeals groups meals by date correctly`() = runTest {
         // Given
-        val errorMessage = "Health Connect permissions required"
+        val today = Instant.now()
+        val yesterday = today.minusSeconds(86400) // 1 day ago
+        val twoDaysAgo = today.minusSeconds(172800) // 2 days ago
         
-        whenever(healthConnectRepository.insertNutritionRecord(any(), any(), any()))
-            .thenReturn(Result.Error(SecurityException(), errorMessage))
-        
+        val testMeals = listOf(
+            MealEntry("1", today, "Lunch", 600),
+            MealEntry("2", yesterday, "Dinner", 700),
+            MealEntry("3", twoDaysAgo, "Breakfast", 400)
+        )
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+
         // When
-        viewModel.testHealthConnect()
-        
+        viewModel = MealListViewModel(getMealHistoryUseCase)
+
         // Then
-        val result = viewModel.testResult.value
-        assertThat(result).isNotNull()
-        assertThat(result).contains("Test failed")
-        assertThat(result).contains(errorMessage)
-    }
-    
-    @Test
-    fun `testHealthConnect should show error message when query fails`() = runTest {
-        // Given
-        val recordId = "test-record-456"
-        
-        whenever(healthConnectRepository.insertNutritionRecord(any(), any(), any()))
-            .thenReturn(Result.Success(recordId))
-        
-        val errorMessage = "Failed to load meal entries"
-        whenever(healthConnectRepository.queryNutritionRecords(any(), any()))
-            .thenReturn(Result.Error(Exception(), errorMessage))
-        
-        // When
-        viewModel.testHealthConnect()
-        
-        // Then
-        val result = viewModel.testResult.value
-        assertThat(result).isNotNull()
-        assertThat(result).contains("Test failed")
-        assertThat(result).contains(errorMessage)
-    }
-    
-    @Test
-    fun `testHealthConnect should show error when record not found after insert`() = runTest {
-        // Given
-        val recordId = "test-record-789"
-        
-        whenever(healthConnectRepository.insertNutritionRecord(any(), any(), any()))
-            .thenReturn(Result.Success(recordId))
-        
-        // Return empty list (record not found)
-        whenever(healthConnectRepository.queryNutritionRecords(any(), any()))
-            .thenReturn(Result.Success(emptyList()))
-        
-        // When
-        viewModel.testHealthConnect()
-        
-        // Then
-        val result = viewModel.testResult.value
-        assertThat(result).isNotNull()
-        assertThat(result).contains("Test failed")
-        assertThat(result).contains("record not found")
-    }
-    
-    @Test
-    fun `clearTestResult should set testResult to null`() = runTest {
-        // Given - Set a test result
-        val recordId = "test-record"
-        whenever(healthConnectRepository.insertNutritionRecord(any(), any(), any()))
-            .thenReturn(Result.Success(recordId))
-        whenever(healthConnectRepository.queryNutritionRecords(any(), any()))
-            .thenReturn(Result.Success(listOf(
-                MealEntry(recordId, Instant.now(), "Test", 500)
-            )))
-        viewModel.testHealthConnect()
-        assertThat(viewModel.testResult.value).isNotNull()
-        
-        // When
-        viewModel.clearTestResult()
-        
-        // Then
-        assertThat(viewModel.testResult.value).isNull()
+        val state = viewModel.state.value
+        assertThat(state.mealsByDate.keys).contains("Today")
+        assertThat(state.mealsByDate.keys).contains("Yesterday")
+        assertThat(state.mealsByDate["Today"]).hasSize(1)
+        assertThat(state.mealsByDate["Yesterday"]).hasSize(1)
     }
 
     // Error handling tests (Story 1.5)
@@ -165,16 +99,17 @@ class MealListViewModelTest {
     @Test
     fun `loadMeals sets loading state when called`() = runTest {
         // Given
-        whenever(healthConnectRepository.queryNutritionRecords(any(), any()))
-            .thenReturn(Result.Success(emptyList()))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(emptyList())))
 
         // When
-        viewModel.loadMeals()
+        viewModel = MealListViewModel(getMealHistoryUseCase)
 
-        // Then - Check loading state is set
+        // Then - Check loading state is set (UnconfinedTestDispatcher executes immediately)
         val state = viewModel.state.value
-        assertThat(state.isLoading).isFalse() // UnconfinedTestDispatcher executes immediately
+        assertThat(state.isLoading).isFalse()
         assertThat(state.error).isNull()
+        assertThat(state.emptyStateVisible).isTrue()
     }
 
     @Test
@@ -183,28 +118,30 @@ class MealListViewModelTest {
         val testMeals = listOf(
             MealEntry("1", Instant.now(), "Test meal", 500)
         )
-        whenever(healthConnectRepository.queryNutritionRecords(any(), any()))
-            .thenReturn(Result.Success(testMeals))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
 
         // When
-        viewModel.loadMeals()
+        viewModel = MealListViewModel(getMealHistoryUseCase)
 
         // Then
         val state = viewModel.state.value
-        assertThat(state.meals).isEqualTo(testMeals)
+        assertThat(state.mealsByDate).isNotEmpty()
+        assertThat(state.mealsByDate["Today"]).isEqualTo(testMeals)
         assertThat(state.isLoading).isFalse()
         assertThat(state.error).isNull()
+        assertThat(state.emptyStateVisible).isFalse()
     }
 
     @Test
     fun `loadMeals updates error state when repository returns error`() = runTest {
         // Given
         val errorMessage = "Network error. Please check your connection and try again."
-        whenever(healthConnectRepository.queryNutritionRecords(any(), any()))
-            .thenReturn(Result.Error(java.io.IOException(), errorMessage))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Error(java.io.IOException(), errorMessage)))
 
         // When
-        viewModel.loadMeals()
+        viewModel = MealListViewModel(getMealHistoryUseCase)
 
         // Then
         val state = viewModel.state.value
@@ -216,11 +153,11 @@ class MealListViewModelTest {
     fun `loadMeals updates error state with user-friendly message on SecurityException`() = runTest {
         // Given
         val errorMessage = "Permission denied. Please grant Health Connect access in settings."
-        whenever(healthConnectRepository.queryNutritionRecords(any(), any()))
-            .thenReturn(Result.Error(SecurityException(), errorMessage))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Error(SecurityException(), errorMessage)))
 
         // When
-        viewModel.loadMeals()
+        viewModel = MealListViewModel(getMealHistoryUseCase)
 
         // Then
         val state = viewModel.state.value
@@ -231,29 +168,29 @@ class MealListViewModelTest {
     @Test
     fun `retryLoadMeals clears error and loads meals again`() = runTest {
         // Given - Initial error state
-        whenever(healthConnectRepository.queryNutritionRecords(any(), any()))
-            .thenReturn(Result.Error(java.io.IOException(), "Network error"))
-        viewModel.loadMeals()
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Error(java.io.IOException(), "Network error")))
+        viewModel = MealListViewModel(getMealHistoryUseCase)
         assertThat(viewModel.state.value.error).isNotNull()
 
         // When - Retry with successful result
         val testMeals = listOf(MealEntry("1", Instant.now(), "Test", 500))
-        whenever(healthConnectRepository.queryNutritionRecords(any(), any()))
-            .thenReturn(Result.Success(testMeals))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
         viewModel.retryLoadMeals()
 
         // Then
         val state = viewModel.state.value
         assertThat(state.error).isNull()
-        assertThat(state.meals).isEqualTo(testMeals)
+        assertThat(state.mealsByDate).isNotEmpty()
     }
 
     @Test
     fun `clearError removes error message without reloading`() = runTest {
         // Given - Error state
-        whenever(healthConnectRepository.queryNutritionRecords(any(), any()))
-            .thenReturn(Result.Error(java.io.IOException(), "Network error"))
-        viewModel.loadMeals()
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Error(java.io.IOException(), "Network error")))
+        viewModel = MealListViewModel(getMealHistoryUseCase)
         assertThat(viewModel.state.value.error).isNotNull()
 
         // When
@@ -261,5 +198,45 @@ class MealListViewModelTest {
 
         // Then
         assertThat(viewModel.state.value.error).isNull()
+    }
+
+    @Test
+    fun `refresh updates isRefreshing state and reloads meals`() = runTest {
+        // Given
+        val initialMeals = listOf(MealEntry("1", Instant.now(), "Old meal", 300))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(initialMeals)))
+        viewModel = MealListViewModel(getMealHistoryUseCase)
+
+        // When
+        val newMeals = listOf(
+            MealEntry("2", Instant.now(), "New meal", 500),
+            MealEntry("3", Instant.now(), "Another meal", 600)
+        )
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(newMeals)))
+        viewModel.refresh()
+
+        // Then
+        val state = viewModel.state.value
+        assertThat(state.isRefreshing).isFalse() // Completed immediately with test dispatcher
+        assertThat(state.mealsByDate["Today"]).hasSize(2)
+        assertThat(state.error).isNull()
+    }
+
+    @Test
+    fun `onDeleteMealConfirmed leaves state unchanged`() = runTest {
+        // Given
+        val testMeals = listOf(MealEntry("1", Instant.now(), "Test", 450))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+        viewModel = MealListViewModel(getMealHistoryUseCase)
+        val stateBefore = viewModel.state.value
+
+        // When
+        viewModel.onDeleteMealConfirmed(testMeals.first())
+
+        // Then
+        assertThat(viewModel.state.value).isEqualTo(stateBefore)
     }
 }

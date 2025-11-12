@@ -83,12 +83,22 @@ android {
         compose = true
         buildConfig = true
     }
+
+    packaging {
+        resources {
+            // Allow runtime to merge duplicate legal notices from test libs
+            pickFirsts += "META-INF/LICENSE.md"
+            pickFirsts += "META-INF/LICENSE-notice.md"
+            pickFirsts += "META-INF/NOTICE.md"
+            excludes += "META-INF/AL2.0"
+            excludes += "META-INF/LGPL2.1"
+        }
+    }
 }
 
 dependencies {
     // AndroidX Core
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
@@ -152,6 +162,8 @@ dependencies {
     androidTestImplementation(libs.truth)
     androidTestImplementation(libs.hilt.android.testing)
     androidTestImplementation(libs.androidx.work.testing)
+    androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    androidTestImplementation(libs.mockk.android)
     kspAndroidTest(libs.hilt.android.compiler)
 
     // Debug

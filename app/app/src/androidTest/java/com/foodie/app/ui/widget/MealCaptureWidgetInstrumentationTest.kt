@@ -4,7 +4,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.test.ext.junit4.runners.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.foodie.app.MainActivity
 import com.foodie.app.ui.ComposeTestActivity
 import com.google.common.truth.Truth.assertThat

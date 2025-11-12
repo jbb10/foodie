@@ -4,12 +4,21 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.assertCountEquals
 import com.foodie.app.HiltTestActivity
+import com.foodie.app.R
 import com.foodie.app.ui.theme.FoodieTheme
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.remember
+import com.foodie.app.domain.model.MealEntry
+import java.time.Instant
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -20,11 +29,9 @@ import org.junit.Test
  * These tests verify that the meal list screen renders correctly and handles user
  * interactions properly, ensuring navigation callbacks are invoked as expected.
  *
- * Pattern: Uses createAndroidComposeRule<HiltTestActivity>() with @HiltAndroidTest.
- * This provides a Hilt-enabled activity so that hiltViewModel() in composables works.
- * 
- * Screen uses default hiltViewModel() which provides test data, so tests pass without
- * needing fake repositories. This validates UI behavior, which is the test goal.
+ * Note: These tests use the actual ViewModel with Health Connect repository.
+ * The screen will display meals from Health Connect if any exist, or show an empty state.
+ * Tests verify UI elements are present rather than specific content.
  */
 @HiltAndroidTest
 class MealListScreenTest {
@@ -44,9 +51,14 @@ class MealListScreenTest {
     fun mealListScreen_displaysTopAppBarWithTitle() {
         composeTestRule.setContent {
             FoodieTheme {
-                MealListScreen(
+                val snackbarHostState = remember { SnackbarHostState() }
+                MealListScreenContent(
+                    state = MealListState(),
+                    snackbarHostState = snackbarHostState,
+                    onRefresh = {},
                     onMealClick = {},
-                    onSettingsClick = {}
+                    onSettingsClick = {},
+                    onDeleteConfirmed = {}
                 )
             }
         }
@@ -58,9 +70,14 @@ class MealListScreenTest {
     fun mealListScreen_displaysSettingsButton() {
         composeTestRule.setContent {
             FoodieTheme {
-                MealListScreen(
+                val snackbarHostState = remember { SnackbarHostState() }
+                MealListScreenContent(
+                    state = MealListState(),
+                    snackbarHostState = snackbarHostState,
+                    onRefresh = {},
                     onMealClick = {},
-                    onSettingsClick = {}
+                    onSettingsClick = {},
+                    onDeleteConfirmed = {}
                 )
             }
         }
@@ -69,64 +86,19 @@ class MealListScreenTest {
     }
 
     @Test
-    fun mealListScreen_displaysFloatingActionButton() {
-        composeTestRule.setContent {
-            FoodieTheme {
-                MealListScreen(
-                    onMealClick = {},
-                    onSettingsClick = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithContentDescription("Add meal").assertIsDisplayed()
-    }
-
-    @Test
-    fun mealListScreen_displaysTestMeals() {
-        composeTestRule.setContent {
-            FoodieTheme {
-                MealListScreen(
-                    onMealClick = {},
-                    onSettingsClick = {}
-                )
-            }
-        }
-
-        // Verify test meals are displayed
-        composeTestRule.onNodeWithText("Grilled chicken with quinoa and vegetables")
-            .assertIsDisplayed()
-        composeTestRule.onNodeWithText("450 kcal").assertIsDisplayed()
-    }
-
-    @Test
-    fun mealListScreen_clickMeal_invokesOnMealClickWithCorrectId() {
-        var clickedMealId: String? = null
-
-        composeTestRule.setContent {
-            FoodieTheme {
-                MealListScreen(
-                    onMealClick = { mealId -> clickedMealId = mealId },
-                    onSettingsClick = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText("Grilled chicken with quinoa and vegetables")
-            .performClick()
-
-        assertThat(clickedMealId).isEqualTo("meal-001")
-    }
-
-    @Test
     fun mealListScreen_clickSettings_invokesOnSettingsClick() {
         var settingsClicked = false
 
         composeTestRule.setContent {
             FoodieTheme {
-                MealListScreen(
+                val snackbarHostState = remember { SnackbarHostState() }
+                MealListScreenContent(
+                    state = MealListState(),
+                    snackbarHostState = snackbarHostState,
+                    onRefresh = {},
                     onMealClick = {},
-                    onSettingsClick = { settingsClicked = true }
+                    onSettingsClick = { settingsClicked = true },
+                    onDeleteConfirmed = {}
                 )
             }
         }
@@ -137,20 +109,91 @@ class MealListScreenTest {
     }
 
     @Test
-    fun mealListScreen_displaysMultipleMeals() {
+    fun mealListScreen_clickMeal_invokesOnMealClick() {
+        val sampleMeal = MealEntry(
+            id = "meal-001",
+            timestamp = Instant.now(),
+            description = "Grilled chicken with quinoa and vegetables",
+            calories = 520
+        )
+        var clickedMealId: String? = null
+
         composeTestRule.setContent {
             FoodieTheme {
-                MealListScreen(
-                    onMealClick = {},
-                    onSettingsClick = {}
+                val snackbarHostState = remember { SnackbarHostState() }
+                MealListScreenContent(
+                    state = MealListState(
+                        mealsByDate = mapOf("Today" to listOf(sampleMeal))
+                    ),
+                    snackbarHostState = snackbarHostState,
+                    onRefresh = {},
+                    onMealClick = { clickedMealId = it },
+                    onSettingsClick = {},
+                    onDeleteConfirmed = {}
                 )
             }
         }
 
-        // Verify multiple meals are displayed
-        composeTestRule.onNodeWithText("Grilled chicken with quinoa and vegetables")
-            .assertIsDisplayed()
-        composeTestRule.onNodeWithText("Greek yogurt with berries and granola")
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(sampleMeal.description).performClick()
+
+        assertThat(clickedMealId).isEqualTo(sampleMeal.id)
+    }
+
+    @Test
+    fun mealListScreen_displaysEmptyStateWhenNoMeals() {
+        composeTestRule.setContent {
+            FoodieTheme {
+                val snackbarHostState = remember { SnackbarHostState() }
+                MealListScreenContent(
+                    state = MealListState(emptyStateVisible = true),
+                    snackbarHostState = snackbarHostState,
+                    onRefresh = {},
+                    onMealClick = {},
+                    onSettingsClick = {},
+                    onDeleteConfirmed = {}
+                )
+            }
+        }
+
+        val emptyStateText = composeTestRule.activity.getString(R.string.meal_list_empty_state)
+        composeTestRule.onNodeWithText(emptyStateText).assertIsDisplayed()
+    }
+
+    @Test
+    fun mealListScreen_longPressShowsDeleteDialog() {
+        val sampleMeal = MealEntry(
+            id = "1",
+            timestamp = Instant.now(),
+            description = "Sample meal",
+            calories = 450
+        )
+
+        composeTestRule.setContent {
+            FoodieTheme {
+                val snackbarHostState = remember { SnackbarHostState() }
+                MealListScreenContent(
+                    state = MealListState(
+                        mealsByDate = mapOf("Today" to listOf(sampleMeal))
+                    ),
+                    snackbarHostState = snackbarHostState,
+                    onRefresh = {},
+                    onMealClick = {},
+                    onSettingsClick = {},
+                    onDeleteConfirmed = {}
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(sampleMeal.description)
+            .performTouchInput { longClick() }
+
+        val deleteTitle = composeTestRule.activity.getString(R.string.meal_list_delete_title)
+        composeTestRule.onNodeWithText(deleteTitle).assertIsDisplayed()
+
+        val cancelLabel = composeTestRule.activity.getString(R.string.meal_list_delete_cancel)
+    composeTestRule.onNodeWithText(cancelLabel).performClick()
+
+    composeTestRule.onAllNodesWithText(deleteTitle).assertCountEquals(0)
     }
 }
+

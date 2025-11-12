@@ -17,17 +17,19 @@ import com.foodie.app.domain.model.MealEntry
  * Mapping:
  * - NutritionRecord.metadata.id → MealEntry.id (or temporary ID if not yet saved)
  * - NutritionRecord.startTime → MealEntry.timestamp
- * - NutritionRecord.name → MealEntry.description
+ * - NutritionRecord.name → MealEntry.description (fallback: "Unknown meal" if blank)
  * - NutritionRecord.energy (in kcal) → MealEntry.calories
  *
  * @return MealEntry domain model
  * @throws IllegalArgumentException if calories or description fail MealEntry validation
  */
 fun NutritionRecord.toDomainModel(): MealEntry {
+    val description = name?.takeIf { it.isNotBlank() } ?: "Unknown meal"
     return MealEntry(
         id = metadata.id.ifEmpty { "temp-${startTime.toEpochMilli()}" },
         timestamp = startTime,
-        description = name ?: "",
-        calories = energy?.inKilocalories?.toInt() ?: 0
+        description = description,
+        calories = energy?.inKilocalories?.toInt() ?: 0,
+        zoneOffset = startZoneOffset
     )
 }

@@ -4,6 +4,13 @@
     <!-- Widget -->
     <string name="widget_description">Quick access to meal capture - tap to log a meal instantly</string>
     <string name="widget_placeholder">Log Meal</string>
+
+    <!-- Meal List -->
+    <string name="meal_list_empty_state">No meals logged yet. Use the widget to capture your first meal!</string>
+    <string name="meal_list_delete_title">Delete meal?</string>
+    <string name="meal_list_delete_message">Delete &quot;%1$s&quot; from your meal history?</string>
+    <string name="meal_list_delete_confirm">Delete</string>
+    <string name="meal_list_delete_cancel">Cancel</string>
     
     <!-- Camera Capture Screen -->
     <string name="capture_requesting_permission">Requesting camera permission…</string>

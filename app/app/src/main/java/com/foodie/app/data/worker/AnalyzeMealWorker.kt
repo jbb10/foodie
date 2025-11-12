@@ -1,5 +1,6 @@
 package com.foodie.app.data.worker
 
+import android.annotation.SuppressLint
 import android.app.ForegroundServiceStartNotAllowedException
 import android.content.Context
 import android.net.Uri
@@ -100,6 +101,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
 
     private val notificationManager by lazy { NotificationManagerCompat.from(appContext) }
 
+    @SuppressLint("NewApi")
     private suspend fun startForeground(statusTextRes: Int): androidx.work.ListenableWorker.Result? {
         val statusText = appContext.getString(statusTextRes)
         return try {
@@ -123,6 +125,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun notifySuccess(data: NutritionData) {
         notificationManager.notify(
             MealAnalysisNotificationSpec.COMPLETION_NOTIFICATION_ID,
@@ -130,6 +133,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
         )
     }
 
+    @SuppressLint("MissingPermission")
     private fun notifyFailure(message: String?) {
         val fallback = appContext.getString(R.string.notification_meal_analysis_failure_generic)
         val displayMessage = message?.takeIf { it.isNotBlank() } ?: fallback

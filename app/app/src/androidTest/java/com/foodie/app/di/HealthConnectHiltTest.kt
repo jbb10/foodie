@@ -3,6 +3,7 @@ package com.foodie.app.di
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.data.repository.HealthConnectRepository
+import com.foodie.app.domain.usecase.GetMealHistoryUseCase
 import com.foodie.app.ui.screens.meallist.MealListViewModel
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -16,8 +17,8 @@ import javax.inject.Inject
 /**
  * Instrumentation test verifying Hilt dependency injection works correctly.
  *
- * Tests verify that HealthConnectManager and HealthConnectRepository are properly
- * injected into components like ViewModels.
+ * Tests verify that HealthConnectManager, HealthConnectRepository, and use cases
+ * are properly injected into components like ViewModels.
  */
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
@@ -31,6 +32,9 @@ class HealthConnectHiltTest {
     
     @Inject
     lateinit var healthConnectRepository: HealthConnectRepository
+    
+    @Inject
+    lateinit var getMealHistoryUseCase: GetMealHistoryUseCase
     
     @Before
     fun setup() {
@@ -57,11 +61,17 @@ class HealthConnectHiltTest {
     }
     
     @Test
-    fun mealListViewModel_canBeCreatedWithInjectedRepository() {
-        // Given - Repository is injected
+    fun getMealHistoryUseCase_isInjectedSuccessfully() {
+        // Then
+        assertThat(getMealHistoryUseCase).isNotNull()
+    }
+    
+    @Test
+    fun mealListViewModel_canBeCreatedWithInjectedUseCase() {
+        // Given - Use case is injected
         
-        // When - Create ViewModel with repository
-        val viewModel = MealListViewModel(healthConnectRepository)
+        // When - Create ViewModel with use case
+        val viewModel = MealListViewModel(getMealHistoryUseCase)
         
         // Then - ViewModel is created successfully
         assertThat(viewModel).isNotNull()
@@ -75,5 +85,6 @@ class HealthConnectHiltTest {
         // Then
         assertThat(healthConnectManager).isNotNull()
         assertThat(healthConnectRepository).isNotNull()
+        assertThat(getMealHistoryUseCase).isNotNull()
     }
 }

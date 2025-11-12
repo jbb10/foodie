@@ -32,6 +32,7 @@ class MealAnalysisForegroundNotifier @Inject constructor(
             .setContentTitle(context.getString(R.string.notification_meal_analysis_title))
             .setContentText(statusText)
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setContentIntent(mainPendingIntent())
             .apply {
