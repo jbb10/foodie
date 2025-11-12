@@ -33,10 +33,6 @@ class MealListViewModel @Inject constructor(
     private val _state = MutableStateFlow(MealListState())
     val state: StateFlow<MealListState> = _state.asStateFlow()
     
-    init {
-        loadMeals()
-    }
-    
     /**
      * Loads meal entries from Health Connect for the last 7 days.
      * Groups meals by date with headers like "Today", "Yesterday", "Nov 7".

@@ -37,7 +37,7 @@ import java.time.format.FormatStyle
 @Composable
 fun MealListScreen(
     viewModel: MealListViewModel = hiltViewModel(),
-    onNavigateToDetail: (String) -> Unit
+    onNavigateToDetail: (MealEntry) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = uiState.isRefreshing)
@@ -76,7 +76,7 @@ fun MealListScreen(
                 } else {
                     MealList(
                         mealsByDate = uiState.mealsByDate,
-                        onItemClick = { onNavigateToDetail(it.id) }
+                        onItemClick = { onNavigateToDetail(it) }
                     )
                 }
             }

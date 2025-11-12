@@ -17,24 +17,35 @@ class ScreenTest {
     }
 
     @Test
-    fun `MealDetail route should contain mealId placeholder`() {
-        assertThat(Screen.MealDetail.route).isEqualTo("meal_detail/{mealId}")
+    fun `MealDetail route should contain all required query parameters`() {
+        assertThat(Screen.MealDetail.route)
+            .isEqualTo("meal_detail/{recordId}?calories={calories}&description={description}&timestamp={timestamp}")
     }
 
     @Test
-    fun `MealDetail createRoute should produce correct route with mealId`() {
-        val mealId = "test-meal-123"
-        val route = Screen.MealDetail.createRoute(mealId)
-        
-        assertThat(route).isEqualTo("meal_detail/test-meal-123")
+    fun `MealDetail createRoute should produce correct route with parameters`() {
+        val route = Screen.MealDetail.createRoute(
+            recordId = "test-meal-123",
+            calories = 450,
+            description = "Grilled chicken",
+            timestamp = 1731421800000L
+        )
+
+        assertThat(route)
+            .isEqualTo("meal_detail/test-meal-123?calories=450&description=Grilled+chicken&timestamp=1731421800000")
     }
 
     @Test
-    fun `MealDetail createRoute should handle special characters in mealId`() {
-        val mealId = "abc-123-xyz"
-        val route = Screen.MealDetail.createRoute(mealId)
-        
-        assertThat(route).isEqualTo("meal_detail/abc-123-xyz")
+    fun `MealDetail createRoute should URL encode description`() {
+        val route = Screen.MealDetail.createRoute(
+            recordId = "abc-123-xyz",
+            calories = 620,
+            description = "Yogurt & berries",
+            timestamp = 1731421800000L
+        )
+
+        assertThat(route)
+            .isEqualTo("meal_detail/abc-123-xyz?calories=620&description=Yogurt+%26+berries&timestamp=1731421800000")
     }
 
     @Test

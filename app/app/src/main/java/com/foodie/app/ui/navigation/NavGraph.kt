@@ -97,8 +97,15 @@ fun NavGraph(
             }
         ) {
             MealListScreen(
-                onMealClick = { mealId ->
-                    navController.navigate(Screen.MealDetail.createRoute(mealId))
+                onMealClick = { meal ->
+                    navController.navigate(
+                        Screen.MealDetail.createRoute(
+                            recordId = meal.id,
+                            calories = meal.calories,
+                            description = meal.description,
+                            timestamp = meal.timestamp.toEpochMilli()
+                        )
+                    )
                 },
                 onSettingsClick = {
                     navController.navigate(Screen.Settings.route)
@@ -106,16 +113,25 @@ fun NavGraph(
             )
         }
 
-        // Meal Detail screen (edit meal with mealId parameter)
+        // Meal Detail screen (edit meal with parameters)
         composable(
             route = Screen.MealDetail.route,
             arguments = listOf(
-                navArgument("mealId") {
+                navArgument("recordId") {
                     type = NavType.StringType
+                },
+                navArgument("calories") {
+                    type = NavType.StringType
+                },
+                navArgument("description") {
+                    type = NavType.StringType
+                },
+                navArgument("timestamp") {
+                    type = NavType.LongType
                 }
             ),
             deepLinks = listOf(
-                navDeepLink { uriPattern = "foodie://meals/{mealId}" } // Story 2-0
+                navDeepLink { uriPattern = "foodie://meals/{recordId}?calories={calories}&description={description}&timestamp={timestamp}" } // Updated for Story 3-2
             ),
             enterTransition = {
                 slideIntoContainer(
@@ -129,10 +145,8 @@ fun NavGraph(
                     animationSpec = tween(250, easing = FastOutSlowInEasing)
                 )
             }
-        ) { backStackEntry ->
-            val mealId = backStackEntry.arguments?.getString("mealId") ?: ""
+        ) {
             MealDetailScreen(
-                mealId = mealId,
                 onNavigateBack = {
                     navController.popBackStack()
                 }

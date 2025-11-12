@@ -1,0 +1,241 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>2</storyId>
+    <title>Edit Meal Entry Screen</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-2-edit-meal-entry-screen.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to edit the calories and description of a meal entry</iWant>
+    <soThat>I can correct inaccurate AI estimates</soThat>
+    <tasks>
+- [ ] **Task 1: Documentation Research & Technical Validation** ⚠️ COMPLETE BEFORE PROCEEDING TO IMPLEMENTATION
+  - Use fetch_webpage tool to read official online documentation for Jetpack Compose TextField validation and Material 3 form patterns
+  - Review Health Connect update pattern: Delete old record + Insert new record with preserved timestamp
+  - Validate assumptions: TextField numeric input, maxLength enforcement, timestamp preservation
+  - Identify constraints: Platform limitations, Health Connect update atomicity, error handling
+  - Document findings in Dev Notes before proceeding to Task 2
+
+- [ ] **Task 2: Domain Layer - Update Use Case** (AC: #9, #11)
+  - Create `UpdateMealEntryUseCase` that takes `MealEntry` domain model with updated values
+  - The use case validates input: calories 1-5000, description ≤200 chars
+  - The use case calls `HealthConnectRepository.updateMealEntry(recordId, calories, description)`
+  - The use case returns `Result<Unit>` with success or error
+  - Write unit tests for the use case covering validation and repository delegation
+
+- [ ] **Task 3: Data Layer - Repository Update Method** (AC: #9)
+  - In `HealthConnectRepository`, implement `updateMealEntry(recordId, calories, description)` method
+  - The method queries original `NutritionRecord` to get timestamp and metadata
+  - The method deletes old record using `HealthConnectClient.deleteRecords([recordId])`
+  - The method inserts new record with updated `energy` and `name` fields, preserving `startTime`/`endTime`
+  - The method returns `Result<Unit>` with success or error
+  - Write unit tests for the repository method mocking Health Connect client
+
+- [ ] **Task 4: ViewModel Implementation** (AC: #1-8, #10-12)
+  - Create `MealDetailViewModel` that accepts navigation args in init
+  - Expose UI state via `StateFlow&lt;MealDetailState&gt;` with fields: `calories`, `description`, `timestamp`, `caloriesError`, `descriptionError`, `isSaving`, `error`
+  - Implement `onEvent()` handler for `CaloriesChanged`, `DescriptionChanged`, `SaveClicked`, `CancelClicked` events
+  - Implement real-time validation: update `caloriesError` if value &lt;1 or &gt;5000, update `descriptionError` if length &gt;200
+  - Implement `SaveClicked` handler: validate, call use case, navigate back on success
+  - Implement `CancelClicked` handler: navigate back immediately
+  - Write unit tests for ViewModel covering validation, save logic, cancel logic
+
+- [ ] **Task 5: UI Implementation** (AC: #1-8, #10-12)
+  - Create `MealDetailScreen.kt` that observes `MealDetailState` from ViewModel
+  - Display `OutlinedTextField` for description with current value
+  - Display `OutlinedTextField` for calories with `keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)`
+  - Display read-only timestamp text (e.g., "Captured: Nov 12, 2025 at 2:30 PM")
+  - Implement "Save" button that triggers `viewModel.onEvent(SaveClicked)`
+  - Implement "Cancel" button that triggers `viewModel.onEvent(CancelClicked)`
+  - Display validation errors below input fields when `caloriesError` or `descriptionError` is not null
+  - Disable Save button when validation errors exist
+  - Wire up navigation from `MealListScreen` to `MealDetailScreen` with navigation args
+  - Write Compose UI tests for the screen
+
+- [ ] **Task 6: Integration Testing** (AC: #9, #11, #12)
+  - Manual test: Tap meal entry from list → Edit screen opens with pre-filled values
+  - Manual test: Modify calories → Save → Verify update in Health Connect and list view
+  - Manual test: Modify description → Save → Verify update in list view
+  - Manual test: Enter invalid calories (0, 5001) → Verify error message and disabled Save button
+  - Manual test: Enter 201-character description → Verify field enforces 200-char limit
+  - Manual test: Tap Cancel → Verify no changes saved, navigate back to list
+  - Measure edit screen open time (target &lt;200ms)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** I tap a meal entry from the list view,
+   **When** the edit screen opens,
+   **Then** the screen displays the current description in an editable text field.
+2. **And** the screen displays the current calories in an editable number field.
+3. **And** the screen displays the timestamp as read-only (e.g., "Captured: Nov 12, 2025 at 2:30 PM").
+4. **And** a "Save" button is prominently displayed.
+5. **And** a "Cancel" button allows discarding changes.
+6. **And** calorie validation ensures value &gt; 0 and &lt; 5000.
+7. **And** description field has maximum length of 200 characters.
+8. **And** the edit screen opens in under 200ms.
+9. **And** tapping "Save" updates the entry in Health Connect.
+10. **And** tapping "Cancel" discards changes and returns to list view.
+11. **And** after successful save, I am navigated back to the list view.
+12. **And** the list view shows the updated entry immediately.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Epic Technical Specification: Data Management &amp; Review</title>
+        <section>System Architecture Alignment</section>
+        <snippet>UI Layer: MealDetailScreen.kt - Edit screen with form validation and navigation. Material 3 components: OutlinedTextField, Button. Domain Layer: UpdateMealEntryUseCase - Validates input and delegates to repository. Data Layer: HealthConnectRepository - Methods: updateNutritionRecord(), deleteNutritionRecord(). Updates use delete+insert pattern (Health Connect doesn't support direct updates).</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Epic Technical Specification: Data Management &amp; Review</title>
+        <section>Workflows: Edit and Update Sequence</section>
+        <snippet>Update existing meal entry using delete+insert pattern. If delete succeeds but insert fails: Log error, show user message. UpdateMealEntryUseCase, HealthConnectRepository.updateMealEntry() - Mock delete+insert success, verify original timestamp preserved, verify navigation back.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Documentation</title>
+        <section>Domain Models</section>
+        <snippet>data class MealEntry(id, name, calories, timestamp). Repository Flow emits Result&lt;List&lt;MealEntry&gt;&gt;. Domain Layer includes UpdateMealEntryUseCase, DeleteMealEntryUseCase.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3-1-meal-entry-list-view.md</path>
+        <title>Story 3.1: Meal Entry List View</title>
+        <section>Dev Notes - Learnings</section>
+        <snippet>Use Case Pattern: GetMealHistoryUseCase established clean domain layer pattern - use case delegates to repository, returns Flow&lt;Result&lt;T&gt;&gt;. ViewModel State Management: MealListViewModel exposes StateFlow&lt;MealListState&gt; and handles events via onEvent() sealed class. Material 3 Components: MealListScreen uses Material 3 Card, Button, LazyColumn. Use OutlinedTextField for form inputs.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>app/src/main/java/com/foodie/app/domain/model/MealEntry.kt</path>
+        <kind>domain-model</kind>
+        <symbol>MealEntry</symbol>
+        <lines>16-20</lines>
+        <reason>Domain model that will be used for edit operations - contains id, name, calories, timestamp fields</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/HealthConnectRepository.kt</path>
+        <kind>repository</kind>
+        <symbol>HealthConnectRepository</symbol>
+        <lines>1-50</lines>
+        <reason>Existing repository where updateMealEntry() method will be added - shows established patterns for Result handling and Health Connect operations</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/domain/usecase/GetMealHistoryUseCase.kt</path>
+        <kind>use-case</kind>
+        <symbol>GetMealHistoryUseCase</symbol>
+        <lines>1-30</lines>
+        <reason>Example use case pattern to follow for UpdateMealEntryUseCase - shows Hilt injection, repository delegation, Flow&lt;Result&gt; pattern</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+        <kind>navigation</kind>
+        <symbol>NavGraph</symbol>
+        <lines>1-100</lines>
+        <reason>Navigation configuration where meal detail route will be added - shows pattern for routes with arguments and navigation callbacks</reason>
+      </file>
+      <file>
+        <path>app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt</path>
+        <kind>compose-screen</kind>
+        <symbol>MealListScreen</symbol>
+        <lines>1-50</lines>
+        <reason>Existing list screen that will navigate to edit screen - shows Material 3 usage patterns and navigation callback structure</reason>
+      </file>
+      <file>
+        <path>app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>MealListViewModel</symbol>
+        <lines>1-60</lines>
+        <reason>Example ViewModel pattern to follow for MealDetailViewModel - shows StateFlow usage, event handling, and use case integration</reason>
+      </file>
+    </code>
+    <dependencies>
+      <android>
+        <package name="androidx.compose.material3" note="Material 3 components - OutlinedTextField, Button, Card"/>
+        <package name="androidx.compose.ui" note="Compose UI foundation"/>
+        <package name="androidx.navigation.compose" note="Navigation with type-safe arguments"/>
+        <package name="androidx.lifecycle.viewmodel.compose" note="ViewModel integration with Compose"/>
+        <package name="androidx.hilt.navigation.compose" note="Hilt ViewModel injection"/>
+      </android>
+      <healthconnect>
+        <package name="androidx.health.connect.client" note="Health Connect SDK for nutrition record operations"/>
+      </healthconnect>
+      <testing>
+        <package name="junit" note="Unit testing framework"/>
+        <package name="mockito" note="Mocking framework for unit tests"/>
+        <package name="androidx.compose.ui.test.junit4" note="Compose UI testing"/>
+        <package name="truth" note="Assertion library"/>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Follow MVVM architecture pattern: UI Layer (Compose Screen + ViewModel + State) → Domain Layer (Use Case) → Data Layer (Repository → Health Connect Manager)</constraint>
+    <constraint>Use Hilt for dependency injection (@Inject, @HiltViewModel, @Singleton)</constraint>
+    <constraint>ViewModel must expose StateFlow&lt;MealDetailState&gt; for UI observation</constraint>
+    <constraint>Use sealed class or data class for UI events (CaloriesChanged, DescriptionChanged, SaveClicked, CancelClicked)</constraint>
+    <constraint>Repository must return Result&lt;T&gt; wrapper for error handling (Result.Success or Result.Error)</constraint>
+    <constraint>Health Connect update pattern: Delete old record → Insert new record with preserved timestamp (not transactional)</constraint>
+    <constraint>Form validation: Calories 1-5000, Description max 200 characters</constraint>
+    <constraint>Navigation args passed via NavGraph route parameters (recordId, calories, description, timestamp)</constraint>
+    <constraint>Material 3 components: OutlinedTextField for form inputs, error state display below fields</constraint>
+    <constraint>Performance requirement: Edit screen must open in under 200ms</constraint>
+    <constraint>Testing: Unit tests required for Use Case, Repository method, ViewModel. Instrumentation tests required for UI validation and navigation.</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>HealthConnectRepository.updateMealEntry</name>
+      <kind>suspend-function</kind>
+      <signature>suspend fun updateMealEntry(recordId: String, calories: Int, description: String): Result&lt;Unit&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/repository/HealthConnectRepository.kt</path>
+    </interface>
+    <interface>
+      <name>UpdateMealEntryUseCase.invoke</name>
+      <kind>operator-function</kind>
+      <signature>suspend operator fun invoke(recordId: String, calories: Int, description: String): Result&lt;Unit&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/usecase/UpdateMealEntryUseCase.kt</path>
+    </interface>
+    <interface>
+      <name>MealDetailViewModel.onEvent</name>
+      <kind>function</kind>
+      <signature>fun onEvent(event: MealDetailEvent)</signature>
+      <path>app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModel.kt</path>
+    </interface>
+    <interface>
+      <name>Navigation Route</name>
+      <kind>navigation</kind>
+      <signature>Screen.MealDetail.createRoute(mealId: String): String - Route: "meal_detail/{mealId}"</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Unit tests required for UpdateMealEntryUseCase, HealthConnectRepository.updateMealEntry(), and MealDetailViewModel. Use Mockito/Mockito-Kotlin for mocking dependencies. Instrumentation tests required for MealDetailScreen to verify form validation, error states, Save button disabled when validation errors exist, and navigation flows. Use Compose UI testing (androidx.compose.ui.test.junit4). Test naming: methodName_whenCondition_thenExpectedResult or feature_should_behavior_when_condition. Assertion library: Truth (assertThat(x).isEqualTo(y)). All tests must pass before marking story done.
+    </standards>
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/domain/usecase/UpdateMealEntryUseCaseTest.kt</location>
+      <location>app/app/src/test/java/com/foodie/app/data/repository/HealthConnectRepositoryTest.kt</location>
+      <location>app/src/test/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModelTest.kt</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/ui/screens/mealdetail/MealDetailScreenTest.kt</location>
+    </locations>
+    <ideas>
+      <test ac="1,2,3" desc="MealDetailScreen should display pre-filled values from navigation args - verify calories TextField, description TextField, and read-only timestamp Text are populated correctly"/>
+      <test ac="4,5" desc="MealDetailScreen should display Save and Cancel buttons prominently"/>
+      <test ac="6" desc="MealDetailViewModel should validate calories: when value &lt; 1 or &gt; 5000, then caloriesError is not null and Save button disabled"/>
+      <test ac="7" desc="MealDetailViewModel should validate description: when length &gt; 200, then descriptionError is not null and Save button disabled"/>
+      <test ac="8" desc="Performance test: MealDetailScreen should open in under 200ms (manual measurement in integration testing)"/>
+      <test ac="9" desc="UpdateMealEntryUseCase should call HealthConnectRepository.updateMealEntry with validated input and return Result.Success"/>
+      <test ac="9" desc="HealthConnectRepository.updateMealEntry should delete old record and insert new record with preserved timestamp"/>
+      <test ac="10" desc="MealDetailViewModel.onEvent(CancelClicked) should navigate back without calling use case"/>
+      <test ac="11" desc="MealDetailViewModel.onEvent(SaveClicked) should call use case and navigate back on success"/>
+      <test ac="12" desc="Integration test: After successful save, verify MealListScreen shows updated entry (manual validation with device testing)"/>
+    </ideas>
+  </tests>
+</story-context>

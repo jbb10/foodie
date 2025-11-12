@@ -4,6 +4,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.ComposeNavigator
@@ -13,6 +14,7 @@ import com.foodie.app.ui.theme.FoodieTheme
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import java.net.URLDecoder
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,6 +41,17 @@ class NavGraphTest {
 
     private lateinit var navController: TestNavHostController
 
+    private val defaultCalories = 640
+    private val defaultDescription = "Grilled salmon with rice"
+    private val defaultTimestamp = 1731421800000L
+
+    private fun mealDetailRoute(
+        recordId: String,
+        calories: Int = defaultCalories,
+        description: String = defaultDescription,
+        timestamp: Long = defaultTimestamp
+    ): String = Screen.MealDetail.createRoute(recordId, calories, description, timestamp)
+
     @Before
     fun setupNavHost() {
         hiltRule.inject()
@@ -62,14 +75,15 @@ class NavGraphTest {
     fun navGraph_navigateToMealDetail_displaysCorrectScreen() {
         val testMealId = "test-meal-123"
 
-        // Navigate to meal detail
         composeTestRule.runOnUiThread {
-            navController.navigate(Screen.MealDetail.createRoute(testMealId))
+            navController.navigate(mealDetailRoute(testMealId))
         }
 
-        // Verify screen displays
         composeTestRule.onNodeWithText("Edit Meal").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Editing meal: $testMealId").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("descriptionField").assertIsDisplayed()
+        val descriptionArg = navController.currentBackStackEntry?.arguments?.getString("description")
+            ?.let { URLDecoder.decode(it, "UTF-8") }
+        assertThat(descriptionArg).isEqualTo(defaultDescription)
         
         // Verify navigation state
         assertThat(navController.currentBackStackEntry?.destination?.route)
@@ -102,12 +116,20 @@ class NavGraphTest {
 
         if (clickResult.isFailure) {
             composeTestRule.runOnUiThread {
-                navController.navigate(Screen.MealDetail.createRoute("meal-001"))
+                navController.navigate(
+                    mealDetailRoute(
+                        recordId = "meal-001",
+                        description = "Fallback meal detail"
+                    )
+                )
             }
         }
 
         composeTestRule.onNodeWithText("Edit Meal").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Editing meal: meal-001").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("descriptionField").assertIsDisplayed()
+        val fallbackDescription = navController.currentBackStackEntry?.arguments?.getString("description")
+            ?.let { URLDecoder.decode(it, "UTF-8") }
+        assertThat(fallbackDescription).isEqualTo("Fallback meal detail")
     }
 
     @Test
@@ -125,11 +147,11 @@ class NavGraphTest {
     fun navGraph_fromMealDetail_clickBack_returnsToMealList() {
         // Navigate to meal detail
         composeTestRule.runOnUiThread {
-            navController.navigate(Screen.MealDetail.createRoute("test-meal"))
+            navController.navigate(mealDetailRoute("test-meal"))
         }
 
-        // Click back button
-        composeTestRule.onNodeWithContentDescription("Back").performClick()
+    // Click cancel/back button
+    composeTestRule.onNodeWithContentDescription("Cancel").performClick()
 
         // Verify returned to meal list
         composeTestRule.onNodeWithText("Foodie").assertIsDisplayed()
@@ -161,7 +183,7 @@ class NavGraphTest {
 
         // Navigate to MealDetail
         composeTestRule.runOnUiThread {
-            navController.navigate(Screen.MealDetail.createRoute("meal-1"))
+            navController.navigate(mealDetailRoute("meal-1"))
         }
         assertThat(navController.currentBackStackEntry?.destination?.route)
             .isEqualTo(Screen.MealDetail.route)
@@ -192,9 +214,17 @@ class NavGraphTest {
     fun navGraph_mealDetailWithDifferentIds_displaysDifferentContent() {
         // Navigate to meal detail with ID 1
         composeTestRule.runOnUiThread {
-            navController.navigate(Screen.MealDetail.createRoute("meal-abc"))
+            navController.navigate(
+                mealDetailRoute(
+                    recordId = "meal-abc",
+                    description = "Tofu curry"
+                )
+            )
         }
-        composeTestRule.onNodeWithText("Editing meal: meal-abc").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("descriptionField").assertIsDisplayed()
+        val firstDescription = navController.currentBackStackEntry?.arguments?.getString("description")
+            ?.let { URLDecoder.decode(it, "UTF-8") }
+        assertThat(firstDescription).isEqualTo("Tofu curry")
 
         // Go back
         composeTestRule.runOnUiThread {
@@ -203,8 +233,11 @@ class NavGraphTest {
 
         // Navigate to meal detail with ID 2
         composeTestRule.runOnUiThread {
-            navController.navigate(Screen.MealDetail.createRoute("meal-xyz"))
+            navController.navigate(mealDetailRoute("meal-xyz", description = "Miso soup"))
         }
-        composeTestRule.onNodeWithText("Editing meal: meal-xyz").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("descriptionField").assertIsDisplayed()
+        val secondDescription = navController.currentBackStackEntry?.arguments?.getString("description")
+            ?.let { URLDecoder.decode(it, "UTF-8") }
+        assertThat(secondDescription).isEqualTo("Miso soup")
     }
 }

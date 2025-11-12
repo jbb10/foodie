@@ -51,12 +51,13 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /**
- * Meal list screen (home screen) displaying all meal entries.
+ * Meal list screen displaying nutrition entries from Health Connect.
  *
- * Shows meals from the last 7 days grouped by date with headers like "Today", "Yesterday".
- * Supports pull-to-refresh gesture and displays appropriate empty/error/loading states.
+ * Shows meals grouped by date (Today, Yesterday, or specific date) with swipe-to-refresh,
+ * long-press delete, and error handling with retry capability. Navigation to detail screen
+ * passes full meal data for editing.
  *
- * @param onMealClick Callback invoked when a meal is tapped (passes meal ID)
+ * @param onMealClick Callback invoked when meal entry is tapped, receives MealEntry object
  * @param onSettingsClick Callback invoked when settings button is tapped
  * @param viewModel ViewModel managing meal list state and Health Connect operations
  * @param modifier Optional modifier for the screen
@@ -64,13 +65,18 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MealListScreen(
-    onMealClick: (String) -> Unit,
+    onMealClick: (MealEntry) -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MealListViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    // Refresh meal list when screen becomes visible (e.g., after editing a meal)
+    LaunchedEffect(Unit) {
+        viewModel.loadMeals()
+    }
     
     // Show error snackbar with retry action
     LaunchedEffect(state.error) {
@@ -106,7 +112,7 @@ internal fun MealListScreenContent(
     state: MealListState,
     snackbarHostState: SnackbarHostState,
     onRefresh: () -> Unit,
-    onMealClick: (String) -> Unit,
+    onMealClick: (MealEntry) -> Unit,
     onSettingsClick: () -> Unit,
     onDeleteConfirmed: (MealEntry) -> Unit,
     modifier: Modifier = Modifier
@@ -184,10 +190,11 @@ internal fun MealListScreenContent(
                                 items = meals,
                                 key = { meal -> meal.id }
                             ) { meal ->
-                                MealListItem(
+                                MealEntryCard(
                                     meal = meal,
-                                    onClick = { onMealClick(meal.id) },
-                                    onLongClick = { mealPendingDelete = meal }
+                                    onClick = { onMealClick(meal) },
+                                    onLongClick = { mealPendingDelete = meal },
+                                    modifier = Modifier.padding(horizontal = 16.dp)
                                 )
                             }
                         }
@@ -242,7 +249,7 @@ internal fun MealListScreenContent(
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun MealListItem(
+private fun MealEntryCard(
     meal: MealEntry,
     onClick: () -> Unit,
     onLongClick: () -> Unit,

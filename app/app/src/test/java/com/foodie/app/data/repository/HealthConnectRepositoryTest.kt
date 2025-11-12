@@ -191,4 +191,104 @@ class HealthConnectRepositoryTest {
         val error = result as Result.Error
         assertThat(error.exception).isInstanceOf(IllegalStateException::class.java)
     }
+
+    @Test
+    fun `updateNutritionRecord returns Success when operation succeeds`() = runTest {
+        // Given
+        val recordId = "record-123"
+        val calories = 750
+        val description = "Updated grilled chicken"
+        val timestamp = Instant.parse("2025-11-12T14:30:00Z")
+
+        // When
+        val result = repository.updateNutritionRecord(recordId, calories, description, timestamp)
+
+        // Then
+        assertThat(result).isInstanceOf(Result.Success::class.java)
+        verify(healthConnectManager).updateNutritionRecord(recordId, calories, description, timestamp)
+    }
+
+    @Test
+    fun `updateNutritionRecord returns Error when SecurityException thrown`() = runTest {
+        // Given
+        val recordId = "record-456"
+        val calories = 600
+        val description = "Test update"
+        val timestamp = Instant.now()
+
+        whenever(healthConnectManager.updateNutritionRecord(any(), any(), any(), any()))
+            .thenThrow(SecurityException("Permissions not granted"))
+
+        // When
+        val result = repository.updateNutritionRecord(recordId, calories, description, timestamp)
+
+        // Then
+        assertThat(result).isInstanceOf(Result.Error::class.java)
+        val error = result as Result.Error
+        assertThat(error.exception).isInstanceOf(SecurityException::class.java)
+        assertThat(error.message).isEqualTo("Permission denied. Please grant Health Connect access in settings.")
+    }
+
+    @Test
+    fun `updateNutritionRecord returns Error when IllegalStateException thrown`() = runTest {
+        // Given
+        val recordId = "record-789"
+        val calories = 500
+        val description = "Test meal"
+        val timestamp = Instant.now()
+
+        whenever(healthConnectManager.updateNutritionRecord(any(), any(), any(), any()))
+            .thenThrow(IllegalStateException("Health Connect not available"))
+
+        // When
+        val result = repository.updateNutritionRecord(recordId, calories, description, timestamp)
+
+        // Then
+        assertThat(result).isInstanceOf(Result.Error::class.java)
+        val error = result as Result.Error
+        assertThat(error.exception).isInstanceOf(IllegalStateException::class.java)
+        assertThat(error.message).isEqualTo("Health Connect is not available. Please install it from the Play Store.")
+    }
+
+    @Test
+    fun `updateNutritionRecord preserves original timestamp`() = runTest {
+        // Given - timestamp from 2 days ago
+        val recordId = "record-old"
+        val calories = 800
+        val description = "Updated description"
+        val originalTimestamp = Instant.now().minusSeconds(172800) // 2 days ago
+
+        // When
+        val result = repository.updateNutritionRecord(recordId, calories, description, originalTimestamp)
+
+        // Then
+        assertThat(result).isInstanceOf(Result.Success::class.java)
+        verify(healthConnectManager).updateNutritionRecord(
+            recordId = recordId,
+            calories = calories,
+            description = description,
+            timestamp = originalTimestamp
+        )
+    }
+
+    @Test
+    fun `updateNutritionRecord returns Error when generic Exception thrown`() = runTest {
+        // Given
+        val recordId = "record-error"
+        val calories = 450
+        val description = "Test"
+        val timestamp = Instant.now()
+
+        whenever(healthConnectManager.updateNutritionRecord(any(), any(), any(), any()))
+            .thenThrow(RuntimeException("Network error"))
+
+        // When
+        val result = repository.updateNutritionRecord(recordId, calories, description, timestamp)
+
+        // Then
+        assertThat(result).isInstanceOf(Result.Error::class.java)
+        val error = result as Result.Error
+        assertThat(error.exception).isInstanceOf(RuntimeException::class.java)
+        assertThat(error.message).isEqualTo("An unexpected error occurred. Please try again.")
+    }
 }

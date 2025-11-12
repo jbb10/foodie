@@ -1,45 +1,109 @@
 package com.foodie.app.ui.screens.mealdetail
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.annotation.VisibleForTesting
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.foodie.app.ui.theme.FoodieTheme
+import androidx.hilt.navigation.compose.hiltViewModel
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 /**
- * Meal detail/edit screen for viewing and editing a specific meal entry.
+ * Meal detail/edit screen for modifying meal entries.
  *
- * This is a placeholder implementation for Epic 1 Story 1.3. Future stories will add:
- * - ViewModel with real data loading from Health Connect (Epic 3)
- * - Editable fields for meal description and calories
- * - Save functionality to update Health Connect entry
- * - Delete functionality
+ * Displays editable form with calories, description, and read-only timestamp.
+ * Provides real-time validation feedback and Save/Cancel actions.
  *
- * Current implementation displays the meal ID for navigation testing purposes.
- *
- * @param mealId The unique identifier of the meal to display/edit
- * @param onNavigateBack Callback invoked when back navigation is requested
- * @param modifier Optional modifier for the screen
+ * @param viewModel ViewModel managing form state and update operations
+ * @param onNavigateBack Callback to navigate back to previous screen
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MealDetailScreen(
-    mealId: String,
-    onNavigateBack: () -> Unit,
+    viewModel: MealDetailViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Handle navigation
+    LaunchedEffect(uiState.shouldNavigateBack) {
+        if (uiState.shouldNavigateBack) {
+            viewModel.onNavigationHandled()
+            onNavigateBack()
+        }
+    }
+
+    // Show error snackbar
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { errorMessage ->
+            snackbarHostState.showSnackbar(errorMessage)
+            viewModel.onEvent(MealDetailEvent.ErrorDismissed)
+        }
+    }
+
+    MealDetailScreenContent(
+        state = uiState,
+        onEvent = viewModel::onEvent,
+        snackbarHostState = snackbarHostState
+    )
+}
+
+/**
+ * Formats timestamp for display.
+ *
+ * Example: "Nov 12, 2025 at 2:30 PM"
+ */
+@Composable
+private fun formatTimestamp(timestamp: java.time.Instant): String {
+    val zonedDateTime = timestamp.atZone(ZoneId.systemDefault())
+    val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+    val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
+    return "${zonedDateTime.format(dateFormatter)} at ${zonedDateTime.format(timeFormatter)}"
+}
+
+/**
+ * UI content for the meal detail/edit screen.
+ *
+ * Extracted for easier previewing and testing without Hilt dependencies.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+@VisibleForTesting
+internal fun MealDetailScreenContent(
+    state: MealDetailState,
+    onEvent: (MealDetailEvent) -> Unit,
+    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -47,45 +111,95 @@ fun MealDetailScreen(
             TopAppBar(
                 title = { Text("Edit Meal") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = { onEvent(MealDetailEvent.CancelClicked) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Cancel"
                         )
                     }
                 }
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = modifier
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(16.dp)
         ) {
-            Text(
-                text = "Editing meal: $mealId",
-                style = MaterialTheme.typography.bodyLarge
+            OutlinedTextField(
+                value = state.calories,
+                onValueChange = { onEvent(MealDetailEvent.CaloriesChanged(it)) },
+                label = { Text("Calories") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = state.caloriesError != null,
+                supportingText = state.caloriesError?.let {
+                    { Text(it, color = MaterialTheme.colorScheme.error) }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("caloriesField"),
+                enabled = !state.isSaving
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = state.description,
+                onValueChange = { onEvent(MealDetailEvent.DescriptionChanged(it)) },
+                label = { Text("Description") },
+                isError = state.descriptionError != null,
+                supportingText = {
+                    if (state.descriptionError != null) {
+                        Text(state.descriptionError, color = MaterialTheme.colorScheme.error)
+                    } else {
+                        Text("${state.description.length}/200 characters")
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("descriptionField"),
+                maxLines = 3,
+                enabled = !state.isSaving
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Text(
-                text = "Meal editing functionality will be implemented in Epic 3",
+                text = "Captured: ${formatTimestamp(state.timestamp)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
-    }
-}
 
-@Preview(showBackground = true)
-@Composable
-private fun MealDetailScreenPreview() {
-    FoodieTheme {
-        MealDetailScreen(
-            mealId = "sample-meal-123",
-            onNavigateBack = {}
-        )
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedButton(
+                    onClick = { onEvent(MealDetailEvent.CancelClicked) },
+                    enabled = !state.isSaving,
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("cancelButton")
+                ) {
+                    Text("Cancel")
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Button(
+                    onClick = { onEvent(MealDetailEvent.SaveClicked) },
+                    enabled = state.canSave(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("saveButton")
+                ) {
+                    Text(if (state.isSaving) "Saving..." else "Save")
+                }
+            }
+        }
     }
 }

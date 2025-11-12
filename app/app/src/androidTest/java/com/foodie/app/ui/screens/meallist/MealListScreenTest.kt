@@ -116,7 +116,7 @@ class MealListScreenTest {
             description = "Grilled chicken with quinoa and vegetables",
             calories = 520
         )
-        var clickedMealId: String? = null
+    var clickedMeal: MealEntry? = null
 
         composeTestRule.setContent {
             FoodieTheme {
@@ -127,7 +127,7 @@ class MealListScreenTest {
                     ),
                     snackbarHostState = snackbarHostState,
                     onRefresh = {},
-                    onMealClick = { clickedMealId = it },
+                    onMealClick = { clickedMeal = it },
                     onSettingsClick = {},
                     onDeleteConfirmed = {}
                 )
@@ -136,7 +136,8 @@ class MealListScreenTest {
 
         composeTestRule.onNodeWithText(sampleMeal.description).performClick()
 
-        assertThat(clickedMealId).isEqualTo(sampleMeal.id)
+    assertThat(clickedMeal?.id).isEqualTo(sampleMeal.id)
+    assertThat(clickedMeal?.description).isEqualTo(sampleMeal.description)
     }
 
     @Test

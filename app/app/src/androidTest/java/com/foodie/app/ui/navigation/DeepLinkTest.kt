@@ -47,6 +47,26 @@ class DeepLinkTest {
 
     private lateinit var navController: TestNavHostController
 
+    private val defaultCalories = 640
+    private val defaultDescription = "Grilled salmon with rice"
+    private val defaultTimestamp = 1731421800000L
+
+    private fun mealDetailUri(
+        recordId: String,
+        calories: Int = defaultCalories,
+        description: String = defaultDescription,
+        timestamp: Long = defaultTimestamp
+    ): Uri = Uri.parse(
+        "foodie://meals/$recordId?calories=$calories&description=${Uri.encode(description)}&timestamp=$timestamp"
+    )
+
+    private fun mealDetailRoute(
+        recordId: String,
+        calories: Int = defaultCalories,
+        description: String = defaultDescription,
+        timestamp: Long = defaultTimestamp
+    ): String = Screen.MealDetail.createRoute(recordId, calories, description, timestamp)
+
     @Before
     fun setupNavHost() {
         hiltRule.inject()
@@ -156,9 +176,8 @@ class DeepLinkTest {
 
     @Test
     fun deepLink_mealDetailUri_navigatesToMealDetailScreen() {
-        // Given: foodie://meals/{mealId} deep link
         val testMealId = "test-meal-123"
-        val uri = Uri.parse("foodie://meals/$testMealId")
+        val uri = mealDetailUri(testMealId)
 
         // When: Handle deep link
         composeTestRule.runOnUiThread {
@@ -167,17 +186,22 @@ class DeepLinkTest {
             )
         }
 
-        // Then: MealDetailScreen is displayed with correct meal ID
+        // Then: MealDetailScreen is displayed with pre-filled data
         composeTestRule.onNodeWithText("Edit Meal").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Editing meal: $testMealId").assertIsDisplayed()
+        composeTestRule.onNodeWithText(defaultDescription).assertIsDisplayed()
+        composeTestRule.onNodeWithText(defaultCalories.toString()).assertIsDisplayed()
         assertThat(navController.currentDestination?.route).isEqualTo(Screen.MealDetail.route)
     }
 
     @Test
-    fun deepLink_mealDetailUri_extractsMealIdParameter() {
-        // Given: foodie://meals/{mealId} deep link
+    fun deepLink_mealDetailUri_extractsMealArguments() {
         val testMealId = "meal-456-special"
-        val uri = Uri.parse("foodie://meals/$testMealId")
+        val uri = mealDetailUri(
+            recordId = testMealId,
+            calories = 720,
+            description = "Strawberry yogurt",
+            timestamp = 1731422800000L
+        )
 
         // When: Handle deep link
         composeTestRule.runOnUiThread {
@@ -186,19 +210,22 @@ class DeepLinkTest {
             )
         }
 
-        // Then: mealId argument is correctly extracted
-        val mealId = DeepLinkTestHelper.extractArgument(
-            navController.currentBackStackEntry,
-            "mealId"
-        )
-        assertThat(mealId).isEqualTo(testMealId)
+        val backStackEntry = navController.currentBackStackEntry
+        val recordId = DeepLinkTestHelper.extractArgument(backStackEntry, "recordId")
+        val calories = DeepLinkTestHelper.extractArgument(backStackEntry, "calories")
+        val description = DeepLinkTestHelper.extractArgument(backStackEntry, "description")
+        val timestamp = backStackEntry?.arguments?.getLong("timestamp")
+
+        assertThat(recordId).isEqualTo(testMealId)
+        assertThat(calories).isEqualTo("720")
+        assertThat(description).isEqualTo("Strawberry yogurt")
+        assertThat(timestamp).isEqualTo(1731422800000L)
     }
 
     @Test
     fun deepLink_mealDetailUri_backStackContainsMealListAndMealDetail() {
-        // Given: foodie://meals/{mealId} deep link
         val testMealId = "test-meal-789"
-        val uri = Uri.parse("foodie://meals/$testMealId")
+        val uri = mealDetailUri(testMealId)
 
         // When: Handle deep link
         composeTestRule.runOnUiThread {
@@ -217,24 +244,23 @@ class DeepLinkTest {
         
         // Verify we navigated to MealDetail
         assertThat(navController.currentDestination?.route).isEqualTo(Screen.MealDetail.route)
-        // Deep link successfully extracted meal ID parameter
-        assertThat(navController.currentBackStackEntry?.arguments?.getString("mealId"))
+        assertThat(navController.currentBackStackEntry?.arguments?.getString("recordId"))
             .isEqualTo(testMealId)
     }
 
     @Test
     fun deepLink_mealDetailUri_backNavigation_returnsToMealList() {
         // Given: Start at MealList, then deep link to meal detail
-        // NOTE: TestNavHostController doesn't create synthetic back stack, so we manually
-        // establish the back stack that production would have
-        val uri = Uri.parse("foodie://meals/test-meal-back")
+    // NOTE: TestNavHostController doesn't create synthetic back stack, so we manually
+    // establish the back stack that production would have
+    val uri = mealDetailUri("test-meal-back")
         composeTestRule.runOnUiThread {
             // Start at MealList (start destination)
             navController.handleDeepLink(
                 Intent(Intent.ACTION_VIEW, Uri.parse("foodie://meals"))
             )
             // Then navigate to detail
-            navController.navigate(Screen.MealDetail.createRoute("test-meal-back"))
+            navController.navigate(mealDetailRoute("test-meal-back"))
         }
 
         // When: Navigate back
@@ -255,7 +281,7 @@ class DeepLinkTest {
         }
 
         // When: Deep link to meal detail
-        val uri = Uri.parse("foodie://meals/foreground-test")
+        val uri = mealDetailUri("foreground-test")
         composeTestRule.runOnUiThread {
             navController.handleDeepLink(
                 Intent(Intent.ACTION_VIEW, uri)
@@ -268,24 +294,23 @@ class DeepLinkTest {
     }
 
     @Test
-    fun deepLink_mealDetailUri_withSpecialCharacters_handlesMealId() {
-        // Given: Meal ID with special characters (URL-safe)
+    fun deepLink_mealDetailUri_withSpecialCharacters_handlesPayload() {
         val specialMealId = "meal-2024-01-15-breakfast"
-        val uri = Uri.parse("foodie://meals/$specialMealId")
+        val uri = mealDetailUri(
+            recordId = specialMealId,
+            description = "Blueberry oatmeal",
+            calories = 510
+        )
 
-        // When: Handle deep link
         composeTestRule.runOnUiThread {
             navController.handleDeepLink(
                 Intent(Intent.ACTION_VIEW, uri)
             )
         }
 
-        // Then: Meal ID is correctly preserved
-        val mealId = DeepLinkTestHelper.extractArgument(
-            navController.currentBackStackEntry,
-            "mealId"
-        )
-        assertThat(mealId).isEqualTo(specialMealId)
+        composeTestRule.onNodeWithText("Blueberry oatmeal").assertIsDisplayed()
+        val recordId = DeepLinkTestHelper.extractArgument(navController.currentBackStackEntry, "recordId")
+        assertThat(recordId).isEqualTo(specialMealId)
     }
 
     // ============================================================================

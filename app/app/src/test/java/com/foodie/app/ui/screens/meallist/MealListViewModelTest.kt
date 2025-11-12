@@ -60,6 +60,7 @@ class MealListViewModelTest {
 
         // When
         viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel.loadMeals() // Explicitly call loadMeals (called by LaunchedEffect in screen)
 
         // Then
         val state = viewModel.state.value
@@ -85,6 +86,7 @@ class MealListViewModelTest {
 
         // When
         viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel.loadMeals()
 
         // Then
         val state = viewModel.state.value
@@ -104,6 +106,7 @@ class MealListViewModelTest {
 
         // When
         viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel.loadMeals()
 
         // Then - Check loading state is set (UnconfinedTestDispatcher executes immediately)
         val state = viewModel.state.value
@@ -123,6 +126,7 @@ class MealListViewModelTest {
 
         // When
         viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel.loadMeals()
 
         // Then
         val state = viewModel.state.value
@@ -142,6 +146,7 @@ class MealListViewModelTest {
 
         // When
         viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel.loadMeals()
 
         // Then
         val state = viewModel.state.value
@@ -158,6 +163,7 @@ class MealListViewModelTest {
 
         // When
         viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel.loadMeals()
 
         // Then
         val state = viewModel.state.value
@@ -171,6 +177,7 @@ class MealListViewModelTest {
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Error(java.io.IOException(), "Network error")))
         viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel.loadMeals()
         assertThat(viewModel.state.value.error).isNotNull()
 
         // When - Retry with successful result
@@ -191,6 +198,7 @@ class MealListViewModelTest {
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Error(java.io.IOException(), "Network error")))
         viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel.loadMeals()
         assertThat(viewModel.state.value.error).isNotNull()
 
         // When

@@ -28,20 +28,24 @@ sealed class Screen(val route: String) {
     data object MealList : Screen("meal_list")
 
     /**
-     * Meal detail/edit screen with meal ID parameter.
+     * Meal detail/edit screen with meal data parameters.
      * Displays and allows editing a specific meal entry.
      *
-     * Route pattern: "meal_detail/{mealId}"
-     * Actual route example: "meal_detail/abc123"
+     * Route pattern: "meal_detail/{recordId}?calories={calories}&description={description}&timestamp={timestamp}"
+     * Actual route example: "meal_detail/abc123?calories=650&description=Chicken&timestamp=1699800000000"
      */
-    data object MealDetail : Screen("meal_detail/{mealId}") {
+    data object MealDetail : Screen("meal_detail/{recordId}?calories={calories}&description={description}&timestamp={timestamp}") {
         /**
-         * Creates a navigation route with the specified meal ID.
+         * Creates a navigation route with the specified meal data.
          *
-         * @param mealId The unique identifier of the meal to display/edit
-         * @return Complete route string with mealId parameter (e.g., "meal_detail/abc123")
+         * @param recordId The unique identifier of the meal record
+         * @param calories Energy content in kilocalories
+         * @param description Meal description/name
+         * @param timestamp When the meal was consumed (epoch millis)
+         * @return Complete route string with all parameters
          */
-        fun createRoute(mealId: String): String = "meal_detail/$mealId"
+        fun createRoute(recordId: String, calories: Int, description: String, timestamp: Long): String =
+            "meal_detail/$recordId?calories=$calories&description=${java.net.URLEncoder.encode(description, "UTF-8")}&timestamp=$timestamp"
     }
 
     /**
