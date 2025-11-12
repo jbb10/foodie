@@ -7,8 +7,8 @@
 
     <!-- Meal List -->
     <string name="meal_list_empty_state">No meals logged yet. Use the widget to capture your first meal!</string>
-    <string name="meal_list_delete_title">Delete meal?</string>
-    <string name="meal_list_delete_message">Delete &quot;%1$s&quot; from your meal history?</string>
+    <string name="meal_list_delete_title">Delete Entry</string>
+    <string name="meal_list_delete_message">Delete this entry? This cannot be undone.</string>
     <string name="meal_list_delete_confirm">Delete</string>
     <string name="meal_list_delete_cancel">Cancel</string>
     

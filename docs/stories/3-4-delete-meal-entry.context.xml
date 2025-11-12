@@ -1,0 +1,195 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/3-4-delete-meal-entry" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.4</storyId>
+    <title>Delete Meal Entry</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-4-delete-meal-entry.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to delete incorrect or duplicate entries</iWant>
+    <soThat>my nutrition log stays accurate</soThat>
+    <tasks>
+      <task id="1" critical="true">Documentation Research &amp; Technical Validation - Validate Health Connect delete API behavior, Material 3 dialog patterns, and Compose long-press gesture detection</task>
+      <task id="2">Implement Delete Confirmation Dialog - Create Material 3 AlertDialog with "Delete Entry" title, warning message, Cancel/Delete buttons</task>
+      <task id="3">Implement Long-Press Gesture Detection - Add Modifier.pointerInput with detectTapGestures to MealEntryCard</task>
+      <task id="4">Implement Delete Operation - Create DeleteMealEntryUseCase, implement MealListViewModel.onDeleteConfirmed(), handle Result responses</task>
+      <task id="5">Error Handling &amp; Edge Cases - Handle SecurityException, IllegalStateException, RemoteException with user-friendly messages</task>
+      <task id="6">Cross-App Validation - Verify deletion reflected in Google Fit and Health Connect system app</task>
+      <task id="7">End-to-End Validation - Complete flow testing, performance validation (&lt;1s delete time), full test suite execution</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Given I long-press a meal entry in the list view, When the delete confirmation dialog appears, Then the dialog displays: "Delete this entry? This cannot be undone."</ac>
+    <ac id="2">And the dialog has "Cancel" and "Delete" buttons.</ac>
+    <ac id="3">And tapping "Cancel" dismisses the dialog with no changes.</ac>
+    <ac id="4">And tapping "Delete" removes the entry from Health Connect.</ac>
+    <ac id="5">And the entry disappears from the list view immediately.</ac>
+    <ac id="6">And a toast message displays: "Entry deleted".</ac>
+    <ac id="7">And the deletion is permanent (no undo capability).</ac>
+    <ac id="8">And the deletion is reflected in other Health Connect apps.</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Epic Technical Specification: Data Management &amp; Review</title>
+        <section>Story 3.4: Delete Meal Entry</section>
+        <snippet>Delete Sequence: User long-presses meal entry → Dialog appears with "Delete this entry? This cannot be undone." → User taps Delete → deleteMealEntryUseCase.invoke(recordId) → repository.deleteMealEntry() calls client.deleteRecords([recordId]) → entry removed from state.mealsByDate → Toast "Entry deleted" → Time: &lt;1s for delete operation</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>foodie - Epic Breakdown</title>
+        <section>Epic 3 - Story 3.4</section>
+        <snippet>Delete functionality for meal entries. Long-press gesture triggers confirmation dialog. Use HealthConnectClient.deleteRecords() API. Remove item from adapter after successful deletion. Handle errors gracefully with toast messages.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Foodie - Product Requirements Document</title>
+        <section>FR-8: Delete Meal Entry</section>
+        <snippet>Long-press entry in list view shows confirmation dialog. Delete button removes entry from Health Connect. Entry disappears from list view immediately. Show toast confirmation: "Entry deleted". No undo capability (permanent deletion).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Foodie - Architecture Document</title>
+        <section>Health Connect Data Model</section>
+        <snippet>Delete operations use HealthConnectClient.deleteRecords() API. Deletion is atomic (single operation, no multi-step risk). Repository pattern: HealthConnectRepository.deleteNutritionRecord(recordId) wraps Health Connect API with Result wrapper for error handling.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3-3-update-health-connect-entry.md</path>
+        <title>Story 3.3: Update Health Connect Entry</title>
+        <section>Dev Notes - Learnings</section>
+        <snippet>Delete method already exists in HealthConnectRepository from Story 1.4. Delete operation is atomic (unlike update's delete+insert). Same error handling patterns apply: SecurityException (permissions), IllegalStateException (HC unavailable), RemoteException. Toast messaging pattern via MealDetailState.successMessage + LaunchedEffect reusable for delete confirmation.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/repository/MealRepository.kt</path>
+        <kind>interface</kind>
+        <symbol>MealRepository</symbol>
+        <lines>1-67</lines>
+        <reason>Repository interface defining deleteMeal(id: String): Result&lt;Unit&gt; contract that DeleteMealEntryUseCase will delegate to. Documents error scenarios: meal not found, permission denied, network/system errors.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/MealRepositoryImpl.kt</path>
+        <kind>repository</kind>
+        <symbol>deleteMeal</symbol>
+        <lines>91-102</lines>
+        <reason>Existing deleteMeal implementation that calls HealthConnectManager.deleteNutritionRecord(). Wraps exceptions in Result.Error with user-friendly messages. This is the atomic delete operation the use case will invoke.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>MealListViewModel</symbol>
+        <lines>1-120</lines>
+        <reason>ViewModel to extend with delete event handling: onMealLongPress(mealId), onDismissDeleteDialog(), onDeleteConfirmed(). Will manage dialog state (showDeleteDialog, deleteTargetId) and remove entry from mealsByDate map after successful deletion.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt</path>
+        <kind>composable</kind>
+        <symbol>MealListScreen</symbol>
+        <lines>1-200</lines>
+        <reason>Screen to modify with long-press gesture detection (Modifier.pointerInput + detectTapGestures) and DeleteConfirmationDialog composable. Uses Material 3 AlertDialog with Cancel/Delete buttons.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListState.kt</path>
+        <kind>data-class</kind>
+        <symbol>MealListState</symbol>
+        <lines>1-30</lines>
+        <reason>State class to extend with dialog fields: showDeleteDialog: Boolean, deleteTargetId: String?, successMessage: String? for toast notification. Follows pattern from MealDetailState.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/test/java/com/foodie/app/data/repository/MealRepositoryImplTest.kt</path>
+        <kind>test</kind>
+        <symbol>deleteMeal tests</symbol>
+        <lines>180-210</lines>
+        <reason>Existing unit tests for deleteMeal showing success and error scenarios. Validates atomic deletion behavior and error mapping to Result wrapper. Pattern to follow for use case tests.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <android>
+        <package name="androidx.compose.material3" version="compose-bom-2024.10.01">Material 3 AlertDialog component for delete confirmation dialog</package>
+        <package name="androidx.compose.foundation" version="compose-bom-2024.10.01">pointerInput modifier for long-press gesture detection</package>
+        <package name="androidx.compose.ui" version="compose-bom-2024.10.01">detectTapGestures for onLongPress callback</package>
+        <package name="androidx.health.connect" version="1.1.0">HealthConnectClient.deleteRecords() for permanent entry deletion</package>
+        <package name="com.google.dagger.hilt" version="2.51.1">Dependency injection for use case and repository</package>
+        <package name="org.jetbrains.kotlinx.coroutines" version="1.9.0">Coroutine support for async delete operations</package>
+      </android>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">MVVM pattern: DeleteConfirmationDialog (UI) → MealListViewModel (events) → DeleteMealEntryUseCase (domain) → MealRepository (data) → Health Connect</constraint>
+    <constraint type="pattern">Delete is atomic (single HealthConnectClient.deleteRecords() call) - simpler than update's delete+insert pattern, no partial failure risk</constraint>
+    <constraint type="ui">Material 3 destructive action pattern: Dialog with red "Delete" button on right, "Cancel" on left, warning copy "This cannot be undone"</constraint>
+    <constraint type="gesture">Long-press detection via Modifier.pointerInput { detectTapGestures(onLongPress = ...) } - must not conflict with normal tap navigation or scroll gestures</constraint>
+    <constraint type="state">Dialog state managed in MealListViewModel: showDeleteDialog: Boolean, deleteTargetId: String? - dialog shows when both are set</constraint>
+    <constraint type="error-handling">Handle SecurityException (permissions), IllegalStateException (HC unavailable), RemoteException with user-friendly toast messages - same patterns from Story 3.3</constraint>
+    <constraint type="performance">Delete operation must complete in &lt;1 second from confirmation to list update (target from tech spec)</constraint>
+    <constraint type="testing">Unit tests required for use case, ViewModel delete flow, dialog state management. Instrumentation tests for Compose long-press gesture, Health Connect deletion, cross-app validation.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>MealRepository.deleteMeal</name>
+      <kind>repository-method</kind>
+      <signature>suspend fun deleteMeal(id: String): Result&lt;Unit&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/repository/MealRepository.kt</path>
+    </interface>
+    <interface>
+      <name>HealthConnectClient.deleteRecords</name>
+      <kind>health-connect-api</kind>
+      <signature>suspend fun deleteRecords(recordType: KClass&lt;out Record&gt;, idsList: List&lt;String&gt;, clientRecordIdsList: List&lt;String&gt;): Unit</signature>
+      <path>androidx.health.connect.client.HealthConnectClient</path>
+    </interface>
+    <interface>
+      <name>DeleteMealEntryUseCase</name>
+      <kind>use-case</kind>
+      <signature>suspend operator fun invoke(mealId: String): Result&lt;Unit&gt; (NEW - to be created)</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/usecase/DeleteMealEntryUseCase.kt</path>
+    </interface>
+    <interface>
+      <name>MealListViewModel delete events</name>
+      <kind>viewmodel-methods</kind>
+      <signature>
+        fun onMealLongPress(mealId: String): Unit (NEW)
+        fun onDismissDeleteDialog(): Unit (NEW)
+        fun onDeleteConfirmed(): Unit (NEW)
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt</path>
+    </interface>
+    <interface>
+      <name>Modifier.pointerInput gesture</name>
+      <kind>compose-modifier</kind>
+      <signature>suspend fun PointerInputScope.detectTapGestures(onTap: (Offset) -&gt; Unit, onLongPress: (Offset) -&gt; Unit)</signature>
+      <path>androidx.compose.foundation.gestures</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <p>All tests follow project conventions: JUnit 4 for unit tests, Mockito-Kotlin for mocking, Truth for assertions. Test naming: `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`. Unit tests required for DeleteMealEntryUseCase (success, error scenarios), MealListViewModel delete flow (dialog state management, entry removal from map), error handling (SecurityException, IllegalStateException messages). Instrumentation tests required for Compose long-press gesture detection, Material 3 AlertDialog rendering, Health Connect delete operation validation, cross-app sync verification.</p>
+      <p>Test coverage targets: 80%+ for use case and ViewModel, 100% for critical delete operation paths. All tests must pass before story marked complete: ./gradlew test (unit), ./gradlew connectedAndroidTest (instrumentation).</p>
+    </standards>
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/domain/usecase/</location>
+      <location>app/app/src/test/java/com/foodie/app/ui/screens/meallist/</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/ui/screens/meallist/</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/data/healthconnect/</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2,3">Unit test: MealListViewModel.onMealLongPress() sets showDeleteDialog=true and stores mealId. Unit test: onDismissDeleteDialog() clears dialog state. Compose UI test: Long-press triggers dialog with correct title/message/buttons.</idea>
+      <idea ac="4,5,6">Unit test: DeleteMealEntryUseCase.invoke() calls repository.deleteMeal() and returns Result. Unit test: MealListViewModel.onDeleteConfirmed() success removes entry from mealsByDate map, sets successMessage="Entry deleted", dismisses dialog. Integration test: Delete removes NutritionRecord from Health Connect.</idea>
+      <idea ac="7,8">Integration test: Verify deleted record not queryable from Health Connect. Manual test: Verify Google Fit and HC system app reflect deletion. Manual test: Confirm no undo option exists in any app.</idea>
+      <idea ac="8">Unit test: DeleteMealEntryUseCase error handling - SecurityException → friendly message. Unit test: IllegalStateException → friendly message. Unit test: onDeleteConfirmed() error keeps dialog open or shows error toast.</idea>
+      <idea>Compose UI test: Normal tap navigation still works (no conflict with long-press). Manual test: Scroll gesture not intercepted by long-press detection.</idea>
+      <idea>Performance test: Measure delete operation time from confirmation to list update - verify &lt;1 second target.</idea>
+    </ideas>
+  </tests>
+</story-context>

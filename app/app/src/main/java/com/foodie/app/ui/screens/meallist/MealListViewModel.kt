@@ -3,6 +3,7 @@ package com.foodie.app.ui.screens.meallist
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foodie.app.domain.model.MealEntry
+import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
 import com.foodie.app.domain.usecase.GetMealHistoryUseCase
 import com.foodie.app.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,7 +28,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class MealListViewModel @Inject constructor(
-    private val getMealHistoryUseCase: GetMealHistoryUseCase
+    private val getMealHistoryUseCase: GetMealHistoryUseCase,
+    private val deleteMealEntryUseCase: DeleteMealEntryUseCase
 ) : ViewModel() {
     
     private val _state = MutableStateFlow(MealListState())
@@ -151,6 +153,84 @@ class MealListViewModel @Inject constructor(
         loadMeals()
     }
     
+    /**
+     * Handles long-press gesture on a meal entry.
+     * Shows delete confirmation dialog for the selected entry.
+     *
+     * @param mealId The ID of the meal entry to potentially delete
+     */
+    fun onMealLongPress(mealId: String) {
+        Timber.d("Long-press detected on meal $mealId, showing delete dialog")
+        _state.update { it.copy(showDeleteDialog = true, deleteTargetId = mealId) }
+    }
+    
+    /**
+     * Dismisses the delete confirmation dialog without deleting.
+     * Clears the selected meal ID.
+     */
+    fun onDismissDeleteDialog() {
+        Timber.d("Delete dialog dismissed by user")
+        _state.update { it.copy(showDeleteDialog = false, deleteTargetId = null) }
+    }
+    
+    /**
+     * Confirms deletion of the selected meal entry.
+     * Removes the entry from Health Connect and updates the UI state.
+     */
+    fun onDeleteConfirmed() {
+        val targetId = _state.value.deleteTargetId
+        if (targetId == null) {
+            Timber.w("Delete confirmed but no target ID set")
+            return
+        }
+        
+        Timber.d("Delete confirmed for meal $targetId")
+        viewModelScope.launch {
+            val startTimeMs = System.currentTimeMillis()
+            
+            when (val result = deleteMealEntryUseCase(targetId)) {
+                is Result.Success -> {
+                    val elapsed = System.currentTimeMillis() - startTimeMs
+                    Timber.i("Meal $targetId deleted successfully in ${elapsed}ms")
+                    
+                    // Remove entry from state
+                    _state.update { state ->
+                        val updatedMeals = state.mealsByDate.mapValues { (_, meals) ->
+                            meals.filterNot { it.id == targetId }
+                        }.filterValues { it.isNotEmpty() }
+                        
+                        state.copy(
+                            mealsByDate = updatedMeals,
+                            showDeleteDialog = false,
+                            deleteTargetId = null,
+                            successMessage = "Entry deleted",
+                            emptyStateVisible = updatedMeals.isEmpty()
+                        )
+                    }
+                }
+                is Result.Error -> {
+                    val elapsed = System.currentTimeMillis() - startTimeMs
+                    Timber.e(result.exception, "Failed to delete meal $targetId in ${elapsed}ms: ${result.message}")
+                    
+                    _state.update { it.copy(
+                        showDeleteDialog = false,
+                        deleteTargetId = null,
+                        error = result.message
+                    )}
+                }
+                is Result.Loading -> {
+                    // Deletion is a single operation, should never be Loading
+                }
+            }
+        }
+    }
+    
+    /**
+     * Clears the success message after it has been displayed.
+     */
+    fun clearSuccessMessage() {
+        _state.update { it.copy(successMessage = null) }
+    }
 
     /**
      * Handles delete confirmation for future delete workflow (Story 3.4).

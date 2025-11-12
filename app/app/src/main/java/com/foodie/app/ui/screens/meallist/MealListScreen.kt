@@ -93,6 +93,17 @@ fun MealListScreen(
             }
         }
     }
+    
+    // Show success toast message
+    LaunchedEffect(state.successMessage) {
+        state.successMessage?.let { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                withDismissAction = true
+            )
+            viewModel.clearSuccessMessage()
+        }
+    }
 
     MealListScreenContent(
         state = state,
@@ -100,7 +111,9 @@ fun MealListScreen(
         onRefresh = viewModel::refresh,
         onMealClick = onMealClick,
         onSettingsClick = onSettingsClick,
-        onDeleteConfirmed = viewModel::onDeleteMealConfirmed,
+        onMealLongPress = viewModel::onMealLongPress,
+        onDismissDeleteDialog = viewModel::onDismissDeleteDialog,
+        onDeleteConfirmed = viewModel::onDeleteConfirmed,
         modifier = modifier
     )
 }
@@ -114,10 +127,11 @@ internal fun MealListScreenContent(
     onRefresh: () -> Unit,
     onMealClick: (MealEntry) -> Unit,
     onSettingsClick: () -> Unit,
-    onDeleteConfirmed: (MealEntry) -> Unit,
+    onMealLongPress: (String) -> Unit,
+    onDismissDeleteDialog: () -> Unit,
+    onDeleteConfirmed: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var mealPendingDelete by remember { mutableStateOf<MealEntry?>(null) }
 
     Scaffold(
         topBar = {
@@ -193,7 +207,7 @@ internal fun MealListScreenContent(
                                 MealEntryCard(
                                     meal = meal,
                                     onClick = { onMealClick(meal) },
-                                    onLongClick = { mealPendingDelete = meal },
+                                    onLongClick = { onMealLongPress(meal.id) },
                                     modifier = Modifier.padding(horizontal = 16.dp)
                                 )
                             }
@@ -204,32 +218,24 @@ internal fun MealListScreenContent(
         }
     }
 
-    mealPendingDelete?.let { meal ->
+    // Show delete confirmation dialog
+    if (state.showDeleteDialog) {
         AlertDialog(
-            onDismissRequest = {
-                mealPendingDelete = null
-            },
+            onDismissRequest = onDismissDeleteDialog,
             title = { Text(text = stringResource(id = R.string.meal_list_delete_title)) },
-            text = {
-                Text(
-                    text = stringResource(
-                        id = R.string.meal_list_delete_message,
-                        meal.description
-                    )
-                )
-            },
+            text = { Text(text = stringResource(id = R.string.meal_list_delete_message)) },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        onDeleteConfirmed(meal)
-                        mealPendingDelete = null
-                    }
+                    onClick = onDeleteConfirmed,
+                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
                     Text(text = stringResource(id = R.string.meal_list_delete_confirm))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { mealPendingDelete = null }) {
+                TextButton(onClick = onDismissDeleteDialog) {
                     Text(text = stringResource(id = R.string.meal_list_delete_cancel))
                 }
             }
@@ -321,6 +327,8 @@ private fun MealListScreenPreview() {
             onRefresh = {},
             onMealClick = {},
             onSettingsClick = {},
+            onMealLongPress = {},
+            onDismissDeleteDialog = {},
             onDeleteConfirmed = {}
         )
     }

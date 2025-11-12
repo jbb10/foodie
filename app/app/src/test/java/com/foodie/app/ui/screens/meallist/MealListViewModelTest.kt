@@ -2,6 +2,7 @@ package com.foodie.app.ui.screens.meallist
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.foodie.app.domain.model.MealEntry
+import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
 import com.foodie.app.domain.usecase.GetMealHistoryUseCase
 import com.foodie.app.util.Result
 import com.google.common.truth.Truth.assertThat
@@ -16,6 +17,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.time.Instant
@@ -36,12 +38,14 @@ class MealListViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     
     private lateinit var getMealHistoryUseCase: GetMealHistoryUseCase
+    private lateinit var deleteMealEntryUseCase: DeleteMealEntryUseCase
     private lateinit var viewModel: MealListViewModel
     
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         getMealHistoryUseCase = mock()
+        deleteMealEntryUseCase = mock()
     }
     
     @After
@@ -59,7 +63,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(testMeals)))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
         viewModel.loadMeals() // Explicitly call loadMeals (called by LaunchedEffect in screen)
 
         // Then
@@ -85,7 +89,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(testMeals)))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
         viewModel.loadMeals()
 
         // Then
@@ -105,7 +109,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(emptyList())))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
         viewModel.loadMeals()
 
         // Then - Check loading state is set (UnconfinedTestDispatcher executes immediately)
@@ -125,7 +129,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(testMeals)))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
         viewModel.loadMeals()
 
         // Then
@@ -145,7 +149,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Error(java.io.IOException(), errorMessage)))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
         viewModel.loadMeals()
 
         // Then
@@ -162,7 +166,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Error(SecurityException(), errorMessage)))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
         viewModel.loadMeals()
 
         // Then
@@ -176,7 +180,7 @@ class MealListViewModelTest {
         // Given - Initial error state
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Error(java.io.IOException(), "Network error")))
-        viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
         viewModel.loadMeals()
         assertThat(viewModel.state.value.error).isNotNull()
 
@@ -197,7 +201,7 @@ class MealListViewModelTest {
         // Given - Error state
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Error(java.io.IOException(), "Network error")))
-        viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
         viewModel.loadMeals()
         assertThat(viewModel.state.value.error).isNotNull()
 
@@ -214,7 +218,7 @@ class MealListViewModelTest {
         val initialMeals = listOf(MealEntry("1", Instant.now(), "Old meal", 300))
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(initialMeals)))
-        viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
 
         // When
         val newMeals = listOf(
@@ -238,7 +242,7 @@ class MealListViewModelTest {
         val testMeals = listOf(MealEntry("1", Instant.now(), "Test", 450))
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(testMeals)))
-        viewModel = MealListViewModel(getMealHistoryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
         val stateBefore = viewModel.state.value
 
         // When
@@ -247,4 +251,178 @@ class MealListViewModelTest {
         // Then
         assertThat(viewModel.state.value).isEqualTo(stateBefore)
     }
+
+    // Delete functionality tests (Story 3.4)
+
+    @Test
+    fun `onMealLongPress sets showDeleteDialog and deleteTargetId`() = runTest {
+        // Given
+        val testMeals = listOf(MealEntry("meal-123", Instant.now(), "Lunch", 600))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+
+        // When
+        viewModel.onMealLongPress("meal-123")
+
+        // Then
+        val state = viewModel.state.value
+        assertThat(state.showDeleteDialog).isTrue()
+        assertThat(state.deleteTargetId).isEqualTo("meal-123")
+    }
+
+    @Test
+    fun `onDismissDeleteDialog clears dialog state`() = runTest {
+        // Given
+        val testMeals = listOf(MealEntry("meal-123", Instant.now(), "Lunch", 600))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel.onMealLongPress("meal-123")
+
+        // When
+        viewModel.onDismissDeleteDialog()
+
+        // Then
+        val state = viewModel.state.value
+        assertThat(state.showDeleteDialog).isFalse()
+        assertThat(state.deleteTargetId).isNull()
+    }
+
+    @Test
+    fun `onDeleteConfirmed removes entry from state on success`() = runTest {
+        // Given
+        val testMeals = listOf(
+            MealEntry("meal-1", Instant.now(), "Breakfast", 400),
+            MealEntry("meal-2", Instant.now(), "Lunch", 600)
+        )
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+        whenever(deleteMealEntryUseCase(any()))
+            .thenReturn(Result.Success(Unit))
+        
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel.loadMeals()
+        viewModel.onMealLongPress("meal-1")
+
+        // When
+        viewModel.onDeleteConfirmed()
+
+        // Then
+        val state = viewModel.state.value
+        assertThat(state.mealsByDate["Today"]).hasSize(1)
+        assertThat(state.mealsByDate["Today"]?.first()?.id).isEqualTo("meal-2")
+        assertThat(state.showDeleteDialog).isFalse()
+        assertThat(state.deleteTargetId).isNull()
+        assertThat(state.successMessage).isEqualTo("Entry deleted")
+    }
+
+    @Test
+    fun `onDeleteConfirmed sets emptyStateVisible when last entry deleted`() = runTest {
+        // Given
+        val testMeals = listOf(MealEntry("meal-1", Instant.now(), "Breakfast", 400))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+        whenever(deleteMealEntryUseCase(any()))
+            .thenReturn(Result.Success(Unit))
+        
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel.loadMeals()
+        viewModel.onMealLongPress("meal-1")
+
+        // When
+        viewModel.onDeleteConfirmed()
+
+        // Then
+        val state = viewModel.state.value
+        assertThat(state.mealsByDate).isEmpty()
+        assertThat(state.emptyStateVisible).isTrue()
+        assertThat(state.successMessage).isEqualTo("Entry deleted")
+    }
+
+    @Test
+    fun `onDeleteConfirmed sets error on delete failure`() = runTest {
+        // Given
+        val testMeals = listOf(MealEntry("meal-1", Instant.now(), "Breakfast", 400))
+        val errorMessage = "Failed to delete meal"
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+        whenever(deleteMealEntryUseCase(any()))
+            .thenReturn(Result.Error(Exception("Network error"), errorMessage))
+        
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel.loadMeals()
+        viewModel.onMealLongPress("meal-1")
+
+        // When
+        viewModel.onDeleteConfirmed()
+
+        // Then
+        val state = viewModel.state.value
+        assertThat(state.error).isEqualTo(errorMessage)
+        assertThat(state.showDeleteDialog).isFalse()
+        assertThat(state.mealsByDate["Today"]).hasSize(1) // Entry still present
+    }
+
+    @Test
+    fun `onDeleteConfirmed handles SecurityException with user-friendly message`() = runTest {
+        // Given
+        val testMeals = listOf(MealEntry("meal-1", Instant.now(), "Breakfast", 400))
+        val errorMessage = "Health Connect permissions not granted. Please grant permissions in Settings."
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+        whenever(deleteMealEntryUseCase(any()))
+            .thenReturn(Result.Error(SecurityException("Permission denied"), errorMessage))
+        
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel.loadMeals()
+        viewModel.onMealLongPress("meal-1")
+
+        // When
+        viewModel.onDeleteConfirmed()
+
+        // Then
+        val state = viewModel.state.value
+        assertThat(state.error).contains("permissions")
+    }
+
+    @Test
+    fun `onDeleteConfirmed does nothing when no deleteTargetId set`() = runTest {
+        // Given
+        val testMeals = listOf(MealEntry("meal-1", Instant.now(), "Breakfast", 400))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+        
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel.loadMeals()
+        val stateBefore = viewModel.state.value
+
+        // When
+        viewModel.onDeleteConfirmed()
+
+        // Then (state unchanged, use case not called)
+        assertThat(viewModel.state.value.mealsByDate).isEqualTo(stateBefore.mealsByDate)
+    }
+
+    @Test
+    fun `clearSuccessMessage clears successMessage field`() = runTest {
+        // Given
+        val testMeals = listOf(MealEntry("meal-1", Instant.now(), "Breakfast", 400))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+        whenever(deleteMealEntryUseCase(any()))
+            .thenReturn(Result.Success(Unit))
+        
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel.loadMeals()
+        viewModel.onMealLongPress("meal-1")
+        viewModel.onDeleteConfirmed()
+
+        // When
+        viewModel.clearSuccessMessage()
+
+        // Then
+        assertThat(viewModel.state.value.successMessage).isNull()
+    }
 }
+

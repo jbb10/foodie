@@ -13,11 +13,17 @@ import com.foodie.app.domain.model.MealEntry
  * @param isRefreshing True if pull-to-refresh is in progress
  * @param error User-friendly error message, null if no error
  * @param emptyStateVisible True when no meals exist (shows empty state message)
+ * @param showDeleteDialog True when delete confirmation dialog should be shown
+ * @param deleteTargetId ID of the meal entry selected for deletion, null if no entry selected
+ * @param successMessage User-friendly success message (e.g., "Entry deleted"), null if no message
  */
 data class MealListState(
     val mealsByDate: Map<String, List<MealEntry>> = emptyMap(),
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val error: String? = null,
-    val emptyStateVisible: Boolean = false
+    val emptyStateVisible: Boolean = false,
+    val showDeleteDialog: Boolean = false,
+    val deleteTargetId: String? = null,
+    val successMessage: String? = null
 )
