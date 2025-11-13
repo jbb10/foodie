@@ -16,6 +16,8 @@ data class MealDetailState(
     val caloriesError: String? = null,
     val descriptionError: String? = null,
     val isSaving: Boolean = false,
+    val isDeleting: Boolean = false,
+    val showDeleteConfirmation: Boolean = false,
     val error: String? = null,
     val shouldNavigateBack: Boolean = false,
     val successMessage: String? = null
@@ -28,5 +30,5 @@ data class MealDetailState(
     /**
      * Checks if the Save button should be enabled.
      */
-    fun canSave(): Boolean = !hasErrors() && !isSaving && calories.isNotBlank() && description.isNotBlank()
+    fun canSave(): Boolean = !hasErrors() && !isSaving && !isDeleting && calories.isNotBlank() && description.isNotBlank()
 }

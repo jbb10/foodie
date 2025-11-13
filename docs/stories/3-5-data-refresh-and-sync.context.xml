@@ -1,0 +1,209 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.5</storyId>
+    <title>Data Refresh and Sync</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-5-data-refresh-and-sync.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>the meal list to refresh automatically when I return to the app</iWant>
+    <soThat>I see the latest entries if I added meals via other apps or the widget</soThat>
+    <tasks>
+      <task id="1">Documentation Research &amp; Technical Validation - Validate lifecycle-aware refresh patterns and pull-to-refresh implementation</task>
+      <task id="2">Implement Lifecycle-Aware Refresh - Add LaunchedEffect observing Lifecycle.currentState, trigger refresh on RESUMED</task>
+      <task id="3">Implement Pull-to-Refresh UI - Add pull-to-refresh modifier to LazyColumn, bind isRefreshing state</task>
+      <task id="4">Preserve Scroll Position - Verify LazyColumn scroll state maintained during refresh</task>
+      <task id="5">Error Handling During Refresh - Handle exceptions, preserve last loaded data, show error with retry</task>
+      <task id="6">Cross-App Sync Validation - Create meal in Google Fit, verify appears after lifecycle refresh</task>
+      <task id="7">Performance Validation - Measure refresh completion time, target &lt;1 second</task>
+      <task id="8">End-to-End Validation - Manual testing of all scenarios, run test suites</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">When I switch to another app and return to Foodie, the meal list automatically refreshes from Health Connect</criterion>
+    <criterion id="AC2">New entries created by other apps appear in the list</criterion>
+    <criterion id="AC3">The refresh happens in the background without blocking the UI</criterion>
+    <criterion id="AC4">The scroll position is maintained after refresh</criterion>
+    <criterion id="AC5">When I pull down on the list (swipe-to-refresh gesture), a loading indicator displays</criterion>
+    <criterion id="AC6">The list reloads data from Health Connect</criterion>
+    <criterion id="AC7">The refresh completes in under 1 second</criterion>
+    <criterion id="AC8">The loading indicator dismisses automatically</criterion>
+    <criterion id="AC9">When refresh fails (permissions denied or Health Connect unavailable), an error message displays with retry option</criterion>
+    <criterion id="AC10">The list shows the last successfully loaded data (no blank screen on error)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/tech-spec-epic-3.md</path>
+        <title>Epic Technical Specification: Data Management &amp; Review</title>
+        <section>Story 3.5: Data Refresh and Sync</section>
+        <snippet>Epic 3 enables users to view, edit, and delete nutrition entries with reactive state management using StateFlow. Story 3.5 implements lifecycle-aware refresh and pull-to-refresh to ensure users always see latest entries from Health Connect.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/epics.md</path>
+        <title>foodie - Epic Breakdown</title>
+        <section>Epic 3: Data Management &amp; Review</section>
+        <snippet>Goal: Enable users to view, edit, and delete their nutrition entries, providing transparency and control. Story 3.5 ensures meal list stays synchronized with Health Connect when returning from background or pulling to refresh.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Foodie - Architecture Document</title>
+        <section>Health Connect as Single Source of Truth</section>
+        <snippet>Health Connect is the single source of truth for all nutrition data (ADR-005). No local caching - query Health Connect on every screen load to detect entries created by other apps or background workers.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Foodie - Architecture Document</title>
+        <section>Kotlin Flow over LiveData</section>
+        <snippet>Use StateFlow and Flow instead of LiveData (ADR-007). Flow is more powerful and composable, with better Compose integration via collectAsStateWithLifecycle. Supports operators like map, filter, combine.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/PRD.md</path>
+        <title>Foodie - Product Requirements Document</title>
+        <section>Data Management Features</section>
+        <snippet>List view showing recent entries, edit capability for corrections, delete capability for removal. Full CRUD operations for nutrition data stored in Health Connect.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/stories/3-4-delete-meal-entry.md</path>
+        <title>Story 3.4: Delete Meal Entry</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Repository getMealHistory() returns Flow that automatically emits new data when Health Connect updates. State management uses isLoading for initial load. Error handling preserves mealsByDate on error, shows error message with retry option.</snippet>
+      </artifact>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>MealListViewModel</symbol>
+        <lines>30-100</lines>
+        <reason>Contains loadMeals() and refresh() methods. Already has fetchMeals(isRefresh) logic distinguishing initial load from refresh. Uses isRefreshing state flag.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListState.kt</path>
+        <kind>state</kind>
+        <symbol>MealListState</symbol>
+        <lines>20-28</lines>
+        <reason>Data class with isLoading and isRefreshing flags already defined. Separates initial load from pull-to-refresh states. Has error and successMessage fields for user feedback.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt</path>
+        <kind>screen</kind>
+        <symbol>MealListScreen</symbol>
+        <lines>1-250</lines>
+        <reason>Compose UI screen using LazyColumn. Will need lifecycle observer (LaunchedEffect) added to detect app resume. Will need pull-to-refresh modifier added to LazyColumn.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/usecase/GetMealHistoryUseCase.kt</path>
+        <kind>usecase</kind>
+        <symbol>GetMealHistoryUseCase</symbol>
+        <lines>18-33</lines>
+        <reason>Returns Flow&lt;Result&lt;List&lt;MealEntry&gt;&gt;&gt; from healthConnectRepository.getMealHistory(). Flow automatically emits when data changes. Used by ViewModel.fetchMeals() to load/refresh data.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/repository/MealRepository.kt</path>
+        <kind>interface</kind>
+        <symbol>MealRepository</symbol>
+        <lines>1-50</lines>
+        <reason>Repository interface defining getMealHistory() contract. Returns Flow for reactive updates when Health Connect data changes.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/MealRepositoryImpl.kt</path>
+        <kind>repository</kind>
+        <symbol>MealRepositoryImpl</symbol>
+        <lines>1-200</lines>
+        <reason>Implementation of getMealHistory() querying Health Connect for last 7 days. Handles errors (SecurityException, IllegalStateException). Maps NutritionRecord to MealEntry domain model.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <android>
+        <library name="androidx.compose.material3" version="(via BOM 2024.10.01)" usage="Material 3 components - may include pull-to-refresh support" />
+        <library name="androidx.lifecycle.lifecycle-runtime-compose" version="2.8.7" usage="Lifecycle integration for Compose, provides LocalLifecycleOwner" />
+        <library name="androidx.compose.ui" version="(via BOM)" usage="Core Compose UI toolkit, LazyColumn, Modifier.pointerInput" />
+        <library name="kotlinx-coroutines-android" version="1.9.0" usage="Coroutines for async operations, Flow collection" />
+      </android>
+      <thirdParty>
+        <library name="com.google.accompanist:accompanist-swiperefresh" version="(check if needed)" usage="Pull-to-refresh UI if Material 3 doesn't have native support" />
+      </thirdParty>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Health Connect is single source of truth - no local caching per ADR-005. Query on every screen load to detect external changes.</constraint>
+    <constraint>Use StateFlow for reactive state management per ADR-007. Separate isLoading (initial) from isRefreshing (pull-to-refresh).</constraint>
+    <constraint>MVVM architecture: Screen (MealListScreen) → ViewModel (MealListViewModel) → UseCase (GetMealHistoryUseCase) → Repository (MealRepositoryImpl) → Health Connect.</constraint>
+    <constraint>Error handling must preserve last successful data - do NOT clear mealsByDate on refresh error. Show error message with retry option.</constraint>
+    <constraint>Performance target: &lt;1 second from pull gesture to updated list. Health Connect queries are local, typically &lt;500ms for 7 days.</constraint>
+    <constraint>Lifecycle refresh should skip on configuration changes (rotation) - only trigger on actual app resume from background.</constraint>
+    <constraint>Pull-to-refresh gesture must not conflict with scroll gestures in LazyColumn.</constraint>
+    <constraint>Scroll position must be preserved after refresh - use rememberLazyListState() for automatic preservation.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>MealListViewModel.refresh()</name>
+      <kind>ViewModel method</kind>
+      <signature>fun refresh(): Unit</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt</path>
+      <description>Triggers data refresh by calling fetchMeals(isRefresh = true). Sets isRefreshing state flag, collects Flow from GetMealHistoryUseCase, updates mealsByDate on success.</description>
+    </interface>
+    <interface>
+      <name>GetMealHistoryUseCase.invoke()</name>
+      <kind>UseCase operator</kind>
+      <signature>operator fun invoke(): Flow&lt;Result&lt;List&lt;MealEntry&gt;&gt;&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/usecase/GetMealHistoryUseCase.kt</path>
+      <description>Returns Flow that emits Result with meal history from last 7 days. Flow automatically emits when Health Connect data changes.</description>
+    </interface>
+    <interface>
+      <name>HealthConnectRepository.getMealHistory()</name>
+      <kind>Repository method</kind>
+      <signature>fun getMealHistory(): Flow&lt;Result&lt;List&lt;MealEntry&gt;&gt;&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/repository/MealRepository.kt</path>
+      <description>Queries Health Connect for NutritionRecords from last 7 days, maps to MealEntry domain models. Handles errors (SecurityException, IllegalStateException).</description>
+    </interface>
+    <interface>
+      <name>Lifecycle.State.RESUMED</name>
+      <kind>Android Lifecycle state</kind>
+      <signature>enum class State { RESUMED, ... }</signature>
+      <path>androidx.lifecycle.Lifecycle</path>
+      <description>Lifecycle state indicating activity/fragment is visible and interactive. Detect with LaunchedEffect(lifecycle.currentState) to trigger refresh on app resume.</description>
+    </interface>
+    <interface>
+      <name>SwipeRefresh (Accompanist)</name>
+      <kind>Compose UI component</kind>
+      <signature>@Composable fun SwipeRefresh(state: SwipeRefreshState, onRefresh: () -&gt; Unit, content: @Composable () -&gt; Unit)</signature>
+      <path>com.google.accompanist.swiperefresh</path>
+      <description>Pull-to-refresh UI component wrapping LazyColumn. Alternative if Material 3 doesn't have native pull-to-refresh.</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit tests required for all business logic (ViewModels, UseCases, Repositories). Use JUnit 4.13.2, Mockito 5.14.2, Truth assertions. Test naming: methodName_whenCondition_thenExpectedResult. Instrumentation tests required for UI interactions (Compose gestures, lifecycle events). Use Compose UI test framework with composeTestRule. Minimum 80% code coverage for new logic. All tests must pass before marking story complete.
+    </standards>
+    <locations>
+      app/app/src/test/java/com/foodie/app/ui/screens/meallist/MealListViewModelTest.kt
+      app/app/src/androidTest/java/com/foodie/app/ui/screens/meallist/MealListScreenTest.kt
+      app/app/src/test/java/com/foodie/app/domain/usecase/GetMealHistoryUseCaseTest.kt
+    </locations>
+    <ideas>
+      <idea ac="AC1">Unit test: MealListViewModel - lifecycle resume triggers refresh() call - verify fetchMeals(isRefresh=true) called</idea>
+      <idea ac="AC2">Integration test: Create entry in Health Connect via mock - refresh - verify new entry appears in mealsByDate</idea>
+      <idea ac="AC3">Unit test: MealListViewModel - refresh() sets isRefreshing=true - verify state update does not block UI thread</idea>
+      <idea ac="AC4">Compose UI test: Scroll LazyColumn to middle - trigger refresh - verify scroll position unchanged using LazyListState</idea>
+      <idea ac="AC5,AC6,AC7,AC8">Compose UI test: Perform swipe-down gesture - verify loading indicator shows - verify indicator dismisses after &lt;1s - verify data refreshed</idea>
+      <idea ac="AC9">Unit test: MealListViewModel - refresh() fails with SecurityException - verify error state set - verify retry action available</idea>
+      <idea ac="AC10">Unit test: MealListViewModel - refresh() fails - verify mealsByDate preserved (not cleared) - verify error message shown</idea>
+      <idea ac="Performance">Manual test: Use Android Profiler - measure pull-to-refresh total duration - verify &lt;1s from gesture to list update</idea>
+      <idea ac="Cross-app">Manual test: Create meal in Google Fit - background Foodie - resume Foodie - verify new meal appears without manual refresh</idea>
+    </ideas>
+  </tests>
+</story-context>

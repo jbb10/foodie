@@ -424,5 +424,98 @@ class MealListViewModelTest {
         // Then
         assertThat(viewModel.state.value.successMessage).isNull()
     }
+
+    // Lifecycle refresh tests (Story 3.5)
+
+    @Test
+    fun `refresh sets isRefreshing flag and reloads data from Health Connect`() = runTest {
+        // Given
+        val initialMeals = listOf(MealEntry("1", Instant.now(), "Initial", 300))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(initialMeals)))
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel.loadMeals()
+
+        // When
+        val updatedMeals = listOf(
+            MealEntry("2", Instant.now(), "New entry", 500),
+            MealEntry("3", Instant.now(), "Another entry", 600)
+        )
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(updatedMeals)))
+        viewModel.refresh()
+
+        // Then
+        val state = viewModel.state.value
+        assertThat(state.isRefreshing).isFalse() // Completed immediately with test dispatcher
+        assertThat(state.isLoading).isFalse() // Only initial load uses isLoading
+        assertThat(state.mealsByDate["Today"]).hasSize(2)
+        assertThat(state.error).isNull()
+    }
+
+    @Test
+    fun `refresh preserves existing data on error`() = runTest {
+        // Given
+        val initialMeals = listOf(MealEntry("1", Instant.now(), "Existing", 400))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(initialMeals)))
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel.loadMeals()
+
+        // When - Refresh fails
+        val errorMessage = "Network error during refresh"
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Error(java.io.IOException(), errorMessage)))
+        viewModel.refresh()
+
+        // Then - Data preserved, error shown
+        val state = viewModel.state.value
+        assertThat(state.mealsByDate["Today"]).hasSize(1)
+        assertThat(state.mealsByDate["Today"]?.first()?.description).isEqualTo("Existing")
+        assertThat(state.error).isEqualTo(errorMessage)
+        assertThat(state.isRefreshing).isFalse()
+    }
+
+    @Test
+    fun `refresh clears previous error message`() = runTest {
+        // Given - Error state from previous load
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Error(java.io.IOException(), "Old error")))
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel.loadMeals()
+        assertThat(viewModel.state.value.error).isNotNull()
+
+        // When - Refresh succeeds
+        val testMeals = listOf(MealEntry("1", Instant.now(), "Test", 500))
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+        viewModel.refresh()
+
+        // Then
+        val state = viewModel.state.value
+        assertThat(state.error).isNull()
+        assertThat(state.mealsByDate).isNotEmpty()
+    }
+
+    @Test
+    fun `refresh completes in under 1 second with typical dataset`() = runTest {
+        // Given - Typical 7-day dataset
+        val testMeals = (1..50).map { i ->
+            MealEntry("meal-$i", Instant.now().minusSeconds(i * 3600L), "Meal $i", 400 + i * 10)
+        }
+        whenever(getMealHistoryUseCase.invoke())
+            .thenReturn(flowOf(Result.Success(testMeals)))
+
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+
+        // When
+        val startTime = System.currentTimeMillis()
+        viewModel.refresh()
+        val duration = System.currentTimeMillis() - startTime
+
+        // Then - Performance target: <1000ms
+        assertThat(duration).isLessThan(1000)
+        assertThat(viewModel.state.value.mealsByDate).isNotEmpty()
+    }
 }
 

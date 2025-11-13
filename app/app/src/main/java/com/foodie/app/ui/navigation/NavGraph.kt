@@ -51,15 +51,27 @@ import com.foodie.app.ui.screens.settings.SettingsScreen
  * ```
  *
  * @param navController The navigation controller (typically from [rememberNavController])
+ * @param initialRoute Optional route to navigate to on first launch (e.g., from notification)
  * @param modifier Optional modifier for the NavHost
  */
 @Composable
 fun NavGraph(
     navController: NavHostController = rememberNavController(),
+    initialRoute: String? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
+    
+    // Handle initial route navigation (e.g., from notification deep link)
+    androidx.compose.runtime.LaunchedEffect(initialRoute) {
+        if (initialRoute != null && navController.currentDestination?.route != initialRoute) {
+            navController.navigate(initialRoute) {
+                // Avoid multiple copies of the same destination
+                launchSingleTop = true
+            }
+        }
+    }
     
     NavHost(
         navController = navController,

@@ -3,6 +3,7 @@ package com.foodie.app.ui.screens.mealdetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
 import com.foodie.app.domain.usecase.UpdateMealEntryUseCase
 import com.foodie.app.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,7 +29,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MealDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val updateMealEntryUseCase: UpdateMealEntryUseCase
+    private val updateMealEntryUseCase: UpdateMealEntryUseCase,
+    private val deleteMealEntryUseCase: DeleteMealEntryUseCase
 ) : ViewModel() {
 
     companion object {
@@ -74,6 +76,9 @@ class MealDetailViewModel @Inject constructor(
             is MealDetailEvent.DescriptionChanged -> handleDescriptionChanged(event.value)
             is MealDetailEvent.SaveClicked -> handleSaveClicked()
             MealDetailEvent.CancelClicked -> handleCancelClicked()
+            MealDetailEvent.DeleteClicked -> handleDeleteClicked()
+            MealDetailEvent.DeleteConfirmed -> handleDeleteConfirmed()
+            MealDetailEvent.DeleteCancelled -> handleDeleteCancelled()
             MealDetailEvent.ErrorDismissed -> handleErrorDismissed()
         }
     }
@@ -164,6 +169,50 @@ class MealDetailViewModel @Inject constructor(
     private fun handleCancelClicked() {
         Timber.tag(TAG).d("User cancelled edit")
         _uiState.update { it.copy(shouldNavigateBack = true, successMessage = null) }
+    }
+
+    private fun handleDeleteClicked() {
+        Timber.tag(TAG).d("User requested delete")
+        _uiState.update { it.copy(showDeleteConfirmation = true) }
+    }
+
+    private fun handleDeleteConfirmed() {
+        Timber.tag(TAG).i("User confirmed delete for entry: ${_uiState.value.recordId}")
+        _uiState.update { it.copy(showDeleteConfirmation = false, isDeleting = true, error = null) }
+
+        viewModelScope.launch {
+            val result = deleteMealEntryUseCase(_uiState.value.recordId)
+
+            when (result) {
+                is Result.Success -> {
+                    Timber.tag(TAG).i("Meal entry deleted successfully: ${_uiState.value.recordId}")
+                    _uiState.update {
+                        it.copy(
+                            isDeleting = false,
+                            shouldNavigateBack = true,
+                            successMessage = "Entry deleted"
+                        )
+                    }
+                }
+                is Result.Error -> {
+                    Timber.tag(TAG).e(result.exception, "Failed to delete meal entry")
+                    _uiState.update {
+                        it.copy(
+                            isDeleting = false,
+                            error = result.message ?: "Failed to delete entry. Please try again."
+                        )
+                    }
+                }
+                is Result.Loading -> {
+                    // Should not happen with suspend function
+                }
+            }
+        }
+    }
+
+    private fun handleDeleteCancelled() {
+        Timber.tag(TAG).d("User cancelled delete")
+        _uiState.update { it.copy(showDeleteConfirmation = false) }
     }
 
     private fun handleErrorDismissed() {

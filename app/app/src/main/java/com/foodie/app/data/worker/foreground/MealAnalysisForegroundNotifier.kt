@@ -12,7 +12,9 @@ import androidx.work.ForegroundInfo
 import com.foodie.app.MainActivity
 import com.foodie.app.R
 import com.foodie.app.domain.model.NutritionData
+import com.foodie.app.ui.navigation.Screen
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 
@@ -56,12 +58,19 @@ class MealAnalysisForegroundNotifier @Inject constructor(
         }
     }
 
-    fun createCompletionNotification(data: NutritionData): Notification {
+    fun createCompletionNotification(
+        data: NutritionData,
+        recordId: String,
+        timestamp: Instant
+    ): Notification {
         val body = context.getString(
             R.string.notification_meal_analysis_success_body,
             data.calories,
             data.description
         )
+
+        // Create deep link to meal detail screen
+        val detailPendingIntent = createMealDetailPendingIntent(recordId, data, timestamp)
 
         return baseBuilder()
             .setContentTitle(context.getString(R.string.notification_meal_analysis_success_title))
@@ -69,7 +78,7 @@ class MealAnalysisForegroundNotifier @Inject constructor(
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setOngoing(false)
             .setAutoCancel(true)
-            .setContentIntent(mainPendingIntent())
+            .setContentIntent(detailPendingIntent)
             .build()
     }
 
@@ -86,7 +95,6 @@ class MealAnalysisForegroundNotifier @Inject constructor(
             .setOngoing(false)
             .setAutoCancel(true)
             .setContentIntent(mainPendingIntent())
-            .setSubText(workId.toString())
             .build()
     }
 
@@ -105,5 +113,28 @@ class MealAnalysisForegroundNotifier @Inject constructor(
         }
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         return PendingIntent.getActivity(context, 0, intent, flags)
+    }
+
+    private fun createMealDetailPendingIntent(
+        recordId: String,
+        data: NutritionData,
+        timestamp: Instant
+    ): PendingIntent {
+        val route = Screen.MealDetail.createRoute(
+            recordId = recordId,
+            calories = data.calories,
+            description = data.description,
+            timestamp = timestamp.toEpochMilli()
+        )
+        
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            // Pass the route as an extra so MainActivity can navigate to it
+            putExtra("navigate_to", route)
+        }
+        
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        // Use recordId hashCode as request code to ensure unique PendingIntents for different meals
+        return PendingIntent.getActivity(context, recordId.hashCode(), intent, flags)
     }
 }

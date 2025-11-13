@@ -16,6 +16,7 @@ import com.foodie.app.data.local.cache.PhotoManager
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.data.worker.foreground.MealAnalysisForegroundNotifier
 import com.foodie.app.data.worker.foreground.MealAnalysisNotificationSpec
+import com.foodie.app.domain.exception.NoFoodDetectedException
 import com.foodie.app.domain.model.NutritionData
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
 import com.foodie.app.util.Result as ApiResult
@@ -61,7 +62,7 @@ class AnalyzeMealWorkerForegroundTest {
 
         every { foregroundNotifier.createForegroundInfo(any(), any(), any()) } returns
             androidx.work.ForegroundInfo(MealAnalysisNotificationSpec.ONGOING_NOTIFICATION_ID, notification)
-        every { foregroundNotifier.createCompletionNotification(any()) } returns notification
+        every { foregroundNotifier.createCompletionNotification(any(), any(), any()) } returns notification
         every { foregroundNotifier.createFailureNotification(any(), any()) } returns notification
 
         runBlocking {
@@ -88,7 +89,7 @@ class AnalyzeMealWorkerForegroundTest {
 
         assertTrue(result is ListenableWorker.Result.Success)
         verify(atLeast = 1) { foregroundNotifier.createForegroundInfo(worker.id, any(), any()) }
-        verify { foregroundNotifier.createCompletionNotification(any()) }
+        verify { foregroundNotifier.createCompletionNotification(any(), any(), any()) }
         coVerify(atLeast = 1) { photoManager.deletePhoto(any()) }
     }
 
@@ -137,6 +138,39 @@ class AnalyzeMealWorkerForegroundTest {
         assertTrue(result is ListenableWorker.Result.Failure)
         coVerify(atLeast = 1) { photoManager.deletePhoto(any()) }
         verify { foregroundNotifier.createFailureNotification(worker.id, any()) }
+    }
+
+    @Test
+    fun doWork_whenNoFoodDetected_deletesPhotoAndShowsSpecificMessage() = runBlocking {
+        coEvery { nutritionRepository.analyzePhoto(any()) } returns
+            ApiResult.Error(
+                exception = NoFoodDetectedException("Image shows a document, not food"),
+                message = "Image shows a document, not food"
+            )
+
+        val inputData = androidx.work.workDataOf(
+            AnalyzeMealWorker.KEY_PHOTO_URI to "content://foodie/photos/document.jpg",
+            AnalyzeMealWorker.KEY_TIMESTAMP to java.time.Instant.now().epochSecond
+        )
+
+        val worker = TestListenableWorkerBuilder<AnalyzeMealWorker>(context)
+            .setInputData(inputData)
+            .setWorkerFactory(testWorkerFactory())
+            .build()
+
+        val result = worker.doWork()
+
+        // Should fail immediately (non-retryable)
+        assertTrue(result is ListenableWorker.Result.Failure)
+        
+        // Photo should be deleted
+        coVerify(atLeast = 1) { photoManager.deletePhoto(any()) }
+        
+        // Should show failure notification with user-friendly message
+        verify { foregroundNotifier.createFailureNotification(worker.id, "No food detected. Please take a photo of your meal.") }
+        
+        // Should NOT retry (even on first attempt)
+        verify(exactly = 0) { foregroundNotifier.createCompletionNotification(any(), any(), any()) }
     }
 
     private fun testWorkerFactory(): WorkerFactory = object : WorkerFactory() {

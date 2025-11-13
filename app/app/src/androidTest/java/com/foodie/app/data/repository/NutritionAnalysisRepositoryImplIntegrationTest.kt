@@ -101,7 +101,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
             {
                 "id": "resp_test123",
                 "status": "completed",
-                "output_text": "{\"calories\": 650, \"description\": \"Grilled chicken with rice\"}",
+                "output_text": "{\"hasFood\": true, \"calories\": 650, \"description\": \"Grilled chicken with rice\"}",
                 "usage": {
                     "input_tokens": 1245,
                     "output_tokens": 25,
@@ -223,5 +223,116 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         assertThat(result).isInstanceOf(Result.Error::class.java)
         val error = result as Result.Error
         assertThat(error.message).contains("parse")
+    }
+
+    @Test
+    fun analyzePhoto_whenNoFoodDetected_thenReturnsNoFoodDetectedException() = runTest {
+        // Arrange
+        val mockUri = Uri.parse("content://mock/photo.jpg")
+        val base64Image = "data:image/jpeg;base64,test123"
+        
+        every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
+
+        val mockResponse = """
+            {
+                "id": "resp_test456",
+                "status": "completed",
+                "output_text": "{\"hasFood\": false, \"reason\": \"Image shows a document, not food\"}",
+                "usage": {
+                    "input_tokens": 1245,
+                    "output_tokens": 15,
+                    "total_tokens": 1260
+                }
+            }
+        """.trimIndent()
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setBody(mockResponse)
+        )
+
+        // Act
+        val result = repository.analyzePhoto(mockUri)
+
+        // Assert
+        assertThat(result).isInstanceOf(Result.Error::class.java)
+        val error = result as Result.Error
+        assertThat(error.exception).isInstanceOf(com.foodie.app.domain.exception.NoFoodDetectedException::class.java)
+        assertThat(error.message).isEqualTo("Image shows a document, not food")
+    }
+
+    @Test
+    fun analyzePhoto_whenEmptyPlate_thenReturnsNoFoodDetectedException() = runTest {
+        // Arrange
+        val mockUri = Uri.parse("content://mock/empty_plate.jpg")
+        val base64Image = "data:image/jpeg;base64,empty123"
+        
+        every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
+
+        val mockResponse = """
+            {
+                "id": "resp_test789",
+                "status": "completed",
+                "output_text": "{\"hasFood\": false, \"reason\": \"Empty plate with no food visible\"}",
+                "usage": {
+                    "input_tokens": 1245,
+                    "output_tokens": 18,
+                    "total_tokens": 1263
+                }
+            }
+        """.trimIndent()
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setBody(mockResponse)
+        )
+
+        // Act
+        val result = repository.analyzePhoto(mockUri)
+
+        // Assert
+        assertThat(result).isInstanceOf(Result.Error::class.java)
+        val error = result as Result.Error
+        assertThat(error.exception).isInstanceOf(com.foodie.app.domain.exception.NoFoodDetectedException::class.java)
+        assertThat(error.message).contains("Empty plate")
+    }
+
+    @Test
+    fun analyzePhoto_whenSceneryPhoto_thenReturnsNoFoodDetectedException() = runTest {
+        // Arrange
+        val mockUri = Uri.parse("content://mock/landscape.jpg")
+        val base64Image = "data:image/jpeg;base64,scenery123"
+        
+        every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
+
+        val mockResponse = """
+            {
+                "id": "resp_test101",
+                "status": "completed",
+                "output_text": "{\"hasFood\": false, \"reason\": \"Image shows outdoor scenery, not food\"}",
+                "usage": {
+                    "input_tokens": 1245,
+                    "output_tokens": 20,
+                    "total_tokens": 1265
+                }
+            }
+        """.trimIndent()
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setBody(mockResponse)
+        )
+
+        // Act
+        val result = repository.analyzePhoto(mockUri)
+
+        // Assert
+        assertThat(result).isInstanceOf(Result.Error::class.java)
+        val error = result as Result.Error
+        assertThat(error.exception).isInstanceOf(com.foodie.app.domain.exception.NoFoodDetectedException::class.java)
+        assertThat(error.message).contains("scenery")
     }
 }

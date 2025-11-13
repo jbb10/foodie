@@ -90,6 +90,9 @@ class MainActivity : ComponentActivity() {
             }
             
             FoodieTheme {
+                // Check if we should navigate to a specific screen (e.g., from notification)
+                val navigateToRoute = intent?.getStringExtra("navigate_to")
+                
                 // First-launch permission flow
                 LaunchedEffect(isFirstLaunch) {
                     if (isFirstLaunch) {
@@ -133,7 +136,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 
-                NavGraph()
+                NavGraph(initialRoute = navigateToRoute)
                 
                 if (showHealthConnectDialog) {
                     HealthConnectUnavailableDialog(

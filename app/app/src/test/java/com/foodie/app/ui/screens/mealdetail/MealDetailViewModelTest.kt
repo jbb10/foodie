@@ -1,6 +1,7 @@
 package com.foodie.app.ui.screens.mealdetail
 
 import androidx.lifecycle.SavedStateHandle
+import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
 import com.foodie.app.domain.usecase.UpdateMealEntryUseCase
 import com.foodie.app.util.Result
 import com.google.common.truth.Truth.assertThat
@@ -26,6 +27,7 @@ class MealDetailViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var updateMealEntryUseCase: UpdateMealEntryUseCase
+    private lateinit var deleteMealEntryUseCase: DeleteMealEntryUseCase
     private lateinit var savedStateHandle: SavedStateHandle
     private lateinit var viewModel: MealDetailViewModel
 
@@ -38,6 +40,7 @@ class MealDetailViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         updateMealEntryUseCase = mock()
+        deleteMealEntryUseCase = mock()
 
         savedStateHandle = SavedStateHandle(
             mapOf(
@@ -48,7 +51,7 @@ class MealDetailViewModelTest {
             )
         )
 
-        viewModel = MealDetailViewModel(savedStateHandle, updateMealEntryUseCase)
+        viewModel = MealDetailViewModel(savedStateHandle, updateMealEntryUseCase, deleteMealEntryUseCase)
     }
 
     @After

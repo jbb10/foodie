@@ -1,5 +1,6 @@
 package com.foodie.app.data.repository
 
+import android.content.Context
 import android.net.Uri
 import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.remote.api.AzureOpenAiApi
@@ -7,12 +8,14 @@ import com.foodie.app.data.remote.dto.ApiNutritionResponse
 import com.foodie.app.data.remote.dto.AzureResponseRequest
 import com.foodie.app.data.remote.dto.ContentItem
 import com.foodie.app.data.remote.dto.InputMessage
+import com.foodie.app.domain.exception.NoFoodDetectedException
 import com.foodie.app.domain.model.NutritionData
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
 import com.foodie.app.util.ImageUtils
 import com.foodie.app.util.Result
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import dagger.hilt.android.qualifiers.ApplicationContext
 import retrofit2.HttpException
 import timber.log.Timber
 import java.io.IOException
@@ -52,20 +55,37 @@ class NutritionAnalysisRepositoryImpl @Inject constructor(
     private val azureOpenAiApi: AzureOpenAiApi,
     private val imageUtils: ImageUtils,
     private val securePreferences: SecurePreferences,
-    private val gson: Gson
+    private val gson: Gson,
+    @ApplicationContext private val context: Context
 ) : NutritionAnalysisRepository {
 
     companion object {
         private const val TAG = "NutritionAnalysisRepo"
         private const val DEFAULT_MODEL = "gpt-4.1"  // Fallback if not configured
-        private const val SYSTEM_INSTRUCTIONS = """You are a nutrition analysis assistant. 
-Analyze the food image and return ONLY a JSON object with two fields:
-- calories (number): total estimated calories for all food visible
-- description (string): brief description of the food items
+        private const val PROMPT_FILE = "prompts/nutrition_analysis.md"
+    }
 
-Example: {"calories": 650, "description": "Grilled chicken breast with steamed rice and mixed vegetables"}
+    /**
+     * Loads the system instructions from the assets file.
+     * This allows the prompt to be easily edited without recompiling the code.
+     */
+    private fun loadSystemInstructions(): String {
+        return try {
+            context.assets.open(PROMPT_FILE).bufferedReader().use { it.readText() }
+        } catch (e: IOException) {
+            Timber.tag(TAG).e(e, "Failed to load prompt from assets, using fallback")
+            // Fallback prompt in case asset file is missing
+            """You are a nutrition analysis assistant. 
+Analyze the image and determine if it contains food.
+
+If NO FOOD is detected (e.g., empty plate, non-food objects, scenery, documents, people, pets, etc.):
+Return: {"hasFood": false, "reason": "brief explanation of what was detected instead"}
+
+If FOOD is detected:
+Return: {"hasFood": true, "calories": <number>, "description": "<string>"}
 
 Return only the JSON object, no other text."""
+        }
     }
 
     /**
@@ -120,7 +140,7 @@ Return only the JSON object, no other text."""
             // Step 3: Build multimodal request
             val request = AzureResponseRequest(
                 model = model,
-                instructions = SYSTEM_INSTRUCTIONS,
+                instructions = loadSystemInstructions(),
                 input = listOf(
                     InputMessage(
                         role = "user",
@@ -188,11 +208,21 @@ Return only the JSON object, no other text."""
                 )
             }
 
-            // Step 6: Map to domain model (validation happens in NutritionData constructor)
+            // Step 6: Check if food was detected
+            if (apiNutrition.hasFood == false) {
+                val reason = apiNutrition.reason ?: "No food detected in the image"
+                Timber.tag(TAG).w("No food detected: $reason")
+                return Result.Error(
+                    exception = NoFoodDetectedException(reason),
+                    message = reason
+                )
+            }
+
+            // Step 7: Map to domain model (validation happens in NutritionData constructor)
             val nutritionData = try {
                 NutritionData(
-                    calories = apiNutrition.calories,
-                    description = apiNutrition.description
+                    calories = apiNutrition.calories ?: throw IllegalArgumentException("Missing calories field"),
+                    description = apiNutrition.description ?: throw IllegalArgumentException("Missing description field")
                 )
             } catch (e: IllegalArgumentException) {
                 Timber.tag(TAG).e(e, "Validation error creating NutritionData")

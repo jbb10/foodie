@@ -65,9 +65,9 @@ development_status:
   3-1-meal-entry-list-view: done  # ✅ APPROVED - All ACs met, tests passing
   3-2-edit-meal-entry-screen: done  # ✅ APPROVED - Performance validated (107ms), 40+ tests passing
   3-3-update-health-connect-entry: done  # ✅ APPROVED - All 8 ACs verified, 27 tests passing, cross-app sync confirmed
-  3-4-delete-meal-entry: review  # ✅ Implementation complete - Long-press + dialog, 25+ tests passing, manual testing verified
-  3-5-data-refresh-and-sync: backlog
-  epic-3-retrospective: optional
+  3-4-delete-meal-entry: done  # ✅ APPROVED - All ACs verified, 11 instrumentation tests created, manual testing complete (9/9 passed), cross-app validation confirmed
+  3-5-data-refresh-and-sync: done  # ✅ APPROVED - Lifecycle refresh + pull-to-refresh, 23 tests passing, manual validation complete
+  epic-3-retrospective: done  # ✅ COMPLETED - 2025-11-13 - All 5 stories reviewed, lessons captured, Epic 4 pre-validated
 
   # Epic 4: Error Handling & Reliability
   epic-4: backlog

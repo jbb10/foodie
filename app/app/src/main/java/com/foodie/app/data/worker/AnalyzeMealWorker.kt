@@ -13,6 +13,7 @@ import com.foodie.app.data.local.cache.PhotoManager
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.data.worker.foreground.MealAnalysisForegroundNotifier
 import com.foodie.app.data.worker.foreground.MealAnalysisNotificationSpec
+import com.foodie.app.domain.exception.NoFoodDetectedException
 import com.foodie.app.domain.model.NutritionData
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
 import com.foodie.app.R
@@ -126,10 +127,10 @@ class AnalyzeMealWorker @AssistedInject constructor(
     }
 
     @SuppressLint("MissingPermission")
-    private fun notifySuccess(data: NutritionData) {
+    private fun notifySuccess(data: NutritionData, recordId: String, timestamp: Instant) {
         notificationManager.notify(
             MealAnalysisNotificationSpec.COMPLETION_NOTIFICATION_ID,
-            foregroundNotifier.createCompletionNotification(data)
+            foregroundNotifier.createCompletionNotification(data, recordId, timestamp)
         )
     }
 
@@ -239,7 +240,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
                             )
                         }
                         
-                        notifySuccess(nutritionData)
+                        notifySuccess(nutritionData, recordId, timestamp)
                         return androidx.work.ListenableWorker.Result.success()
                         
                     } catch (e: SecurityException) {
@@ -265,6 +266,15 @@ class AnalyzeMealWorker @AssistedInject constructor(
                 
                 is ApiResult.Error -> {
                     val exception = apiResult.exception
+                    
+                    // Check for NoFoodDetectedException - this is non-retryable and needs special handling
+                    if (exception is NoFoodDetectedException) {
+                        Timber.tag(TAG).w("No food detected in image: ${apiResult.message}")
+                        photoManager.deletePhoto(photoUri)
+                        notifyFailure("No food detected. Please take a photo of your meal.")
+                        return androidx.work.ListenableWorker.Result.failure()
+                    }
+                    
                     val isRetryable = isRetryableError(exception)
                     
                     if (isRetryable) {

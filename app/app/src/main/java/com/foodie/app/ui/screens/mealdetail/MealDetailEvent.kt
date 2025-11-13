@@ -27,6 +27,21 @@ sealed interface MealDetailEvent {
     data object CancelClicked : MealDetailEvent
 
     /**
+     * User tapped the Delete button.
+     */
+    data object DeleteClicked : MealDetailEvent
+
+    /**
+     * User confirmed deletion in the dialog.
+     */
+    data object DeleteConfirmed : MealDetailEvent
+
+    /**
+     * User cancelled deletion in the dialog.
+     */
+    data object DeleteCancelled : MealDetailEvent
+
+    /**
      * User dismissed an error message.
      */
     data object ErrorDismissed : MealDetailEvent

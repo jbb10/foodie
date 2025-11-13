@@ -58,6 +58,8 @@ class MealListScreenTest {
                     onRefresh = {},
                     onMealClick = {},
                     onSettingsClick = {},
+                    onMealLongPress = {},
+                    onDismissDeleteDialog = {},
                     onDeleteConfirmed = {}
                 )
             }
@@ -77,6 +79,8 @@ class MealListScreenTest {
                     onRefresh = {},
                     onMealClick = {},
                     onSettingsClick = {},
+                    onMealLongPress = {},
+                    onDismissDeleteDialog = {},
                     onDeleteConfirmed = {}
                 )
             }
@@ -98,6 +102,8 @@ class MealListScreenTest {
                     onRefresh = {},
                     onMealClick = {},
                     onSettingsClick = { settingsClicked = true },
+                    onMealLongPress = {},
+                    onDismissDeleteDialog = {},
                     onDeleteConfirmed = {}
                 )
             }
@@ -129,6 +135,8 @@ class MealListScreenTest {
                     onRefresh = {},
                     onMealClick = { clickedMeal = it },
                     onSettingsClick = {},
+                    onMealLongPress = {},
+                    onDismissDeleteDialog = {},
                     onDeleteConfirmed = {}
                 )
             }
@@ -151,6 +159,8 @@ class MealListScreenTest {
                     onRefresh = {},
                     onMealClick = {},
                     onSettingsClick = {},
+                    onMealLongPress = {},
+                    onDismissDeleteDialog = {},
                     onDeleteConfirmed = {}
                 )
             }
@@ -180,6 +190,8 @@ class MealListScreenTest {
                     onRefresh = {},
                     onMealClick = {},
                     onSettingsClick = {},
+                    onMealLongPress = {},
+                    onDismissDeleteDialog = {},
                     onDeleteConfirmed = {}
                 )
             }

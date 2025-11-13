@@ -43,6 +43,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import com.foodie.app.R
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.ui.theme.FoodieTheme
@@ -72,10 +75,23 @@ fun MealListScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val lifecycleOwner = LocalLifecycleOwner.current
     
-    // Refresh meal list when screen becomes visible (e.g., after editing a meal)
+    // Initial load on first composition
     LaunchedEffect(Unit) {
         viewModel.loadMeals()
+    }
+    
+    // Refresh when app resumes from background (AC #1, #2, #3, #4)
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            // This block runs when lifecycle enters STARTED state and cancels when it drops below
+            // We use STARTED instead of RESUMED to handle cases like multi-window mode
+            // Skip refresh if this is the first composition (already handled by loadMeals above)
+            if (!state.isLoading && state.mealsByDate.isNotEmpty()) {
+                viewModel.refresh()
+            }
+        }
     }
     
     // Show error snackbar with retry action

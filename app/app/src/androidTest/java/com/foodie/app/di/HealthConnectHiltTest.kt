@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.data.repository.HealthConnectRepository
 import com.foodie.app.domain.usecase.GetMealHistoryUseCase
+import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
 import com.foodie.app.ui.screens.meallist.MealListViewModel
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -35,6 +36,9 @@ class HealthConnectHiltTest {
     
     @Inject
     lateinit var getMealHistoryUseCase: GetMealHistoryUseCase
+    
+    @Inject
+    lateinit var deleteMealEntryUseCase: DeleteMealEntryUseCase
     
     @Before
     fun setup() {
@@ -68,10 +72,10 @@ class HealthConnectHiltTest {
     
     @Test
     fun mealListViewModel_canBeCreatedWithInjectedUseCase() {
-        // Given - Use case is injected
+        // Given - Use cases are injected
         
-        // When - Create ViewModel with use case
-        val viewModel = MealListViewModel(getMealHistoryUseCase)
+        // When - Create ViewModel with use cases
+        val viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
         
         // Then - ViewModel is created successfully
         assertThat(viewModel).isNotNull()

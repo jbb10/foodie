@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.annotation.VisibleForTesting
@@ -24,6 +25,7 @@ import androidx.compose.material3.SnackbarHost
 import android.widget.Toast
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -139,23 +141,7 @@ internal fun MealDetailScreenContent(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            OutlinedTextField(
-                value = state.calories,
-                onValueChange = { onEvent(MealDetailEvent.CaloriesChanged(it)) },
-                label = { Text("Calories") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = state.caloriesError != null,
-                supportingText = state.caloriesError?.let {
-                    { Text(it, color = MaterialTheme.colorScheme.error) }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("caloriesField"),
-                enabled = !state.isSaving
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
+            // Description first (user's request)
             OutlinedTextField(
                 value = state.description,
                 onValueChange = { onEvent(MealDetailEvent.DescriptionChanged(it)) },
@@ -172,7 +158,25 @@ internal fun MealDetailScreenContent(
                     .fillMaxWidth()
                     .testTag("descriptionField"),
                 maxLines = 3,
-                enabled = !state.isSaving
+                enabled = !state.isSaving && !state.isDeleting
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Calories second
+            OutlinedTextField(
+                value = state.calories,
+                onValueChange = { onEvent(MealDetailEvent.CaloriesChanged(it)) },
+                label = { Text("Calories") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = state.caloriesError != null,
+                supportingText = state.caloriesError?.let {
+                    { Text(it, color = MaterialTheme.colorScheme.error) }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("caloriesField"),
+                enabled = !state.isSaving && !state.isDeleting
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -190,7 +194,7 @@ internal fun MealDetailScreenContent(
             ) {
                 OutlinedButton(
                     onClick = { onEvent(MealDetailEvent.CancelClicked) },
-                    enabled = !state.isSaving,
+                    enabled = !state.isSaving && !state.isDeleting,
                     modifier = Modifier
                         .weight(1f)
                         .testTag("cancelButton")
@@ -210,6 +214,45 @@ internal fun MealDetailScreenContent(
                     Text(if (state.isSaving) "Saving..." else "Save")
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Delete button
+            OutlinedButton(
+                onClick = { onEvent(MealDetailEvent.DeleteClicked) },
+                enabled = !state.isSaving && !state.isDeleting,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("deleteButton")
+            ) {
+                Text(if (state.isDeleting) "Deleting..." else "Delete Entry")
+            }
+        }
+
+        // Delete confirmation dialog
+        if (state.showDeleteConfirmation) {
+            AlertDialog(
+                onDismissRequest = { onEvent(MealDetailEvent.DeleteCancelled) },
+                title = { Text("Delete Entry?") },
+                text = { Text("This will permanently delete this meal entry from your health data. This action cannot be undone.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = { onEvent(MealDetailEvent.DeleteConfirmed) },
+                        modifier = Modifier.testTag("confirmDeleteButton")
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { onEvent(MealDetailEvent.DeleteCancelled) },
+                        modifier = Modifier.testTag("cancelDeleteButton")
+                    ) {
+                        Text("Cancel")
+                    }
+                },
+                modifier = Modifier.testTag("deleteConfirmationDialog")
+            )
         }
     }
 }

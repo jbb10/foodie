@@ -42,7 +42,11 @@ class MealAnalysisForegroundNotifierTest {
     @Test
     fun createCompletionNotification_includesNutritionDetails() {
         val data = NutritionData(calories = 420, description = "Grilled chicken bowl")
-        val notification = notifier.createCompletionNotification(data)
+        val notification = notifier.createCompletionNotification(
+            data = data,
+            recordId = "test-record-123",
+            timestamp = java.time.Instant.now()
+        )
 
         assertEquals(MealAnalysisNotificationSpec.CHANNEL_ID, notification.channelId)
         assertEquals(NotificationCompat.PRIORITY_DEFAULT, notification.priority)
@@ -52,13 +56,13 @@ class MealAnalysisForegroundNotifierTest {
 
     @Suppress("DEPRECATION")
     @Test
-    fun createFailureNotification_addsWorkIdSubText() {
+    fun createFailureNotification_hasCorrectTitleAndMessage() {
         val workId = UUID.randomUUID()
         val notification = notifier.createFailureNotification(workId, "API request failed")
 
         assertEquals(MealAnalysisNotificationSpec.CHANNEL_ID, notification.channelId)
         assertEquals(NotificationCompat.PRIORITY_DEFAULT, notification.priority)
-        // Note: subText is not a direct property on Notification, checking extras instead
         assertEquals(context.getString(com.foodie.app.R.string.notification_meal_analysis_failure_title), notification.extras.getString(Notification.EXTRA_TITLE))
+        assertNotNull(notification.contentIntent)
     }
 }
