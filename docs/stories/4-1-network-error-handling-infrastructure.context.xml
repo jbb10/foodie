@@ -1,0 +1,303 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.1</storyId>
+    <title>Network &amp; Error Handling Infrastructure</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-1-network-error-handling-infrastructure.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>a centralized network monitoring and error classification system</iWant>
+    <soThat>all components can reliably detect network issues and provide consistent user-friendly error messages</soThat>
+    <tasks>
+      - Task 1: Implement NetworkMonitor Service (AC: #1, #2)
+      - Task 2: Create ErrorType Sealed Class Hierarchy (AC: #3, #4)
+      - Task 3: Implement ErrorHandler Utility (AC: #3, #4, #5, #6)
+      - Task 4: Create NotificationContent Data Class (AC: #4, #6)
+      - Task 5: Unit Tests for NetworkMonitor (AC: #1, #2, #5)
+      - Task 6: Unit Tests for ErrorHandler (AC: #3, #4, #5, #6)
+      - Task 7: Documentation and Integration Preparation (AC: All)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">NetworkMonitor provides real-time connectivity state via StateFlow</criterion>
+    <criterion id="2">NetworkMonitor can perform synchronous connectivity checks in &lt; 50ms</criterion>
+    <criterion id="3">ErrorHandler correctly classifies all exception types into retryable vs non-retryable categories</criterion>
+    <criterion id="4">ErrorHandler provides user-friendly error messages for each error type</criterion>
+    <criterion id="5">Error classification completes in &lt; 10ms per exception</criterion>
+    <criterion id="6">All error types map to actionable user guidance (no generic error messages)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 4 - Error Handling &amp; Reliability, Story 4.1</title>
+        <section>Network &amp; Error Handling Infrastructure (first story in Epic 4)</section>
+        <snippet>Foundation story establishing NetworkMonitor and ErrorHandler utilities. Provides centralized network connectivity detection and error classification/messaging system for all app components. Performance requirements: network check &lt; 50ms, error classification &lt; 10ms. All errors must map to user-friendly actionable messages.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Error Handling Requirements</title>
+        <section>Non-Functional Requirements - Reliability - Error Handling</section>
+        <snippet>Application must handle all error conditions gracefully with zero data loss. Network errors trigger automatic retry with exponential backoff (up to 3 retries). All errors surface actionable user feedback with clear guidance. No silent failures. Permission errors provide direct links to system settings. API errors classified as retryable (network, server 5xx) vs non-retryable (auth, validation).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture - Error Handling Layer</title>
+        <section>System Architecture Alignment - Data Layer - Error Handling</section>
+        <snippet>Centralized error handling pattern using ErrorType sealed class and ErrorHandler utility. All repository methods return Result&lt;T&gt; with structured error types. NetworkMonitor provides real-time connectivity state for pre-flight checks before API calls. Error classification determines retry policy and user messaging strategy.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Epic Technical Specification: Error Handling &amp; Reliability</title>
+        <section>Detailed Design - NetworkMonitor Service and ErrorHandler Utility</section>
+        <snippet>NetworkMonitor Service: Interface with isConnected: StateFlow&lt;Boolean&gt;, networkType: StateFlow&lt;NetworkType&gt;, checkConnectivity(): Boolean (sync, &lt;50ms), waitForConnectivity(): suspend (awaits network). Implementation uses ConnectivityManager with network callback for real-time monitoring. ErrorHandler Utility: classify(exception): ErrorType (&lt;10ms), getUserMessage(error): String (user-friendly), isRetryable(error): Boolean, getNotificationContent(error): NotificationContent. ErrorType sealed class: Retryable (NetworkError, ServerError, HealthConnectUnavailable) vs Non-Retryable (AuthError, RateLimitError, ParseError, ValidationError, PermissionDenied). All errors map to actionable guidance.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Error Classification Decision Tree</title>
+        <section>Detailed Design - Error Classification</section>
+        <snippet>Error Classification Map: IOException/SocketTimeoutException → NetworkError (retryable), HttpException 500-599 → ServerError (retryable), HttpException 401/403 → AuthError (non-retryable), HttpException 429 → RateLimitError (non-retryable), JsonSyntaxException/JsonParseException → ParseError (non-retryable), SecurityException → PermissionDenied (non-retryable), IllegalArgumentException (validation context) → ValidationError (non-retryable), All others → UnknownError (non-retryable). User Messages: NetworkError: "Request timed out. Check your internet connection.", ServerError: "Service temporarily unavailable. Will retry automatically.", AuthError: "API key invalid. Check settings.", RateLimitError: "Too many requests. Please wait a moment.", ParseError: "Unexpected response from AI service.", ValidationError: "Invalid {field}: {reason}", PermissionDenied: "Health Connect permissions required. Tap to grant access."</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Performance Requirements</title>
+        <section>Non-Functional Requirements - Performance</section>
+        <snippet>Network connectivity check: &lt; 50ms (ConnectivityManager.getActiveNetwork()), Error classification: &lt; 10ms (pattern matching on exception types), Error handling overhead: &lt; 50ms per operation (error classification + logging). Performance validated in unit tests using System.nanoTime() benchmarking.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>NotificationContent Data Model</title>
+        <section>Data Models and Contracts - NotificationContent Data Class</section>
+        <snippet>NotificationContent data class: title: String (notification title), message: String (detailed user message), actionText: String? (optional action button text like "Retry", "Open Settings"), actionIntent: PendingIntent? (optional action button intent), isOngoing: Boolean (true for persistent notifications requiring user action). Used by ErrorHandler.getNotificationContent() to generate notification data for error conditions.</snippet>
+      </doc>
+    </docs>
+    
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/repository/HealthConnectRepository.kt</path>
+        <kind>repository interface</kind>
+        <symbol>HealthConnectRepository</symbol>
+        <lines>1-50</lines>
+        <reason>Current repository interface returning Result&lt;T&gt; sealed class. ErrorType will be integrated into Result.Error to provide structured error information. Reference for understanding current error handling pattern before enhancement.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/repository/HealthConnectRepositoryImpl.kt</path>
+        <kind>repository implementation</kind>
+        <symbol>HealthConnectRepositoryImpl</symbol>
+        <lines>1-150</lines>
+        <reason>Current repository implementation with basic error handling. Will be enhanced in Story 4-3 to use ErrorHandler.classify() and return structured ErrorType in Result.Error. Reference for current try-catch patterns and error surfacing.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <kind>background worker</kind>
+        <symbol>AnalyzeMealWorker</symbol>
+        <lines>1-200</lines>
+        <reason>Background worker that will integrate NetworkMonitor (Story 4-2) for connectivity checks before API calls. Current implementation has basic error handling that will be enhanced with ErrorHandler classification and retry logic. Reference for understanding current worker flow and error scenarios.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/di/AppModule.kt</path>
+        <kind>dependency injection</kind>
+        <symbol>AppModule</symbol>
+        <lines>N/A</lines>
+        <reason>Hilt module for app-level dependencies. NetworkMonitor and ErrorHandler will be registered here as @Singleton providers. Check existing patterns for DI setup (ConnectivityManager, Application context injection).</reason>
+      </artifact>
+      <artifact>
+        <path>app/build.gradle.kts</path>
+        <kind>build configuration</kind>
+        <symbol>dependencies</symbol>
+        <lines>40-80</lines>
+        <reason>Gradle dependencies. Verify Timber, Retrofit, OkHttp, AndroidX Health Connect dependencies are configured. May need to add test dependencies (Mockito, Truth) if not already present. No new production dependencies expected for this story.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/test/java/com/foodie/app/data/repository/HealthConnectRepositoryTest.kt</path>
+        <kind>test example</kind>
+        <symbol>HealthConnectRepositoryTest</symbol>
+        <lines>N/A</lines>
+        <reason>Example of existing unit test patterns in the codebase. Reference for test structure, mocking approach (Mockito), and assertion style (Truth library). Will inform NetworkMonitorTest and ErrorHandlerTest implementation.</reason>
+      </artifact>
+      <artifact>
+        <path>docs/testing/compose-hilt-testing-guide.md</path>
+        <kind>testing documentation</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Testing guide created in Story 2-1. Reference for Hilt testing patterns and ComposeTestActivity usage. May inform integration testing approach for NetworkMonitor if instrumentation tests are needed (though this story focuses on unit tests).</reason>
+      </artifact>
+    </code>
+    
+    <external>
+      <library>
+        <name>Android ConnectivityManager</name>
+        <version>API 29+</version>
+        <reason>Core Android API for network monitoring. Use registerDefaultNetworkCallback() for real-time monitoring, getActiveNetwork() and getNetworkCapabilities() for synchronous checks. Documentation: https://developer.android.com/reference/android/net/ConnectivityManager</reason>
+      </library>
+      <library>
+        <name>Kotlin StateFlow</name>
+        <version>Coroutines 1.6+</version>
+        <reason>Reactive state holder for isConnected and networkType. Provides thread-safe state updates and collection. NetworkCallback will update StateFlow values. Documentation: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-state-flow/</reason>
+      </library>
+      <library>
+        <name>Retrofit / OkHttp</name>
+        <version>2.9+</version>
+        <reason>HTTP client library. HttpException from Retrofit provides response codes for error classification. ErrorHandler will classify HttpException based on status code ranges (401/403, 429, 500-599). Already configured in project.</reason>
+      </library>
+      <library>
+        <name>Gson / Moshi</name>
+        <version>Current project version</version>
+        <reason>JSON parsing library. JsonSyntaxException or JsonDataException will be classified as ParseError. Verify which JSON library is used in project and map appropriate exception types.</reason>
+      </library>
+      <library>
+        <name>Timber</name>
+        <version>5.0+</version>
+        <reason>Logging library for error tracking. ErrorHandler will log exceptions via Timber.e() during classification (DEBUG builds only). Already configured in project from Epic 1 Story 1-5.</reason>
+      </library>
+      <library>
+        <name>Truth Assertion Library</name>
+        <version>1.1+</version>
+        <reason>Test assertion library for readable test assertions. Use assertThat(value).isEqualTo(expected) pattern in all unit tests. Verify configured in test dependencies, add if missing.</reason>
+      </library>
+      <library>
+        <name>Mockito / Mockito-Kotlin</name>
+        <version>5.0+ / 4.0+</version>
+        <reason>Mocking framework for unit tests. Mock ConnectivityManager, NetworkCapabilities, HttpException for testing. Verify configured in test dependencies, add if missing.</reason>
+      </library>
+    </external>
+  </artifacts>
+
+  <relationships>
+    <dependsOn>
+      <story id="1.1">Project setup and Hilt dependency injection configuration</story>
+      <story id="1.2">MVVM architecture foundation and Result sealed class pattern</story>
+      <story id="1.5">Timber logging framework for error tracking</story>
+    </dependsOn>
+    <enables>
+      <story id="4.2">Retry logic in AnalyzeMealWorker (will use NetworkMonitor)</story>
+      <story id="4.3">Health Connect repository error handling (will use ErrorHandler)</story>
+      <story id="4.4">Photo cleanup worker (will use ErrorHandler)</story>
+      <story id="4.5">UI error handling and notifications (will consume NotificationContent)</story>
+    </enables>
+  </relationships>
+
+  <technicalContext>
+    <architecture>
+      <layer>Data Layer</layer>
+      <pattern>Repository Pattern with Result&lt;T&gt; sealed class</pattern>
+      <components>
+        - NetworkMonitor (new): Real-time network connectivity monitoring service
+        - ErrorHandler (new): Error classification and user message generation utility
+      </components>
+    </architecture>
+    
+    <designDecisions>
+      <decision>
+        <title>StateFlow for Reactive Network Monitoring</title>
+        <rationale>StateFlow provides thread-safe reactive state updates for network connectivity. Allows workers and repositories to observe connectivity changes without polling. First { } operator enables suspending wait for connectivity restoration.</rationale>
+        <alternatives>LiveData (not suitable for non-UI layer), manual callbacks (less idiomatic)</alternatives>
+      </decision>
+      <decision>
+        <title>Sealed Class for ErrorType Hierarchy</title>
+        <rationale>Sealed classes enable exhaustive when expressions for type-safe error handling. Each error type carries specific context (status code, retry-after header, etc.). Compiler enforces handling of all error cases.</rationale>
+        <alternatives>Enum (less flexible, no associated data), open class (not exhaustive)</alternatives>
+      </decision>
+      <decision>
+        <title>Synchronous checkConnectivity() Method</title>
+        <rationale>Some contexts (WorkManager constraints, immediate validation) require synchronous connectivity check without suspending. Implemented using getActiveNetwork() which is fast (&lt;50ms) and doesn't block I/O.</rationale>
+        <alternatives>Suspend-only API (not suitable for all contexts), callback (more complex)</alternatives>
+      </decision>
+      <decision>
+        <title>User-Friendly Error Messages in ErrorHandler</title>
+        <rationale>Centralized error messaging ensures consistency across app. Technical details (stack traces, internal class names) never exposed to users. All messages actionable (guide user to resolution: check internet, open settings, etc.).</rationale>
+        <alternatives>Generic error messages (poor UX), exception messages directly (technical, not user-friendly)</alternatives>
+      </decision>
+    </designDecisions>
+    
+    <constraints>
+      <constraint>Performance: Network check must complete in &lt; 50ms (verified in unit tests)</constraint>
+      <constraint>Performance: Error classification must complete in &lt; 10ms (verified in unit tests)</constraint>
+      <constraint>Security: Error messages must never expose API keys, endpoints, or sensitive internal data</constraint>
+      <constraint>Testing: Unit test coverage must be comprehensive (8+ tests for NetworkMonitor, 15+ for ErrorHandler)</constraint>
+      <constraint>Android API: NetworkMonitor uses API 29+ (ConnectivityManager.NetworkCallback)</constraint>
+    </constraints>
+  </technicalContext>
+
+  <acceptanceValidation>
+    <validation criterion="1">
+      <approach>Unit Test</approach>
+      <description>Mock ConnectivityManager to emit network available/unavailable. Verify isConnected StateFlow emits true/false. Verify networkType StateFlow emits WIFI/CELLULAR/NONE based on NetworkCapabilities.</description>
+      <evidence>NetworkMonitorTest.kt with tests: testIsConnectedTrue, testIsConnectedFalse, testNetworkTypeWifi, testNetworkTypeCellular, testNetworkTypeNone</evidence>
+    </validation>
+    <validation criterion="2">
+      <approach>Performance Test</approach>
+      <description>Use System.nanoTime() to measure checkConnectivity() execution time across 100 iterations. Assert average execution time &lt; 50ms. Mock ConnectivityManager for consistent test execution.</description>
+      <evidence>NetworkMonitorTest.testCheckConnectivityPerformance() with nanoTime measurements and assertions</evidence>
+    </validation>
+    <validation criterion="3">
+      <approach>Unit Test</approach>
+      <description>Create various exception types (IOException, HttpException, SecurityException, etc.). Call ErrorHandler.classify(). Assert correct ErrorType returned for each exception. Verify retryable vs non-retryable classification.</description>
+      <evidence>ErrorHandlerTest.kt with tests for all exception types: testClassifyNetworkError, testClassifyServerError500, testClassifyAuthError401, testClassifyRateLimitError, testClassifyParseError, testClassifyPermissionDenied, testClassifyUnknownError</evidence>
+    </validation>
+    <validation criterion="4">
+      <approach>Unit Test</approach>
+      <description>For each ErrorType, call ErrorHandler.getUserMessage(). Assert returned string is user-friendly (no technical jargon, actionable, explains what happened and what to do). Verify no sensitive data exposed.</description>
+      <evidence>ErrorHandlerTest.testGetUserMessageForEachErrorType() with assertions on message content</evidence>
+    </validation>
+    <validation criterion="5">
+      <approach>Performance Test</approach>
+      <description>Use System.nanoTime() to measure ErrorHandler.classify() execution time across 100 iterations for each exception type. Assert average execution time &lt; 10ms per classification.</description>
+      <evidence>ErrorHandlerTest.testClassificationPerformance() with nanoTime measurements and assertions</evidence>
+    </validation>
+    <validation criterion="6">
+      <approach>Unit Test + Manual Review</approach>
+      <description>For each ErrorType, verify getUserMessage() returns actionable guidance. NetworkError → check internet, AuthError → check settings, PermissionDenied → tap to grant access, etc. No generic "error occurred" messages allowed.</description>
+      <evidence>ErrorHandlerTest.testGetUserMessageForEachErrorType() + manual review of all error messages during code review</evidence>
+    </validation>
+  </acceptanceValidation>
+
+  <risks>
+    <risk>
+      <description>ConnectivityManager API differences across Android versions</description>
+      <mitigation>Target API 29+ (project minimum SDK), use deprecated NetworkInfo fallback for older devices if needed, test on multiple Android versions</mitigation>
+    </risk>
+    <risk>
+      <description>Network state false positives (connected but no internet access, captive portals)</description>
+      <mitigation>Document known limitation, rely on API call failure detection in addition to network monitoring, consider NET_CAPABILITY_VALIDATED check in future enhancement</mitigation>
+    </risk>
+    <risk>
+      <description>Performance degradation if network callbacks fire too frequently</description>
+      <mitigation>Use StateFlow conflation to avoid excessive updates, debounce network state changes if needed, measure performance in instrumentation tests on real devices</mitigation>
+    </risk>
+    <risk>
+      <description>Memory leak if NetworkCallback not unregistered</description>
+      <mitigation>Implement cleanup in NetworkMonitor (unregister callback on appropriate lifecycle event), verify no leaks with LeakCanary in future testing</mitigation>
+    </risk>
+  </risks>
+
+  <openQuestions>
+    <question>
+      <q>Should NetworkMonitor provide connectivity quality metrics (latency, bandwidth)?</q>
+      <a>Deferred to V2.0. Binary connected/disconnected check sufficient for MVP. API timeout handles slow networks.</a>
+      <status>resolved</status>
+    </question>
+    <question>
+      <q>Should ErrorHandler support localization for error messages?</q>
+      <a>Not in this story. Use hardcoded English strings. Localization can be added in future enhancement using Android string resources.</a>
+      <status>resolved</status>
+    </question>
+    <question>
+      <q>Should NetworkMonitor be lifecycle-aware (LifecycleObserver)?</q>
+      <a>No. NetworkMonitor is a singleton service injected by Hilt. Lifecycle management (callback unregistration) handled internally. ViewModels and Workers collect StateFlow as needed.</a>
+      <status>resolved</status>
+    </question>
+    <question>
+      <q>Should we add structured logging (error IDs, severity levels) to ErrorHandler?</q>
+      <a>Not in this story. Use Timber.e() for error logging. Structured logging can be added in future observability enhancement.</a>
+      <status>resolved</status>
+    </question>
+  </openQuestions>
+</story-context>

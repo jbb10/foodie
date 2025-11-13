@@ -552,6 +552,112 @@ private fun MealListContent(
 
 ### Error Handling Strategy
 
+**Epic 4.1: Network & Error Handling Infrastructure**
+
+Centralized network monitoring and error classification system providing:
+- Real-time connectivity detection via `NetworkMonitor`
+- Structured error classification via `ErrorHandler`
+- User-friendly error messaging with actionable guidance
+- Retry policy determination for transient vs permanent failures
+
+**NetworkMonitor Service:**
+```kotlin
+// data/network/NetworkMonitor.kt
+interface NetworkMonitor {
+    val isConnected: StateFlow<Boolean>
+    val networkType: StateFlow<NetworkType>
+    fun checkConnectivity(): Boolean // Synchronous check < 50ms
+    suspend fun waitForConnectivity() // Suspends until network available
+}
+
+// Usage in repositories and workers
+class AnalyzeMealWorker @Inject constructor(
+    private val networkMonitor: NetworkMonitor,
+    private val errorHandler: ErrorHandler
+) : CoroutineWorker() {
+    override suspend fun doWork(): Result {
+        // Pre-flight connectivity check
+        if (!networkMonitor.checkConnectivity()) {
+            networkMonitor.waitForConnectivity()
+        }
+        
+        return try {
+            val response = azureOpenAiApi.analyzeNutrition(...)
+            Result.success()
+        } catch (e: Exception) {
+            val errorType = errorHandler.classify(e)
+            if (errorHandler.isRetryable(errorType)) {
+                Result.retry() // WorkManager handles backoff
+            } else {
+                Result.failure()
+            }
+        }
+    }
+}
+```
+
+**ErrorType Classification:**
+```kotlin
+// domain/error/ErrorType.kt
+sealed class ErrorType {
+    // Retryable errors (transient failures)
+    data class NetworkError(val cause: Throwable) : ErrorType()
+    data class ServerError(val statusCode: Int, val message: String) : ErrorType()
+    data object HealthConnectUnavailable : ErrorType()
+    
+    // Non-retryable errors (permanent failures)
+    data class AuthError(val message: String) : ErrorType()
+    data class RateLimitError(val retryAfter: Int?) : ErrorType()
+    data class ParseError(val cause: Throwable) : ErrorType()
+    data class ValidationError(val field: String, val reason: String) : ErrorType()
+    data class PermissionDenied(val permissions: List<String>) : ErrorType()
+    data class UnknownError(val cause: Throwable) : ErrorType()
+}
+```
+
+**ErrorHandler Utility:**
+```kotlin
+// domain/error/ErrorHandler.kt
+@Singleton
+class ErrorHandler @Inject constructor() {
+    // Classifies exceptions into ErrorType (< 10ms per call)
+    fun classify(exception: Throwable): ErrorType
+    
+    // Generates user-friendly messages (no technical jargon)
+    fun getUserMessage(error: ErrorType): String
+    
+    // Determines retry policy
+    fun isRetryable(error: ErrorType): Boolean
+    
+    // Creates notification content for error alerts
+    fun getNotificationContent(error: ErrorType): NotificationContent
+}
+
+// Exception → ErrorType mapping
+// IOException/SocketTimeoutException → NetworkError
+// HttpException 500-599 → ServerError
+// HttpException 401/403 → AuthError
+// HttpException 429 → RateLimitError
+// JsonSyntaxException → ParseError
+// SecurityException → PermissionDenied
+// IllegalArgumentException (validation) → ValidationError
+```
+
+**User Message Examples:**
+```kotlin
+errorHandler.getUserMessage(ErrorType.NetworkError(...))
+// → "Request timed out. Check your internet connection."
+
+errorHandler.getUserMessage(ErrorType.ServerError(503, ...))
+// → "Service temporarily unavailable. Will retry automatically."
+
+errorHandler.getUserMessage(ErrorType.AuthError(...))
+// → "API key invalid. Check settings."
+
+errorHandler.getUserMessage(ErrorType.ValidationError("calories", "must be between 1 and 5000"))
+// → "Invalid calories: must be between 1 and 5000"
+```
+
 **Result Wrapper Pattern:**
 ```kotlin
 // util/Result.kt
