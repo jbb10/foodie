@@ -11,8 +11,10 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.foodie.app.data.local.cache.PhotoManager
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
+import com.foodie.app.data.network.NetworkMonitor
 import com.foodie.app.data.worker.foreground.MealAnalysisForegroundNotifier
 import com.foodie.app.data.worker.foreground.MealAnalysisNotificationSpec
+import com.foodie.app.domain.error.ErrorHandler
 import com.foodie.app.domain.exception.NoFoodDetectedException
 import com.foodie.app.domain.model.NutritionData
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
@@ -77,7 +79,9 @@ class AnalyzeMealWorker @AssistedInject constructor(
     private val nutritionAnalysisRepository: NutritionAnalysisRepository,
     private val healthConnectManager: HealthConnectManager,
     private val photoManager: PhotoManager,
-    private val foregroundNotifier: MealAnalysisForegroundNotifier
+    private val foregroundNotifier: MealAnalysisForegroundNotifier,
+    private val networkMonitor: NetworkMonitor,
+    private val errorHandler: ErrorHandler
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -183,6 +187,26 @@ class AnalyzeMealWorker @AssistedInject constructor(
         )
 
         startForeground(R.string.notification_meal_analysis_status_preparing)?.let { return it }
+        
+        // Check network connectivity before proceeding
+        if (!networkMonitor.checkConnectivity()) {
+            Timber.tag(TAG).w(
+                "No network connectivity (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS)"
+            )
+            
+            if (runAttemptCount + 1 >= MAX_ATTEMPTS) {
+                // Max retries exhausted - notify and fail
+                Timber.tag(TAG).e("Max retry attempts exhausted with no network")
+                photoManager.deletePhoto(photoUri)
+                notifyFailure("No internet connection. Please check your network and try again.")
+                return androidx.work.ListenableWorker.Result.failure()
+            } else {
+                // Retry when network restored
+                updateForeground(R.string.notification_meal_analysis_status_preparing)
+                return androidx.work.ListenableWorker.Result.retry()
+            }
+        }
+        
         updateForeground(R.string.notification_meal_analysis_status_uploading, progressPercent = 10)
         
         try {
@@ -275,7 +299,16 @@ class AnalyzeMealWorker @AssistedInject constructor(
                         return androidx.work.ListenableWorker.Result.failure()
                     }
                     
-                    val isRetryable = isRetryableError(exception)
+                    // Classify error using ErrorHandler
+                    val errorType = errorHandler.classify(exception)
+                    val isRetryable = errorHandler.isRetryable(errorType)
+                    val userMessage = errorHandler.getUserMessage(errorType)
+                    
+                    Timber.tag(TAG).w(
+                        exception,
+                        "API error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): " +
+                        "errorType=${errorType.javaClass.simpleName}, retryable=$isRetryable"
+                    )
                     
                     if (isRetryable) {
                         if (runAttemptCount + 1 >= MAX_ATTEMPTS) {
@@ -285,25 +318,31 @@ class AnalyzeMealWorker @AssistedInject constructor(
                                 "Max retry attempts exhausted ($MAX_ATTEMPTS), deleting photo"
                             )
                             photoManager.deletePhoto(photoUri)
-                            notifyFailure(apiResult.message ?: exception.message)
+                            notifyFailure(userMessage)
                             return androidx.work.ListenableWorker.Result.failure()
                         } else {
                             // Retry with exponential backoff
                             Timber.tag(TAG).w(
                                 exception,
-                                "Retryable error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): ${apiResult.message}"
+                                "Retryable error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): $userMessage"
                             )
-                            updateForeground(R.string.notification_meal_analysis_status_calling_api)
+                            // Update notification with retry count
+                            val retryMessage = "Retrying analysis... (attempt ${runAttemptCount + 2}/$MAX_ATTEMPTS)"
+                            try {
+                                setForeground(foregroundNotifier.createForegroundInfo(id, retryMessage))
+                            } catch (e: Exception) {
+                                Timber.tag(TAG).w(e, "Failed to update notification during retry")
+                            }
                             return androidx.work.ListenableWorker.Result.retry()
                         }
                     } else {
                         // Non-retryable error - delete photo and fail immediately
                         Timber.tag(TAG).e(
                             exception,
-                            "Non-retryable error: ${apiResult.message}, deleting photo"
+                            "Non-retryable error: $userMessage, deleting photo"
                         )
                         photoManager.deletePhoto(photoUri)
-                        notifyFailure(apiResult.message ?: exception.message)
+                        notifyFailure(userMessage)
                         return androidx.work.ListenableWorker.Result.failure()
                     }
                 }
@@ -322,32 +361,6 @@ class AnalyzeMealWorker @AssistedInject constructor(
             photoManager.deletePhoto(photoUri)
             notifyFailure(e.message)
             return androidx.work.ListenableWorker.Result.failure()
-        }
-    }
-    
-    /**
-     * Determines if an error is retryable with exponential backoff.
-     *
-     * Retryable errors:
-     * - IOException (network failures)
-     * - SocketTimeoutException (API timeouts)
-     * - HTTP 5xx errors (server-side failures)
-     *
-     * Non-retryable errors:
-     * - HTTP 4xx errors (client errors: auth, rate limit, invalid request)
-     * - Parse errors (JsonSyntaxException, etc.)
-     * - Validation errors (IllegalArgumentException, etc.)
-     *
-     * @param exception Exception from API call
-     * @return true if error should trigger retry, false otherwise
-     */
-    private fun isRetryableError(exception: Throwable): Boolean {
-        return when (exception) {
-            is IOException -> true
-            is SocketTimeoutException -> true
-            // Add HttpException check if using Retrofit/OkHttp
-            // is HttpException -> exception.code() >= 500
-            else -> false
         }
     }
 }

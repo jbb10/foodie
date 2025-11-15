@@ -72,11 +72,12 @@ development_status:
   # Epic 4: Error Handling & Reliability
   epic-4: contexted
   4-1-network-error-handling-infrastructure: done  # ✅ APPROVED - NetworkMonitor + ErrorHandler foundation - 40 tests passing, 6/6 ACs verified
-  4-2-api-retry-logic-with-exponential-backoff: backlog
+  4-2-api-retry-logic-with-exponential-backoff: done  # ✅ APPROVED - Core retry logic verified, NetworkMonitor/ErrorHandler integration complete, 280 tests passing, 5/8 ACs implemented (3 deferred)
   4-3-api-error-classification-and-handling: backlog
   4-4-photo-retention-and-cleanup: backlog
   4-5-health-connect-permission-and-availability-handling: backlog
   4-6-graceful-degradation-and-user-feedback: backlog
+  4-7-persistent-notification-with-manual-retry: drafted  # Manual retry button for failed analysis (deferred from Story 4.2)
   epic-4-retrospective: optional
 
   # Epic 5: Configuration & Polish

@@ -1,0 +1,420 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>2</storyId>
+    <title>API Retry Logic with Exponential Backoff</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-2-api-retry-logic-with-exponential-backoff.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>the app to automatically retry failed API calls</iWant>
+    <soThat>temporary network issues don't cause lost meal entries</soThat>
+    <tasks>
+      - Task 1: Documentation Research &amp; Technical Validation (WorkManager retry, NetworkMonitor integration, ErrorHandler integration)
+      - Task 2: Configure WorkManager Exponential Backoff Policy (BackoffPolicy.EXPONENTIAL, 1s base delay)
+      - Task 3: Track Retry Count in Worker (runAttemptCount, MAX_RETRIES = 3)
+      - Task 4: Integrate NetworkMonitor Before API Calls (inject NetworkMonitor, checkConnectivity())
+      - Task 5: Classify API Errors Using ErrorHandler (inject ErrorHandler, classify(), isRetryable())
+      - Task 6: Update Notification During Retry Attempts (setForegroundAsync with retry count)
+      - Task 7: Retain Photo During Retry Attempts (do NOT delete until success or exhaustion)
+      - Task 8: Implement Retry Exhaustion Handling (persistent notification, manual retry action)
+      - Task 9: Implement Manual Retry Action (re-enqueue WorkRequest with reset retry count)
+      - Task 10: Continue Normal Processing After Successful Retry (save HC, delete photo, dismiss notification)
+      - Task 11: Unit Tests for Retry Logic (10+ tests, MockK, Truth assertions)
+      - Task 12: Instrumentation Tests for Retry Integration (WorkManagerTestInitHelper, TestDriver)
+      - Task 13: Documentation and Integration Notes (KDoc, architecture.md update)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1">
+      <given>an Azure OpenAI API call fails due to network or server error</given>
+      <when>the retry logic activates</when>
+      <then>the app retries up to 3 additional times (4 total attempts)</then>
+    </criterion>
+    <criterion id="AC-2">
+      <then>retry delays use exponential backoff: 0s (immediate), 1s, 2s, 4s</then>
+    </criterion>
+    <criterion id="AC-3">
+      <then>the notification updates during retries: "Retrying analysis... (attempt 2/4)"</then>
+    </criterion>
+    <criterion id="AC-4">
+      <then>each retry uses the same photo from temporary storage</then>
+    </criterion>
+    <criterion id="AC-5">
+      <then>after successful retry, processing continues normally (save to Health Connect, delete photo)</then>
+    </criterion>
+    <criterion id="AC-6">
+      <then>after all retries exhausted, a persistent notification displays: "Meal analysis failed. Tap to retry manually."</then>
+    </criterion>
+    <criterion id="AC-7">
+      <then>the photo is retained for manual retry</then>
+    </criterion>
+    <criterion id="AC-8">
+      <then>manual retry button re-initiates the API call</then>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Epic 4 Technical Specification: Error Handling &amp; Reliability</title>
+        <section>Retry Policy</section>
+        <snippet>Exponential backoff: Attempt 1 (0s), Attempt 2 (1s), Attempt 3 (2s), Attempt 4 (4s). Total max delay: 7 seconds. WorkManager BackoffPolicy.EXPONENTIAL with 1s base delay.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Epic 4 Technical Specification</title>
+        <section>Error Classification</section>
+        <snippet>Retryable: NetworkError, ServerError (5xx), HealthConnectUnavailable. Non-Retryable: AuthError (401/403), RateLimitError (429), ParseError, ValidationError, PermissionDenied.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Epic 4 Technical Specification</title>
+        <section>Enhanced AnalyzeMealWorker Flow</section>
+        <snippet>Check network connectivity before API call. If offline and retries remaining, return Result.retry(). Classify exceptions using ErrorHandler. Update notification with retry count. Delete photo only after success or final failure.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Background Processing</section>
+        <snippet>WorkManager 2.9.1 for reliable background work. Handles retries, survives app termination. Use OneTimeWorkRequest with BackoffPolicy for retry logic.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 4.2</section>
+        <snippet>Automatic retry with exponential backoff for transient network/server errors. Up to 3 retries (4 total attempts). Notification updates show retry progress. Manual retry available after exhaustion.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/4-1-network-error-handling-infrastructure.md</path>
+        <title>Story 4.1: Network &amp; Error Handling Infrastructure</title>
+        <section>Implementation Complete</section>
+        <snippet>NetworkMonitor and ErrorHandler implemented and tested. 40 unit tests passing. NetworkMonitor.checkConnectivity() ~1ms. ErrorHandler.classify() ~0.5ms. Both Hilt injectable, ready for Worker integration.</snippet>
+      </doc>
+    </docs>
+    
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <kind>worker</kind>
+        <symbol>AnalyzeMealWorker</symbol>
+        <lines>74-354</lines>
+        <reason>Main worker to enhance with retry logic. Currently has basic error handling but needs NetworkMonitor integration, ErrorHandler classification, exponential backoff, and notification updates during retry.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <kind>worker</kind>
+        <symbol>AnalyzeMealWorker.doWork()</symbol>
+        <lines>173-354</lines>
+        <reason>Main processing method. Needs: 1) NetworkMonitor check before API call, 2) ErrorHandler.classify() for exception mapping, 3) ErrorHandler.isRetryable() for retry decision, 4) Notification update with retry count, 5) Photo retention logic during retry.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <kind>worker</kind>
+        <symbol>isRetryableError()</symbol>
+        <lines>324-339</lines>
+        <reason>Current retry logic based on exception type matching. Replace with ErrorHandler.isRetryable(ErrorHandler.classify(exception)) for centralized error classification from Story 4-1.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/network/NetworkMonitor.kt</path>
+        <kind>interface</kind>
+        <symbol>NetworkMonitor</symbol>
+        <lines>1-89</lines>
+        <reason>Network connectivity interface from Story 4-1. Inject into AnalyzeMealWorker and call checkConnectivity() before API calls. Performance: &lt; 50ms guaranteed.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/network/NetworkMonitor.kt</path>
+        <kind>interface</kind>
+        <symbol>NetworkMonitor.checkConnectivity()</symbol>
+        <lines>61-63</lines>
+        <reason>Synchronous network check method. Returns true if connected (WiFi or cellular), false if offline. Use at start of doWork() to fail fast when offline.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+        <kind>utility</kind>
+        <symbol>ErrorHandler</symbol>
+        <lines>1-339</lines>
+        <reason>Error classification utility from Story 4-1. Inject into AnalyzeMealWorker. Use classify(exception) to map exceptions to ErrorType, then isRetryable(errorType) to determine retry strategy.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+        <kind>utility</kind>
+        <symbol>ErrorHandler.classify()</symbol>
+        <lines>60-145</lines>
+        <reason>Maps exceptions to ErrorType. Replaces manual exception type checking in isRetryableError(). Performance: &lt; 10ms guaranteed.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+        <kind>utility</kind>
+        <symbol>ErrorHandler.isRetryable()</symbol>
+        <lines>180-202</lines>
+        <reason>Determines if ErrorType should trigger retry. Returns true for NetworkError, ServerError, HealthConnectUnavailable. Returns false for all other types.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+        <kind>utility</kind>
+        <symbol>ErrorHandler.getUserMessage()</symbol>
+        <lines>151-178</lines>
+        <reason>Generates user-friendly error messages. Use for notification text when retry exhausted or non-retryable error occurs.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/error/ErrorType.kt</path>
+        <kind>sealed-class</kind>
+        <symbol>ErrorType</symbol>
+        <lines>1-157</lines>
+        <reason>Sealed class hierarchy with 9 error types (3 retryable, 6 non-retryable). Type-safe error handling pattern from Story 4-1.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/foreground/MealAnalysisForegroundNotifier.kt</path>
+        <kind>service</kind>
+        <symbol>MealAnalysisForegroundNotifier</symbol>
+        <reason>Foreground notification manager. Use createForegroundInfo() to update notification text during retry attempts. Add retry count parameter to status text.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt</path>
+        <kind>service</kind>
+        <symbol>PhotoManager.deletePhoto()</symbol>
+        <reason>Photo deletion service. Do NOT call during retry attempts - only after successful HC save OR after all retries exhausted (unless non-retryable error).</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/di/AppModule.kt</path>
+        <kind>di-module</kind>
+        <symbol>AppModule.bindNetworkMonitor()</symbol>
+        <lines>29-29</lines>
+        <reason>Hilt DI binding for NetworkMonitor. Already configured in Story 4-1. Ready for injection into AnalyzeMealWorker.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/di/WorkManagerModule.kt</path>
+        <kind>di-module</kind>
+        <symbol>WorkManagerModule</symbol>
+        <lines>32-70</lines>
+        <reason>WorkManager DI configuration. HiltWorkerFactory already configured for @AssistedInject workers. No changes needed.</reason>
+      </artifact>
+    </code>
+    
+    <dependencies>
+      <android>
+        <package name="androidx.work:work-runtime-ktx">2.9.1</package>
+        <package name="androidx.work:work-testing">2.9.1 (test)</package>
+        <package name="androidx.hilt:hilt-work">1.2.0</package>
+      </android>
+      <testing>
+        <package name="io.mockk:mockk">1.13.13</package>
+        <package name="com.google.truth:truth">1.4.4</package>
+        <package name="org.jetbrains.kotlinx:kotlinx-coroutines-test">1.9.0</package>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <category>Architecture</category>
+      <rule>Use @HiltWorker and @AssistedInject for Worker dependency injection (already configured)</rule>
+    </constraint>
+    <constraint>
+      <category>Architecture</category>
+      <rule>All error handling MUST use ErrorHandler.classify() and ErrorHandler.isRetryable() from Story 4-1 - do NOT duplicate error classification logic</rule>
+    </constraint>
+    <constraint>
+      <category>Architecture</category>
+      <rule>NetworkMonitor MUST be injected via constructor - do NOT create new instance or use static methods</rule>
+    </constraint>
+    <constraint>
+      <category>Performance</category>
+      <rule>Total retry delay: 7 seconds max (0s + 1s + 2s + 4s). Do NOT exceed this to maintain sub-15s capture flow target</rule>
+    </constraint>
+    <constraint>
+      <category>Performance</category>
+      <rule>NetworkMonitor.checkConnectivity() must complete in &lt; 50ms (already validated in Story 4-1)</rule>
+    </constraint>
+    <constraint>
+      <category>Retry Logic</category>
+      <rule>Max 4 total attempts (initial + 3 retries). Use runAttemptCount to track. Define MAX_ATTEMPTS = 4 constant.</rule>
+    </constraint>
+    <constraint>
+      <category>Retry Logic</category>
+      <rule>ONLY retry if ErrorHandler.isRetryable(errorType) returns true AND runAttemptCount &lt; MAX_ATTEMPTS</rule>
+    </constraint>
+    <constraint>
+      <category>Retry Logic</category>
+      <rule>Use WorkManager BackoffPolicy.EXPONENTIAL with 1 second base delay in WorkRequest builder</rule>
+    </constraint>
+    <constraint>
+      <category>Photo Management</category>
+      <rule>Delete photo ONLY after: 1) Successful Health Connect save, OR 2) All retries exhausted for retryable errors, OR 3) Non-retryable error (AuthError, ParseError, etc.)</rule>
+    </constraint>
+    <constraint>
+      <category>Photo Management</category>
+      <rule>RETAIN photo if SecurityException (HC permission denied) - user must grant permissions manually</rule>
+    </constraint>
+    <constraint>
+      <category>Notification</category>
+      <rule>Update notification text during retry with attempt count: "Retrying analysis... (attempt X/Y)"</rule>
+    </constraint>
+    <constraint>
+      <category>Notification</category>
+      <rule>Show persistent notification after retry exhaustion with manual retry action button</rule>
+    </constraint>
+    <constraint>
+      <category>Testing</category>
+      <rule>Unit tests MUST use MockK for mocking NetworkMonitor, ErrorHandler, repositories</rule>
+    </constraint>
+    <constraint>
+      <category>Testing</category>
+      <rule>Unit tests MUST use Truth assertions library (assertThat(x).isEqualTo(y))</rule>
+    </constraint>
+    <constraint>
+      <category>Testing</category>
+      <rule>Instrumentation tests MUST use WorkManagerTestInitHelper and TestDriver for timing validation</rule>
+    </constraint>
+    <constraint>
+      <category>Logging</category>
+      <rule>Log all retry attempts with Timber.tag(TAG).w() including attempt count and exception type</rule>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>NetworkMonitor</name>
+      <kind>Kotlin interface</kind>
+      <signature>
+interface NetworkMonitor {
+    val isConnected: StateFlow&lt;Boolean&gt;
+    val networkType: StateFlow&lt;NetworkType&gt;
+    fun checkConnectivity(): Boolean
+    suspend fun waitForConnectivity()
+}
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/data/network/NetworkMonitor.kt</path>
+    </interface>
+    
+    <interface>
+      <name>ErrorHandler</name>
+      <kind>Kotlin class</kind>
+      <signature>
+@Singleton
+class ErrorHandler @Inject constructor() {
+    fun classify(exception: Throwable): ErrorType
+    fun getUserMessage(error: ErrorType): String
+    fun isRetryable(error: ErrorType): Boolean
+    fun getNotificationContent(error: ErrorType): NotificationContent
+}
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+    </interface>
+    
+    <interface>
+      <name>AnalyzeMealWorker Constructor Injection</name>
+      <kind>Hilt Worker</kind>
+      <signature>
+@HiltWorker
+class AnalyzeMealWorker @AssistedInject constructor(
+    @Assisted private val appContext: Context,
+    @Assisted private val workerParams: WorkerParameters,
+    private val nutritionAnalysisRepository: NutritionAnalysisRepository,
+    private val healthConnectManager: HealthConnectManager,
+    private val photoManager: PhotoManager,
+    private val foregroundNotifier: MealAnalysisForegroundNotifier,
+    private val networkMonitor: NetworkMonitor,  // ADD THIS
+    private val errorHandler: ErrorHandler       // ADD THIS
+) : CoroutineWorker(appContext, workerParams)
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+    </interface>
+    
+    <interface>
+      <name>WorkRequest with Exponential Backoff</name>
+      <kind>WorkManager API</kind>
+      <signature>
+val workRequest = OneTimeWorkRequestBuilder&lt;AnalyzeMealWorker&gt;()
+    .setInputData(workDataOf(
+        AnalyzeMealWorker.KEY_PHOTO_URI to photoUri.toString(),
+        AnalyzeMealWorker.KEY_TIMESTAMP to Instant.now().epochSecond
+    ))
+    .setConstraints(Constraints.Builder()
+        .setRequiredNetworkType(NetworkType.CONNECTED)
+        .build())
+    .setBackoffCriteria(
+        BackoffPolicy.EXPONENTIAL,  // ADD THIS
+        1,                           // Base delay: 1 second
+        TimeUnit.SECONDS             // Time unit
+    )
+    .build()
+      </signature>
+      <path>Implementation pattern for enqueuing worker with retry</path>
+    </interface>
+    
+    <interface>
+      <name>WorkManager Test Driver</name>
+      <kind>Testing API</kind>
+      <signature>
+val workManagerTestInitHelper = WorkManagerTestInitHelper.getInstance(context)
+val testDriver = workManagerTestInitHelper.testDriver!!
+
+// Advance time to trigger retry
+testDriver.setInitialDelayMet(workRequest.id)
+
+// Verify retry count
+val workInfo = workManager.getWorkInfoById(workRequest.id).get()
+assertThat(workInfo.runAttemptCount).isEqualTo(2)
+      </signature>
+      <path>Pattern for instrumentation tests with WorkManager timing</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: JUnit 4 with MockK for mocking and Truth for assertions. Unit tests in app/src/test/java/, instrumentation tests in app/src/androidTest/java/. Worker retry logic testing requires WorkManagerTestInitHelper and TestDriver for timing validation. All retry logic must be tested: network check, error classification, retry decision, notification updates, photo retention. Performance validation: measure actual retry delays in instrumentation tests (1s ±500ms tolerance). Test coverage target: 70%+ for retry-related code paths. Follow test naming: methodName_whenCondition_thenExpectedResult.
+    </standards>
+    
+    <locations>
+      <location>app/src/test/java/com/foodie/app/data/worker/</location>
+      <location>app/src/androidTest/java/com/foodie/app/data/worker/</location>
+    </locations>
+    
+    <ideas>
+      <idea ac="AC-1, AC-2">
+        <test>testExponentialBackoffConfiguration - Verify WorkRequest has BackoffPolicy.EXPONENTIAL with 1s base delay</test>
+      </idea>
+      <idea ac="AC-1">
+        <test>testMaxRetriesRespected - Verify retry stops after 4 attempts (runAttemptCount &gt;= MAX_ATTEMPTS)</test>
+      </idea>
+      <idea ac="AC-1">
+        <test>testRetryableErrorTriggersRetry - Mock NetworkError classification, verify Result.retry() returned</test>
+      </idea>
+      <idea ac="AC-1">
+        <test>testNonRetryableErrorFails - Mock AuthError classification, verify Result.failure() returned immediately</test>
+      </idea>
+      <idea ac="AC-3">
+        <test>testNotificationUpdatesOnRetry - Verify notification text includes retry count "attempt X/Y"</test>
+      </idea>
+      <idea ac="AC-4, AC-7">
+        <test>testPhotoRetainedDuringRetry - Verify photo file exists after retry attempt (not deleted)</test>
+      </idea>
+      <idea ac="AC-5">
+        <test>testPhotoDeletedAfterSuccess - Verify photo deleted after successful Health Connect save</test>
+      </idea>
+      <idea ac="AC-6">
+        <test>testPersistentNotificationAfterExhaustion - Verify notification shown with manual retry action after 4 failed attempts</test>
+      </idea>
+      <idea ac="AC-8">
+        <test>testManualRetryReenqueuesWorker - Verify new WorkRequest created with reset retry count when manual retry tapped</test>
+      </idea>
+      <idea ac="AC-2">
+        <test>testRetryDelayTiming (instrumentation) - Measure actual retry delays using TestDriver, assert 1s ±500ms, 2s ±500ms, 4s ±500ms</test>
+      </idea>
+      <idea ac="AC-1">
+        <test>testNetworkCheckBeforeApiCall - Mock NetworkMonitor.checkConnectivity() = false, verify retry scheduled without API call</test>
+      </idea>
+      <idea ac="AC-5">
+        <test>testSuccessfulRetryCompletesNormally - Mock API failure attempt 1, success attempt 2, verify HC save and photo deletion</test>
+      </idea>
+    </ideas>
+  </tests>
+</story-context>
