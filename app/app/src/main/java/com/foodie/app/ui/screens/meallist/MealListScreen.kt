@@ -1,5 +1,6 @@
 package com.foodie.app.ui.screens.meallist
 
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,8 +49,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.foodie.app.R
+import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.ui.theme.FoodieTheme
+import timber.log.Timber
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -77,6 +81,19 @@ fun MealListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycleOwner = LocalLifecycleOwner.current
     
+    // Health Connect permission launcher
+    val requestHealthConnectPermissions = rememberLauncherForActivityResult(
+        viewModel.createPermissionRequestContract()
+    ) { granted ->
+        Timber.i("Health Connect permission result from MealListScreen: granted=${granted.size}")
+        if (granted.containsAll(HealthConnectManager.REQUIRED_PERMISSIONS)) {
+            Timber.i("Health Connect permissions granted, reloading meals")
+            viewModel.loadMeals()
+        } else {
+            Timber.w("Health Connect permissions denied or incomplete")
+        }
+    }
+    
     // Initial load on first composition
     LaunchedEffect(Unit) {
         viewModel.loadMeals()
@@ -94,18 +111,49 @@ fun MealListScreen(
         }
     }
     
-    // Show error snackbar with retry action
+    // Show error snackbar with retry action, or request permissions if SecurityException
     LaunchedEffect(state.error) {
         state.error?.let { errorMessage ->
-            val result = snackbarHostState.showSnackbar(
-                message = errorMessage,
-                actionLabel = "Retry",
-                withDismissAction = true
-            )
-            if (result == SnackbarResult.ActionPerformed) {
-                viewModel.retryLoadMeals()
+            // Check if this is a permission error (SecurityException)
+            val isPermissionError = errorMessage.contains("Permission denied", ignoreCase = true) ||
+                                   errorMessage.contains("grant Health Connect access", ignoreCase = true)
+            
+            if (isPermissionError) {
+                // Request Health Connect permissions instead of showing useless retry
+                Timber.i("Permission error detected, requesting Health Connect permissions")
+                viewModel.clearError() // Clear error immediately
+                
+                // Check if permissions are actually missing
+                val hasPermissions = viewModel.hasHealthConnectPermissions()
+                if (!hasPermissions) {
+                    Timber.i("Requesting Health Connect permissions from MealListScreen")
+                    requestHealthConnectPermissions.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
+                } else {
+                    // Permissions exist but still got error - show regular retry snackbar
+                    Timber.w("Permission error but permissions exist - showing retry")
+                    val result = snackbarHostState.showSnackbar(
+                        message = errorMessage,
+                        actionLabel = "Retry",
+                        withDismissAction = true
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.retryLoadMeals()
+                    } else {
+                        viewModel.clearError()
+                    }
+                }
             } else {
-                viewModel.clearError()
+                // Non-permission errors: show regular retry snackbar
+                val result = snackbarHostState.showSnackbar(
+                    message = errorMessage,
+                    actionLabel = "Retry",
+                    withDismissAction = true
+                )
+                if (result == SnackbarResult.ActionPerformed) {
+                    viewModel.retryLoadMeals()
+                } else {
+                    viewModel.clearError()
+                }
             }
         }
     }

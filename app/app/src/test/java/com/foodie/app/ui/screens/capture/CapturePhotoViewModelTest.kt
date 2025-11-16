@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.work.WorkManager
 import com.foodie.app.data.local.cache.PhotoManager
+import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -40,6 +41,9 @@ class CapturePhotoViewModelTest {
     @Mock
     private lateinit var mockWorkManager: WorkManager
 
+    @Mock
+    private lateinit var mockHealthConnectManager: HealthConnectManager
+
     private lateinit var viewModel: CapturePhotoViewModel
     private val testDispatcher = StandardTestDispatcher()
 
@@ -47,7 +51,7 @@ class CapturePhotoViewModelTest {
     fun setup() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        viewModel = CapturePhotoViewModel(mockPhotoManager, mockWorkManager)
+        viewModel = CapturePhotoViewModel(mockPhotoManager, mockWorkManager, mockHealthConnectManager)
     }
 
     @After

@@ -1,0 +1,288 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>3</storyId>
+    <title>API Error Classification and Handling</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-15</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-3-api-error-classification-and-handling.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>clear, actionable error messages when something goes wrong</iWant>
+    <soThat>I understand what happened and how to fix it</soThat>
+    <tasks>
+      - Task 1: Documentation Research and Technical Validation (COMPLETE BEFORE PROCEEDING)
+      - Task 2: Enhance Error Message Display in Worker (ErrorHandler.getUserMessage integration)
+      - Task 3: Add Persistent Notifications for Critical Errors (NotificationHelper utility, action buttons)
+      - Task 4: Enhance Logging with Full Error Context (comprehensive error logging)
+      - Task 5: Update UI Error Handling in ViewModels (ErrorHandler integration in UI layer)
+      - Task 6: Implement Settings Navigation from Notification (deep linking from notification actions)
+      - Task 7: Add Error Type Classification Tests (unit tests for ErrorHandler)
+      - Task 8: Integration Tests for Error Notification Flow (instrumentation tests)
+      - Task 9: Manual Testing Scenarios (all error types and notification actions)
+      - Task 10: Documentation and Dev Notes (KDoc comments, architecture updates)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    AC #1: Network timeouts show: "Request timed out. Check your internet connection."
+    AC #2: Authentication errors (401/403) show: "API key invalid. Check settings."
+    AC #3: Server errors (5xx) show: "Service temporarily unavailable. Will retry automatically."
+    AC #4: Rate limit errors (429) show: "Too many requests. Please wait a moment."
+    AC #5: Invalid response format shows: "Unexpected response from AI service."
+    AC #6: Each error type triggers appropriate handling (retry for 5xx, don't retry for 4xx)
+    AC #7: Errors are logged with full context for debugging
+    AC #8: Critical errors show persistent notifications requiring user action
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Epic Technical Specification: Error Handling and Reliability</title>
+        <section>Overview, Error Classification, Notification Patterns</section>
+        <snippet>Epic 4 transforms the Foodie application from a functional prototype into a production-ready tool by implementing comprehensive error handling, network resilience, and graceful degradation patterns. ErrorType sealed class categorizes errors into retryable (NetworkError, ServerError, HealthConnectUnavailable) and non-retryable (AuthError, RateLimitError, ParseError, ValidationError, PermissionDenied).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Foodie - Architecture Document</title>
+        <section>Implementation Patterns, Code Organization, MVVM Architecture</section>
+        <snippet>Layer Architecture (Clean Architecture): UI Layer (screens, viewmodels, state) → Domain Layer (use cases, domain models) → Data Layer (repository impls, data sources, entities). Dependency Rules: UI depends on Domain, Domain depends on Data (interfaces only), Data has no dependencies on UI/Domain. All layers use Hilt for DI.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/4-1-network-error-handling-infrastructure.md</path>
+        <title>Story 4.1: Network Error Handling Infrastructure</title>
+        <section>ErrorHandler Implementation, ErrorType Definitions</section>
+        <snippet>ErrorHandler service provides centralized error classification and user-friendly messaging. classify() method maps exceptions to ErrorType, getUserMessage() generates user-facing text, isRetryable() determines retry strategy. All error messages follow pattern: Clear problem statement + Actionable guidance.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/4-2-api-retry-logic-with-exponential-backoff.md</path>
+        <title>Story 4.2: API Retry Logic with Exponential Backoff</title>
+        <section>AnalyzeMealWorker Retry Integration, Notification Updates</section>
+        <snippet>AnalyzeMealWorker integrates ErrorHandler for classification and retry logic. Uses setForeground(foregroundNotifier.createForegroundInfo(id, message)) to update notification during work execution. Retry count tracking via runAttemptCount, MAX_ATTEMPTS = 4 constant defined. Photo retention during retry attempts, deleted only after success or retry exhaustion.</snippet>
+      </doc>
+    </docs>
+    
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+        <kind>service</kind>
+        <symbol>ErrorHandler</symbol>
+        <lines>1-339</lines>
+        <reason>Core error handling service. Provides classify(), getUserMessage(), isRetryable(), getNotificationContent() methods. Already implemented in Story 4.1. This story integrates ErrorHandler throughout the app for user-facing error display and persistent notifications.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/error/ErrorType.kt</path>
+        <kind>model</kind>
+        <symbol>ErrorType</symbol>
+        <lines>1-157</lines>
+        <reason>Sealed class hierarchy for all error types. Categorizes into retryable (NetworkError, ServerError, HealthConnectUnavailable) and non-retryable (AuthError, RateLimitError, ParseError, ValidationError, PermissionDenied). Used by ErrorHandler for classification.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <kind>worker</kind>
+        <symbol>AnalyzeMealWorker</symbol>
+        <lines>1-367</lines>
+        <reason>Background worker for meal analysis. Already uses ErrorHandler for classification and retry logic (Story 4.2). This story enhances error handling by updating notification messages with ErrorHandler.getUserMessage() and implementing persistent notifications for non-retryable errors.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/foreground/MealAnalysisForegroundNotifier.kt</path>
+        <kind>service</kind>
+        <symbol>MealAnalysisForegroundNotifier</symbol>
+        <lines>1-150</lines>
+        <reason>Builds foreground notifications for meal analysis. Contains createForegroundInfo(), createCompletionNotification(), createFailureNotification() methods. This story extends notification creation to include error-specific messages and action buttons for critical errors.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>MealListViewModel</symbol>
+        <lines>1-252</lines>
+        <reason>ViewModel for meal list screen. Currently handles errors with generic messages. This story updates error state handling to use ErrorHandler.getUserMessage() for consistent, user-friendly error messaging in UI layer.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/MainActivity.kt</path>
+        <kind>activity</kind>
+        <symbol>MainActivity</symbol>
+        <lines>1-150</lines>
+        <reason>Main activity with navigation. Needs enhancement to handle deep link actions from notifications (e.g., "com.foodie.app.OPEN_SETTINGS" intent action) to navigate to settings screen when user taps notification action buttons.</reason>
+      </artifact>
+    </code>
+    
+    <dependencies>
+      <android>
+        <package name="androidx.core:core-ktx" version="1.15.0" />
+        <package name="androidx.work:work-runtime-ktx" version="2.9.1" />
+        <package name="androidx.health.connect:connect-client" version="1.1.0" />
+        <package name="androidx.compose.ui:ui" version="via-compose-bom-2024.10.01" />
+        <package name="androidx.compose.material3:material3" version="via-compose-bom" />
+        <package name="androidx.navigation:navigation-compose" version="2.8.4" />
+        <package name="androidx.hilt:hilt-navigation-compose" version="1.2.0" />
+        <package name="com.google.dagger:hilt-android" version="2.53" />
+        <package name="com.squareup.retrofit2:retrofit" version="2.11.0" />
+        <package name="com.squareup.retrofit2:converter-gson" version="2.11.0" />
+        <package name="com.squareup.okhttp3:okhttp" version="4.12.0" />
+        <package name="com.jakewharton.timber:timber" version="5.0.1" />
+      </android>
+      <testing>
+        <package name="junit:junit" version="4.13.2" />
+        <package name="org.mockito:mockito-core" version="5.10.0" />
+        <package name="org.mockito.kotlin:mockito-kotlin" version="5.4.0" />
+        <package name="io.mockk:mockk" version="1.13.14" />
+        <package name="io.mockk:mockk-android" version="1.13.14" />
+        <package name="com.google.truth:truth" version="1.4.4" />
+        <package name="org.jetbrains.kotlinx:kotlinx-coroutines-test" version="1.9.0" />
+        <package name="androidx.arch.core:core-testing" version="2.2.0" />
+        <package name="androidx.compose.ui:ui-test-junit4" version="via-compose-bom" />
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Follow MVVM clean architecture: UI Layer → Domain Layer → Data Layer
+    - All error messages MUST come from ErrorHandler.getUserMessage() (no duplication)
+    - Persistent notifications ONLY for errors requiring user action (AuthError, PermissionDenied, NetworkError after retry exhaustion)
+    - Notification action buttons limited to 3 maximum per notification (Android platform constraint)
+    - Deep linking pattern: Intent with action string "com.foodie.app.OPEN_SETTINGS" or similar, handled in MainActivity.onCreate()
+    - Use Timber for all logging with comprehensive error context (exception, error type, retry count, photo URI)
+    - NEVER log sensitive data (API keys, full images, personal information)
+    - All repository methods return Result&lt;T&gt;, never throw exceptions to caller
+    - Use Hilt dependency injection for all components (@HiltViewModel, @HiltWorker, @Singleton)
+    - All notification channels must be created before use (already done in Story 2.8 for "meal_analysis")
+    - PendingIntent flags MUST include FLAG_IMMUTABLE for Android 12+ compatibility
+    - Notification messages must be concise (max 2 lines for content text, use BigTextStyle for longer messages)
+    - Error messages follow pattern: Clear problem statement + Actionable guidance (no technical jargon)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ErrorHandler.getUserMessage</name>
+      <kind>function</kind>
+      <signature>
+fun getUserMessage(error: ErrorType): String
+// Returns user-friendly error message for display in UI or notifications
+// Examples: "Request timed out. Check your internet connection."
+//          "API key invalid. Check settings."
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+    </interface>
+    
+    <interface>
+      <name>ErrorHandler.classify</name>
+      <kind>function</kind>
+      <signature>
+fun classify(exception: Throwable): ErrorType
+// Maps exceptions to ErrorType sealed class
+// Used in: Repository error handling, Worker error handling
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+    </interface>
+    
+    <interface>
+      <name>ErrorHandler.isRetryable</name>
+      <kind>function</kind>
+      <signature>
+fun isRetryable(error: ErrorType): Boolean
+// Determines if error should trigger retry logic
+// Returns true for: NetworkError, ServerError, HealthConnectUnavailable
+// Returns false for: AuthError, RateLimitError, ParseError, ValidationError, PermissionDenied
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+    </interface>
+    
+    <interface>
+      <name>MealAnalysisForegroundNotifier.createForegroundInfo</name>
+      <kind>function</kind>
+      <signature>
+fun createForegroundInfo(
+    workId: UUID,
+    statusText: String,
+    progressPercent: Int? = null
+): ForegroundInfo
+// Creates foreground notification for WorkManager
+// Used in: AnalyzeMealWorker to update notification during processing
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/data/worker/foreground/MealAnalysisForegroundNotifier.kt</path>
+    </interface>
+    
+    <interface>
+      <name>MealAnalysisForegroundNotifier.createFailureNotification</name>
+      <kind>function</kind>
+      <signature>
+fun createFailureNotification(workId: UUID, errorReason: String): Notification
+// Creates failure notification with error message
+// This story enhances to accept ErrorType and generate message via ErrorHandler
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/data/worker/foreground/MealAnalysisForegroundNotifier.kt</path>
+    </interface>
+    
+    <interface>
+      <name>NotificationHelper.showErrorNotification (NEW)</name>
+      <kind>function</kind>
+      <signature>
+fun showErrorNotification(
+    context: Context,
+    errorType: ErrorType,
+    workId: UUID? = null
+)
+// Creates persistent notification with action buttons for critical errors
+// Action buttons: "Open Settings" for AuthError, "Retry" for NetworkError (exhausted), "Grant Access" for PermissionDenied
+// To be created in: app/app/src/main/java/com/foodie/app/util/NotificationHelper.kt
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/util/NotificationHelper.kt</path>
+    </interface>
+    
+    <interface>
+      <name>NotificationHelper.createSettingsIntent (NEW)</name>
+      <kind>function</kind>
+      <signature>
+fun createSettingsIntent(context: Context): PendingIntent
+// Creates PendingIntent to launch SettingsScreen via deep link
+// Intent action: "com.foodie.app.OPEN_SETTINGS"
+// To be created in: app/app/src/main/java/com/foodie/app/util/NotificationHelper.kt
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/util/NotificationHelper.kt</path>
+    </interface>
+    
+    <interface>
+      <name>MainActivity Deep Link Handling</name>
+      <kind>activity-intent-handling</kind>
+      <signature>
+// In MainActivity.onCreate()
+if (intent.action == "com.foodie.app.OPEN_SETTINGS") {
+    // Navigate to settings screen via navController
+    navController.navigate(Route.Settings)
+}
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/MainActivity.kt</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Unit tests use JUnit 4.13.2, Mockito/Mockito-Kotlin or MockK for mocking, Truth library for assertions (assertThat(x).isEqualTo(y)), and kotlinx-coroutines-test for suspend function testing with runTest {}. Test naming: methodName_whenCondition_thenExpectedResult. Instrumentation tests use AndroidJUnit4, Compose UI test framework, and Hilt testing support. All tests must pass before story completion (./gradlew test connectedAndroidTest). Repository layer: mock dependencies. UseCase layer: mock repository. ViewModel layer: mock use case, use InstantTaskExecutorRule for StateFlow. Worker layer: mock repository and managers. Target 80%+ code coverage for core business logic.
+    </standards>
+    
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/domain/error/ErrorHandlerTest.kt (NEW - unit tests for error message generation)</location>
+      <location>app/app/src/test/java/com/foodie/app/util/NotificationHelperTest.kt (NEW - unit tests for notification content generation)</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/ui/ErrorNotificationTest.kt (NEW - integration tests for notification flow)</location>
+      <location>app/app/src/test/java/com/foodie/app/**/*Test.kt (existing unit tests to verify no regressions)</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/**/*Test.kt (existing instrumentation tests)</location>
+    </locations>
+    
+    <ideas>
+      <idea ac="1,2,3,4,5">Unit test: ErrorHandler.getUserMessage() returns correct text for each ErrorType (NetworkError → "Request timed out. Check your internet connection.", AuthError → "API key invalid. Check settings.", ServerError → "Service temporarily unavailable. Will retry automatically.", RateLimitError → "Too many requests. Please wait a moment.", ParseError → "Unexpected response from AI service.")</idea>
+      <idea ac="6">Unit test: ErrorHandler.classify() maps HttpException(401) → AuthError, HttpException(429) → RateLimitError, HttpException(503) → ServerError, IOException → NetworkError, JsonSyntaxException → ParseError</idea>
+      <idea ac="6">Unit test: ErrorHandler.isRetryable() returns true for NetworkError/ServerError, false for AuthError/RateLimitError/ParseError</idea>
+      <idea ac="7">Integration test: Simulate network error in AnalyzeMealWorker, verify Timber logs include exception, error type, attempt count, photo URI</idea>
+      <idea ac="8">Integration test: Mock AnalyzeMealWorker to throw AuthError, verify persistent notification shown with "Open Settings" action button</idea>
+      <idea ac="8">Integration test: Mock NetworkError (after retry exhaustion), verify "Retry" action button appears in notification</idea>
+      <idea ac="8">Integration test: Tap "Open Settings" action in notification, verify MainActivity launches and navigates to SettingsScreen</idea>
+      <idea ac="8">Integration test: Tap "Retry" action in notification, verify WorkManager re-enqueues AnalyzeMealWorker</idea>
+      <idea ac="1,2,3,4,5">Integration test: Simulate each error type end-to-end (invalid API key, network timeout, server 503, rate limit 429, malformed JSON), verify correct error message displayed in notification</idea>
+    </ideas>
+  </tests>
+</story-context>

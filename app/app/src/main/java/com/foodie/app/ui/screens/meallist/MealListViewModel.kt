@@ -2,6 +2,7 @@ package com.foodie.app.ui.screens.meallist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
 import com.foodie.app.domain.usecase.GetMealHistoryUseCase
@@ -29,11 +30,23 @@ import javax.inject.Inject
 @HiltViewModel
 class MealListViewModel @Inject constructor(
     private val getMealHistoryUseCase: GetMealHistoryUseCase,
-    private val deleteMealEntryUseCase: DeleteMealEntryUseCase
+    private val deleteMealEntryUseCase: DeleteMealEntryUseCase,
+    private val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
     
     private val _state = MutableStateFlow(MealListState())
     val state: StateFlow<MealListState> = _state.asStateFlow()
+    
+    /**
+     * Creates Health Connect permission request contract.
+     * Used by MealListScreen to request permissions when SecurityException detected.
+     */
+    fun createPermissionRequestContract() = healthConnectManager.createPermissionRequestContract()
+    
+    /**
+     * Checks if Health Connect permissions are granted.
+     */
+    suspend fun hasHealthConnectPermissions() = healthConnectManager.checkPermissions()
     
     /**
      * Loads meal entries from Health Connect for the last 7 days.

@@ -14,6 +14,7 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.foodie.app.R
 import com.foodie.app.data.local.cache.PhotoManager
+import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.data.worker.AnalyzeMealWorker
 import com.foodie.app.notifications.NotificationPermissionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +36,12 @@ import javax.inject.Inject
 sealed class CaptureState {
     /** Initial state before permission check */
     data object Idle : CaptureState()
+
+    /** Requesting Health Connect permissions (must happen before camera) */
+    data object RequestingHealthConnectPermission : CaptureState()
+
+    /** Health Connect permission denied by user */
+    data object HealthConnectPermissionDenied : CaptureState()
 
     /** Requesting camera permission from user */
     data object RequestingPermission : CaptureState()
@@ -93,7 +100,8 @@ sealed class CaptureState {
 @HiltViewModel
 class CapturePhotoViewModel @Inject constructor(
     private val photoManager: PhotoManager,
-    private val workManager: WorkManager
+    private val workManager: WorkManager,
+    private val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
 
     companion object {
@@ -116,24 +124,68 @@ class CapturePhotoViewModel @Inject constructor(
     }
 
     /**
-     * Checks camera permission and prepares for capture.
+     * Checks Health Connect and camera permissions, then prepares for capture.
      *
-     * If permission granted: Creates temp file and transitions to ReadyToCapture.
-     * If permission denied: Transitions to RequestingPermission.
+     * Flow:
+     * 1. Check Health Connect permissions first (required for saving meal data)
+     * 2. If HC denied: Request HC permissions
+     * 3. If HC granted: Check camera permission
+     * 4. If camera denied: Request camera permission
+     * 5. If all granted: Prepare for capture
      *
-     * @param context Android context for permission check
+     * @param context Android context for permission checks
      */
     fun checkPermissionAndPrepare(context: Context) {
-        val hasPermission = ContextCompat.checkSelfPermission(
+        viewModelScope.launch {
+            // First, check Health Connect permissions
+            val hasHealthConnectPermissions = healthConnectManager.checkPermissions()
+            
+            if (!hasHealthConnectPermissions) {
+                Timber.i("Health Connect permissions missing - requesting before camera")
+                _state.value = CaptureState.RequestingHealthConnectPermission
+                return@launch
+            }
+            
+            // HC permissions granted, now check camera permission
+            val hasCameraPermission = ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (hasCameraPermission) {
+                prepareForCapture()
+            } else {
+                _state.value = CaptureState.RequestingPermission
+            }
+        }
+    }
+
+    /**
+     * Called when Health Connect permissions are granted.
+     * Proceeds to check camera permission.
+     */
+    fun onHealthConnectPermissionGranted(context: Context) {
+        Timber.i("Health Connect permissions granted, checking camera permission")
+        
+        val hasCameraPermission = ContextCompat.checkSelfPermission(
             context,
             android.Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_GRANTED
 
-        if (hasPermission) {
+        if (hasCameraPermission) {
             prepareForCapture()
         } else {
             _state.value = CaptureState.RequestingPermission
         }
+    }
+
+    /**
+     * Called when Health Connect permissions are denied.
+     * Cannot proceed with capture flow.
+     */
+    fun onHealthConnectPermissionDenied() {
+        Timber.w("Health Connect permissions denied - cannot save meals without them")
+        _state.value = CaptureState.HealthConnectPermissionDenied
     }
 
     /**
@@ -239,6 +291,13 @@ class CapturePhotoViewModel @Inject constructor(
     fun retryNotificationPermission() {
         _state.value = CaptureState.NotificationPermissionRequired
     }
+
+    /**
+     * Creates permission request contract for Health Connect.
+     * Exposes the contract from HealthConnectManager for use in Composable.
+     */
+    fun createHealthConnectPermissionContract() = 
+        healthConnectManager.createPermissionRequestContract()
 
     private fun hasNotificationPermission(context: Context): Boolean {
         val granted = NotificationPermissionManager.hasPermission(context)

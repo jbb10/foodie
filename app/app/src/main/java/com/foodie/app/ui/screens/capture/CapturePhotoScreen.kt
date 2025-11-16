@@ -56,6 +56,21 @@ fun CapturePhotoScreen(
     val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
 
+    // Health Connect permission launcher (must come before camera)
+    val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
+        contract = viewModel.createHealthConnectPermissionContract()
+    ) { granted ->
+        Timber.i("Health Connect permission result: granted=${granted.size}, required=${com.foodie.app.data.local.healthconnect.HealthConnectManager.REQUIRED_PERMISSIONS.size}")
+        if (granted.containsAll(com.foodie.app.data.local.healthconnect.HealthConnectManager.REQUIRED_PERMISSIONS)) {
+            Timber.i("✅ Health Connect permissions granted from capture screen")
+            viewModel.onHealthConnectPermissionGranted(context)
+        } else {
+            Timber.w("❌ Health Connect permissions denied (granted: ${granted.size})")
+            // User denied permissions - cannot proceed, navigate back
+            onNavigateBack()
+        }
+    }
+
     // Camera permission launcher
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -91,6 +106,11 @@ fun CapturePhotoScreen(
     // Handle state changes
     LaunchedEffect(state) {
         when (state) {
+            is CaptureState.RequestingHealthConnectPermission -> {
+                healthConnectPermissionLauncher.launch(
+                    com.foodie.app.data.local.healthconnect.HealthConnectManager.REQUIRED_PERMISSIONS
+                )
+            }
             is CaptureState.RequestingPermission -> {
                 permissionLauncher.launch(Manifest.permission.CAMERA)
             }
@@ -121,6 +141,7 @@ fun CapturePhotoScreen(
     // Render UI based on state
     when (state) {
         is CaptureState.Idle,
+        is CaptureState.RequestingHealthConnectPermission,
         is CaptureState.RequestingPermission,
         is CaptureState.ReadyToCapture,
         is CaptureState.Processing -> {
@@ -219,6 +240,14 @@ fun CapturePhotoScreen(
                 },
                 onCancel = onNavigateBack
             )
+        }
+
+        is CaptureState.HealthConnectPermissionDenied -> {
+            // User denied Health Connect permissions - navigate back to previous screen
+            LaunchedEffect(Unit) {
+                Timber.w("Health Connect permissions denied - closing capture screen")
+                onNavigateBack()
+            }
         }
     }
 }
@@ -353,6 +382,53 @@ private fun NotificationPermissionDeniedScreen(
                 }
                 Button(onClick = onRetry) {
                     Text(stringResource(R.string.capture_notification_permission_retry))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Screen shown when Health Connect permissions are denied.
+ * 
+ * Explains why Health Connect is required and provides options to grant access or cancel.
+ *
+ * @param onOpenHealthConnect Callback to re-request Health Connect permissions
+ * @param onCancel Callback to cancel and navigate back
+ */
+@Composable
+private fun HealthConnectPermissionDeniedScreen(
+    onOpenHealthConnect: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Health Connect Required",
+                style = MaterialTheme.typography.headlineSmall
+            )
+
+            Text(
+                text = "Foodie saves your meal nutrition to Health Connect. " +
+                      "Tap 'Grant Access' to open Health Connect settings.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(onClick = onCancel) {
+                    Text("Cancel")
+                }
+                Button(onClick = onOpenHealthConnect) {
+                    Text("Grant Access")
                 }
             }
         }

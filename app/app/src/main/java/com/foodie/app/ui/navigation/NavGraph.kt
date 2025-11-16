@@ -16,6 +16,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.foodie.app.data.local.healthconnect.HealthConnectManager
+import com.foodie.app.ui.components.HealthConnectPermissionGate
 import com.foodie.app.ui.screens.capture.CapturePhotoScreen
 import com.foodie.app.ui.screens.mealdetail.MealDetailScreen
 import com.foodie.app.ui.screens.meallist.MealListScreen
@@ -50,12 +52,14 @@ import com.foodie.app.ui.screens.settings.SettingsScreen
  * Settings
  * ```
  *
+ * @param healthConnectManager HealthConnectManager for permission checking
  * @param navController The navigation controller (typically from [rememberNavController])
  * @param initialRoute Optional route to navigate to on first launch (e.g., from notification)
  * @param modifier Optional modifier for the NavHost
  */
 @Composable
 fun NavGraph(
+    healthConnectManager: HealthConnectManager,
     navController: NavHostController = rememberNavController(),
     initialRoute: String? = null,
     modifier: Modifier = Modifier
@@ -178,17 +182,25 @@ fun NavGraph(
                 fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
             }
         ) {
-            CapturePhotoScreen(
-                onPhotoConfirmed = { photoUri ->
-                    // Story 2-5: Background processing started via WorkManager
-                    // Finish activity to return to home screen / previous app
-                    activity?.finish()
-                },
-                onNavigateBack = {
-                    // User cancelled - finish activity
+            HealthConnectPermissionGate(
+                healthConnectManager = healthConnectManager,
+                onPermissionsDenied = {
+                    // User cancelled permission flow - finish activity
                     activity?.finish()
                 }
-            )
+            ) {
+                CapturePhotoScreen(
+                    onPhotoConfirmed = { photoUri ->
+                        // Story 2-5: Background processing started via WorkManager
+                        // Finish activity to return to home screen / previous app
+                        activity?.finish()
+                    },
+                    onNavigateBack = {
+                        // User cancelled - finish activity
+                        activity?.finish()
+                    }
+                )
+            }
         }
 
         // Settings screen

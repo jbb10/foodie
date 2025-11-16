@@ -1,6 +1,7 @@
 package com.foodie.app.ui.screens.meallist
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
 import com.foodie.app.domain.usecase.GetMealHistoryUseCase
@@ -39,6 +40,7 @@ class MealListViewModelTest {
     
     private lateinit var getMealHistoryUseCase: GetMealHistoryUseCase
     private lateinit var deleteMealEntryUseCase: DeleteMealEntryUseCase
+    private lateinit var healthConnectManager: HealthConnectManager
     private lateinit var viewModel: MealListViewModel
     
     @Before
@@ -46,6 +48,7 @@ class MealListViewModelTest {
         Dispatchers.setMain(testDispatcher)
         getMealHistoryUseCase = mock()
         deleteMealEntryUseCase = mock()
+        healthConnectManager = mock()
     }
     
     @After
@@ -63,7 +66,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(testMeals)))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals() // Explicitly call loadMeals (called by LaunchedEffect in screen)
 
         // Then
@@ -89,7 +92,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(testMeals)))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
 
         // Then
@@ -109,7 +112,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(emptyList())))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
 
         // Then - Check loading state is set (UnconfinedTestDispatcher executes immediately)
@@ -129,7 +132,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(testMeals)))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
 
         // Then
@@ -149,7 +152,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Error(java.io.IOException(), errorMessage)))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
 
         // Then
@@ -166,7 +169,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Error(SecurityException(), errorMessage)))
 
         // When
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
 
         // Then
@@ -180,7 +183,7 @@ class MealListViewModelTest {
         // Given - Initial error state
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Error(java.io.IOException(), "Network error")))
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         assertThat(viewModel.state.value.error).isNotNull()
 
@@ -201,7 +204,7 @@ class MealListViewModelTest {
         // Given - Error state
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Error(java.io.IOException(), "Network error")))
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         assertThat(viewModel.state.value.error).isNotNull()
 
@@ -218,7 +221,7 @@ class MealListViewModelTest {
         val initialMeals = listOf(MealEntry("1", Instant.now(), "Old meal", 300))
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(initialMeals)))
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
 
         // When
         val newMeals = listOf(
@@ -242,7 +245,7 @@ class MealListViewModelTest {
         val testMeals = listOf(MealEntry("1", Instant.now(), "Test", 450))
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(testMeals)))
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         val stateBefore = viewModel.state.value
 
         // When
@@ -260,7 +263,7 @@ class MealListViewModelTest {
         val testMeals = listOf(MealEntry("meal-123", Instant.now(), "Lunch", 600))
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(testMeals)))
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
 
         // When
         viewModel.onMealLongPress("meal-123")
@@ -277,7 +280,7 @@ class MealListViewModelTest {
         val testMeals = listOf(MealEntry("meal-123", Instant.now(), "Lunch", 600))
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(testMeals)))
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.onMealLongPress("meal-123")
 
         // When
@@ -301,7 +304,7 @@ class MealListViewModelTest {
         whenever(deleteMealEntryUseCase(any()))
             .thenReturn(Result.Success(Unit))
         
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         viewModel.onMealLongPress("meal-1")
 
@@ -326,7 +329,7 @@ class MealListViewModelTest {
         whenever(deleteMealEntryUseCase(any()))
             .thenReturn(Result.Success(Unit))
         
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         viewModel.onMealLongPress("meal-1")
 
@@ -350,7 +353,7 @@ class MealListViewModelTest {
         whenever(deleteMealEntryUseCase(any()))
             .thenReturn(Result.Error(Exception("Network error"), errorMessage))
         
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         viewModel.onMealLongPress("meal-1")
 
@@ -374,7 +377,7 @@ class MealListViewModelTest {
         whenever(deleteMealEntryUseCase(any()))
             .thenReturn(Result.Error(SecurityException("Permission denied"), errorMessage))
         
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         viewModel.onMealLongPress("meal-1")
 
@@ -393,7 +396,7 @@ class MealListViewModelTest {
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(testMeals)))
         
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         val stateBefore = viewModel.state.value
 
@@ -413,7 +416,7 @@ class MealListViewModelTest {
         whenever(deleteMealEntryUseCase(any()))
             .thenReturn(Result.Success(Unit))
         
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         viewModel.onMealLongPress("meal-1")
         viewModel.onDeleteConfirmed()
@@ -433,7 +436,7 @@ class MealListViewModelTest {
         val initialMeals = listOf(MealEntry("1", Instant.now(), "Initial", 300))
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(initialMeals)))
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
 
         // When
@@ -459,7 +462,7 @@ class MealListViewModelTest {
         val initialMeals = listOf(MealEntry("1", Instant.now(), "Existing", 400))
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(initialMeals)))
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
 
         // When - Refresh fails
@@ -481,7 +484,7 @@ class MealListViewModelTest {
         // Given - Error state from previous load
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Error(java.io.IOException(), "Old error")))
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         assertThat(viewModel.state.value.error).isNotNull()
 
@@ -506,7 +509,7 @@ class MealListViewModelTest {
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(testMeals)))
 
-        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
 
         // When
         val startTime = System.currentTimeMillis()

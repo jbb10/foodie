@@ -43,4 +43,20 @@
     <string name="notification_meal_analysis_status_uploading">Uploading meal photo…</string>
     <string name="notification_meal_analysis_status_calling_api">Contacting Foodie AI…</string>
     <string name="notification_meal_analysis_status_saving">Saving nutrition data…</string>
+    
+    <!-- Error Notifications -->
+    <string name="notification_channel_errors_name">Meal Analysis Errors</string>
+    <string name="notification_channel_errors_description">Alerts for meal analysis errors requiring your attention</string>
+    <string name="notification_error_title_network">Network Error</string>
+    <string name="notification_error_title_server">Service Unavailable</string>
+    <string name="notification_error_title_auth">Configuration Error</string>
+    <string name="notification_error_title_rate_limit">Too Many Requests</string>
+    <string name="notification_error_title_parse">Service Error</string>
+    <string name="notification_error_title_permission">Permissions Required</string>
+    <string name="notification_error_title_validation">Invalid Input</string>
+    <string name="notification_error_title_health_connect">Health Connect Required</string>
+    <string name="notification_error_title_unknown">Error</string>
+    <string name="notification_action_open_settings">Open Settings</string>
+    <string name="notification_action_retry">Retry</string>
+    <string name="notification_action_grant_access">Grant Access</string>
 </resources>

@@ -121,6 +121,15 @@
                 android:resource="@xml/glance_widget_info" />
         </receiver>
 
+        <!-- Retry Analysis Broadcast Receiver (Story 4-3) -->
+        <receiver
+            android:name=".util.RetryAnalysisBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.foodie.app.RETRY_ANALYSIS" />
+            </intent-filter>
+        </receiver>
+
         <!-- FileProvider for camera photo storage (Story 2-3) -->
         <provider
             android:name="androidx.core.content.FileProvider"

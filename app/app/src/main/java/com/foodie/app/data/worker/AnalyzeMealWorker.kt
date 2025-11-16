@@ -15,6 +15,7 @@ import com.foodie.app.data.network.NetworkMonitor
 import com.foodie.app.data.worker.foreground.MealAnalysisForegroundNotifier
 import com.foodie.app.data.worker.foreground.MealAnalysisNotificationSpec
 import com.foodie.app.domain.error.ErrorHandler
+import com.foodie.app.domain.error.ErrorType
 import com.foodie.app.domain.exception.NoFoodDetectedException
 import com.foodie.app.domain.model.NutritionData
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
@@ -81,7 +82,8 @@ class AnalyzeMealWorker @AssistedInject constructor(
     private val photoManager: PhotoManager,
     private val foregroundNotifier: MealAnalysisForegroundNotifier,
     private val networkMonitor: NetworkMonitor,
-    private val errorHandler: ErrorHandler
+    private val errorHandler: ErrorHandler,
+    private val notificationHelper: com.foodie.app.util.NotificationHelper
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -195,9 +197,11 @@ class AnalyzeMealWorker @AssistedInject constructor(
             )
             
             if (runAttemptCount + 1 >= MAX_ATTEMPTS) {
-                // Max retries exhausted - notify and fail
-                Timber.tag(TAG).e("Max retry attempts exhausted with no network")
-                photoManager.deletePhoto(photoUri)
+                // Max retries exhausted - keep photo for manual retry when network restored
+                Timber.tag(TAG).e(
+                    "Max retry attempts exhausted with no network. " +
+                    "Keeping photo for future retry: $photoUri"
+                )
                 notifyFailure("No internet connection. Please check your network and try again.")
                 return androidx.work.ListenableWorker.Result.failure()
             } else {
@@ -277,12 +281,12 @@ class AnalyzeMealWorker @AssistedInject constructor(
                         return androidx.work.ListenableWorker.Result.failure()
                     } catch (e: IllegalArgumentException) {
                         // Validation error (calories out of range or blank description)
-                        // This should not happen if API returns valid data, but handle defensively
+                        // Keep photo for investigation - this indicates API bug
                         Timber.tag(TAG).e(
                             e,
-                            "Invalid nutrition data from API - deleting photo"
+                            "Invalid nutrition data from API - keeping photo for investigation. " +
+                            "Photo: $photoUri"
                         )
-                        photoManager.deletePhoto(photoUri)
                         notifyFailure(e.message)
                         return androidx.work.ListenableWorker.Result.failure()
                     }
@@ -304,45 +308,55 @@ class AnalyzeMealWorker @AssistedInject constructor(
                     val isRetryable = errorHandler.isRetryable(errorType)
                     val userMessage = errorHandler.getUserMessage(errorType)
                     
-                    Timber.tag(TAG).w(
+                    // Enhanced logging with full error context (Story 4.3 AC #7)
+                    Timber.tag(TAG).e(
                         exception,
                         "API error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): " +
-                        "errorType=${errorType.javaClass.simpleName}, retryable=$isRetryable"
+                        "errorType=${errorType.javaClass.simpleName}, retryable=$isRetryable, " +
+                        "photoUri=$photoUri, timestamp=$timestamp"
                     )
                     
                     if (isRetryable) {
                         if (runAttemptCount + 1 >= MAX_ATTEMPTS) {
-                            // Max retries exhausted - delete photo and fail
+                            // Max retries exhausted - keep photo for manual retry
                             Timber.tag(TAG).e(
                                 exception,
-                                "Max retry attempts exhausted ($MAX_ATTEMPTS), deleting photo"
+                                "Max retry attempts exhausted ($MAX_ATTEMPTS), keeping photo for manual retry. " +
+                                "ErrorType=${errorType.javaClass.simpleName}, photoUri=$photoUri"
                             )
-                            photoManager.deletePhoto(photoUri)
                             notifyFailure(userMessage)
                             return androidx.work.ListenableWorker.Result.failure()
                         } else {
                             // Retry with exponential backoff
                             Timber.tag(TAG).w(
                                 exception,
-                                "Retryable error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): $userMessage"
+                                "Retryable error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): $userMessage. " +
+                                "Will retry with backoff."
                             )
-                            // Update notification with retry count
-                            val retryMessage = "Retrying analysis... (attempt ${runAttemptCount + 2}/$MAX_ATTEMPTS)"
-                            try {
-                                setForeground(foregroundNotifier.createForegroundInfo(id, retryMessage))
-                            } catch (e: Exception) {
-                                Timber.tag(TAG).w(e, "Failed to update notification during retry")
-                            }
                             return androidx.work.ListenableWorker.Result.retry()
                         }
                     } else {
-                        // Non-retryable error - delete photo and fail immediately
+                        // Non-retryable error - keep photo for manual retry after issue fixed
                         Timber.tag(TAG).e(
                             exception,
-                            "Non-retryable error: $userMessage, deleting photo"
+                            "Non-retryable error: ${errorType.javaClass.simpleName}, " +
+                            "message='$userMessage', photoUri=$photoUri. Keeping photo for manual retry."
                         )
-                        photoManager.deletePhoto(photoUri)
-                        notifyFailure(userMessage)
+                        
+                        // Show persistent notification for critical non-retryable errors (Story 4.3 AC #8)
+                        when (errorType) {
+                            is ErrorType.AuthError -> {
+                                notificationHelper.showErrorNotification(errorType)
+                            }
+                            is ErrorType.PermissionDenied -> {
+                                notificationHelper.showErrorNotification(errorType)
+                            }
+                            else -> {
+                                // Other non-retryable errors: show standard failure notification (no action button)
+                                notifyFailure(userMessage)
+                            }
+                        }
+                        
                         return androidx.work.ListenableWorker.Result.failure()
                     }
                 }
@@ -356,9 +370,8 @@ class AnalyzeMealWorker @AssistedInject constructor(
             }
             
         } catch (e: Exception) {
-            // Unexpected exception - delete photo and fail
-            Timber.tag(TAG).e(e, "Unexpected exception in worker, deleting photo")
-            photoManager.deletePhoto(photoUri)
+            // Unexpected exception - keep photo for investigation
+            Timber.tag(TAG).e(e, "Unexpected exception in worker, keeping photo for investigation: $photoUri")
             notifyFailure(e.message)
             return androidx.work.ListenableWorker.Result.failure()
         }
