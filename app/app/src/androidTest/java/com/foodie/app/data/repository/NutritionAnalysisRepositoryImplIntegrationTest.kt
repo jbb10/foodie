@@ -80,7 +80,8 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
             azureOpenAiApi = api,
             imageUtils = mockImageUtils,
             securePreferences = mockSecurePreferences,
-            gson = gson
+            gson = gson,
+            context = context
         )
     }
 

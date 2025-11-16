@@ -41,6 +41,9 @@ class NavGraphTest {
 
     private lateinit var navController: TestNavHostController
 
+    @javax.inject.Inject
+    lateinit var healthConnectManager: com.foodie.app.data.local.healthconnect.HealthConnectManager
+
     private val defaultCalories = 640
     private val defaultDescription = "Grilled salmon with rice"
     private val defaultTimestamp = 1731421800000L
@@ -59,7 +62,7 @@ class NavGraphTest {
             navController = TestNavHostController(LocalContext.current)
             navController.navigatorProvider.addNavigator(ComposeNavigator())
             FoodieTheme {
-                NavGraph(navController = navController)
+                NavGraph(healthConnectManager = healthConnectManager, navController = navController)
             }
         }
     }

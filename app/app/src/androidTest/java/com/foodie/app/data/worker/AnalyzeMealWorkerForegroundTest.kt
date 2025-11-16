@@ -40,6 +40,9 @@ class AnalyzeMealWorkerForegroundTest {
     private lateinit var healthConnectManager: HealthConnectManager
     private lateinit var photoManager: PhotoManager
     private lateinit var foregroundNotifier: MealAnalysisForegroundNotifier
+    private lateinit var networkMonitor: com.foodie.app.data.network.NetworkMonitor
+    private lateinit var errorHandler: com.foodie.app.domain.error.ErrorHandler
+    private lateinit var notificationHelper: com.foodie.app.util.NotificationHelper
 
     @Before
     fun setUp() {
@@ -53,6 +56,9 @@ class AnalyzeMealWorkerForegroundTest {
         healthConnectManager = mockk()
         photoManager = mockk()
         foregroundNotifier = mockk()
+        networkMonitor = mockk()
+        errorHandler = mockk()
+        notificationHelper = mockk()
 
         val notification = NotificationCompat.Builder(context, MealAnalysisNotificationSpec.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -64,6 +70,7 @@ class AnalyzeMealWorkerForegroundTest {
             androidx.work.ForegroundInfo(MealAnalysisNotificationSpec.ONGOING_NOTIFICATION_ID, notification)
         every { foregroundNotifier.createCompletionNotification(any(), any(), any()) } returns notification
         every { foregroundNotifier.createFailureNotification(any(), any()) } returns notification
+        every { networkMonitor.checkConnectivity() } returns true
 
         runBlocking {
             coEvery { nutritionRepository.analyzePhoto(any()) } returns
@@ -114,7 +121,7 @@ class AnalyzeMealWorkerForegroundTest {
         coVerify(atLeast = 1) { photoManager.deletePhoto(any()) }
         verify(atLeast = 1) { foregroundNotifier.createForegroundInfo(worker.id, any(), any()) }
         verify { foregroundNotifier.createFailureNotification(worker.id, any()) }
-        verify(exactly = 0) { foregroundNotifier.createCompletionNotification(any()) }
+        verify(exactly = 0) { foregroundNotifier.createCompletionNotification(any(), any(), any()) }
     }
 
     @Test
@@ -185,7 +192,10 @@ class AnalyzeMealWorkerForegroundTest {
                 nutritionRepository,
                 healthConnectManager,
                 photoManager,
-                foregroundNotifier
+                foregroundNotifier,
+                networkMonitor,
+                errorHandler,
+                notificationHelper
             )
         }
     }

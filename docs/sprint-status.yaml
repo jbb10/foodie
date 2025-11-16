@@ -74,10 +74,10 @@ development_status:
   4-1-network-error-handling-infrastructure: done  # ✅ APPROVED - NetworkMonitor + ErrorHandler foundation - 40 tests passing, 6/6 ACs verified
   4-2-api-retry-logic-with-exponential-backoff: done  # ✅ APPROVED - Core retry logic verified, NetworkMonitor/ErrorHandler integration complete, 280 tests passing, 5/8 ACs implemented (3 deferred)
   4-3-api-error-classification-and-handling: done  # ✅ APPROVED - Code review complete, all bugs fixed (duplicate notifications, permission flow, photo retention), manual testing scenarios 1-2 verified, 280+ tests passing
-  4-4-photo-retention-and-cleanup: backlog
-  4-5-health-connect-permission-and-availability-handling: backlog
+  4-4-photo-retention-and-cleanup: done  # ✅ APPROVED - PhotoCleanupWorker + periodic scheduling at 3am - 12 tests created - Production-ready, all 7 ACs verified, manual testing complete
+  4-5-health-connect-permission-and-availability-handling: in-progress  # 60% complete from Story 4.3 - Need HC availability check + Play Store redirect
   4-6-graceful-degradation-and-user-feedback: backlog
-  4-7-persistent-notification-with-manual-retry: drafted  # Manual retry button for failed analysis (deferred from Story 4.2)
+  4-7-persistent-notification-with-manual-retry: done  # ✅ COMPLETED in Story 4.3 - Full implementation with RetryBroadcastReceiver
   epic-4-retrospective: optional
 
   # Epic 5: Configuration & Polish

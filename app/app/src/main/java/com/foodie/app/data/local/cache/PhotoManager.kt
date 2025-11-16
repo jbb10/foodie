@@ -356,4 +356,72 @@ class PhotoManager @Inject constructor(
             null
         }
     }
+    
+    /**
+     * Gets current cache statistics for monitoring storage usage.
+     *
+     * Scans the photos cache directory and calculates:
+     * - Total size in bytes of all photos
+     * - Number of photos in cache
+     * - Age of oldest photo in hours
+     *
+     * Useful for:
+     * - Debugging storage issues
+     * - Monitoring cleanup effectiveness
+     * - Settings screen display
+     *
+     * Story 4.4: Photo Retention and Cleanup
+     *
+     * @return CacheStats containing current cache metrics
+     */
+    suspend fun getCacheStats(): CacheStats = withContext(Dispatchers.IO) {
+        val cacheDir = getCacheDir()
+        
+        if (!cacheDir.exists()) {
+            return@withContext CacheStats(
+                totalSizeBytes = 0L,
+                photoCount = 0,
+                oldestPhotoAgeHours = null
+            )
+        }
+        
+        val files = cacheDir.listFiles() ?: emptyArray()
+        
+        if (files.isEmpty()) {
+            return@withContext CacheStats(
+                totalSizeBytes = 0L,
+                photoCount = 0,
+                oldestPhotoAgeHours = null
+            )
+        }
+        
+        val totalSize = files.sumOf { it.length() }
+        val currentTime = System.currentTimeMillis()
+        
+        val oldestFile = files.minByOrNull { it.lastModified() }
+        val oldestAgeHours = oldestFile?.let {
+            ((currentTime - it.lastModified()) / (1000 * 60 * 60)).toInt()
+        }
+        
+        CacheStats(
+            totalSizeBytes = totalSize,
+            photoCount = files.size,
+            oldestPhotoAgeHours = oldestAgeHours
+        )
+    }
 }
+
+/**
+ * Data class representing photo cache statistics.
+ *
+ * Story 4.4: Photo Retention and Cleanup
+ *
+ * @property totalSizeBytes Total size of all photos in cache directory (bytes)
+ * @property photoCount Number of photos currently in cache
+ * @property oldestPhotoAgeHours Age of oldest photo in hours, null if no photos
+ */
+data class CacheStats(
+    val totalSizeBytes: Long,
+    val photoCount: Int,
+    val oldestPhotoAgeHours: Int?
+)

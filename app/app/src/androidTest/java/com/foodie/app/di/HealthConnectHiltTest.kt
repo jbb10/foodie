@@ -75,7 +75,7 @@ class HealthConnectHiltTest {
         // Given - Use cases are injected
         
         // When - Create ViewModel with use cases
-        val viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase)
+        val viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         
         // Then - ViewModel is created successfully
         assertThat(viewModel).isNotNull()
