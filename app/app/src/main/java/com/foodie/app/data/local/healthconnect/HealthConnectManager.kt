@@ -20,6 +20,18 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
+ * Health Connect availability status.
+ */
+enum class HealthConnectStatus {
+    /** Health Connect is installed and available */
+    AVAILABLE,
+    /** Health Connect is not installed on the device */
+    NOT_INSTALLED,
+    /** Health Connect needs to be updated to work properly */
+    UPDATE_REQUIRED
+}
+
+/**
  * Manager class for Health Connect SDK operations.
  *
  * Wraps all Health Connect SDK calls to provide a testable abstraction layer.
@@ -67,6 +79,22 @@ class HealthConnectManager @Inject constructor(
         val available = HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_AVAILABLE
         Timber.tag(TAG).i("Health Connect availability: $available")
         return available
+    }
+
+    /**
+     * Gets the detailed Health Connect availability status.
+     *
+     * @return HealthConnectStatus indicating current state (AVAILABLE, NOT_INSTALLED, UPDATE_REQUIRED)
+     */
+    suspend fun getHealthConnectStatus(): HealthConnectStatus {
+        val sdkStatus = HealthConnectClient.getSdkStatus(context)
+        val status = when (sdkStatus) {
+            HealthConnectClient.SDK_AVAILABLE -> HealthConnectStatus.AVAILABLE
+            HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> HealthConnectStatus.UPDATE_REQUIRED
+            else -> HealthConnectStatus.NOT_INSTALLED
+        }
+        Timber.tag(TAG).i("Health Connect status: $status (SDK status: $sdkStatus)")
+        return status
     }
 
     /**

@@ -237,6 +237,13 @@ class AnalyzeMealWorker @AssistedInject constructor(
                     updateForeground(R.string.notification_meal_analysis_status_saving, progressPercent = 80)
                     val saveStartTime = System.currentTimeMillis()
                     try {
+                        // Check Health Connect availability before saving
+                        if (!healthConnectManager.isAvailable()) {
+                            Timber.tag(TAG).e("Health Connect not available - cannot save nutrition data")
+                            notificationHelper.showErrorNotification(ErrorType.HealthConnectUnavailable)
+                            return androidx.work.ListenableWorker.Result.failure()
+                        }
+                        
                         val recordId = healthConnectManager.insertNutritionRecord(
                             calories = nutritionData.calories,
                             description = nutritionData.description,
@@ -271,6 +278,11 @@ class AnalyzeMealWorker @AssistedInject constructor(
                         notifySuccess(nutritionData, recordId, timestamp)
                         return androidx.work.ListenableWorker.Result.success()
                         
+                    } catch (e: IllegalStateException) {
+                        // Health Connect unavailable (not installed or disabled)
+                        Timber.tag(TAG).e(e, "Health Connect unavailable - keeping photo for retry after HC installation")
+                        notificationHelper.showErrorNotification(ErrorType.HealthConnectUnavailable)
+                        return androidx.work.ListenableWorker.Result.failure()
                     } catch (e: SecurityException) {
                         // Health Connect permission denied - keep photo for manual retry
                         Timber.tag(TAG).e(

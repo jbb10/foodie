@@ -14,15 +14,16 @@ import timber.log.Timber
 /**
  * Reusable Health Connect permission gate component.
  * 
- * Handles the complete permission request flow before showing content:
- * 1. Checks if HC permissions are granted
- * 2. If granted: shows content immediately
- * 3. If not granted: shows OS permission dialog
- * 4. If denied: shows education screen with retry/cancel options
+ * Handles the complete Health Connect flow before showing content:
+ * 1. Checks if HC is available (installed)
+ * 2. If not available: shows unavailable dialog with Play Store link
+ * 3. If available but permissions not granted: shows OS permission dialog
+ * 4. If permissions denied: shows education screen with retry/cancel options
+ * 5. If all checks pass: shows content
  * 
- * @param healthConnectManager HealthConnectManager instance for permission checking
+ * @param healthConnectManager HealthConnectManager instance for availability/permission checking
  * @param onPermissionsDenied Callback invoked when user cancels/exits after denial
- * @param content Content to show once permissions are granted
+ * @param content Content to show once HC is available and permissions are granted
  */
 @Composable
 fun HealthConnectPermissionGate(
@@ -30,9 +31,12 @@ fun HealthConnectPermissionGate(
     onPermissionsDenied: () -> Unit,
     content: @Composable () -> Unit
 ) {
+    var healthConnectAvailable by remember { mutableStateOf<Boolean?>(null) }
     var permissionsGranted by remember { mutableStateOf<Boolean?>(null) }
     var showDenialScreen by remember { mutableStateOf(false) }
+    var showUnavailableDialog by remember { mutableStateOf(false) }
     var permissionRequestTrigger by remember { mutableIntStateOf(0) }
+    var availabilityCheckTrigger by remember { mutableIntStateOf(0) }
     
     // Permission launcher
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -51,31 +55,44 @@ fun HealthConnectPermissionGate(
         }
     }
     
-    // Check permissions on initial load
-    LaunchedEffect(Unit) {
-        val hasPermissions = healthConnectManager.checkPermissions()
+    // Check availability on initial load and when triggered
+    LaunchedEffect(availabilityCheckTrigger) {
+        Timber.i("Checking Health Connect availability (trigger=$availabilityCheckTrigger)")
+        val available = healthConnectManager.isAvailable()
+        healthConnectAvailable = available
         
-        if (hasPermissions) {
-            Timber.i("Health Connect permissions already granted")
-            permissionsGranted = true
+        if (!available) {
+            Timber.w("Health Connect not available - showing install dialog")
+            showUnavailableDialog = true
+            permissionsGranted = false
         } else {
-            Timber.i("Health Connect permissions missing - requesting")
-            permissionRequestTrigger++
+            Timber.i("Health Connect available - proceeding to permission check")
+            showUnavailableDialog = false
+            
+            // Check permissions if HC is available
+            val hasPermissions = healthConnectManager.checkPermissions()
+            if (hasPermissions) {
+                Timber.i("Health Connect permissions already granted")
+                permissionsGranted = true
+            } else {
+                Timber.i("Health Connect permissions missing - requesting")
+                permissionRequestTrigger++
+            }
         }
     }
     
-    // Launch permission request when triggered
+    // Launch permission request when triggered (only if HC available)
     LaunchedEffect(permissionRequestTrigger) {
-        if (permissionRequestTrigger > 0) {
+        if (permissionRequestTrigger > 0 && healthConnectAvailable == true) {
             Timber.i("Launching Health Connect permission request (trigger=$permissionRequestTrigger)")
             permissionLauncher.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
         }
     }
     
-    // Render based on permission state
+    // Render based on state
     when {
-        permissionsGranted == true -> {
-            // Permissions granted - show content
+        permissionsGranted == true && healthConnectAvailable == true -> {
+            // All checks passed - show content
             content()
         }
         showDenialScreen -> {
@@ -91,8 +108,19 @@ fun HealthConnectPermissionGate(
                 }
             )
         }
+        showUnavailableDialog -> {
+            // HC not installed - show unavailable dialog
+            HealthConnectUnavailableDialog(
+                onDismiss = {
+                    Timber.i("User dismissed HC unavailable dialog - re-checking availability")
+                    showUnavailableDialog = false
+                    // Re-check availability in case user installed HC
+                    availabilityCheckTrigger++
+                }
+            )
+        }
         else -> {
-            // Loading / requesting permissions
+            // Loading / checking state
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center

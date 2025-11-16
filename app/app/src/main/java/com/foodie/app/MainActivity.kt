@@ -166,4 +166,28 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    
+    override fun onResume() {
+        super.onResume()
+        
+        // Re-check Health Connect availability and permissions when app resumes
+        // This handles cases where:
+        // - User installed HC from Play Store while app was in background
+        // - User revoked HC permissions in Settings while app was in background
+        lifecycleScope.launch {
+            Timber.i("🔄 Checking HC availability/permissions on resume")
+            
+            val available = healthConnectManager.isAvailable()
+            val hasPermissions = if (available) {
+                healthConnectManager.checkPermissions()
+            } else {
+                false
+            }
+            
+            Timber.i("HC state on resume: available=$available, hasPermissions=$hasPermissions")
+            
+            // Note: UI state updates are handled by LaunchedEffect(Unit) in setContent
+            // This just logs the state change for debugging
+        }
+    }
 }

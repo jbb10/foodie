@@ -180,4 +180,56 @@ class HealthConnectIntegrationTest {
         // Then - Method completes successfully
         assertThat(isAvailable).isNotNull()
     }
+    
+    /**
+     * Test for Story 4.5: Health Connect availability status.
+     */
+    @Test
+    fun getHealthConnectStatus_returnsValidStatus() = runTest {
+        // When
+        val status = healthConnectManager.getHealthConnectStatus()
+        
+        // Then - Status is one of the valid enum values
+        assertThat(status).isAnyOf(
+            com.foodie.app.data.local.healthconnect.HealthConnectStatus.AVAILABLE,
+            com.foodie.app.data.local.healthconnect.HealthConnectStatus.NOT_INSTALLED,
+            com.foodie.app.data.local.healthconnect.HealthConnectStatus.UPDATE_REQUIRED
+        )
+    }
+    
+    /**
+     * Test for Story 4.5: Health Connect status should be AVAILABLE when isAvailable returns true.
+     */
+    @Test
+    fun getHealthConnectStatus_whenAvailable_returnsAvailable() = runTest {
+        // When
+        val isAvailable = healthConnectManager.isAvailable()
+        val status = healthConnectManager.getHealthConnectStatus()
+        
+        // Then - If isAvailable is true, status should be AVAILABLE
+        if (isAvailable) {
+            assertThat(status).isEqualTo(
+                com.foodie.app.data.local.healthconnect.HealthConnectStatus.AVAILABLE
+            )
+        }
+    }
+    
+    /**
+     * Test for Story 4.5: Health Connect status should be NOT_INSTALLED when isAvailable returns false
+     * (unless UPDATE_REQUIRED).
+     */
+    @Test
+    fun getHealthConnectStatus_whenNotAvailable_returnsNotInstalledOrUpdateRequired() = runTest {
+        // When
+        val isAvailable = healthConnectManager.isAvailable()
+        val status = healthConnectManager.getHealthConnectStatus()
+        
+        // Then - If isAvailable is false, status should be NOT_INSTALLED or UPDATE_REQUIRED
+        if (!isAvailable) {
+            assertThat(status).isAnyOf(
+                com.foodie.app.data.local.healthconnect.HealthConnectStatus.NOT_INSTALLED,
+                com.foodie.app.data.local.healthconnect.HealthConnectStatus.UPDATE_REQUIRED
+            )
+        }
+    }
 }
