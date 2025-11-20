@@ -249,6 +249,12 @@ fun CapturePhotoScreen(
                 onNavigateBack()
             }
         }
+
+        is CaptureState.StorageFull -> {
+            StorageFullScreen(
+                onCancel = onNavigateBack
+            )
+        }
     }
 }
 
@@ -309,7 +315,7 @@ private fun CaptureErrorScreen(
  * @param onCancel Callback to cancel and navigate back
  */
 @Composable
-private fun PermissionDeniedScreen(
+internal fun PermissionDeniedScreen(
     onOpenSettings: () -> Unit,
     onCancel: () -> Unit
 ) {
@@ -430,6 +436,48 @@ private fun HealthConnectPermissionDeniedScreen(
                 Button(onClick = onOpenHealthConnect) {
                     Text("Grant Access")
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Storage full error screen shown when device has insufficient storage.
+ *
+ * Explains storage issue and provides option to cancel. User must free up
+ * storage space before retrying.
+ *
+ * Story: 4.6 - Graceful Degradation (AC#4)
+ *
+ * @param onCancel Callback to cancel and navigate back
+ */
+@Composable
+internal fun StorageFullScreen(
+    onCancel: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.capture_storage_full_title),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.error
+            )
+
+            Text(
+                text = stringResource(R.string.capture_storage_full_message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Button(onClick = onCancel) {
+                Text(stringResource(R.string.capture_ok))
             }
         }
     }

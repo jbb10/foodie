@@ -28,6 +28,9 @@
     <string name="capture_cancel">Cancel</string>
     <string name="capture_retry">Retry</string>
     <string name="capture_open_settings">Open Settings</string>
+    <string name="capture_ok">OK</string>
+    <string name="capture_storage_full_title">Storage Full</string>
+    <string name="capture_storage_full_message">Storage full. Free up space to continue.</string>
     
     <!-- Preview Screen -->
     <string name="preview_photo_description">Captured meal photo preview</string>

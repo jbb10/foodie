@@ -1,0 +1,380 @@
+<story-context id="4-6-graceful-degradation-and-user-feedback" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>6</storyId>
+    <title>Graceful Degradation and User Feedback</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-16</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-6-graceful-degradation-and-user-feedback.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>the app to handle edge cases gracefully with helpful feedback</iWant>
+    <soThat>I'm never left wondering what's happening</soThat>
+    <tasks>
+      <task id="1" status="pending">
+        <title>Documentation Research &amp; Technical Validation</title>
+        <description>Understand camera permissions, storage checks, haptic feedback, and notification permissions for Android 13+</description>
+        <critical>COMPLETE BEFORE PROCEEDING TO IMPLEMENTATION</critical>
+        <subtasks>
+          <subtask>Review camera permission handling documentation (https://developer.android.com/training/permissions/requesting)</subtask>
+          <subtask>Review storage space checking with StatFs (https://developer.android.com/reference/android/os/StatFs)</subtask>
+          <subtask>Review haptic feedback patterns (https://developer.android.com/develop/ui/views/haptics)</subtask>
+          <subtask>Review Android 13+ notification permissions (https://developer.android.com/develop/ui/views/notifications/notification-permission)</subtask>
+          <subtask>Review existing error handling (ErrorHandler.kt, AnalyzeMealWorker.kt, NotificationHelper.kt)</subtask>
+          <subtask>Validate assumptions (camera settings intent, API key validation, parse errors, storage checks, haptic feedback)</subtask>
+        </subtasks>
+      </task>
+      <task id="2" status="pending">
+        <title>Camera Permission Denial Handling</title>
+        <ac>1</ac>
+        <subtasks>
+          <subtask>Review CapturePhotoViewModel camera permission check</subtask>
+          <subtask>Add error state for permission denial</subtask>
+          <subtask>Show dialog: "Camera access required for meal tracking"</subtask>
+          <subtask>Add "Open Settings" button with intent to app settings</subtask>
+          <subtask>Create settings intent: Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:com.foodie.app"))</subtask>
+        </subtasks>
+      </task>
+      <task id="3" status="pending">
+        <title>API Key Missing Detection</title>
+        <ac>2</ac>
+        <subtasks>
+          <subtask>Add validation in AzureOpenAiApi initialization</subtask>
+          <subtask>Check if API key is empty or null from SecurePreferencesManager</subtask>
+          <subtask>Return ErrorType.AuthError("API key not configured")</subtask>
+          <subtask>Update ErrorHandler.getUserMessage() to return: "Configure Azure OpenAI key in Settings"</subtask>
+        </subtasks>
+      </task>
+      <task id="4" status="pending">
+        <title>Invalid API Response Handling</title>
+        <ac>3</ac>
+        <subtasks>
+          <subtask>Review existing ParseError handling in AnalyzeMealWorker</subtask>
+          <subtask>Detect non-JSON responses from Azure OpenAI (catch JsonSyntaxException)</subtask>
+          <subtask>Classify as ErrorType.ParseError</subtask>
+          <subtask>Show persistent notification with error message</subtask>
+        </subtasks>
+      </task>
+      <task id="5" status="pending">
+        <title>Storage Space Check</title>
+        <ac>4</ac>
+        <subtasks>
+          <subtask>Create StorageUtil class with checkAvailableSpace() method</subtask>
+          <subtask>Use StatFs to check available bytes in cache directory</subtask>
+          <subtask>Define threshold: 10MB minimum (enough for multiple 2MP JPEG photos)</subtask>
+          <subtask>Check storage before photo capture in CapturePhotoViewModel</subtask>
+          <subtask>Show error dialog if storage low: "Storage full. Free up space to continue."</subtask>
+        </subtasks>
+      </task>
+      <task id="6" status="pending">
+        <title>Notification Dismissibility and Persistence</title>
+        <ac>5</ac>
+        <subtasks>
+          <subtask>Review all notification usages (NotificationHelper, MealAnalysisForegroundNotifier)</subtask>
+          <subtask>Verify persistent error notifications are dismissible (setOngoing = false)</subtask>
+          <subtask>Verify foreground service notification during analysis is non-dismissible (setOngoing = true)</subtask>
+        </subtasks>
+      </task>
+      <task id="7" status="pending">
+        <title>Android 13+ Notification Permission</title>
+        <ac>6</ac>
+        <subtasks>
+          <subtask>Check current notification permission request implementation</subtask>
+          <subtask>Add POST_NOTIFICATIONS permission to AndroidManifest.xml (already exists)</subtask>
+          <subtask>Request permission on first app launch (Android 13+) - already implemented in MainActivity</subtask>
+          <subtask>Handle permission denial gracefully (log warning, continue without notifications)</subtask>
+        </subtasks>
+      </task>
+      <task id="8" status="pending">
+        <title>Haptic Feedback for Success</title>
+        <ac>7</ac>
+        <subtasks>
+          <subtask>Add haptic feedback utility: HapticFeedbackUtil</subtask>
+          <subtask>Check if VIBRATE permission needed</subtask>
+          <subtask>Trigger haptic on photo capture success (CameraScreen)</subtask>
+          <subtask>Use HapticFeedbackConstants.CONFIRM or short vibration (50ms)</subtask>
+        </subtasks>
+      </task>
+      <task id="9" status="pending">
+        <title>Visual Cues for Success</title>
+        <ac>7</ac>
+        <subtasks>
+          <subtask>Add brief checkmark animation on photo capture confirmation</subtask>
+          <subtask>Use Material Icons: Icons.Filled.CheckCircle</subtask>
+          <subtask>Show for 500ms with fade-in/fade-out animation</subtask>
+        </subtasks>
+      </task>
+      <task id="10" status="pending">
+        <title>Silent Failure Audit</title>
+        <ac>8</ac>
+        <subtasks>
+          <subtask>Audit all try-catch blocks in critical paths</subtask>
+          <subtask>Verify all exceptions are logged with Timber.e()</subtask>
+          <subtask>Verify all exceptions result in user-visible feedback</subtask>
+          <subtask>Critical paths: Photo capture, API call, Health Connect save, Photo deletion, WorkManager enqueue</subtask>
+        </subtasks>
+      </task>
+      <task id="11" status="pending">
+        <title>Integration Testing</title>
+        <ac>All</ac>
+        <subtasks>
+          <subtask>Test camera permission denial → settings link → grant → retry</subtask>
+          <subtask>Test missing API key → error message → navigate to settings</subtask>
+          <subtask>Test invalid API response → parse error notification</subtask>
+          <subtask>Test low storage → error dialog → free space → retry</subtask>
+          <subtask>Test Android 13+ notification permission request</subtask>
+          <subtask>Test haptic feedback on photo capture</subtask>
+          <subtask>Test visual checkmark animation</subtask>
+        </subtasks>
+      </task>
+      <task id="12" status="pending">
+        <title>Manual Device Testing</title>
+        <ac>All</ac>
+        <subtasks>
+          <subtask>Test on Android 13+ device for notification permissions</subtask>
+          <subtask>Test camera permission denial flow</subtask>
+          <subtask>Test storage full scenario (fill device storage)</subtask>
+          <subtask>Test haptic feedback (requires physical device)</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">
+      <given>various edge cases and error conditions exist</given>
+      <when>an edge case occurs</when>
+      <then>camera permission denied shows: "Camera access required for meal tracking" with settings link</then>
+    </criterion>
+    <criterion id="2">
+      <given>various edge cases and error conditions exist</given>
+      <when>an edge case occurs</when>
+      <then>API key missing shows: "Configure Azure OpenAI key in Settings"</then>
+    </criterion>
+    <criterion id="3">
+      <given>various edge cases and error conditions exist</given>
+      <when>an edge case occurs</when>
+      <then>invalid API response (non-JSON) shows error and offers manual entry option</then>
+    </criterion>
+    <criterion id="4">
+      <given>various edge cases and error conditions exist</given>
+      <when>an edge case occurs</when>
+      <then>extremely low storage shows: "Storage full. Free up space to continue."</then>
+    </criterion>
+    <criterion id="5">
+      <given>various edge cases and error conditions exist</given>
+      <when>an edge case occurs</when>
+      <then>all notifications are dismissible but persistent for errors requiring action</then>
+    </criterion>
+    <criterion id="6">
+      <given>various edge cases and error conditions exist</given>
+      <when>an edge case occurs</when>
+      <then>foreground service notification handles Android 13+ permissions</then>
+    </criterion>
+    <criterion id="7">
+      <given>various edge cases and error conditions exist</given>
+      <when>an edge case occurs</when>
+      <then>haptic feedback and visual cues confirm successful operations</then>
+    </criterion>
+    <criterion id="8">
+      <given>various edge cases and error conditions exist</given>
+      <when>an edge case occurs</when>
+      <then>no silent failures occur (user always gets feedback)</then>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Foodie Architecture Document</title>
+        <section>Error Handling &amp; Implementation Patterns</section>
+        <snippet>Architecture defines MVVM pattern with Hilt DI, Jetpack Compose UI, WorkManager for background processing, and Health Connect as single source of truth. Error handling follows Repository pattern with Result wrapper. All components use Timber for logging.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-4.md</path>
+        <title>Epic 4 Technical Specification - Error Handling &amp; Reliability</title>
+        <section>Error Classification and Retry Logic</section>
+        <snippet>Defines ErrorType sealed class hierarchy (NetworkError, ServerError, AuthError, RateLimitError, ParseError, ValidationError, PermissionDenied). ErrorHandler provides classify(), getUserMessage(), isRetryable(), getNotificationContent() methods. Retry policy: 3 attempts with exponential backoff (1s, 2s, 4s).</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/4-5-health-connect-permission-and-availability-handling.md</path>
+        <title>Story 4.5 - Health Connect Permission and Availability Handling</title>
+        <section>Implementation Learnings - Permission Flow Pattern</section>
+        <snippet>Implemented HealthConnectPermissionFlow component (188 lines) with permission gate, denial education screen, and settings deep link. Uses Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)) pattern for settings navigation. MainActivity.onResume() checks permissions on app return to foreground.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>User Experience Requirements</section>
+        <snippet>Sub-5-second capture flow promise. Zero data loss requirement. Clear user feedback for all error conditions. Graceful degradation when features unavailable.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>CapturePhotoViewModel</symbol>
+        <lines>1-320</lines>
+        <reason>Manages camera permission checks, photo capture state, and WorkManager enqueue. Needs extension for camera permission denial handling, storage checks before capture, and haptic feedback triggers.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoViewModel.kt</path>
+        <kind>sealed class</kind>
+        <symbol>CaptureState</symbol>
+        <lines>33-71</lines>
+        <reason>Defines capture flow states including PermissionDenied, NotificationPermissionRequired. May need new state for StorageFull error condition.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoScreen.kt</path>
+        <kind>composable</kind>
+        <symbol>CapturePhotoScreen</symbol>
+        <lines>31-200</lines>
+        <reason>Camera capture UI with permission launchers and haptic feedback integration (line 89-92). Already implements haptic feedback on photo capture. Reference for visual checkmark animation implementation.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+        <kind>service</kind>
+        <symbol>ErrorHandler</symbol>
+        <lines>1-339</lines>
+        <reason>Central error classification and user messaging. Needs extension to handle CameraPermissionDenied, ApiKeyMissing, and StorageFull error types. Already classifies NetworkError, AuthError, ParseError, PermissionDenied.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/util/NotificationHelper.kt</path>
+        <kind>utility</kind>
+        <symbol>NotificationHelper</symbol>
+        <lines>1-286</lines>
+        <reason>Creates persistent error notifications with action buttons. Already implements notification channel management and action intents for settings/retry. Reference for notification dismissibility patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/components/HealthConnectPermissionFlow.kt</path>
+        <kind>component</kind>
+        <symbol>HealthConnectPermissionGate</symbol>
+        <lines>1-216</lines>
+        <reason>Permission gate pattern with denial education screen and settings deep link. Template for camera permission denial handling UI component.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/remote/api/AzureOpenAiApi.kt</path>
+        <kind>interface</kind>
+        <symbol>AzureOpenAiApi</symbol>
+        <lines>1-100</lines>
+        <reason>Retrofit API interface for Azure OpenAI. Needs API key validation before requests. Reference point for API key missing detection implementation.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/MainActivity.kt</path>
+        <kind>activity</kind>
+        <symbol>MainActivity</symbol>
+        <lines>1-193</lines>
+        <reason>Main activity with first-launch permission flow. Already requests POST_NOTIFICATIONS permission on Android 13+ (lines 54-87). Reference for notification permission handling.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/AndroidManifest.xml</path>
+        <kind>manifest</kind>
+        <symbol>AndroidManifest</symbol>
+        <lines>1-50</lines>
+        <reason>Already declares POST_NOTIFICATIONS permission (line 15-17), CAMERA permission (line 9), and other required permissions. Verify VIBRATE permission if needed for haptic feedback.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <android>
+        <package name="androidx.compose.ui" version="Compose BOM 2024.10.01">Core Compose UI toolkit for visual feedback animations</package>
+        <package name="androidx.compose.material.icons" version="1.7.5">Material Icons for checkmark visual cue (Icons.Filled.CheckCircle)</package>
+        <package name="timber" version="5.0.1">Logging framework for error tracking and silent failure audit</package>
+        <package name="androidx.core" version="1.15.0">ContextCompat for permission checks, HapticFeedback APIs</package>
+      </android>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Follow MVVM architecture pattern with Hilt dependency injection</constraint>
+    <constraint>All error messages must be user-friendly, non-technical, and actionable</constraint>
+    <constraint>Settings intents must use Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)) pattern from Story 4.5</constraint>
+    <constraint>Storage checks must use StatFs API with 10MB minimum threshold (2MP JPEG ≈ 500KB-1MB per photo)</constraint>
+    <constraint>Haptic feedback must use HapticFeedbackConstants.CONFIRM or equivalent, respecting user's system haptic settings</constraint>
+    <constraint>All notifications must specify dismissibility (setOngoing: false for errors, true for foreground service)</constraint>
+    <constraint>Android 13+ notification permission handling already implemented in MainActivity - verify integration</constraint>
+    <constraint>No silent failures - all exceptions must be logged (Timber.e) AND surface user-visible feedback</constraint>
+    <constraint>Maintain sub-5-second capture flow promise - error checks must not block UI</constraint>
+    <constraint>Zero data loss - photos retained on retryable errors, deleted only on success or non-retryable errors</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ErrorType sealed class extensions</name>
+      <kind>Kotlin sealed class</kind>
+      <signature>
+        sealed class ErrorType {
+          // Existing types...
+          data object CameraPermissionDenied : ErrorType()
+          data object ApiKeyMissing : ErrorType()
+          data object StorageFull : ErrorType()
+        }
+      </signature>
+      <path>app/src/main/java/com/foodie/app/domain/error/ErrorType.kt</path>
+    </interface>
+    <interface>
+      <name>StorageUtil utility class</name>
+      <kind>Kotlin utility class</kind>
+      <signature>
+        class StorageUtil @Inject constructor(@ApplicationContext private val context: Context) {
+          fun checkAvailableStorageMB(): Long
+          fun hasEnoughStorage(minimumMB: Int = 10): Boolean
+        }
+      </signature>
+      <path>app/src/main/java/com/foodie/app/util/StorageUtil.kt</path>
+    </interface>
+    <interface>
+      <name>HapticFeedbackUtil wrapper</name>
+      <kind>Kotlin utility class</kind>
+      <signature>
+        object HapticFeedbackUtil {
+          fun performSuccessFeedback(view: View)
+          fun performErrorFeedback(view: View)
+        }
+      </signature>
+      <path>app/src/main/java/com/foodie/app/util/HapticFeedbackUtil.kt</path>
+    </interface>
+    <interface>
+      <name>Settings Intent Pattern</name>
+      <kind>Android Intent</kind>
+      <signature>
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+          data = Uri.fromParts("package", context.packageName, null)
+        }
+      </signature>
+      <path>Referenced in Story 4.5 implementation</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit tests use JUnit 4.13.2 with Mockito-Kotlin 5.4.0 for mocking and Truth 1.4.4 for assertions. Instrumentation tests use AndroidJUnit with Espresso and Compose UI testing. Test naming convention: methodName_whenCondition_thenExpectedResult. All ViewModels tested with MainDispatcherRule. Repository tests mock dependencies. Minimum 80% code coverage for new code. Focus on edge cases and error paths given this is error handling story.
+    </standards>
+    <locations>
+      <location>app/src/test/java/com/foodie/app/domain/error/ErrorHandlerTest.kt - Unit tests for new error types</location>
+      <location>app/src/test/java/com/foodie/app/util/StorageUtilTest.kt - Unit tests for storage space calculations</location>
+      <location>app/src/test/java/com/foodie/app/ui/screens/capture/CapturePhotoViewModelTest.kt - Unit tests for storage checks and permission flows</location>
+      <location>app/src/androidTest/java/com/foodie/app/ui/screens/capture/CapturePhotoScreenTest.kt - Instrumentation tests for permission dialogs and haptic feedback</location>
+      <location>app/src/androidTest/java/com/foodie/app/ui/components/PermissionFlowTest.kt - Integration tests for camera permission flow</location>
+    </locations>
+    <ideas>
+      <test ac="1">Camera permission denied → CaptureState.PermissionDenied → Dialog shows with "Open Settings" → Intent created correctly</test>
+      <test ac="1">Settings intent navigates to app settings page → User grants permission → App resumes → Permission check passes</test>
+      <test ac="2">API key null/empty → ErrorType.ApiKeyMissing → getUserMessage returns "Configure Azure OpenAI key in Settings"</test>
+      <test ac="3">Azure API returns non-JSON (HTML error page) → JsonSyntaxException → ErrorType.ParseError → Persistent notification shown</test>
+      <test ac="4">Storage &lt; 10MB → hasEnoughStorage returns false → Error dialog shown: "Storage full. Free up space to continue."</test>
+      <test ac="4">Storage check with edge cases: 0 bytes, exactly 10MB, negative values (defensive)</test>
+      <test ac="5">Error notification created with setOngoing=false → Notification is dismissible</test>
+      <test ac="5">Foreground service notification created with setOngoing=true → Notification is persistent</test>
+      <test ac="6">Android 13+ device → POST_NOTIFICATIONS permission requested on first launch → Permission granted → Notifications appear</test>
+      <test ac="6">Notification permission denied → Log warning → Analysis still proceeds (graceful degradation)</test>
+      <test ac="7">Photo capture success → performHapticFeedback(HapticFeedbackConstants.CONFIRM) called</test>
+      <test ac="7">Checkmark animation shown on photo confirmation → Fades out after 500ms</test>
+      <test ac="8">Silent failure audit: All catch blocks in CapturePhotoViewModel log exceptions AND update UI state</test>
+      <test ac="8">AnalyzeMealWorker exception → Timber.e() called AND notification shown (no silent failure)</test>
+    </ideas>
+  </tests>
+</story-context>

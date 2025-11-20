@@ -17,6 +17,7 @@ import com.foodie.app.data.local.cache.PhotoManager
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.data.worker.AnalyzeMealWorker
 import com.foodie.app.notifications.NotificationPermissionManager
+import com.foodie.app.util.StorageUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -67,6 +68,9 @@ sealed class CaptureState {
     /** Notification permission denied by user */
     data object NotificationPermissionDenied : CaptureState()
 
+    /** Storage space insufficient for photo capture */
+    data object StorageFull : CaptureState()
+
     /** Error occurred during capture or processing */
     data class Error(val message: String) : CaptureState()
 }
@@ -101,7 +105,8 @@ sealed class CaptureState {
 class CapturePhotoViewModel @Inject constructor(
     private val photoManager: PhotoManager,
     private val workManager: WorkManager,
-    private val healthConnectManager: HealthConnectManager
+    private val healthConnectManager: HealthConnectManager,
+    private val storageUtil: StorageUtil
 ) : ViewModel() {
 
     companion object {
@@ -127,17 +132,26 @@ class CapturePhotoViewModel @Inject constructor(
      * Checks Health Connect and camera permissions, then prepares for capture.
      *
      * Flow:
-     * 1. Check Health Connect permissions first (required for saving meal data)
-     * 2. If HC denied: Request HC permissions
-     * 3. If HC granted: Check camera permission
-     * 4. If camera denied: Request camera permission
-     * 5. If all granted: Prepare for capture
+     * 1. Check storage space (must have >= 10MB available)
+     * 2. Check Health Connect permissions first (required for saving meal data)
+     * 3. If HC denied: Request HC permissions
+     * 4. If HC granted: Check camera permission
+     * 5. If camera denied: Request camera permission
+     * 6. If all granted: Prepare for capture
      *
      * @param context Android context for permission checks
      */
     fun checkPermissionAndPrepare(context: Context) {
         viewModelScope.launch {
-            // First, check Health Connect permissions
+            // First, check storage space before any permissions (Story 4.6, AC#4)
+            if (!storageUtil.hasEnoughStorage()) {
+                val availableMB = storageUtil.checkAvailableStorageMB()
+                Timber.w("Insufficient storage: ${availableMB}MB < 10MB required")
+                _state.value = CaptureState.StorageFull
+                return@launch
+            }
+            
+            // Storage OK, check Health Connect permissions
             val hasHealthConnectPermissions = healthConnectManager.checkPermissions()
             
             if (!hasHealthConnectPermissions) {

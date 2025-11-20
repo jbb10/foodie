@@ -265,6 +265,9 @@ class NotificationHelper @Inject constructor(
             is ErrorType.RateLimitError -> context.getString(R.string.notification_error_title_rate_limit)
             is ErrorType.ParseError -> context.getString(R.string.notification_error_title_parse)
             is ErrorType.PermissionDenied -> context.getString(R.string.notification_error_title_permission)
+            is ErrorType.CameraPermissionDenied -> "Camera Permission Required"
+            is ErrorType.ApiKeyMissing -> "Configuration Required"
+            is ErrorType.StorageFull -> "Storage Full"
             is ErrorType.ValidationError -> context.getString(R.string.notification_error_title_validation)
             is ErrorType.HealthConnectUnavailable -> context.getString(R.string.notification_error_title_health_connect)
             is ErrorType.UnknownError -> context.getString(R.string.notification_error_title_unknown)

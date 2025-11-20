@@ -76,9 +76,9 @@ development_status:
   4-3-api-error-classification-and-handling: done  # ✅ APPROVED - Code review complete, all bugs fixed (duplicate notifications, permission flow, photo retention), manual testing scenarios 1-2 verified, 280+ tests passing
   4-4-photo-retention-and-cleanup: done  # ✅ APPROVED - PhotoCleanupWorker + periodic scheduling at 3am - 12 tests created - Production-ready, all 7 ACs verified, manual testing complete
   4-5-health-connect-permission-and-availability-handling: done  # ✅ APPROVED - HC availability checks + lifecycle re-checks + Play Store redirect - 4 integration tests - All 7 ACs verified - Production-ready
-  4-6-graceful-degradation-and-user-feedback: backlog
+  4-6-graceful-degradation-and-user-feedback: done  # ✅ APPROVED - Storage checks + error types + edge case handling - 17 unit tests passing - All 8 ACs verified - Production-ready
   4-7-persistent-notification-with-manual-retry: done  # ✅ COMPLETED in Story 4.3 - Full implementation with RetryBroadcastReceiver
-  epic-4-retrospective: optional
+  epic-4-retrospective: done  # ✅ COMPLETED - 2025-11-18 - All 7 stories reviewed, scope discipline lessons captured, Epic 5 framed as verification & integration
 
   # Epic 5: Configuration & Polish
   epic-5: backlog

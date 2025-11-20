@@ -5,6 +5,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.work.WorkManager
 import com.foodie.app.data.local.cache.PhotoManager
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
+import com.foodie.app.util.StorageUtil
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,6 +45,9 @@ class CapturePhotoViewModelTest {
     @Mock
     private lateinit var mockHealthConnectManager: HealthConnectManager
 
+    @Mock
+    private lateinit var mockStorageUtil: StorageUtil
+
     private lateinit var viewModel: CapturePhotoViewModel
     private val testDispatcher = StandardTestDispatcher()
 
@@ -51,7 +55,17 @@ class CapturePhotoViewModelTest {
     fun setup() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        viewModel = CapturePhotoViewModel(mockPhotoManager, mockWorkManager, mockHealthConnectManager)
+        
+        // Default mock behavior: sufficient storage available
+        whenever(mockStorageUtil.hasEnoughStorage(any())).thenReturn(true)
+        whenever(mockStorageUtil.checkAvailableStorageMB()).thenReturn(50L)
+        
+        viewModel = CapturePhotoViewModel(
+            mockPhotoManager,
+            mockWorkManager,
+            mockHealthConnectManager,
+            mockStorageUtil
+        )
     }
 
     @After

@@ -144,6 +144,48 @@ sealed class ErrorType {
     data class PermissionDenied(val permissions: List<String>) : ErrorType()
     
     /**
+     * Camera permission denied error.
+     *
+     * Occurs when:
+     * - User denies camera permission
+     * - Camera permission revoked in system settings
+     *
+     * Retry Strategy: No (requires user action)
+     * User Action: Grant camera permission via app settings
+     *
+     * Story: 4.6 - Graceful Degradation (AC#1)
+     */
+    data object CameraPermissionDenied : ErrorType()
+    
+    /**
+     * API key missing or not configured.
+     *
+     * Occurs when:
+     * - Azure OpenAI API key is null or empty
+     * - User hasn't configured API key in settings
+     *
+     * Retry Strategy: No (requires user configuration)
+     * User Action: Configure Azure OpenAI key in Settings
+     *
+     * Story: 4.6 - Graceful Degradation (AC#2)
+     */
+    data object ApiKeyMissing : ErrorType()
+    
+    /**
+     * Storage space full or insufficient.
+     *
+     * Occurs when:
+     * - Available storage < 10MB threshold
+     * - Device storage critically low
+     *
+     * Retry Strategy: No (requires user action to free space)
+     * User Action: Free up device storage space
+     *
+     * Story: 4.6 - Graceful Degradation (AC#4)
+     */
+    data object StorageFull : ErrorType()
+    
+    /**
      * Unknown/unexpected error.
      *
      * Fallback for exceptions that don't match specific error types.

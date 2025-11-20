@@ -292,7 +292,7 @@ So that I can immediately return to my previous activity without waiting.
 **When** background processing begins
 **Then** a foreground service starts with notification: "Analyzing meal..."
 
-**And** the user can immediately return to lock screen or previous app
+**And** the user can immediately return to home screen or previous app
 
 **And** the service calls Azure OpenAI API with the photo
 
@@ -388,7 +388,7 @@ So that I can immediately resume what I was doing while knowing progress is happ
 **When** background processing begins
 **Then** a foreground service (via WorkManager foreground execution) starts with notification text "Analyzing meal…"
 
-**And** the user can immediately return to the lock screen or their previous app without blocking UI
+**And** the user can immediately return to the home screen or their previous app without blocking UI
 
 **And** the foreground operation calls the Azure OpenAI API with the captured photo
 
@@ -996,9 +996,9 @@ So that I understand how to set up and use the app.
 **When** the app detects first launch
 **Then** a brief welcome message displays explaining the core concept
 
-**And** the user is prompted to add the lock screen widget
+**And** the user is prompted to add the home screen widget
 
-**And** widget addition instructions are clear (Settings → Lock screen → Add widget)
+**And** widget addition instructions are clear (Home screen → Add widget → Foodie)
 
 **And** Health Connect permissions are requested with clear rationale
 
@@ -1012,7 +1012,7 @@ So that I understand how to set up and use the app.
 
 **And** after onboarding, user is on the main screen ready to use the app
 
-**Prerequisites:** Story 5.1 (settings configured), Story 1.4 (Health Connect permissions), Story 2.1 (widget implemented)
+**Prerequisites:** Story 5.1 (settings configured), Story 1.4 (Health Connect permissions), Story 2.2 (widget implemented)
 
 **Technical Notes:** Create simple onboarding flow (3-4 screens max). Use ViewPager2 for slide-through onboarding. Detect first launch using SharedPreferences flag. Show visual guides for widget setup. Request Health Connect permissions during onboarding. Provide "Skip" option on each screen. Keep messaging minimal - focus on getting user to first capture quickly.
 

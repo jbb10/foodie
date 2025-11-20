@@ -181,6 +181,15 @@ class ErrorHandler @Inject constructor() {
             is ErrorType.PermissionDenied -> 
                 "Health Connect permissions required. Tap to grant access."
             
+            is ErrorType.CameraPermissionDenied -> 
+                "Camera access required for meal tracking"
+            
+            is ErrorType.ApiKeyMissing -> 
+                "Configure Azure OpenAI key in Settings"
+            
+            is ErrorType.StorageFull -> 
+                "Storage full. Free up space to continue."
+            
             is ErrorType.UnknownError -> 
                 "An unexpected error occurred. Please try again."
         }
@@ -200,6 +209,9 @@ class ErrorHandler @Inject constructor() {
      * - ParseError (server bug or client incompatibility)
      * - ValidationError (invalid input)
      * - PermissionDenied (user must grant permissions)
+     * - CameraPermissionDenied (user must grant camera access)
+     * - ApiKeyMissing (user must configure API key)
+     * - StorageFull (user must free up storage space)
      * - UnknownError (unknown cause, assume non-transient)
      *
      * @param error The classified error type
@@ -218,6 +230,9 @@ class ErrorHandler @Inject constructor() {
             is ErrorType.ParseError -> false
             is ErrorType.ValidationError -> false
             is ErrorType.PermissionDenied -> false
+            is ErrorType.CameraPermissionDenied -> false
+            is ErrorType.ApiKeyMissing -> false
+            is ErrorType.StorageFull -> false
             is ErrorType.UnknownError -> false
         }
     }
@@ -274,6 +289,33 @@ class ErrorHandler @Inject constructor() {
             
             is ErrorType.PermissionDenied -> 
                 NotificationContent.permissionDenied(permissionsIntent = null)
+            
+            is ErrorType.CameraPermissionDenied -> 
+                NotificationContent(
+                    title = "Camera Permission Required",
+                    message = getUserMessage(error),
+                    actionText = "Open Settings",
+                    actionIntent = null, // Intent created by caller with context
+                    isOngoing = false
+                )
+            
+            is ErrorType.ApiKeyMissing -> 
+                NotificationContent(
+                    title = "Configuration Required",
+                    message = getUserMessage(error),
+                    actionText = "Open Settings",
+                    actionIntent = null, // Intent created by caller with context
+                    isOngoing = false
+                )
+            
+            is ErrorType.StorageFull -> 
+                NotificationContent(
+                    title = "Storage Full",
+                    message = getUserMessage(error),
+                    actionText = null,
+                    actionIntent = null,
+                    isOngoing = false
+                )
             
             is ErrorType.UnknownError -> 
                 NotificationContent(

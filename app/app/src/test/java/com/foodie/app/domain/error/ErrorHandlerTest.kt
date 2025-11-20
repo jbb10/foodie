@@ -611,4 +611,153 @@ class ErrorHandlerTest {
         // Then: Notification is not ongoing (transient error)
         assertThat(notification.isOngoing).isFalse()
     }
+    
+    // ========================================
+    // Story 4.6: New Error Types Tests
+    // ========================================
+    
+    /**
+     * Story 4.6, AC #1: Camera permission denial handling
+     * Test: CameraPermissionDenied returns correct user message
+     */
+    @Test
+    fun `getUserMessage for CameraPermissionDenied should return camera access message`() {
+        // Given: CameraPermissionDenied error
+        val error = ErrorType.CameraPermissionDenied
+        
+        // When: User message generated
+        val message = errorHandler.getUserMessage(error)
+        
+        // Then: Message is user-friendly and actionable
+        assertThat(message).isEqualTo("Camera access required for meal tracking")
+    }
+    
+    /**
+     * Story 4.6, AC #1: Camera permission denial is non-retryable
+     */
+    @Test
+    fun `isRetryable for CameraPermissionDenied should return false`() {
+        // Given: CameraPermissionDenied error
+        val error = ErrorType.CameraPermissionDenied
+        
+        // When: Retry check performed
+        val retryable = errorHandler.isRetryable(error)
+        
+        // Then: Not retryable (requires user action)
+        assertThat(retryable).isFalse()
+    }
+    
+    /**
+     * Story 4.6, AC #1: Camera permission notification includes settings action
+     */
+    @Test
+    fun `getNotificationContent for CameraPermissionDenied should include settings action`() {
+        // Given: CameraPermissionDenied error
+        val error = ErrorType.CameraPermissionDenied
+        
+        // When: NotificationContent generated
+        val notification = errorHandler.getNotificationContent(error)
+        
+        // Then: Notification includes "Open Settings" action
+        assertThat(notification.title).isEqualTo("Camera Permission Required")
+        assertThat(notification.actionText).isEqualTo("Open Settings")
+        assertThat(notification.isOngoing).isFalse()
+    }
+    
+    /**
+     * Story 4.6, AC #2: API key missing handling
+     * Test: ApiKeyMissing returns correct user message
+     */
+    @Test
+    fun `getUserMessage for ApiKeyMissing should return configuration message`() {
+        // Given: ApiKeyMissing error
+        val error = ErrorType.ApiKeyMissing
+        
+        // When: User message generated
+        val message = errorHandler.getUserMessage(error)
+        
+        // Then: Message directs user to settings
+        assertThat(message).isEqualTo("Configure Azure OpenAI key in Settings")
+    }
+    
+    /**
+     * Story 4.6, AC #2: API key missing is non-retryable
+     */
+    @Test
+    fun `isRetryable for ApiKeyMissing should return false`() {
+        // Given: ApiKeyMissing error
+        val error = ErrorType.ApiKeyMissing
+        
+        // When: Retry check performed
+        val retryable = errorHandler.isRetryable(error)
+        
+        // Then: Not retryable (requires user configuration)
+        assertThat(retryable).isFalse()
+    }
+    
+    /**
+     * Story 4.6, AC #2: API key missing notification includes settings action
+     */
+    @Test
+    fun `getNotificationContent for ApiKeyMissing should include settings action`() {
+        // Given: ApiKeyMissing error
+        val error = ErrorType.ApiKeyMissing
+        
+        // When: NotificationContent generated
+        val notification = errorHandler.getNotificationContent(error)
+        
+        // Then: Notification includes "Open Settings" action
+        assertThat(notification.title).isEqualTo("Configuration Required")
+        assertThat(notification.message).contains("Configure Azure OpenAI key in Settings")
+        assertThat(notification.actionText).isEqualTo("Open Settings")
+        assertThat(notification.isOngoing).isFalse()
+    }
+    
+    /**
+     * Story 4.6, AC #4: Storage full handling
+     * Test: StorageFull returns correct user message
+     */
+    @Test
+    fun `getUserMessage for StorageFull should return storage full message`() {
+        // Given: StorageFull error
+        val error = ErrorType.StorageFull
+        
+        // When: User message generated
+        val message = errorHandler.getUserMessage(error)
+        
+        // Then: Message instructs user to free space
+        assertThat(message).isEqualTo("Storage full. Free up space to continue.")
+    }
+    
+    /**
+     * Story 4.6, AC #4: Storage full is non-retryable
+     */
+    @Test
+    fun `isRetryable for StorageFull should return false`() {
+        // Given: StorageFull error
+        val error = ErrorType.StorageFull
+        
+        // When: Retry check performed
+        val retryable = errorHandler.isRetryable(error)
+        
+        // Then: Not retryable (requires user action to free space)
+        assertThat(retryable).isFalse()
+    }
+    
+    /**
+     * Story 4.6, AC #4: Storage full notification is dismissible
+     */
+    @Test
+    fun `getNotificationContent for StorageFull should be dismissible`() {
+        // Given: StorageFull error
+        val error = ErrorType.StorageFull
+        
+        // When: NotificationContent generated
+        val notification = errorHandler.getNotificationContent(error)
+        
+        // Then: Notification is dismissible (not ongoing)
+        assertThat(notification.title).isEqualTo("Storage Full")
+        assertThat(notification.isOngoing).isFalse()
+        assertThat(notification.actionText).isNull() // No action needed - user must free space manually
+    }
 }
