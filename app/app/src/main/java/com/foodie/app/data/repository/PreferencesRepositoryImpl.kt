@@ -276,7 +276,14 @@ class PreferencesRepositoryImpl @Inject constructor(
         } catch (e: HttpException) {
             val errorMessage = when (e.code()) {
                 401, 403 -> "Invalid API key"
-                404 -> "Endpoint or model not found"
+                404 -> {
+                    // Provide more specific error message for model vs endpoint issues
+                    if (endpoint.startsWith("https://") && endpoint.contains(".openai.azure.com")) {
+                        "Deployment '$modelName' not available in your Azure resource"
+                    } else {
+                        "Endpoint not found. Check your Azure OpenAI endpoint URL."
+                    }
+                }
                 in 500..599 -> "Azure service error"
                 else -> "Connection failed: ${e.message()}"
             }

@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.remote.api.AzureOpenAiApi
 import com.google.common.truth.Truth.assertThat
+import com.google.gson.Gson
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -35,6 +36,7 @@ class PreferencesRepositoryTest {
     private lateinit var editor: SharedPreferences.Editor
     private lateinit var securePreferences: SecurePreferences
     private lateinit var azureOpenAiApi: AzureOpenAiApi
+    private lateinit var gson: Gson
 
     @Before
     fun setup() {
@@ -42,13 +44,14 @@ class PreferencesRepositoryTest {
         editor = mockk(relaxed = true)
         securePreferences = mockk(relaxed = true)
         azureOpenAiApi = mockk(relaxed = true)
+        gson = Gson()
         
         every { sharedPreferences.edit() } returns editor
         every { editor.putString(any(), any()) } returns editor
         every { editor.putBoolean(any(), any()) } returns editor
         every { editor.clear() } returns editor
 
-        repository = PreferencesRepositoryImpl(sharedPreferences, securePreferences, azureOpenAiApi)
+        repository = PreferencesRepositoryImpl(sharedPreferences, securePreferences, azureOpenAiApi, gson)
     }
 
     @Test

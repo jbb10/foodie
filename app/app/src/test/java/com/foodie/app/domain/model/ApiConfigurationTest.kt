@@ -114,4 +114,50 @@ class ApiConfigurationTest {
 
         assertThat(config.isConfigured).isTrue()
     }
+
+    // Story 5.3: Model Selection and Configuration tests
+
+    @Test
+    fun `default modelName is gpt-4-1`() {
+        val config = ApiConfiguration()
+
+        assertThat(config.modelName).isEqualTo("gpt-4.1")
+    }
+
+    @Test
+    fun `validate acceptsCustomModelName`() {
+        val config = ApiConfiguration(
+            apiKey = "sk-test123",
+            endpoint = "https://test.openai.azure.com",
+            modelName = "gpt-4o-mini"
+        )
+
+        val result = config.validate()
+
+        assertThat(result).isEqualTo(ValidationResult.Success)
+    }
+
+    @Test
+    fun `validate acceptsCustomDeploymentName`() {
+        val config = ApiConfiguration(
+            apiKey = "sk-test123",
+            endpoint = "https://test.openai.azure.com",
+            modelName = "my-custom-deployment-123"
+        )
+
+        val result = config.validate()
+
+        assertThat(result).isEqualTo(ValidationResult.Success)
+    }
+
+    @Test
+    fun `isConfigured returnsFalse whenModelNameBlank`() {
+        val config = ApiConfiguration(
+            apiKey = "sk-test123",
+            endpoint = "https://test.openai.azure.com",
+            modelName = ""
+        )
+
+        assertThat(config.isConfigured).isFalse()
+    }
 }

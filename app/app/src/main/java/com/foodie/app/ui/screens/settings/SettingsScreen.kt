@@ -189,6 +189,14 @@ fun SettingsScreen(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
+            item(key = "api_model_description") {
+                Text(
+                    text = stringResource(R.string.settings_model_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+            }
             item(key = "api_save_button") {
                 Button(
                     onClick = {

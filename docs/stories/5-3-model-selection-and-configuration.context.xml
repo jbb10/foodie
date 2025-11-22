@@ -1,0 +1,222 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>3</storyId>
+    <title>Model Selection and Configuration</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-22</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-3-model-selection-and-configuration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to select which Azure OpenAI model to use for analysis</iWant>
+    <soThat>I can optimize for speed, cost, or accuracy based on my needs</soThat>
+    <tasks>
+      - Task 1: Documentation Research and Technical Validation (Azure OpenAI model deployment patterns, Responses API model field, preference UI patterns)
+      - Task 2: Define Model Options and Descriptions (ModelOption data class with display name and description)
+      - Task 3: Update PreferencesRepository for Model Selection (verify existing model storage)
+      - Task 4: Enhance Settings UI with Model Selection (dropdown vs direct input approach)
+      - Task 5: Update Test Connection to Validate Model (model-specific error messages)
+      - Task 6: Update AnalyzeMealWorker and API Client (verify model field usage)
+      - Task 7: Unit Tests for Model Configuration (5+ tests)
+      - Task 8: Update Settings UI Tests (extend instrumentation tests)
+      - Task 9: Manual Testing and Documentation (create manual test guide)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Model selection field exists with option "gpt-4.1"
+    2. Custom model/deployment name entry supported
+    3. Selected model used in `model` field of Responses API requests
+    4. Helpful description: "gpt-4.1: Advanced reasoning and vision capabilities"
+    5. Test connection validates selected model availability in deployment
+    6. Model selection stored in SharedPreferences
+    7. Model selection defaults to "gpt-4.1" for new installations
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown - Story 5.3</title>
+        <section>Epic 5: Configuration and Polish - Story 5.3</section>
+        <snippet>Model selection field with option "gpt-4.1". Custom model/deployment names accepted. Responses API accepts model name in request body `model` field. Store in SharedPreferences. Default "gpt-4.1".</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Story 5.3 - Model Selection and Configuration</section>
+        <snippet>Model selection UI with predefined options (gpt-4.1) and custom entry. Test connection validates model availability. Model descriptions guide user selection. Traceability mappings for AC verification.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document - Azure OpenAI Integration</title>
+        <section>Azure OpenAI Configuration Requirements</section>
+        <snippet>Model/deployment name required alongside endpoint and API key. Responses API uses `model` field in request body. GPT-4.1 with vision capabilities for multimodal food analysis. Configuration stored in EncryptedSharedPreferences.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-2-azure-openai-api-key-and-endpoint-configuration.md</path>
+        <title>Story 5.2 - API Key and Endpoint Configuration</title>
+        <section>Dev Agent Record - Completion Notes</section>
+        <snippet>Model field already implemented in SettingsScreen.kt as EditTextPreference with default "gpt-4.1". SecurePreferences.azureOpenAiModel property stores model in SharedPreferences. Test connection uses configured model. Story 5.3 builds on this foundation.</snippet>
+      </doc>
+      <doc>
+        <path>app/README.md</path>
+        <title>App README - Azure OpenAI Setup</title>
+        <section>Quick Start and Configuration - Azure OpenAI Setup</section>
+        <snippet>local.properties template includes azure.openai.model="gpt-4.1". BuildConfig migration to EncryptedSharedPreferences completed in Story 5.2. Model configuration now in Settings screen.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/domain/model/ApiConfiguration.kt</path>
+        <kind>domain-model</kind>
+        <symbol>ApiConfiguration</symbol>
+        <lines>1-62</lines>
+        <reason>Domain model for Azure OpenAI configuration with validation logic. Already includes modelName field with default "gpt-4.1" and validation rules. Story 5.3 may add ModelOption sealed class or enhance description presentation.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt</path>
+        <kind>composable-screen</kind>
+        <symbol>ApiConfigurationCategory</symbol>
+        <lines>154-209</lines>
+        <reason>Settings UI with existing model field (EditTextPreference pattern). Task 4 enhances this with model descriptions and potentially dropdown selection. Current implementation at lines 165-179 shows simple text input approach.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/settings/SettingsViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>SettingsViewModel</symbol>
+        <lines>1-250</lines>
+        <reason>ViewModel manages API configuration state including modelName field. Methods saveApiConfiguration() and testConnection() already accept modelName parameter. Task 2 may add model description logic or validation.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/settings/SettingsState.kt</path>
+        <kind>state-data-class</kind>
+        <symbol>SettingsState</symbol>
+        <lines>32</lines>
+        <reason>State data class includes modelName field with default "gpt-4.1". No changes needed unless adding model description state or dropdown selection state.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt</path>
+        <kind>data-source</kind>
+        <symbol>SecurePreferences</symbol>
+        <lines>149-180</lines>
+        <reason>SecurePreferences.azureOpenAiModel property reads/writes model from standard SharedPreferences (key: pref_azure_model). setAzureOpenAiModelName() method saves model. Already production-ready from Story 5.2.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/repository/PreferencesRepositoryImpl.kt</path>
+        <kind>repository</kind>
+        <symbol>PreferencesRepositoryImpl</symbol>
+        <lines>177-247</lines>
+        <reason>Test connection logic at lines 177-247 validates API configuration including model field. Task 5 extends error classification for model-specific errors (404 → "Deployment 'X' not available").</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/FoodieApplication.kt</path>
+        <kind>application-class</kind>
+        <symbol>FoodieApplication.migrateCredentialsIfNeeded</symbol>
+        <lines>136-177</lines>
+        <reason>BuildConfig migration logic includes model field migration (line 167: putString("pref_azure_model", model)). Ensures model persists correctly after Story 5.2 migration.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/remote/dto/NutritionAnalysisRequest.kt</path>
+        <kind>dto</kind>
+        <symbol>NutritionAnalysisRequest</symbol>
+        <lines>1-50</lines>
+        <reason>Request DTO for Azure OpenAI Responses API includes `model` field. Task 6 verifies AnalyzeMealWorker uses configured model from SecurePreferences when building request.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <android>
+        <package>androidx.compose.material3</package>
+        <usage>Material Design 3 components for Settings UI - DropdownMenu if using Approach 1, OutlinedTextField for direct input</usage>
+      </android>
+      <android>
+        <package>androidx.preference</package>
+        <usage>SharedPreferences (standard, not encrypted) for model name storage - key: pref_azure_model</usage>
+      </android>
+      <testing>
+        <package>com.google.truth:truth</package>
+        <usage>Assertion library for unit tests (ApiConfiguration validation, model selection logic)</usage>
+      </testing>
+      <testing>
+        <package>io.mockk:mockk</package>
+        <usage>Mocking framework for PreferencesRepository and API mocking in unit tests</usage>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Follow existing Settings UI patterns from Story 5.1/5.2: OutlinedTextField composables with label, placeholder, and helper text</constraint>
+    <constraint>Model field stored in standard SharedPreferences (not encrypted) - model name is non-sensitive configuration</constraint>
+    <constraint>Test connection must validate complete API configuration including model field with minimal Responses API request</constraint>
+    <constraint>Model descriptions must guide user selection without overwhelming - concise, actionable text</constraint>
+    <constraint>Default model "gpt-4.1" must remain consistent with existing configuration and Azure OpenAI vision capabilities</constraint>
+    <constraint>Error messages for invalid model must reference deployment name and provide actionable guidance</constraint>
+    <constraint>Maintain consistency with Story 5.2 approved patterns: reactive StateFlow updates, validation before save, clear error feedback</constraint>
+    <constraint>UI instrumentation tests may fail due to project-wide "No compose hierarchies" environmental issue - compensate with comprehensive manual testing</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>PreferencesRepository.testConnection</name>
+      <kind>suspend-function</kind>
+      <signature>suspend fun testConnection(apiKey: String, endpoint: String, modelName: String): Result&lt;TestConnectionResult&gt;</signature>
+      <path>app/src/main/java/com/foodie/app/data/repository/PreferencesRepository.kt</path>
+    </interface>
+    <interface>
+      <name>SecurePreferences.azureOpenAiModel</name>
+      <kind>property-getter</kind>
+      <signature>val azureOpenAiModel: String?</signature>
+      <path>app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt</path>
+    </interface>
+    <interface>
+      <name>SecurePreferences.setAzureOpenAiModelName</name>
+      <kind>function</kind>
+      <signature>fun setAzureOpenAiModelName(modelName: String)</signature>
+      <path>app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt</path>
+    </interface>
+    <interface>
+      <name>SettingsViewModel.saveApiConfiguration</name>
+      <kind>function</kind>
+      <signature>fun saveApiConfiguration(apiKey: String, endpoint: String, modelName: String)</signature>
+      <path>app/src/main/java/com/foodie/app/ui/screens/settings/SettingsViewModel.kt</path>
+    </interface>
+    <interface>
+      <name>ApiConfiguration.validate</name>
+      <kind>function</kind>
+      <signature>fun validate(): ValidationResult</signature>
+      <path>app/src/main/java/com/foodie/app/domain/model/ApiConfiguration.kt</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit Tests: JUnit 4.13.2 with MockK for mocking, Truth library for assertions, UnconfinedTestDispatcher for coroutines.
+      Location: app/src/test/java/com/foodie/app/
+      Pattern: methodName_whenCondition_thenExpectedResult
+      Instrumentation Tests: Compose UI testing with HiltTestActivity pattern (may fail due to environmental "No compose hierarchies" issue).
+      Location: app/src/androidTest/java/com/foodie/app/
+      Manual Testing: Comprehensive guide in docs/testing/manual-test-guide-story-5-3.md covering all ACs and edge cases.
+      Story 5.2 achieved 35 automated tests (16 unit + 7 integration + 9 SecurePreferences + 3 ViewModel) - target similar coverage for Story 5.3.
+    </standards>
+    <locations>
+      - app/src/test/java/com/foodie/app/domain/model/ (ApiConfiguration validation tests)
+      - app/src/test/java/com/foodie/app/ui/screens/settings/ (SettingsViewModel model selection tests)
+      - app/src/androidTest/java/com/foodie/app/ui/screens/settings/ (Settings UI instrumentation tests)
+      - docs/testing/ (Manual test guides)
+    </locations>
+    <ideas>
+      <idea ac="1,4,7">Unit test: ModelOption defaults to "gpt-4.1" with correct description</idea>
+      <idea ac="2">Unit test: Custom model name accepted and persisted to SharedPreferences</idea>
+      <idea ac="3">Integration test: Verify AnalyzeMealWorker uses configured model in Responses API request</idea>
+      <idea ac="5">Unit test: Test connection with invalid model name returns 404 error with clear message</idea>
+      <idea ac="6">Unit test: Model selection persists across ViewModel reinitialization</idea>
+      <idea ac="1,4">UI test: Settings screen displays model field with description text</idea>
+      <idea ac="2">UI test: Model field accepts custom deployment name (alphanumeric + hyphens)</idea>
+      <idea ac="7">Manual test: Fresh install defaults to "gpt-4.1" model</idea>
+      <idea ac="3,5">Manual test: Test connection validates model with Azure API, displays error for unavailable deployment</idea>
+    </ideas>
+  </tests>
+</story-context>

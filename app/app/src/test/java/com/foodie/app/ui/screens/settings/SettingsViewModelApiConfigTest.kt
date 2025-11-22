@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -109,13 +110,14 @@ class SettingsViewModelTest {
     @Test
     fun `testConnection success updatesState`() = runTest {
         // Given successful test connection
-        coEvery { repository.testConnection() } returns Result.success(TestConnectionResult.Success)
+        coEvery { repository.testConnection(any(), any(), any()) } returns Result.success(TestConnectionResult.Success)
 
         // When testing connection
-        viewModel.testConnection()
+        viewModel.testConnection("test-key", "https://test.openai.azure.com", "gpt-4.1")
+        advanceUntilIdle()
 
-        // Then state shows success result
-        assertThat(viewModel.state.value.testConnectionResult).isEqualTo(TestConnectionResult.Success)
+        // Then state shows success message
+        assertThat(viewModel.state.value.saveSuccessMessage).isEqualTo("API configuration valid")
         assertThat(viewModel.state.value.isTestingConnection).isFalse()
     }
 
@@ -123,17 +125,17 @@ class SettingsViewModelTest {
     fun `testConnection failure displaysError`() = runTest {
         // Given failed test connection
         val errorMessage = "Invalid API key"
-        coEvery { repository.testConnection() } returns Result.success(
+        coEvery { repository.testConnection(any(), any(), any()) } returns Result.success(
             TestConnectionResult.Failure(errorMessage)
         )
 
         // When testing connection
-        viewModel.testConnection()
+        viewModel.testConnection("test-key", "https://test.openai.azure.com", "gpt-4.1")
+        advanceUntilIdle()
 
-        // Then state shows failure result
-        val result = viewModel.state.value.testConnectionResult as? TestConnectionResult.Failure
-        assertThat(result).isNotNull()
-        assertThat(result?.errorMessage).isEqualTo(errorMessage)
+        // Then state shows error message
+        assertThat(viewModel.state.value.error).isEqualTo(errorMessage)
+        assertThat(viewModel.state.value.isTestingConnection).isFalse()
     }
 
     @Test
@@ -153,16 +155,18 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `clearTestResult clearsResult`() = runTest {
-        // Given test result exists
-        coEvery { repository.testConnection() } returns Result.success(TestConnectionResult.Success)
-        viewModel.testConnection()
-        assertThat(viewModel.state.value.testConnectionResult).isNotNull()
+    fun `clearSaveSuccess clearsSuccessMessage`() = runTest {
+        // Given success message exists
+        coEvery { repository.testConnection(any(), any(), any()) } returns Result.success(TestConnectionResult.Success)
+        viewModel.testConnection("test-key", "https://test.openai.azure.com", "gpt-4.1")
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.saveSuccessMessage).isNotNull()
 
-        // When clearing result
-        viewModel.clearTestResult()
+        // When clearing success message
+        viewModel.clearSaveSuccess()
+        advanceUntilIdle()
 
-        // Then result is null
-        assertThat(viewModel.state.value.testConnectionResult).isNull()
+        // Then message is null
+        assertThat(viewModel.state.value.saveSuccessMessage).isNull()
     }
 }

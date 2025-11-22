@@ -65,4 +65,5 @@
     
     <!-- Settings Screen -->
     <string name="settings_api_help_text">Get your Azure OpenAI credentials at portal.azure.com → Azure OpenAI Service → Keys and Endpoint</string>
+    <string name="settings_model_description">Default: gpt-4.1 (Advanced reasoning and vision capabilities). Enter your custom deployment name if needed.</string>
 </resources>
