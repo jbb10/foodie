@@ -1,6 +1,8 @@
 package com.foodie.app.data.repository
 
 import android.content.SharedPreferences
+import com.foodie.app.data.local.preferences.SecurePreferences
+import com.foodie.app.data.remote.api.AzureOpenAiApi
 import com.google.common.truth.Truth.assertThat
 import io.mockk.every
 import io.mockk.mockk
@@ -31,17 +33,22 @@ class PreferencesRepositoryTest {
     private lateinit var repository: PreferencesRepositoryImpl
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
+    private lateinit var securePreferences: SecurePreferences
+    private lateinit var azureOpenAiApi: AzureOpenAiApi
 
     @Before
     fun setup() {
         sharedPreferences = mockk(relaxed = true)
         editor = mockk(relaxed = true)
+        securePreferences = mockk(relaxed = true)
+        azureOpenAiApi = mockk(relaxed = true)
+        
         every { sharedPreferences.edit() } returns editor
         every { editor.putString(any(), any()) } returns editor
         every { editor.putBoolean(any(), any()) } returns editor
         every { editor.clear() } returns editor
 
-        repository = PreferencesRepositoryImpl(sharedPreferences)
+        repository = PreferencesRepositoryImpl(sharedPreferences, securePreferences, azureOpenAiApi)
     }
 
     @Test

@@ -1,5 +1,7 @@
 package com.foodie.app.data.repository
 
+import com.foodie.app.domain.model.ApiConfiguration
+import com.foodie.app.domain.model.TestConnectionResult
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -109,4 +111,37 @@ interface PreferencesRepository {
      * @return Result.success(Unit) if cleared, Result.failure if error
      */
     suspend fun clearAll(): Result<Unit>
+
+    /**
+     * Saves complete Azure OpenAI API configuration.
+     *
+     * Stores API key in EncryptedSharedPreferences and endpoint/model in standard SharedPreferences.
+     * Validates configuration before saving.
+     *
+     * @param config API configuration to save
+     * @return Result.success(Unit) if saved, Result.failure if validation or save failed
+     */
+    suspend fun saveApiConfiguration(config: ApiConfiguration): Result<Unit>
+
+    /**
+     * Retrieves current Azure OpenAI API configuration.
+     *
+     * Reads from SecurePreferences (API key) and SharedPreferences (endpoint, model).
+     *
+     * @return Flow emitting current API configuration
+     */
+    fun getApiConfiguration(): Flow<ApiConfiguration>
+
+    /**
+     * Tests Azure OpenAI API connection with provided configuration.
+     *
+     * Makes a minimal Responses API request to validate credentials and connectivity.
+     * Uses ErrorHandler from Epic 4 to classify errors (network, auth, server).
+     *
+     * @param apiKey Azure OpenAI API key to test
+     * @param endpoint Azure OpenAI endpoint URL to test
+     * @param modelName Model deployment name to test
+     * @return Result containing TestConnectionResult (Success or Failure with error message)
+     */
+    suspend fun testConnection(apiKey: String, endpoint: String, modelName: String): Result<TestConnectionResult>
 }

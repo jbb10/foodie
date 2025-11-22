@@ -1,12 +1,15 @@
 package com.foodie.app
 
 import android.app.Application
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.worker.PhotoCleanupWorker
 import com.foodie.app.data.worker.foreground.MealAnalysisNotificationSpec
 import com.foodie.app.util.ReleaseTree
@@ -26,6 +29,7 @@ import javax.inject.Inject
  * - Hilt dependency injection initialization (via @HiltAndroidApp)
  * - WorkManager configuration with HiltWorkerFactory for dependency injection
  * - Schedule periodic background tasks (photo cleanup)
+ * - Migrate BuildConfig credentials to EncryptedSharedPreferences (Story 5.2, one-time)
  *
  * WorkManager uses HiltWorkerFactory (injected by Hilt)
  * for dependency injection into workers (@HiltWorker annotation).
@@ -35,6 +39,9 @@ class FoodieApplication : Application(), Configuration.Provider {
     
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
+
+    @Inject
+    lateinit var securePreferences: SecurePreferences
     
     override fun onCreate() {
         super.onCreate()
@@ -49,6 +56,9 @@ class FoodieApplication : Application(), Configuration.Provider {
         Timber.d("FoodieApplication initialized with HiltWorkerFactory")
 
         MealAnalysisNotificationSpec.ensureChannel(this)
+        
+        // Migrate BuildConfig credentials to EncryptedSharedPreferences (Story 5.2)
+        migrateCredentialsIfNeeded()
         
         // Schedule periodic photo cleanup (Story 4.4)
         schedulePhotoCleanup()
@@ -117,6 +127,57 @@ class FoodieApplication : Application(), Configuration.Provider {
         }
         
         return Duration.between(now, next3AM).seconds
+    }
+
+    /**
+     * Migrates BuildConfig credentials to EncryptedSharedPreferences.
+     *
+     * One-time migration from Story 2.4 (BuildConfig) to Story 5.2 (EncryptedSharedPreferences).
+     * Runs on first launch after Story 5.2 deployment, then sets flag to prevent re-runs.
+     *
+     * Migration strategy:
+     * - Check if migration already completed via SharedPreferences flag
+     * - If BuildConfig values exist, migrate to SecurePreferences + SharedPreferences
+     * - Set migration flag to true (prevents repeated attempts)
+     * - On error: Log and skip (user can configure manually via Settings)
+     *
+     * Story 5.2: Azure OpenAI API Key and Endpoint Configuration
+     */
+    private fun migrateCredentialsIfNeeded() {
+        val prefs = getSharedPreferences("foodie_prefs", Context.MODE_PRIVATE)
+        val migrated = prefs.getBoolean("credentials_migrated", false)
+        
+        if (migrated) {
+            Timber.d("Credentials already migrated, skipping")
+            return
+        }
+
+        try {
+            val apiKey = BuildConfig.AZURE_OPENAI_API_KEY
+            val endpoint = BuildConfig.AZURE_OPENAI_ENDPOINT
+            val model = BuildConfig.AZURE_OPENAI_MODEL
+
+            if (apiKey.isNotBlank() && apiKey != "\"\"") {
+                // Migrate API key to EncryptedSharedPreferences
+                securePreferences.setAzureOpenAiApiKey(apiKey)
+
+                // Migrate endpoint and model to standard SharedPreferences
+                prefs.edit()
+                    .putString("pref_azure_endpoint", endpoint)
+                    .putString("pref_azure_model", model)
+                    .putBoolean("credentials_migrated", true)
+                    .apply()
+
+                Timber.i("Credentials migrated successfully from BuildConfig to EncryptedSharedPreferences")
+            } else {
+                // Mark migration complete even if BuildConfig empty (prevents repeated attempts)
+                prefs.edit().putBoolean("credentials_migrated", true).apply()
+                Timber.d("No BuildConfig credentials to migrate")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Credential migration failed - user must configure manually via Settings")
+            // Don't set migration flag on failure - retry next launch
+        }
     }
 }
 

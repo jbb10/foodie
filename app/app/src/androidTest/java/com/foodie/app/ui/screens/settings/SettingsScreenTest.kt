@@ -100,4 +100,87 @@ class SettingsScreenTest {
             "Settings functionality will be implemented in Epic 5"
         ).assertIsDisplayed()
     }
+
+    // Story 5.2: API Configuration Tests
+
+    @Test
+    fun settingsScreen_displaysApiConfigurationCategory() {
+        composeTestRule.setContent {
+            FoodieTheme {
+                SettingsScreen(onNavigateBack = {})
+            }
+        }
+
+        composeTestRule.onNodeWithText("API Configuration").assertIsDisplayed()
+    }
+
+    @Test
+    fun settingsScreen_displaysApiKeyField() {
+        composeTestRule.setContent {
+            FoodieTheme {
+                SettingsScreen(onNavigateBack = {})
+            }
+        }
+
+        composeTestRule.onNodeWithText("API Key").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Azure OpenAI API Key").assertIsDisplayed()
+    }
+
+    @Test
+    fun settingsScreen_displaysEndpointField() {
+        composeTestRule.setContent {
+            FoodieTheme {
+                SettingsScreen(onNavigateBack = {})
+            }
+        }
+
+        composeTestRule.onNodeWithText("Azure OpenAI Endpoint").assertIsDisplayed()
+    }
+
+    @Test
+    fun settingsScreen_displaysModelField() {
+        composeTestRule.setContent {
+            FoodieTheme {
+                SettingsScreen(onNavigateBack = {})
+            }
+        }
+
+        composeTestRule.onNodeWithText("Model Deployment Name").assertIsDisplayed()
+    }
+
+    @Test
+    fun settingsScreen_displaysSaveButton() {
+        composeTestRule.setContent {
+            FoodieTheme {
+                SettingsScreen(onNavigateBack = {})
+            }
+        }
+
+        composeTestRule.onNodeWithText("Save Configuration").assertIsDisplayed()
+    }
+
+    @Test
+    fun settingsScreen_displaysTestConnectionButton() {
+        composeTestRule.setContent {
+            FoodieTheme {
+                SettingsScreen(onNavigateBack = {})
+            }
+        }
+
+        composeTestRule.onNodeWithText("Test Connection").assertIsDisplayed()
+    }
+
+    @Test
+    fun settingsScreen_displaysApiHelpText() {
+        composeTestRule.setContent {
+            FoodieTheme {
+                SettingsScreen(onNavigateBack = {})
+            }
+        }
+
+        composeTestRule.onNodeWithText(
+            "Get your Azure OpenAI credentials at portal.azure.com → Azure OpenAI Service → Keys and Endpoint",
+            substring = true
+        ).assertIsDisplayed()
+    }
 }

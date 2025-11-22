@@ -1,6 +1,8 @@
 package com.foodie.app.data.repository
 
+import android.content.Context
 import com.foodie.app.data.local.preferences.SecurePreferences
+import io.mockk.mockk
 import com.foodie.app.data.remote.api.AzureOpenAiApi
 import com.foodie.app.data.remote.dto.AzureResponseRequest
 import com.foodie.app.data.remote.dto.ContentItem
@@ -52,8 +54,9 @@ class NutritionAnalysisRepositoryLiveTest {
 
     @Before
     fun setup() {
-        // Use real SecurePreferences with hardcoded credentials
-        securePreferences = SecurePreferences()
+        // Use real SecurePreferences with hardcoded credentials  
+        val context = mockk<Context>(relaxed = true)
+        securePreferences = SecurePreferences(context)
 
         // Create real AuthInterceptor
         val authInterceptor = AuthInterceptor(securePreferences)

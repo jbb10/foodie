@@ -2,7 +2,11 @@ package com.foodie.app.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.repository.PreferencesRepository
+import com.foodie.app.domain.model.ApiConfiguration
+import com.foodie.app.domain.model.TestConnectionResult
+import com.foodie.app.domain.model.ValidationResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,10 +46,12 @@ import javax.inject.Inject
  * ```
  *
  * @property preferencesRepository Repository for preference CRUD and observation
+ * @property securePreferences SecurePreferences for API key retrieval
  */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
+    private val securePreferences: SecurePreferences
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -59,26 +65,38 @@ class SettingsViewModel @Inject constructor(
     val state: StateFlow<SettingsState> = _state.asStateFlow()
 
     init {
-        // Load initial preferences and observe changes
-        observePreferences()
+        // Load initial configuration, then observe changes
+        // This ensures deterministic state initialization
+        loadApiConfigurationAndObserve()
     }
 
     /**
-     * Observes preferences reactively and updates state when they change.
-     *
-     * Uses repository Flow to receive updates when preferences are modified
-     * (either by this ViewModel or externally, e.g., from background sync).
+     * Loads initial API configuration and then observes preference changes.
+     * 
+     * This combined approach fixes the race condition between loadApiConfiguration()
+     * and observePreferences() by ensuring initial load completes before observation starts.
      */
-    private fun observePreferences() {
+    private fun loadApiConfigurationAndObserve() {
         viewModelScope.launch {
             try {
-                // Observe preferences map and update state fields
+                // Load initial API configuration from SecurePreferences
+                val apiKey = securePreferences.azureOpenAiApiKey ?: ""
+                val endpoint = securePreferences.azureOpenAiEndpoint ?: ""
+                val model = securePreferences.azureOpenAiModel ?: "gpt-4.1"
+
+                _state.update { it.copy(
+                    apiKey = apiKey,
+                    apiEndpoint = endpoint,
+                    modelName = model
+                )}
+
+                // Now observe preferences for updates
                 preferencesRepository.observePreferences()
                     .onEach { preferences ->
                         _state.update { currentState ->
                             currentState.copy(
-                                apiEndpoint = preferences["pref_azure_endpoint"] as? String ?: "",
-                                modelName = preferences["pref_azure_model"] as? String ?: "gpt-4.1",
+                                apiEndpoint = preferences["pref_azure_endpoint"] as? String ?: currentState.apiEndpoint,
+                                modelName = preferences["pref_azure_model"] as? String ?: currentState.modelName,
                                 themeMode = preferences["pref_theme_mode"] as? String ?: "system",
                                 isLoading = false
                             )
@@ -86,7 +104,7 @@ class SettingsViewModel @Inject constructor(
                     }
                     .launchIn(viewModelScope)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to observe preferences")
+                Timber.e(e, "Failed to load API configuration")
                 _state.update { it.copy(error = "Failed to load preferences", isLoading = false) }
             }
         }
@@ -143,5 +161,115 @@ class SettingsViewModel @Inject constructor(
      */
     fun clearError() {
         _state.update { it.copy(error = null) }
+    }
+
+    /**
+     * Saves complete Azure OpenAI API configuration.
+     *
+     * Validates inputs before saving to SecurePreferences and SharedPreferences.
+     *
+     * @param apiKey Azure OpenAI API key
+     * @param endpoint Azure OpenAI endpoint URL
+     * @param modelName Model deployment name
+     */
+    fun saveApiConfiguration(apiKey: String, endpoint: String, modelName: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null, saveSuccessMessage = null) }
+
+            val config = ApiConfiguration(apiKey, endpoint, modelName)
+            val validationResult = config.validate()
+
+            if (validationResult is ValidationResult.Error) {
+                _state.update { it.copy(error = validationResult.message, isLoading = false) }
+                return@launch
+            }
+
+            preferencesRepository.saveApiConfiguration(config)
+                .onSuccess {
+                    Timber.d("API configuration saved successfully")
+                    _state.update { it.copy(
+                        apiKey = apiKey,
+                        apiEndpoint = endpoint,
+                        modelName = modelName,
+                        isLoading = false,
+                        saveSuccessMessage = "Configuration saved"
+                    )}
+                }
+                .onFailure { error ->
+                    Timber.e(error, "Failed to save API configuration")
+                    _state.update { it.copy(error = "Failed to save: ${error.message}", isLoading = false) }
+                }
+        }
+    }
+
+    /**
+     * Tests Azure OpenAI API connection with provided configuration.
+     *
+     * Makes a minimal Responses API request to validate credentials.
+     *
+     * @param apiKey Azure OpenAI API key to test
+     * @param endpoint Azure OpenAI endpoint URL to test
+     * @param modelName Model deployment name to test
+     */
+    fun testConnection(apiKey: String, endpoint: String, modelName: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isTestingConnection = true, testConnectionResult = null, error = null, saveSuccessMessage = null) }
+
+            // Validate before testing
+            val config = ApiConfiguration(apiKey, endpoint, modelName)
+            val validationResult = config.validate()
+
+            if (validationResult is ValidationResult.Error) {
+                _state.update { it.copy(
+                    error = validationResult.message,
+                    isTestingConnection = false
+                )}
+                return@launch
+            }
+
+            preferencesRepository.testConnection(apiKey, endpoint, modelName)
+                .onSuccess { result ->
+                    Timber.d("Connection test completed: $result")
+                    when (result) {
+                        is TestConnectionResult.Success -> {
+                            _state.update { it.copy(
+                                isTestingConnection = false,
+                                saveSuccessMessage = "API configuration valid"
+                            )}
+                        }
+                        is TestConnectionResult.Failure -> {
+                            _state.update { it.copy(
+                                isTestingConnection = false,
+                                error = result.errorMessage
+                            )}
+                        }
+                    }
+                }
+                .onFailure { error ->
+                    Timber.e(error, "Connection test failed")
+                    _state.update { it.copy(
+                        isTestingConnection = false,
+                        error = "Test failed: ${error.message}"
+                    )}
+                }
+        }
+    }
+
+    /**
+     * Clears test connection result.
+     *
+     * Call after displaying result to user to reset UI state.
+     */
+    fun clearTestResult() {
+        _state.update { it.copy(testConnectionResult = null) }
+    }
+
+    /**
+     * Clears save success message.
+     *
+     * Called after Snackbar is shown to prevent re-triggering.
+     */
+    fun clearSaveSuccess() {
+        _state.update { it.copy(saveSuccessMessage = null) }
     }
 }

@@ -62,4 +62,7 @@
     <string name="notification_action_open_settings">Open Settings</string>
     <string name="notification_action_retry">Retry</string>
     <string name="notification_action_grant_access">Grant Access</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_api_help_text">Get your Azure OpenAI credentials at portal.azure.com → Azure OpenAI Service → Keys and Endpoint</string>
 </resources>

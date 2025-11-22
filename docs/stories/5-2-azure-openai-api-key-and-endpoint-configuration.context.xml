@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Story Context for Implementation -->
+<!-- Generated: 2025-11-22 -->
+<!-- Story: 5.2 - Azure OpenAI API Key and Endpoint Configuration -->
+
+<story-context>
+  <metadata>
+    <story-id>5.2</story-id>
+    <story-key>5-2-azure-openai-api-key-and-endpoint-configuration</story-key>
+    <epic-id>5</epic-id>
+    <title>Azure OpenAI API Key and Endpoint Configuration</title>
+    <status>ready-for-dev</status>
+    <generated-date>2025-11-22</generated-date>
+  </metadata>
+
+  <user-story>
+    <as-a>user</as-a>
+    <i-want>to securely configure my Azure OpenAI API credentials in the Settings screen</i-want>
+    <so-that>the app can authenticate with my Azure OpenAI deployment for meal analysis</so-that>
+  </user-story>
+
+  <acceptance-criteria>
+    <criterion id="AC1">API key stored encrypted using Android Keystore via EncryptedSharedPreferences</criterion>
+    <criterion id="AC2">Endpoint URL and model name stored in standard SharedPreferences</criterion>
+    <criterion id="AC3">Test Connection button validates complete API configuration with minimal Responses API request</criterion>
+    <criterion id="AC4">Validation displays clear success or specific error messages</criterion>
+    <criterion id="AC5">API key field shows masked preview (last 4 characters only)</criterion>
+    <criterion id="AC6">Endpoint and model fields display current configured values</criterion>
+    <criterion id="AC7">AuthInterceptor reads credentials from EncryptedSharedPreferences instead of BuildConfig</criterion>
+    <criterion id="AC8">Automatic migration: BuildConfig values → EncryptedSharedPreferences on first launch</criterion>
+    <criterion id="AC9">Clear instructions guide users to obtain credentials from portal.azure.com</criterion>
+    <criterion id="AC10">All validation errors are actionable (invalid format, unreachable endpoint, invalid model)</criterion>
+    <criterion id="AC11">Preferences persist across app restarts and are immediately available to API client</criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="T1" ac="AC1,AC7,AC8">
+      <description>Documentation Research and Technical Validation</description>
+      <details>
+        Research EncryptedSharedPreferences, Azure OpenAI Responses API authentication, AuthInterceptor migration, and BuildConfig credential migration patterns
+      </details>
+    </task>
+    <task id="T2" ac="AC1,AC7">
+      <description>Create SecurePreferencesManager</description>
+      <details>
+        Interface and implementation using EncryptedSharedPreferences with MasterKey from Android Keystore.
+        Methods: saveApiKey(), getApiKey(), clearApiKey(), hasApiKey()
+      </details>
+    </task>
+    <task id="T3" ac="AC2,AC9">
+      <description>Update PreferencesRepository for API Configuration</description>
+      <details>
+        Add saveApiConfiguration(), getApiConfiguration(), testConnection() methods.
+        Create ApiConfiguration data class and TestConnectionResult sealed class with validation logic.
+      </details>
+    </task>
+    <task id="T4" ac="AC5,AC6,AC10">
+      <description>Update SettingsState and SettingsViewModel</description>
+      <details>
+        Add apiKey, endpoint, modelName, isTestingConnection, testConnectionResult fields to SettingsState.
+        Implement saveApiConfiguration(), testConnection(), clearTestResult() methods in ViewModel with validation.
+      </details>
+    </task>
+    <task id="T5" ac="AC5,AC6,AC4">
+      <description>Create API Configuration UI in SettingsScreen</description>
+      <details>
+        Replace placeholders with EditTextPreference for endpoint and model, custom masked input for API key.
+        Add Test Connection button with loading states and result display.
+      </details>
+    </task>
+    <task id="T6" ac="AC3,AC4,AC10">
+      <description>Implement Test Connection Logic</description>
+      <details>
+        Create AzureOpenAiApi.testConnection() method with minimal Responses API request.
+        Error classification using Epic 4 ErrorHandler for network/auth/server errors.
+      </details>
+    </task>
+    <task id="T7" ac="AC7">
+      <description>Update AuthInterceptor to Use SecurePreferencesManager</description>
+      <details>
+        Inject SecurePreferencesManager, replace BuildConfig.AZURE_OPENAI_API_KEY with securePreferences.getApiKey().
+        Handle null API key with clear error message.
+      </details>
+    </task>
+    <task id="T8" ac="AC8">
+      <description>Implement BuildConfig Credential Migration</description>
+      <details>
+        Add migration logic to FoodieApplication.onCreate() to migrate BuildConfig values to EncryptedSharedPreferences on first launch.
+        Error handling with graceful fallback to manual entry.
+      </details>
+    </task>
+    <task id="T9" ac="AC7">
+      <description>Update Hilt Modules</description>
+      <details>
+        Add SecurePreferencesManager to AppModule, bind interface to implementation, ensure NetworkModule can inject SecurePreferencesManager.
+      </details>
+    </task>
+    <task id="T10" ac="AC9,AC10">
+      <description>Add User Guidance and Validation Feedback</description>
+      <details>
+        Add help text, inline validation errors, success/failure feedback for save and test connection operations.
+      </details>
+    </task>
+    <task id="T11" ac="ALL">
+      <description>Unit Tests for SecurePreferencesManager</description>
+      <details>
+        Test encryption, decryption, deletion, existence check, error handling. Minimum 5 tests.
+      </details>
+    </task>
+    <task id="T12" ac="AC3,AC4,AC10">
+      <description>Unit Tests for SettingsViewModel API Configuration</description>
+      <details>
+        Test validation, repository interaction, success/failure state updates. Minimum 5 tests using MockK.
+      </details>
+    </task>
+    <task id="T13" ac="AC10">
+      <description>Unit Tests for ApiConfiguration Validation</description>
+      <details>
+        Test all validation rules: empty fields, invalid format, non-HTTPS, wrong domain. Minimum 6 tests.
+      </details>
+    </task>
+    <task id="T14" ac="AC5,AC6,AC4">
+      <description>Instrumentation Tests for Settings UI</description>
+      <details>
+        Test masked API key display, endpoint/model persistence, test connection UI flow, validation error display. Minimum 5 tests.
+      </details>
+    </task>
+    <task id="T15" ac="AC8">
+      <description>Integration Test for Credential Migration</description>
+      <details>
+        Test first launch migration, subsequent launch skip, migration failure fallback. Use instrumentation tests.
+      </details>
+    </task>
+    <task id="T16" ac="ALL">
+      <description>Manual Testing and Documentation</description>
+      <details>
+        Test complete flow, migration, API call integration, update documentation with implementation learnings.
+      </details>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 5.2: Azure OpenAI API Key and Endpoint Configuration</section>
+        <snippet>
+          API key field (masked text input), endpoint field (Azure OpenAI base URL), model/deployment name field.
+          API key stored encrypted in Android Keystore via EncryptedSharedPreferences.
+          Test connection validates complete configuration with minimal Responses API request.
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Story 5.2: Secure API Key Storage and Validation</section>
+        <snippet>
+          SecurePreferencesManager wraps EncryptedSharedPreferences for API credential storage.
+          Uses Android Keystore with AES256_GCM encryption scheme.
+          Test connection sends minimal Responses API request with model, instructions, input fields.
+          AuthInterceptor updated to read from SecurePreferencesManager instead of BuildConfig.
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Foodie Architecture Document</title>
+        <section>Azure OpenAI Integration</section>
+        <snippet>
+          Endpoint: https://{resource}.openai.azure.com/openai/v1/responses
+          Authentication: api-key header (NOT Authorization: Bearer)
+          Model specified in request body model field (e.g., "gpt-4.1")
+          API key stored in EncryptedSharedPreferences using Android Keystore hardware-backed encryption
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>NFR-3: Security and Privacy</section>
+        <snippet>
+          API Key Storage: Encrypted in Android Keystore (hardware-backed)
+          Network Communication: HTTPS only for Azure OpenAI API calls
+          Logging: Never log sensitive data (API keys, photo paths, user data)
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-1-settings-screen-foundation.md</path>
+        <title>Story 5.1: Settings Screen Foundation</title>
+        <section>Learnings</section>
+        <snippet>
+          PreferencesRepository pattern with Flow-based reactive observation established.
+          Custom Composable preferences preferred over androidx.preference XML.
+          LazyColumn + PreferenceCategoryHeader pattern works well.
+          Test infrastructure uses HiltTestActivity pattern, MockK for mocking, Truth for assertions.
+        </snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/remote/interceptor/AuthInterceptor.kt</path>
+        <kind>interceptor</kind>
+        <symbol>AuthInterceptor</symbol>
+        <lines>1-81</lines>
+        <reason>
+          Currently reads API key from SecurePreferences (migrated from BuildConfig in Story 2.8).
+          Task 7 ensures this continues working with EncryptedSharedPreferences.
+          Header: api-key (NOT Authorization: Bearer)
+        </reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/FoodieApplication.kt</path>
+        <kind>application</kind>
+        <symbol>FoodieApplication</symbol>
+        <lines>1-123</lines>
+        <reason>
+          Application onCreate() is where migration logic will be added (Task 8).
+          Currently schedules photo cleanup, initializes Timber, configures WorkManager.
+        </reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt</path>
+        <kind>composable</kind>
+        <symbol>SettingsScreen</symbol>
+        <lines>1-171</lines>
+        <reason>
+          Settings UI foundation from Story 5.1.
+          Task 5 replaces API Configuration placeholders with interactive preferences.
+          LazyColumn structure with PreferenceCategoryHeader pattern established.
+        </reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>SettingsViewModel</symbol>
+        <lines>1-116</lines>
+        <reason>
+          Settings state management from Story 5.1.
+          Task 4 adds API configuration methods: saveApiConfiguration(), testConnection().
+          StateFlow pattern for reactive UI updates.
+        </reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsState.kt</path>
+        <kind>data-class</kind>
+        <symbol>SettingsState</symbol>
+        <lines>1-21</lines>
+        <reason>
+          Settings state model from Story 5.1.
+          Task 4 adds fields: apiKey, endpoint, modelName, isTestingConnection, testConnectionResult.
+        </reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/PreferencesRepository.kt</path>
+        <kind>interface</kind>
+        <symbol>PreferencesRepository</symbol>
+        <lines>1-113</lines>
+        <reason>
+          Repository abstraction from Story 5.1 with getString, setString, observeString methods.
+          Task 3 adds saveApiConfiguration(), getApiConfiguration(), testConnection() methods.
+        </reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/PreferencesRepositoryImpl.kt</path>
+        <kind>repository</kind>
+        <symbol>PreferencesRepositoryImpl</symbol>
+        <lines>1-139</lines>
+        <reason>
+          Repository implementation from Story 5.1 using SharedPreferences with callbackFlow.
+          Task 3 updates to delegate API key storage to SecurePreferencesManager.
+        </reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/di/AppModule.kt</path>
+        <kind>di-module</kind>
+        <symbol>AppModule</symbol>
+        <lines>1-66</lines>
+        <reason>
+          Hilt module providing SharedPreferences and PreferencesRepository.
+          Task 9 adds SecurePreferencesManager provider and binding.
+        </reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt</path>
+        <kind>interface</kind>
+        <symbol>SecurePreferences</symbol>
+        <lines>1-65</lines>
+        <reason>
+          Existing interface for secure preferences from Story 2.8.
+          Task 2 may need to extend or align with this existing pattern.
+          Currently provides azureOpenAiApiKey, azureOpenAiEndpoint, azureOpenAiModel properties.
+        </reason>
+      </file>
+    </code>
+
+    <interfaces>
+      <interface>
+        <name>PreferencesRepository</name>
+        <kind>Kotlin Interface</kind>
+        <signature>
+interface PreferencesRepository {
+    suspend fun getString(key: String, defaultValue: String = ""): String
+    suspend fun setString(key: String, value: String): Result&lt;Unit&gt;
+    suspend fun getBoolean(key: String, defaultValue: Boolean = false): Boolean
+    suspend fun setBoolean(key: String, value: Boolean): Result&lt;Unit&gt;
+    fun observePreferences(): Flow&lt;Map&lt;String, Any?&gt;&gt;
+    fun observeString(key: String): Flow&lt;String?&gt;
+    fun observeBoolean(key: String): Flow&lt;Boolean?&gt;
+    suspend fun clearAll(): Result&lt;Unit&gt;
+    // Task 3 additions:
+    suspend fun saveApiConfiguration(config: ApiConfiguration): Result&lt;Unit&gt;
+    fun getApiConfiguration(): Flow&lt;ApiConfiguration&gt;
+    suspend fun testConnection(): Result&lt;TestConnectionResult&gt;
+}
+        </signature>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/PreferencesRepository.kt</path>
+      </interface>
+      <interface>
+        <name>SecurePreferences</name>
+        <kind>Kotlin Interface</kind>
+        <signature>
+interface SecurePreferences {
+    var azureOpenAiApiKey: String?
+    var azureOpenAiEndpoint: String?
+    var azureOpenAiModel: String?
+    fun clearAll()
+}
+        </signature>
+        <path>app/app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt</path>
+      </interface>
+      <interface>
+        <name>AzureOpenAiApi</name>
+        <kind>Retrofit Interface</kind>
+        <signature>
+interface AzureOpenAiApi {
+    @POST("openai/v1/responses")
+    suspend fun analyzeNutrition(@Body request: NutritionAnalysisRequest): NutritionAnalysisResponse
+    // Task 6 addition:
+    @POST("openai/v1/responses")
+    suspend fun testConnection(@Body request: TestConnectionRequest): ResponsesApiResponse
+}
+        </signature>
+        <path>app/app/src/main/java/com/foodie/app/data/remote/api/AzureOpenAiApi.kt</path>
+      </interface>
+    </interfaces>
+
+    <dependencies>
+      <android>
+        <package name="androidx.security.security-crypto" version="1.1.0-alpha06">
+          EncryptedSharedPreferences for API key storage (Task 2)
+        </package>
+        <package name="androidx.compose.material3" version="BOM 2024.10.01">
+          Material Design 3 components for Settings UI
+        </package>
+        <package name="com.squareup.retrofit2" version="2.11.0">
+          HTTP client for test connection API calls
+        </package>
+        <package name="com.jakewharton.timber" version="5.0.1">
+          Logging for migration, encryption errors, test connection results
+        </package>
+      </android>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="ARCH-1">MVVM architecture with ViewModel → Repository → DataSource layers</constraint>
+    <constraint id="ARCH-2">Repository pattern abstracts storage implementation (SharedPreferences, EncryptedSharedPreferences)</constraint>
+    <constraint id="ARCH-3">Hilt dependency injection for all components</constraint>
+    <constraint id="SEC-1">API key MUST use EncryptedSharedPreferences with Android Keystore (hardware-backed AES256-GCM)</constraint>
+    <constraint id="SEC-2">Never log API key value (only log length or masked preview)</constraint>
+    <constraint id="SEC-3">Endpoint and model can use standard SharedPreferences (non-sensitive)</constraint>
+    <constraint id="VAL-1">Endpoint must start with "https://" (reject http://)</constraint>
+    <constraint id="VAL-2">Endpoint must contain ".openai.azure.com"</constraint>
+    <constraint id="VAL-3">API key, endpoint, and model name cannot be empty</constraint>
+    <constraint id="UI-1">API key field shows masked input (dots: •••••) with last 4 characters visible</constraint>
+    <constraint id="UI-2">Material Design 3 components consistent with Story 5.1 patterns</constraint>
+    <constraint id="TEST-1">Minimum 15 unit tests (SecurePreferencesManager: 5, SettingsViewModel: 5, ApiConfiguration: 6)</constraint>
+    <constraint id="TEST-2">Minimum 5 instrumentation tests for Settings UI credential entry flow</constraint>
+    <constraint id="TEST-3">Integration test for BuildConfig migration (first launch, subsequent, failure)</constraint>
+    <constraint id="MIG-1">Migration runs once on first Story 5.2 launch, sets "credentials_migrated" flag</constraint>
+    <constraint id="MIG-2">Migration failure must not block app - allow manual entry in Settings</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Unit tests required for all new business logic (SecurePreferencesManager encryption/decryption, SettingsViewModel API config methods, ApiConfiguration validation).
+      Instrumentation tests required for Settings UI credential entry flows.
+      Integration test required for BuildConfig migration (verify migration, skip on subsequent launch, handle failures).
+      Test naming convention: methodName_whenCondition_thenExpectedResult.
+      Use MockK for mocking dependencies (PreferencesRepository, Retrofit API).
+      Use Truth library for readable assertions.
+      Use UnconfinedTestDispatcher for deterministic coroutine testing.
+      All tests must pass before merging (./gradlew test and ./gradlew connectedAndroidTest).
+    </standards>
+
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/data/local/preferences/</location>
+      <location>app/app/src/test/java/com/foodie/app/ui/screens/settings/</location>
+      <location>app/app/src/test/java/com/foodie/app/domain/model/</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/ui/screens/settings/</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/</location>
+    </locations>
+
+    <ideas>
+      <idea ac="AC1,AC7">
+        Unit test: SecurePreferencesManager saves API key encrypted and retrieves decrypted
+        Unit test: SecurePreferencesManager clears API key completely
+        Unit test: SecurePreferencesManager handles encryption failures gracefully
+      </idea>
+      <idea ac="AC3,AC10">
+        Unit test: SettingsViewModel testConnection() with valid credentials returns success
+        Unit test: SettingsViewModel testConnection() with invalid API key returns error
+        Unit test: SettingsViewModel testConnection() with unreachable endpoint returns network error
+      </idea>
+      <idea ac="AC10">
+        Unit test: ApiConfiguration.validate() rejects empty API key
+        Unit test: ApiConfiguration.validate() rejects non-HTTPS endpoint
+        Unit test: ApiConfiguration.validate() rejects wrong domain format
+        Unit test: ApiConfiguration.validate() accepts valid configuration
+      </idea>
+      <idea ac="AC5,AC6">
+        Instrumentation test: Enter API key, verify masked display with last 4 chars visible
+        Instrumentation test: Enter endpoint, verify value persists after navigation
+        Instrumentation test: Test connection displays success toast on valid credentials
+      </idea>
+      <idea ac="AC8">
+        Integration test: First launch migrates BuildConfig values to EncryptedSharedPreferences
+        Integration test: Second launch skips migration (credentials_migrated flag set)
+        Integration test: Migration failure allows manual entry in Settings
+      </idea>
+    </ideas>
+  </tests>
+</story-context>
