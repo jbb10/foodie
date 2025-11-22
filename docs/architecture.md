@@ -2325,6 +2325,174 @@ Epic 5 Story 5-2 will migrate to **EncryptedSharedPreferences** for production-g
 
 ---
 
+## Settings Infrastructure (Epic 5.1)
+
+### Overview
+
+The Settings infrastructure provides user-configurable preferences with reactive state management and persistence. Built on SharedPreferences with a repository abstraction pattern, it enables future migration to EncryptedSharedPreferences for sensitive data (API keys in Story 5.2).
+
+### Architecture Pattern
+
+**MVVM with Repository Abstraction:**
+```
+SettingsScreen (Composable)
+    ↓ observes StateFlow
+SettingsViewModel (reactive state)
+    ↓ delegates to
+PreferencesRepository (abstraction)
+    ↓ implements
+PreferencesRepositoryImpl
+    ↓ wraps
+SharedPreferences (Android framework)
+```
+
+**Key Components:**
+
+1. **SettingsScreen** (`ui/screens/settings/SettingsScreen.kt`):
+   - Jetpack Compose UI with LazyColumn layout
+   - Organized preference categories: API Configuration, Appearance, About
+   - Material Design 3 components: ListItem, Divider, category headers
+   - Integrated with NavGraph via Settings route
+
+2. **SettingsViewModel** (`ui/screens/settings/SettingsViewModel.kt`):
+   - Manages settings state via `StateFlow<SettingsState>`
+   - Observes preferences reactively through PreferencesRepository
+   - Provides methods: `saveString()`, `saveBoolean()`, `clearError()`
+   - Hilt `@HiltViewModel` for dependency injection
+
+3. **SettingsState** (`ui/screens/settings/SettingsState.kt`):
+   - Immutable data class for reactive composition
+   - Fields: `isLoading`, `error`, `apiEndpoint`, `modelName`, `themeMode`
+   - Placeholder fields for future preference features
+
+4. **PreferencesRepository** (`data/repository/PreferencesRepository.kt`):
+   - Interface defining preference CRUD operations
+   - Methods: `getString()`, `setString()`, `getBoolean()`, `setBoolean()`, `clearAll()`
+   - Reactive observation via `Flow<Map<String, Any?>>`, `Flow<String?>`, `Flow<Boolean?>`
+   - Repository pattern enables testability and implementation swapping
+
+5. **PreferencesRepositoryImpl** (`data/repository/PreferencesRepositoryImpl.kt`):
+   - Implementation using standard `SharedPreferences`
+   - Reactive Flow integration via `callbackFlow` and `OnSharedPreferenceChangeListener`
+   - Singleton lifecycle via Hilt `@Singleton`
+   - Timber logging (non-sensitive data only)
+
+### Dependency Injection
+
+**AppModule Configuration** (`di/AppModule.kt`):
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class AppModule {
+    
+    @Binds
+    @Singleton
+    abstract fun bindPreferencesRepository(impl: PreferencesRepositoryImpl): PreferencesRepository
+    
+    companion object {
+        @Provides
+        @Singleton
+        fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
+            return context.getSharedPreferences("foodie_prefs", Context.MODE_PRIVATE)
+        }
+    }
+}
+```
+
+### Preference Key Naming Convention
+
+**Standard Pattern:**
+- Prefix all keys with `pref_`
+- Use `snake_case` naming
+- Group by category:
+  - API keys: `pref_azure_endpoint`, `pref_azure_model`
+  - Appearance: `pref_theme_mode`
+  - Onboarding: `pref_onboarding_completed`
+
+**Examples:**
+```kotlin
+// API Configuration category
+const val PREF_AZURE_ENDPOINT = "pref_azure_endpoint"
+const val PREF_AZURE_MODEL = "pref_azure_model"
+const val PREF_AZURE_API_KEY = "pref_azure_api_key" // Story 5.2: EncryptedSharedPreferences
+
+// Appearance category
+const val PREF_THEME_MODE = "pref_theme_mode" // values: "system", "light", "dark"
+```
+
+### Reactive State Flow
+
+**callbackFlow Implementation:**
+```kotlin
+override fun observeString(key: String): Flow<String?> = callbackFlow {
+    // Emit current value immediately
+    trySend(sharedPreferences.getString(key, null))
+    
+    // Listen for changes to this specific key
+    val listener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, changedKey ->
+        if (changedKey == key) {
+            trySend(prefs.getString(key, null))
+        }
+    }
+    sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+    
+    // Cleanup when Flow is cancelled
+    awaitClose {
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+    }
+}
+```
+
+**Benefits:**
+- Compose UI automatically recomposes when preferences change
+- External changes (from background processes) propagate to UI
+- Type-safe observation with separate flows for String, Boolean types
+- Proper cleanup via `awaitClose` prevents memory leaks
+
+### Extension Points
+
+**Future Story Integration:**
+
+1. **Story 5.2: API Key Storage**
+   - Swap `SharedPreferences` for `EncryptedSharedPreferences`
+   - Use Android Keystore with AES256_GCM encryption
+   - No ViewModel changes required (repository abstraction)
+
+2. **Story 5.3: Model Selection**
+   - Add `ListPreference` widget to API Configuration category
+   - Bind to `pref_azure_model` key
+   - ViewModel observes model changes reactively
+
+3. **Story 5.4: Dark Mode**
+   - Add theme toggle to Appearance category
+   - Integrate with `AppCompatDelegate.setDefaultNightMode()`
+   - Apply theme on ViewModel initialization
+
+4. **Story 5.5: Accessibility**
+   - Add accessibility toggles (TalkBack hints, touch target size)
+   - Bind to accessibility preference keys
+
+### Security Considerations
+
+**Story 5.1 (Current):**
+- Standard SharedPreferences for non-sensitive data
+- MODE_PRIVATE file permissions (app-only access)
+- Never log preference values in Timber
+
+**Story 5.2 (Future):**
+- EncryptedSharedPreferences for API key storage
+- Android Keystore hardware-backed encryption
+- Masked UI display (show only last 4 characters)
+- Separate secure/non-secure preference repositories
+
+**Testing:**
+- 17 unit tests (SettingsViewModel: 6, PreferencesRepository: 11)
+- 8 instrumentation tests (navigation, UI rendering, category display)
+- MockK for mocking SharedPreferences in tests
+- Flow testing using `.first()` and `.toList()`
+
+---
+
 ## Material 3 Compose Implementation Gaps
 
 ### Overview
@@ -2416,5 +2584,6 @@ _Generated by BMAD Decision Architecture Workflow v1.3.2_
 _Date: 2025-11-08_  
 _Updated: 2025-11-09 (Added Official Documentation References)_  
 _Updated: 2025-11-12 (Added Secret Management Pattern, Material 3 Compose Gaps - Epic 2 Retrospective AI-4, AI-6)_  
+_Updated: 2025-11-22 (Added Settings Infrastructure - Epic 5.1)_  
 _For: BMad_  
 _Architect: Winston_

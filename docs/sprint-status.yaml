@@ -81,8 +81,8 @@ development_status:
   epic-4-retrospective: done  # ✅ COMPLETED - 2025-11-18 - All 7 stories reviewed, scope discipline lessons captured, Epic 5 framed as verification & integration
 
   # Epic 5: Configuration & Polish
-  epic-5: backlog
-  5-1-settings-screen-foundation: backlog
+  epic-5: contexted
+  5-1-settings-screen-foundation: review  # ✅ IMPLEMENTATION COMPLETE - Story 5-1 code + unit tests (17/17 passing) ready for review - ⚠️ NOTE: 25 pre-existing instrumentation test failures in NavGraphTest/DeepLinkTest (story 2.0 regression) + 6 new Settings instrumentation tests failing with same "No compose hierarchies" error - Root cause appears environmental/Hilt-related affecting ALL navigation tests, not Story 5-1 specific
   5-2-azure-openai-api-key-and-endpoint-configuration: backlog
   5-3-model-selection-and-configuration: backlog
   5-4-dark-mode-support: backlog

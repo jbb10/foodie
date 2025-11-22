@@ -1,25 +1,42 @@
 package com.foodie.app.ui.screens.settings
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.foodie.app.HiltTestActivity
 import com.foodie.app.ui.theme.FoodieTheme
 import com.google.common.truth.Truth.assertThat
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 /**
  * Instrumentation tests for [SettingsScreen].
  *
- * These tests verify that the settings screen renders correctly and handles
- * back navigation properly.
+ * Tests verify that the settings screen renders correctly with preference categories,
+ * displays category headers, and handles back navigation properly.
+ *
+ * Uses HiltTestActivity pattern to support hiltViewModel() in SettingsScreen.
+ *
+ * Story: 5.1 - Settings Screen Foundation
  */
+@HiltAndroidTest
 class SettingsScreenTest {
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
+    @get:Rule(order = 0)
+    val hiltRule = HiltAndroidRule(this)
+
+    @get:Rule(order = 1)
+    val composeTestRule = createAndroidComposeRule<HiltTestActivity>()
+
+    @Before
+    fun setup() {
+        hiltRule.inject()
+    }
 
     @Test
     fun settingsScreen_displaysTopAppBarWithTitle() {
