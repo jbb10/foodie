@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<storyContext>
+  <metadata>
+    <storyId>5.4</storyId>
+    <epicId>5</epicId>
+    <storyKey>5-4-dark-mode-support</storyKey>
+    <title>Dark Mode Support</title>
+    <status>ready-for-dev</status>
+    <generatedDate>2025-11-22</generatedDate>
+    <agent>BMad (Scrum Master Agent)</agent>
+  </metadata>
+
+  <userStory>
+    <asA>user</asA>
+    <iWant>the app to support dark mode</iWant>
+    <soThat>I can use it comfortably in low-light conditions (late-night meal logging)</soThat>
+  </userStory>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1">
+      <description>All screens use dark theme colors when dark mode is enabled (system-wide or in-app)</description>
+      <verification>Visual validation - all screens (MealListScreen, MealDetailScreen, SettingsScreen) render with dark backgrounds and light text in dark mode</verification>
+    </criterion>
+    <criterion id="AC-2">
+      <description>Theme follows Material Design 3 dark theme guidelines</description>
+      <verification>Dark color palette uses Material Design 3 recommended colors, proper surface elevation, contrast ratios</verification>
+    </criterion>
+    <criterion id="AC-3">
+      <description>Text remains legible with proper contrast ratios</description>
+      <verification>Accessibility Scanner validates WCAG AA 4.5:1 contrast ratio for all text in both light and dark modes</verification>
+    </criterion>
+    <criterion id="AC-4">
+      <description>Camera preview maintains natural colors (not inverted)</description>
+      <verification>Camera preview shows natural colors regardless of app theme - system camera intent handles this automatically</verification>
+    </criterion>
+    <criterion id="AC-5">
+      <description>Notifications use dark styling when appropriate</description>
+      <verification>Foreground "Analyzing meal..." notification inherits system dark mode styling automatically via NotificationCompat Material design</verification>
+    </criterion>
+    <criterion id="AC-6">
+      <description>App respects system dark mode setting</description>
+      <verification>App follows device Settings → Display → Dark theme toggle when theme preference is "System Default"</verification>
+    </criterion>
+    <criterion id="AC-7">
+      <description>In-app theme selector: "System Default", "Light", "Dark"</description>
+      <verification>Settings screen has theme preference with 3 options, selection overrides system setting</verification>
+    </criterion>
+    <criterion id="AC-8">
+      <description>Theme preference persists across app restarts</description>
+      <verification>Selected theme (Light/Dark/System Default) persists after app restart, stored in SharedPreferences</verification>
+    </criterion>
+  </acceptanceCriteria>
+
+  <tasks>
+    <task id="Task-1" critical="true">
+      <description>Documentation Research and Design System Validation - Review Material Design 3 dark theme guidelines, existing theme infrastructure (Color.kt, Theme.kt), and Android dark mode patterns</description>
+      <deliverable>Research checkpoint documented in Dev Notes with Material 3 approach confirmed, existing infrastructure reviewed, runtime switching strategy determined</deliverable>
+      <dependencies>None - first task before implementation</dependencies>
+    </task>
+    <task id="Task-2">
+      <description>Define Dark Color Palette - Create Material Design 3 dark color palette in ui/theme/Color.kt with WCAG AA contrast ratios</description>
+      <acceptanceCriteria>AC-2, AC-3</acceptanceCriteria>
+      <dependencies>Task-1</dependencies>
+    </task>
+    <task id="Task-3">
+      <description>Update Theme.kt for Dark Mode Support - Update FoodieTheme composable to support dark mode with DarkColorScheme and LightColorScheme</description>
+      <acceptanceCriteria>AC-1, AC-2, AC-6</acceptanceCriteria>
+      <dependencies>Task-2</dependencies>
+    </task>
+    <task id="Task-4">
+      <description>Create ThemePreference Data Model - Create ThemeMode enum (SYSTEM_DEFAULT, LIGHT, DARK) with AppCompatDelegate mode values</description>
+      <acceptanceCriteria>AC-7, AC-8</acceptanceCriteria>
+      <dependencies>None - domain model independent of UI</dependencies>
+    </task>
+    <task id="Task-5">
+      <description>Implement Theme Preference in Settings - Add theme ListPreference to SettingsScreen with SettingsViewModel integration</description>
+      <acceptanceCriteria>AC-7, AC-8</acceptanceCriteria>
+      <dependencies>Task-4</dependencies>
+    </task>
+    <task id="Task-6">
+      <description>Implement Runtime Theme Switching - Update FoodieApplication.onCreate() to apply saved theme via AppCompatDelegate.setDefaultNightMode()</description>
+      <acceptanceCriteria>AC-6, AC-7, AC-8</acceptanceCriteria>
+      <dependencies>Task-5</dependencies>
+    </task>
+    <task id="Task-7">
+      <description>Update Notification Styling for Dark Mode - Review AnalyzeMealWorker notification implementation, ensure NotificationCompat uses Material styling that inherits system theme</description>
+      <acceptanceCriteria>AC-5</acceptanceCriteria>
+      <dependencies>None - validation task</dependencies>
+    </task>
+    <task id="Task-8">
+      <description>Validate Camera Preview Dark Mode Handling - Verify system camera intent maintains natural colors automatically (no code changes needed)</description>
+      <acceptanceCriteria>AC-4</acceptanceCriteria>
+      <dependencies>None - validation task</dependencies>
+    </task>
+    <task id="Task-9">
+      <description>Update All Screens for Dark Mode Compatibility - Audit all Composable screens (MealListScreen, MealDetailScreen, SettingsScreen) for hardcoded colors, replace with MaterialTheme.colorScheme references</description>
+      <acceptanceCriteria>AC-1, AC-3</acceptanceCriteria>
+      <dependencies>Task-3</dependencies>
+    </task>
+    <task id="Task-10">
+      <description>Unit Tests for Theme Management - Write tests for ThemeMode enum, theme preference persistence, SettingsViewModel theme methods (minimum 4 tests)</description>
+      <acceptanceCriteria>AC-6, AC-7, AC-8</acceptanceCriteria>
+      <dependencies>Task-4, Task-5</dependencies>
+    </task>
+    <task id="Task-11">
+      <description>Manual Testing and Visual Validation - Create manual test guide with theme switching scenarios, screen-by-screen visual validation in both modes, Accessibility Scanner verification</description>
+      <acceptanceCriteria>All ACs</acceptanceCriteria>
+      <dependencies>Tasks 1-9 complete</dependencies>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown - Story 5.4 Requirements</title>
+        <section>Epic 5: Configuration and Polish - Story 5.4</section>
+        <snippet>Define dark theme in res/values-night/themes.xml. Use Material Design color palette for dark mode. Test all screens in both themes. Use AppCompatDelegate.setDefaultNightMode() for theme switching. Add theme preference to settings. Ensure camera maintains proper exposure in dark mode.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification - Dark Theme Implementation</title>
+        <section>Story 5.4 - Theme Configuration Architecture</section>
+        <snippet>Theme Configuration (ui/theme/) - Extends Material Design 3 theme with dark color palette (values-night/themes.xml). AppCompatDelegate integration for runtime theme switching. Theme preference stored in standard SharedPreferences. All Composable Screens enhanced with dynamic color support for system theme following.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification - ThemeMode Data Model</title>
+        <section>Data Models and Contracts - ThemeMode</section>
+        <snippet>enum class ThemeMode(val value: Int) { SYSTEM_DEFAULT(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM), LIGHT(AppCompatDelegate.MODE_NIGHT_NO), DARK(AppCompatDelegate.MODE_NIGHT_YES); companion object { fun fromValue(value: Int): ThemeMode = values().find { it.value == value } ?: SYSTEM_DEFAULT } }</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification - Theme Switching Flow</title>
+        <section>Workflows and Sequencing - Theme Switching Flow</section>
+        <snippet>User selects theme preference in Settings → SettingsViewModel updates SharedPreferences → AppCompatDelegate.setDefaultNightMode(mode) → Activity recreates with new theme → All Compose screens reactively apply theme colors</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document - Material Design 3</title>
+        <section>Technology Stack - Jetpack Compose</section>
+        <snippet>Jetpack Compose (UI Framework) - Version: Compose BOM 2024.10.01. Purpose: Declarative UI framework for all screens. Key Libraries: androidx.compose.material3 - Material Design 3 components</snippet>
+      </artifact>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/theme/Theme.kt</path>
+        <kind>ui-theme</kind>
+        <symbol>FoodieTheme</symbol>
+        <lines>37-56</lines>
+        <reason>Main theme composable already implements dark mode support with DarkColorScheme/LightColorScheme and dynamic color system - need to review and potentially extend color definitions</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/theme/Theme.kt</path>
+        <kind>ui-theme</kind>
+        <symbol>DarkColorScheme</symbol>
+        <lines>14-18</lines>
+        <reason>Existing dark color palette definition using Material 3 darkColorScheme() - currently has placeholder Purple/Pink colors, need to define proper Material 3 dark palette</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/theme/Theme.kt</path>
+        <kind>ui-theme</kind>
+        <symbol>LightColorScheme</symbol>
+        <lines>20-32</lines>
+        <reason>Existing light color palette definition using Material 3 lightColorScheme() - currently has placeholder Purple/Pink colors, need to define proper Material 3 light palette</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/theme/Color.kt</path>
+        <kind>ui-theme</kind>
+        <symbol>Color definitions</symbol>
+        <lines>1-20</lines>
+        <reason>Color palette definitions - currently has Purple/Pink placeholder colors, need to add complete Material 3 dark and light color palettes with proper contrast ratios</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt</path>
+        <kind>composable-screen</kind>
+        <symbol>SettingsScreen</symbol>
+        <lines>76-420</lines>
+        <reason>Settings screen Composable where theme preference UI will be added - currently has API configuration section, need to add theme ListPreference section</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>SettingsViewModel</symbol>
+        <lines>52-250</lines>
+        <reason>Settings ViewModel manages settings state and preference persistence - need to add theme mode state management methods (updateThemeMode, saveThemeMode)</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsState.kt</path>
+        <kind>state-model</kind>
+        <symbol>SettingsState</symbol>
+        <lines>26-42</lines>
+        <reason>Settings state data class - currently has apiKey, endpoint, modelName fields. May need to add themeMode: ThemeMode field if not already present from Story 5.1</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/PreferencesRepositoryImpl.kt</path>
+        <kind>repository</kind>
+        <symbol>PreferencesRepositoryImpl</symbol>
+        <lines>1-300</lines>
+        <reason>Preferences repository implementation for saving/loading settings to SharedPreferences - need to add saveThemeMode() and getThemeMode() methods</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/FoodieApplication.kt</path>
+        <kind>application-class</kind>
+        <symbol>FoodieApplication</symbol>
+        <lines>1-50</lines>
+        <reason>Application class onCreate() where theme must be applied before any UI renders - need to add theme initialization logic with AppCompatDelegate.setDefaultNightMode()</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <kind>worker</kind>
+        <symbol>AnalyzeMealWorker</symbol>
+        <lines>100-200</lines>
+        <reason>Background worker that creates foreground notification - need to verify NotificationCompat uses Material styling that inherits system dark mode automatically</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt</path>
+        <kind>composable-screen</kind>
+        <symbol>MealListScreen</symbol>
+        <lines>1-500</lines>
+        <reason>Main meal list screen - need to audit for hardcoded colors and ensure all colors use MaterialTheme.colorScheme references for dark mode compatibility</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailScreen.kt</path>
+        <kind>composable-screen</kind>
+        <symbol>MealDetailScreen</symbol>
+        <lines>1-400</lines>
+        <reason>Meal detail/edit screen - need to audit for hardcoded colors and ensure all colors use MaterialTheme.colorScheme references for dark mode compatibility</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <android>
+        <package name="androidx.compose.material3" version="BOM 2024.10.01">Material Design 3 components with built-in dark theme support</package>
+        <package name="androidx.appcompat" version="via compose-bom">AppCompatDelegate for runtime theme switching</package>
+        <package name="androidx.compose.foundation" version="BOM 2024.10.01">isSystemInDarkTheme() for system theme detection</package>
+        <package name="androidx.preference" version="1.2.1">PreferenceScreen framework for Settings UI (if used for ListPreference)</package>
+      </android>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>ThemeMode Enum</name>
+      <kind>domain-model</kind>
+      <signature>enum class ThemeMode(val value: Int) { SYSTEM_DEFAULT(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM), LIGHT(AppCompatDelegate.MODE_NIGHT_NO), DARK(AppCompatDelegate.MODE_NIGHT_YES); companion object { fun fromValue(value: Int): ThemeMode } }</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/model/ThemeMode.kt (new file)</path>
+    </interface>
+    <interface>
+      <name>PreferencesRepository.saveThemeMode</name>
+      <kind>repository-method</kind>
+      <signature>suspend fun saveThemeMode(mode: ThemeMode): Result&lt;Unit&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/repository/PreferencesRepository.kt</path>
+    </interface>
+    <interface>
+      <name>PreferencesRepository.getThemeMode</name>
+      <kind>repository-method</kind>
+      <signature>fun getThemeMode(): Flow&lt;ThemeMode&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/repository/PreferencesRepository.kt</path>
+    </interface>
+    <interface>
+      <name>SettingsViewModel.updateThemeMode</name>
+      <kind>viewmodel-method</kind>
+      <signature>fun updateThemeMode(mode: ThemeMode)</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsViewModel.kt</path>
+    </interface>
+    <interface>
+      <name>FoodieTheme Composable</name>
+      <kind>composable-function</kind>
+      <signature>@Composable fun FoodieTheme(darkTheme: Boolean = isSystemInDarkTheme(), dynamicColor: Boolean = true, content: @Composable () -> Unit)</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/theme/Theme.kt</path>
+    </interface>
+    <interface>
+      <name>MaterialTheme.colorScheme</name>
+      <kind>compose-theme-api</kind>
+      <signature>ColorScheme with properties: primary, onPrimary, background, onBackground, surface, onSurface, error, onError, etc.</signature>
+      <path>androidx.compose.material3</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <architecture>
+      <constraint>Material Design 3 Guidelines: Dark theme must follow Material Design 3 dark theme color palette, surface elevation, and contrast requirements</constraint>
+      <constraint>MVVM Pattern: Theme preference managed via SettingsViewModel → PreferencesRepository → SharedPreferences, reactive state updates via StateFlow</constraint>
+      <constraint>Compose Reactive UI: All screens use MaterialTheme.colorScheme references (not hardcoded colors) to reactively update when theme changes</constraint>
+      <constraint>Hilt Dependency Injection: PreferencesRepository injected into SettingsViewModel and FoodieApplication for theme management</constraint>
+    </architecture>
+    <testing>
+      <constraint>Unit Tests Required: ThemeMode enum, theme preference persistence in SharedPreferences, SettingsViewModel theme methods (minimum 4 tests)</constraint>
+      <constraint>Manual Testing Required: Visual validation of all screens in both light and dark modes, theme switching smoothness, Accessibility Scanner verification</constraint>
+      <constraint>Instrumentation Tests: Settings theme selection UI tests conditional on resolution of project-wide environmental issue (Story 5.1+)</constraint>
+      <constraint>Test Naming Convention: methodName_whenCondition_thenExpectedResult (e.g., saveThemeMode_persistsToSharedPreferences)</constraint>
+      <constraint>Assertion Library: Truth library for readable assertions (assertThat(x).isEqualTo(y))</constraint>
+      <constraint>Mocking: Use MockK for PreferencesRepository, SharedPreferences mocking in unit tests</constraint>
+    </testing>
+    <implementation>
+      <constraint>Existing Theme Foundation: Color.kt and Theme.kt already exist with Material 3 setup - extend rather than recreate</constraint>
+      <constraint>Camera Preview: System camera intent (Story 2.3) maintains natural colors automatically - no code changes needed for AC-4</constraint>
+      <constraint>Notification Styling: NotificationCompat with Material styling inherits system dark mode automatically - verify implementation, minimal changes expected</constraint>
+      <constraint>Theme Persistence: Store in standard SharedPreferences (non-sensitive data) with key "pref_theme_mode"</constraint>
+      <constraint>Runtime Theme Switching: Use AppCompatDelegate.setDefaultNightMode() in FoodieApplication.onCreate() before any UI renders</constraint>
+      <constraint>WCAG AA Compliance: All text must meet 4.5:1 contrast ratio in both light and dark modes (verified with Accessibility Scanner)</constraint>
+    </implementation>
+  </constraints>
+
+  <tests>
+    <standards>
+      <framework>JUnit 4.13.2 for unit testing</framework>
+      <framework>Truth library for assertions (com.google.truth:truth:1.4.4)</framework>
+      <framework>MockK for mocking dependencies (io.mockk:mockk:1.13.13)</framework>
+      <framework>Kotlin Coroutines Test for suspend function testing (kotlinx-coroutines-test:1.9.0)</framework>
+      <convention>Test naming: methodName_whenCondition_thenExpectedResult (e.g., fromValue_withLightModeValue_returnsLightEnum)</convention>
+      <convention>Test organization: Arrange-Act-Assert pattern</convention>
+      <convention>Test location: app/src/test/java/com/foodie/app/ mirroring production code structure</convention>
+      <guideline>Learnings from Story 5.3: Manual testing effectively compensates for instrumentation test environmental issues. Comprehensive manual test guide with 9+ scenarios + edge cases provides full validation coverage.</guideline>
+    </standards>
+
+    <locations>
+      <location>app/src/test/java/com/foodie/app/domain/model/ThemeModeTest.kt (new file - ThemeMode enum tests)</location>
+      <location>app/src/test/java/com/foodie/app/ui/screens/settings/SettingsViewModelThemeTest.kt (new file - theme methods unit tests)</location>
+      <location>app/src/test/java/com/foodie/app/data/repository/PreferencesRepositoryThemeTest.kt (new file - theme persistence tests)</location>
+      <location>docs/testing/manual-test-guide-story-5-4.md (new file - comprehensive manual testing scenarios)</location>
+    </locations>
+
+    <ideas>
+      <idea acceptanceCriteria="AC-6, AC-7, AC-8">
+        <testName>ThemeMode_fromValue_returnsCorrectEnum</testName>
+        <description>Verify ThemeMode.fromValue() correctly maps AppCompatDelegate mode constants to enum values</description>
+        <approach>Test all 3 modes (SYSTEM_DEFAULT, LIGHT, DARK) and invalid value handling</approach>
+      </idea>
+      <idea acceptanceCriteria="AC-8">
+        <testName>saveThemeMode_persistsToSharedPreferences</testName>
+        <description>Verify theme preference is saved to SharedPreferences with correct key and value</description>
+        <approach>Mock SharedPreferences, save theme mode, verify putInt called with "pref_theme_mode" key and correct enum value</approach>
+      </idea>
+      <idea acceptanceCriteria="AC-7, AC-8">
+        <testName>getThemeMode_returnsSystemDefaultByDefault</testName>
+        <description>Verify default theme mode is SYSTEM_DEFAULT for new installations</description>
+        <approach>Mock SharedPreferences returning default value, verify Flow emits SYSTEM_DEFAULT</approach>
+      </idea>
+      <idea acceptanceCriteria="AC-7">
+        <testName>updateThemeMode_emitsNewValue</testName>
+        <description>Verify SettingsViewModel.updateThemeMode() updates state and persists to repository</description>
+        <approach>Mock PreferencesRepository, call updateThemeMode(DARK), verify state updated and repository.saveThemeMode() called</approach>
+      </idea>
+      <idea acceptanceCriteria="AC-1, AC-3">
+        <testName>Manual: All screens render correctly in dark mode</testName>
+        <description>Visual validation of MealListScreen, MealDetailScreen, SettingsScreen in dark mode</description>
+        <approach>Enable dark mode, navigate to each screen, verify dark backgrounds, light text, proper contrast, no hardcoded colors breaking theme</approach>
+      </idea>
+      <idea acceptanceCriteria="AC-2, AC-3">
+        <testName>Manual: Accessibility Scanner contrast validation</testName>
+        <description>Run Accessibility Scanner on all screens in both light and dark modes to verify WCAG AA 4.5:1 contrast ratios</description>
+        <approach>Use Android Accessibility Scanner tool, scan each screen in both modes, verify zero contrast warnings</approach>
+      </idea>
+      <idea acceptanceCriteria="AC-4">
+        <testName>Manual: Camera preview natural colors in dark mode</testName>
+        <description>Verify camera preview maintains natural colors regardless of app theme</description>
+        <approach>Enable dark mode, launch camera via widget, verify preview shows natural colors (not dark-tinted), capture photo and verify preview image natural</approach>
+      </idea>
+      <idea acceptanceCriteria="AC-5">
+        <testName>Manual: Foreground notification dark styling</testName>
+        <description>Verify "Analyzing meal..." notification uses appropriate dark styling in dark mode</description>
+        <approach>Enable dark mode, capture meal photo, verify notification background and text colors follow system dark theme</approach>
+      </idea>
+      <idea acceptanceCriteria="AC-6">
+        <testName>Manual: System theme toggle updates app</testName>
+        <description>Verify app follows device system dark mode toggle when theme preference is System Default</description>
+        <approach>Set app theme to System Default, toggle device Settings → Display → Dark theme, verify app switches immediately</approach>
+      </idea>
+      <idea acceptanceCriteria="AC-7, AC-8">
+        <testName>Manual: Theme preference persistence across restart</testName>
+        <description>Verify selected theme (Light/Dark/System Default) persists after app restart</description>
+        <approach>Select Dark mode, restart app, verify app opens in dark mode, repeat for Light and System Default</approach>
+      </idea>
+    </ideas>
+  </tests>
+
+  <priorContext>
+    <completedStory>
+      <storyKey>5-3-model-selection-and-configuration</storyKey>
+      <status>done</status>
+      <relevantLearnings>
+        <learning>Settings UI Pattern: EditTextPreference + helper Text composable pattern worked well for model selection - maintain consistency for theme ListPreference</learning>
+        <learning>Preference Persistence: SharedPreferences via SecurePreferences wrapper (non-sensitive theme preference uses standard SharedPreferences, not encrypted)</learning>
+        <learning>SettingsViewModel State Management: StateFlow pattern for reactive UI updates - apply same approach for theme state</learning>
+        <learning>Minimal Implementation Approach: Story 5.3 chose "Direct Input with Guidance" (Approach 2) over complex dropdown - for theme, use simple ListPreference over custom composable</learning>
+        <learning>Testing Strategy: 8 unit tests created (all passing), instrumentation tests skipped due to environmental issue - compensate with comprehensive manual testing (9 scenarios + 4 edge cases proved effective)</learning>
+        <learning>Evidence-Based DoD: file:line references for all ACs ensures verifiable completeness - maintain this standard for Story 5.4</learning>
+      </relevantLearnings>
+      <filesModified>
+        <file>app/app/src/main/res/values/strings.xml - Added model description string resource (pattern reusable for theme preference descriptions)</file>
+        <file>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt - Added model description Text composable (lines 189-205)</file>
+        <file>app/app/src/main/java/com/foodie/app/data/repository/PreferencesRepositoryImpl.kt - Enhanced error handling (pattern reusable for theme methods)</file>
+      </filesModified>
+      <pendingItems>None affecting Story 5.4 - Story 5.3 production-ready and approved</pendingItems>
+      <reviewFindings>Zero HIGH/MEDIUM/LOW severity issues - production-ready quality. Minimal, focused implementation preferred over complex solutions.</reviewFindings>
+    </completedStory>
+    <projectContext>
+      <note>Material Design 3 theme foundation already exists from Story 1.1 (project setup) - Color.kt and Theme.kt have placeholder colors that need replacing with proper Material 3 palettes</note>
+      <note>Settings screen infrastructure complete from Story 5.1 - add theme preference section to existing SettingsScreen composable</note>
+      <note>Instrumentation test environmental issue affects Stories 5.1+ (project-wide "No compose hierarchies" error) - manual testing is primary validation method</note>
+      <note>Camera uses system camera intent from Story 2.3 - maintains natural colors automatically regardless of app theme (no code changes needed for AC-4)</note>
+      <note>Foreground notification implemented in Story 2.8 - uses NotificationCompat which inherits system dark mode automatically (verify implementation, minimal changes expected)</note>
+    </projectContext>
+  </priorContext>
+
+  <nextSteps>
+    <step>Review this context file to understand story scope, existing infrastructure, and implementation constraints</step>
+    <step>Execute Task 1: Documentation research - Review Material Design 3 dark theme guidelines and existing Color.kt/Theme.kt implementation</step>
+    <step>Implement Tasks 2-9: Dark color palette, theme UI, runtime switching, screen audits for hardcoded colors</step>
+    <step>Write unit tests (Task 10): ThemeMode enum, theme preference persistence, SettingsViewModel methods (minimum 4 tests)</step>
+    <step>Create manual test guide (Task 11): Theme switching scenarios, screen-by-screen visual validation, Accessibility Scanner verification</step>
+    <step>Execute manual testing: Validate all ACs on physical device in both light and dark modes</step>
+    <step>Update story file: Mark tasks complete, document findings in Dev Notes, add file list to Dev Agent Record</step>
+    <step>Update sprint-status.yaml: Change story status from "ready-for-dev" to "review" after implementation complete</step>
+  </nextSteps>
+</storyContext>

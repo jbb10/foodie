@@ -8,6 +8,7 @@ import com.foodie.app.data.remote.dto.ContentItem
 import com.foodie.app.data.remote.dto.InputMessage
 import com.foodie.app.domain.model.ApiConfiguration
 import com.foodie.app.domain.model.TestConnectionResult
+import com.foodie.app.domain.model.ThemeMode
 import com.foodie.app.domain.model.ValidationResult
 import com.google.gson.Gson
 import kotlinx.coroutines.channels.awaitClose
@@ -296,5 +297,64 @@ class PreferencesRepositoryImpl @Inject constructor(
             Timber.e(e, "API connection test failed: Unexpected error")
             Result.success(TestConnectionResult.Failure("Connection test failed: ${e.message}"))
         }
+    }
+
+    /**
+     * Saves theme mode preference to SharedPreferences.
+     *
+     * Stores theme preference as string value ("system", "light", or "dark").
+     * Triggers Flow emission to observers via OnSharedPreferenceChangeListener.
+     *
+     * @param mode ThemeMode to save
+     * @return Result.success(Unit) always (SharedPreferences.apply() cannot fail)
+     *
+     * Story 5.4: Dark Mode Support (AC-8)
+     */
+    override suspend fun saveThemeMode(mode: ThemeMode): Result<Unit> {
+        return try {
+            sharedPreferences.edit()
+                .putString(KEY_THEME_MODE, mode.value)
+                .apply()
+            Timber.d("Theme mode saved: ${mode.value}")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save theme mode")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Retrieves current theme mode preference.
+     *
+     * Returns Flow for reactive observation by MainActivity and SettingsViewModel.
+     * Defaults to SYSTEM_DEFAULT for new installations.
+     *
+     * @return Flow emitting ThemeMode (defaults to SYSTEM_DEFAULT if not set)
+     *
+     * Story 5.4: Dark Mode Support (AC-7, AC-8)
+     */
+    override fun getThemeMode(): Flow<ThemeMode> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == KEY_THEME_MODE) {
+                val value = sharedPreferences.getString(KEY_THEME_MODE, ThemeMode.DEFAULT.value)
+                    ?: ThemeMode.DEFAULT.value
+                trySend(ThemeMode.fromValue(value))
+            }
+        }
+
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+
+        // Emit initial value
+        val initialValue = sharedPreferences.getString(KEY_THEME_MODE, ThemeMode.DEFAULT.value)
+            ?: ThemeMode.DEFAULT.value
+        trySend(ThemeMode.fromValue(initialValue))
+
+        awaitClose {
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
+    companion object {
+        private const val KEY_THEME_MODE = "pref_theme_mode"
     }
 }

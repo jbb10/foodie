@@ -66,4 +66,10 @@
     <!-- Settings Screen -->
     <string name="settings_api_help_text">Get your Azure OpenAI credentials at portal.azure.com → Azure OpenAI Service → Keys and Endpoint</string>
     <string name="settings_model_description">Default: gpt-4.1 (Advanced reasoning and vision capabilities). Enter your custom deployment name if needed.</string>
+    <string name="settings_theme_description">Choose between light mode, dark mode, or follow your device system theme preference.</string>
+
+    <!-- Theme Options -->
+    <string name="theme_system_default">System Default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
 </resources>

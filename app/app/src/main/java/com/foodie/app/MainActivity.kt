@@ -5,13 +5,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
+import com.foodie.app.data.repository.PreferencesRepository
+import com.foodie.app.domain.model.ThemeMode
 import com.foodie.app.ui.components.HealthConnectUnavailableDialog
 import com.foodie.app.ui.navigation.NavGraph
 import com.foodie.app.ui.theme.FoodieTheme
@@ -31,12 +35,16 @@ import javax.inject.Inject
  * - Hilt Integration: @AndroidEntryPoint enables dependency injection
  * - Edge-to-Edge: System bars handled by individual screens via Scaffold
  * - Health Connect: Checks availability and requests permissions on launch
+ * - Theme Management: Observes theme preference and applies via FoodieTheme (Story 5.4)
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     
     @Inject
     lateinit var healthConnectManager: HealthConnectManager
+
+    @Inject
+    lateinit var preferencesRepository: PreferencesRepository
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,7 +97,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
             
-            FoodieTheme {
+            // Observe theme preference and determine dark mode (Story 5.4)
+            val themeMode by preferencesRepository.getThemeMode().collectAsState(initial = ThemeMode.SYSTEM_DEFAULT)
+            val systemInDarkTheme = isSystemInDarkTheme()
+            val darkTheme = when (themeMode) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                ThemeMode.SYSTEM_DEFAULT -> systemInDarkTheme
+            }
+            
+            FoodieTheme(darkTheme = darkTheme) {
                 // Check if we should navigate to a specific screen (e.g., from notification)
                 val navigateToRoute = intent?.getStringExtra("navigate_to")
                 

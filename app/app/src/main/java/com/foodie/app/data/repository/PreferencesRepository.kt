@@ -2,6 +2,7 @@ package com.foodie.app.data.repository
 
 import com.foodie.app.domain.model.ApiConfiguration
 import com.foodie.app.domain.model.TestConnectionResult
+import com.foodie.app.domain.model.ThemeMode
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -144,4 +145,29 @@ interface PreferencesRepository {
      * @return Result containing TestConnectionResult (Success or Failure with error message)
      */
     suspend fun testConnection(apiKey: String, endpoint: String, modelName: String): Result<TestConnectionResult>
+
+    /**
+     * Saves theme mode preference.
+     *
+     * Stores theme preference in standard SharedPreferences (non-sensitive data).
+     * Used by Settings screen when user changes theme preference.
+     *
+     * @param mode Theme mode to save (SYSTEM_DEFAULT, LIGHT, or DARK)
+     * @return Result.success(Unit) if saved, Result.failure if error
+     *
+     * Story 5.4: Dark Mode Support (AC-8)
+     */
+    suspend fun saveThemeMode(mode: ThemeMode): Result<Unit>
+
+    /**
+     * Retrieves current theme mode preference.
+     *
+     * Returns Flow for reactive observation by MainActivity and SettingsViewModel.
+     * Defaults to SYSTEM_DEFAULT for new installations.
+     *
+     * @return Flow emitting current ThemeMode (never null, defaults to SYSTEM_DEFAULT)
+     *
+     * Story 5.4: Dark Mode Support (AC-7, AC-8)
+     */
+    fun getThemeMode(): Flow<ThemeMode>
 }

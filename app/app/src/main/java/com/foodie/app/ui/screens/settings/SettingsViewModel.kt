@@ -6,6 +6,7 @@ import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.repository.PreferencesRepository
 import com.foodie.app.domain.model.ApiConfiguration
 import com.foodie.app.domain.model.TestConnectionResult
+import com.foodie.app.domain.model.ThemeMode
 import com.foodie.app.domain.model.ValidationResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -271,5 +272,34 @@ class SettingsViewModel @Inject constructor(
      */
     fun clearSaveSuccess() {
         _state.update { it.copy(saveSuccessMessage = null) }
+    }
+
+    /**
+     * Updates theme mode preference.
+     *
+     * Saves theme preference to SharedPreferences and updates state.
+     * MainActivity observes theme changes via PreferencesRepository.getThemeMode() Flow.
+     *
+     * @param mode ThemeMode to apply (SYSTEM_DEFAULT, LIGHT, or DARK)
+     *
+     * Story 5.4: Dark Mode Support (AC-7, AC-8)
+     */
+    fun updateThemeMode(mode: ThemeMode) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+
+            preferencesRepository.saveThemeMode(mode)
+                .onSuccess {
+                    Timber.d("Theme mode updated: ${mode.value}")
+                    _state.update { it.copy(
+                        themeMode = mode.value,
+                        isLoading = false
+                    )}
+                }
+                .onFailure { error ->
+                    Timber.e(error, "Failed to save theme mode")
+                    _state.update { it.copy(error = "Failed to save theme", isLoading = false) }
+                }
+        }
     }
 }

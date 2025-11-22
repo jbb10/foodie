@@ -1,6 +1,8 @@
 package com.foodie.app.ui.screens.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -33,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -251,9 +255,25 @@ fun SettingsScreen(
                 PreferenceCategoryHeader(title = "Appearance")
             }
             item(key = "appearance_theme") {
-                PreferencePlaceholder(
-                    title = "Theme",
-                    summary = "Configure in Story 5.4"
+                ThemePreference(
+                    currentTheme = state.themeMode,
+                    onThemeSelected = { theme ->
+                        val themeMode = when (theme) {
+                            "light" -> com.foodie.app.domain.model.ThemeMode.LIGHT
+                            "dark" -> com.foodie.app.domain.model.ThemeMode.DARK
+                            else -> com.foodie.app.domain.model.ThemeMode.SYSTEM_DEFAULT
+                        }
+                        viewModel.updateThemeMode(themeMode)
+                    },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+            item(key = "appearance_theme_description") {
+                Text(
+                    text = stringResource(R.string.settings_theme_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
             }
             item(key = "appearance_accessibility") {
@@ -416,6 +436,59 @@ private fun EditTextPreference(
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+/**
+ * Theme preference with radio button list for theme selection.
+ *
+ * Displays three options: System Default, Light, Dark.
+ * User selection triggers theme change immediately.
+ *
+ * @param currentTheme Current theme value ("system", "light", or "dark")
+ * @param onThemeSelected Callback when theme is selected
+ * @param modifier Optional modifier
+ *
+ * Story 5.4: Dark Mode Support (AC-7)
+ */
+@Composable
+private fun ThemePreference(
+    currentTheme: String,
+    onThemeSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = "Theme",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        val themeOptions = listOf(
+            "system" to stringResource(R.string.theme_system_default),
+            "light" to stringResource(R.string.theme_light),
+            "dark" to stringResource(R.string.theme_dark)
+        )
+
+        themeOptions.forEach { (value, label) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onThemeSelected(value) }
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RadioButton(
+                    selected = currentTheme == value,
+                    onClick = { onThemeSelected(value) }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
     }
 }
 
