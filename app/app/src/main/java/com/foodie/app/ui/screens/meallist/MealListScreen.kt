@@ -330,11 +330,16 @@ private fun MealEntryCard(
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Cache formatted timestamp to prevent recalculation on every recomposition (Story 5.6)
+    val formattedTimestamp = remember(meal.timestamp) {
+        formatTimestamp(meal.timestamp)
+    }
+    
     Card(
         modifier = modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
-                contentDescription = "Meal entry, ${meal.calories} calories, ${meal.description}, ${formatTimestamp(meal.timestamp)}"
+                contentDescription = "Meal entry, ${meal.calories} calories, ${meal.description}, $formattedTimestamp"
             }
             .combinedClickable(
                 onClick = onClick,
@@ -351,7 +356,7 @@ private fun MealEntryCard(
                 style = MaterialTheme.typography.bodyLarge
             )
             Text(
-                text = formatTimestamp(meal.timestamp),
+                text = formattedTimestamp,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

@@ -1,0 +1,249 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>6</storyId>
+    <title>Performance Optimization and Polish</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-23</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-6-performance-optimization-and-polish.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>the app to feel fast and polished</iWant>
+    <soThat>the experience meets the "invisible tracking" promise</soThat>
+    <tasks>
+      - Task 1: Documentation Research and Performance Profiling Methodology - Review Android performance best practices, Compose performance guidelines, ProGuard/R8 optimization strategies, and establish baseline metrics
+      - Task 2: Screen Transition and Animation Optimization - Optimize navigation transitions to 60fps, add smooth animations to capture flow
+      - Task 3: List View Scrolling Performance - Optimize LazyColumn with keys, optimize MealEntryCard recomposition, ensure smooth scrolling with 50+ entries
+      - Task 4: Image Loading Optimization - Verify photo compression from Story 2.3, consider reducing resolution from 2MP to 1MP
+      - Task 5: Memory Usage Optimization - Profile with Android Profiler, detect leaks with LeakCanary, optimize ViewModel lifecycle and WorkManager
+      - Task 6: App Launch Time Optimization - Measure cold/warm launch, optimize Application.onCreate(), defer non-critical initialization, target 2s or less
+      - Task 7: Battery Impact Optimization - Review WorkManager efficiency, optimize notification updates, test with Battery Historian
+      - Task 8: APK Size Optimization - Enable ProGuard/R8 code shrinking and resource shrinking, configure keep rules, target less than 10MB
+      - Task 9: Compose Performance Optimization - Audit for stable types, optimize expensive computations with remember/derivedStateOf
+      - Task 10: Create Performance Manual Test Guide - Document 8 testing scenarios with tool usage instructions
+      - Task 11: Unit Tests for Performance Utilities - Verify existing tests still pass after optimizations
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. All screen transitions are smooth (60fps)
+    2. List view scrolling has no jank or stuttering
+    3. Image loading uses efficient caching and compression
+    4. Memory usage stays within reasonable limits (less than 100MB typical)
+    5. Cold app launch takes less than 2 seconds
+    6. Battery impact is minimal (efficient background processing)
+    7. APK size is optimized (less than 10MB for MVP)
+    8. No memory leaks in ViewModels or Activities
+    9. Smooth animations enhance the capture flow (fade-ins, slide transitions)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 5.6: Performance Optimization and Polish</section>
+        <snippet>All screen transitions smooth (60fps), list scrolling with no jank, memory less than 100MB typical, cold launch 2s or less, APK size less than 10MB with ProGuard enabled, smooth animations for polish</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Performance NFR</section>
+        <snippet>Cold launch 2s or less measured via adb shell am start -W, screen transitions 60fps (GPU Rendering Profile green bars less than 16ms), memory less than 100MB typical via Android Profiler, APK size less than 10MB with ProGuard/R8, battery impact minimal for 3-5 captures/day validated via Battery Historian</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Performance NFR</section>
+        <snippet>App cold start less than 2s, Health Connect query less than 500ms, navigation 60fps, memory less than 100MB, lazy initialization, remember/derivedStateOf in Compose, R8 code shrinking enabled</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Dependencies</section>
+        <snippet>Complete dependency list with versions for ProGuard keep rules: Retrofit 2.11.0, Gson, Health Connect 1.1.0, Hilt 2.51.1, Coroutines 1.9.0, Compose BOM 2024.10.01, WorkManager 2.9.1</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-5-accessibility-improvements.md</path>
+        <title>Story 5.5 - Accessibility Improvements</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Comprehensive manual testing approach with 360-line test guide, leverage existing Material 3 foundations, code review validation when physical device testing deferred, zero custom implementations</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-1-project-setup-and-build-configuration.md</path>
+        <title>Story 1.1 - Project Setup</title>
+        <section>ProGuard Rules</section>
+        <snippet>Must keep Health Connect SDK classes, Retrofit interfaces and models, Hilt generated code from obfuscation. Enable R8 minification for release builds.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/app/build.gradle.kts</path>
+        <kind>build configuration</kind>
+        <symbol>buildTypes.release</symbol>
+        <lines>48-54</lines>
+        <reason>Current ProGuard configuration - isMinifyEnabled = true already set, need to add isShrinkResources = true and validate keep rules</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/proguard-rules.pro</path>
+        <kind>ProGuard configuration</kind>
+        <symbol>ProGuard keep rules</symbol>
+        <lines>1-80</lines>
+        <reason>Existing keep rules for Retrofit, Gson, Health Connect, Coroutines - validate completeness for Story 5.6 optimization</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt</path>
+        <kind>Composable screen</kind>
+        <symbol>MealListScreen</symbol>
+        <lines>all</lines>
+        <reason>Primary optimization target - add LazyColumn keys, optimize MealEntryCard recompositions, measure scrolling performance with Layout Inspector</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt</path>
+        <kind>ViewModel</kind>
+        <symbol>MealListViewModel</symbol>
+        <lines>all</lines>
+        <reason>Check for memory leaks, ensure viewModelScope usage, validate coroutine cancellation in onCleared()</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailScreen.kt</path>
+        <kind>Composable screen</kind>
+        <symbol>MealDetailScreen</symbol>
+        <lines>all</lines>
+        <reason>Optimize Compose stability - ensure stable parameter types, use remember for derived values</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsViewModel.kt</path>
+        <kind>ViewModel</kind>
+        <symbol>SettingsViewModel</symbol>
+        <lines>58-85</lines>
+        <reason>Example of proper State management with StateFlow - review for performance patterns, fixed race condition shows good practices</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+        <kind>navigation configuration</kind>
+        <symbol>NavHost</symbol>
+        <lines>all</lines>
+        <reason>Add smooth transition animations using fadeIn/fadeOut/slideIn/slideOut, measure frame timing with GPU Rendering Profile</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/ui/components/MealEntryCard.kt</path>
+        <kind>Composable component</kind>
+        <symbol>MealEntryCard</symbol>
+        <lines>all</lines>
+        <reason>Optimize recomposition scope with remember for formatted date strings, ensure meal parameter is stable immutable data class</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <kind>WorkManager Worker</kind>
+        <symbol>AnalyzeMealWorker</symbol>
+        <lines>all</lines>
+        <reason>Review notification update frequency for battery optimization, verify photo deletion after processing, check bitmap handling for memory leaks</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/FoodieApplication.kt</path>
+        <kind>Application class</kind>
+        <symbol>onCreate</symbol>
+        <lines>all</lines>
+        <reason>Optimize application startup - defer non-critical initialization, move heavy work to background threads, measure onCreate() execution time</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <android>
+        <!-- Core Android -->
+        <dependency name="androidx.core:core-ktx" version="1.15.0"/>
+        <dependency name="androidx.appcompat:appcompat" version="via compose-bom"/>
+        
+        <!-- Compose BOM -->
+        <dependency name="androidx.compose:compose-bom" version="2024.10.01"/>
+        <dependency name="androidx.compose.ui:ui"/>
+        <dependency name="androidx.compose.material3:material3"/>
+        <dependency name="androidx.activity:activity-compose" version="1.9.3"/>
+        <dependency name="androidx.lifecycle:lifecycle-runtime-compose" version="2.8.7"/>
+        <dependency name="androidx.navigation:navigation-compose" version="2.8.4"/>
+        
+        <!-- Dependency Injection -->
+        <dependency name="com.google.dagger:hilt-android" version="2.51.1"/>
+        <dependency name="androidx.hilt:hilt-navigation-compose" version="1.2.0"/>
+        
+        <!-- Networking -->
+        <dependency name="com.squareup.retrofit2:retrofit" version="2.11.0"/>
+        <dependency name="com.squareup.retrofit2:converter-gson" version="2.11.0"/>
+        <dependency name="com.squareup.okhttp3:okhttp" version="4.12.0"/>
+        <dependency name="com.squareup.okhttp3:logging-interceptor" version="4.12.0"/>
+        
+        <!-- Background Processing -->
+        <dependency name="androidx.work:work-runtime-ktx" version="2.9.1"/>
+        
+        <!-- Health Connect -->
+        <dependency name="androidx.health.connect:connect-client" version="1.1.0"/>
+        
+        <!-- Coroutines -->
+        <dependency name="org.jetbrains.kotlinx:kotlinx-coroutines-android" version="1.9.0"/>
+        
+        <!-- ViewModel & Lifecycle -->
+        <dependency name="androidx.lifecycle:lifecycle-viewmodel-ktx" version="2.8.7"/>
+        <dependency name="androidx.lifecycle:lifecycle-viewmodel-compose" version="2.8.7"/>
+        
+        <!-- Secure Storage -->
+        <dependency name="androidx.security:security-crypto" version="1.1.0-alpha06"/>
+        
+        <!-- Logging -->
+        <dependency name="com.jakewharton.timber:timber" version="5.0.1"/>
+        
+        <!-- Testing -->
+        <dependency name="junit:junit" version="4.13.2" scope="test"/>
+        <dependency name="org.mockito:mockito-core" version="5.14.2" scope="test"/>
+        <dependency name="org.mockito.kotlin:mockito-kotlin" version="5.4.0" scope="test"/>
+        <dependency name="com.google.truth:truth" version="1.4.4" scope="test"/>
+        <dependency name="androidx.test.ext:junit" version="1.2.1" scope="androidTest"/>
+        <dependency name="androidx.compose.ui:ui-test-junit4" scope="androidTest"/>
+        
+        <!-- NEW: LeakCanary for memory leak detection -->
+        <dependency name="com.squareup.leakcanary:leakcanary-android" version="2.14" scope="debugImplementation"/>
+      </android>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - MVVM architecture with ViewModel lifecycle management and coroutine scoping (viewModelScope for auto-cancellation)
+    - Jetpack Compose best practices: Use keys in LazyColumn for efficient recomposition, remember for caching derived values, derivedStateOf for State-derived values
+    - ProGuard/R8 keep rules required for: Retrofit interfaces (@retrofit2.http annotations), Gson (Signature, data models), Health Connect (androidx.health.connect.client), Coroutines (MainDispatcherFactory, CoroutineExceptionHandler), Hilt (generated code)
+    - Performance targets: Cold launch 2s or less (adb shell am start -W), screen transitions 60fps (GPU Rendering Profile green bars less than 16ms), memory less than 100MB typical (Android Profiler), APK size less than 10MB (ProGuard enabled), battery negligible for 3-5 captures/day
+    - Testing on mid-range device required (Samsung A53 or equivalent) to avoid masking performance issues on flagship devices
+    - Material Design 3 components already provide efficient rendering and animations
+    - Health Connect is single source of truth - no local database overhead
+    - WorkManager handles background processing - already efficient with ForegroundInfo and notification during analysis
+    - Photo compression at 2MP + 80% JPEG from Story 2.3 - optimization opportunity to reduce to 1MP if analysis quality unaffected
+  </constraints>
+
+  <interfaces>
+    <!-- No new interfaces - Story 5.6 optimizes existing code -->
+  </interfaces>
+
+  <tests>
+    <standards>
+      Performance optimization is primarily profiling and configuration-driven. Use Android Profiler (CPU, Memory, Network traces), GPU Rendering Profile for frame timing visualization (green bars less than 16ms = 60fps), LeakCanary for memory leak detection, and Battery Historian for battery usage analysis. Manual testing with comprehensive test guide following Story 5.5 pattern. Unit tests required only if utility functions created for image compression or caching. All existing unit tests must continue passing after optimizations. Test naming: methodName_whenCondition_thenExpectedResult. Use Truth library for assertions.
+    </standards>
+    <locations>
+      app/src/test/java/com/foodie/app/**/*Test.kt - Unit tests must pass post-optimization
+      app/src/androidTest/java/com/foodie/app/**/*Test.kt - Instrumentation tests must pass
+      docs/testing/manual-test-guide-story-5-6.md - Manual performance testing scenarios (to be created)
+      docs/testing/performance-metrics/ - Profiler screenshots documenting baseline and optimized metrics
+    </locations>
+    <ideas>
+      AC #1 (60fps screen transitions): GPU Rendering Profile validation during navigation between MealListScreen to Settings to MealDetailScreen - green bars must stay below 16ms line
+      AC #2 (list scrolling smooth): Layout Inspector recomposition counts on MealListScreen with 50+ entries - verify only affected items recompose during scroll, not entire LazyColumn
+      AC #3 (image caching): Verify photo compression from Story 2.3 (2MP + 80% JPEG), test reducing to 1MP with Azure OpenAI to validate analysis quality unchanged
+      AC #4 (memory less than 100MB): Android Profiler memory graph during typical session (5 captures + list browsing), validate no upward trend indicating leaks
+      AC #5 (launch less than 2s): adb shell am start -W com.foodie.app - TotalTime value must be 2000ms or less on mid-range device
+      AC #6 (battery minimal): Battery Historian analysis over 24 hours with 3-5 captures - Foodie should show negligible battery impact (less than 2%)
+      AC #7 (APK less than 10MB): ls -lh app/build/outputs/apk/release/app-release.apk after ProGuard enabled and resource shrinking - file size must be less than 10MB
+      AC #8 (no memory leaks): LeakCanary must report zero leaks after complete user flow (capture to edit to delete to settings)
+      AC #9 (animations smooth): Visual validation of fade-in for meal entry after save, slide transition for Settings screen, crossfade for theme switching
+    </ideas>
+  </tests>
+</story-context>
