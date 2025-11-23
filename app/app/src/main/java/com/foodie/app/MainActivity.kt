@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
+import com.foodie.app.data.local.preferences.OnboardingPreferences
 import com.foodie.app.data.repository.PreferencesRepository
 import com.foodie.app.domain.model.ThemeMode
 import com.foodie.app.ui.components.HealthConnectUnavailableDialog
@@ -45,6 +46,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var preferencesRepository: PreferencesRepository
+
+    @Inject
+    lateinit var onboardingPreferences: OnboardingPreferences
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -172,6 +176,7 @@ class MainActivity : ComponentActivity() {
                 
                 NavGraph(
                     healthConnectManager = healthConnectManager,
+                    onboardingPreferences = onboardingPreferences,
                     initialRoute = navigateToRoute
                 )
                 

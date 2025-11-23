@@ -17,10 +17,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
+import com.foodie.app.data.local.preferences.OnboardingPreferences
 import com.foodie.app.ui.components.HealthConnectPermissionGate
 import com.foodie.app.ui.screens.capture.CapturePhotoScreen
 import com.foodie.app.ui.screens.mealdetail.MealDetailScreen
 import com.foodie.app.ui.screens.meallist.MealListScreen
+import com.foodie.app.ui.screens.onboarding.OnboardingScreen
 import com.foodie.app.ui.screens.settings.SettingsScreen
 
 /**
@@ -44,15 +46,17 @@ import com.foodie.app.ui.screens.settings.SettingsScreen
  * - Type-safe routes: All routes defined in [Screen] sealed class
  * - Unidirectional flow: Screens receive callbacks, not NavController
  * - Deep linking: Configured for widget integration (foodie://home)
+ * - Onboarding: Conditional start destination based on first-launch flag (Story 5.7)
  *
  * Navigation flow:
  * ```
- * MealList (start) ←→ MealDetail
+ * Onboarding (first launch) → MealList (start) ←→ MealDetail
  *    ↓
  * Settings
  * ```
  *
  * @param healthConnectManager HealthConnectManager for permission checking
+ * @param onboardingPreferences OnboardingPreferences for first-launch detection (Story 5.7)
  * @param navController The navigation controller (typically from [rememberNavController])
  * @param initialRoute Optional route to navigate to on first launch (e.g., from notification)
  * @param modifier Optional modifier for the NavHost
@@ -60,12 +64,20 @@ import com.foodie.app.ui.screens.settings.SettingsScreen
 @Composable
 fun NavGraph(
     healthConnectManager: HealthConnectManager,
+    onboardingPreferences: OnboardingPreferences,
     navController: NavHostController = rememberNavController(),
     initialRoute: String? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
+    
+    // Determine start destination based on onboarding status (Story 5.7)
+    val startDestination = if (onboardingPreferences.isOnboardingCompleted()) {
+        Screen.MealList.route
+    } else {
+        Screen.Onboarding.route
+    }
     
     // Handle initial route navigation (e.g., from notification deep link)
     androidx.compose.runtime.LaunchedEffect(initialRoute) {
@@ -79,9 +91,40 @@ fun NavGraph(
     
     NavHost(
         navController = navController,
-        startDestination = Screen.MealList.route,
+        startDestination = startDestination,
         modifier = modifier
     ) {
+        // Onboarding screen (Story 5.7 - first launch only)
+        composable(
+            route = Screen.Onboarding.route,
+            enterTransition = {
+                fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
+            },
+            exitTransition = {
+                fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
+            }
+        ) {
+            OnboardingScreen(
+                onOnboardingComplete = {
+                    // Navigate to MealList and remove onboarding from backstack
+                    navController.navigate(Screen.MealList.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                },
+                onSkipOnboarding = {
+                    // Same as complete - navigate to MealList and remove onboarding
+                    navController.navigate(Screen.MealList.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                },
+                onNavigateToSettings = {
+                    // Navigate to Settings, keep onboarding in backstack
+                    navController.navigate(Screen.Settings.route)
+                },
+                healthConnectManager = healthConnectManager
+            )
+        }
+
         // Meal List screen (home/start destination)
         composable(
             route = Screen.MealList.route,

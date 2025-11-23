@@ -60,4 +60,11 @@ sealed class Screen(val route: String) {
      * Entry point from widget deep link (foodie://capture).
      */
     data object CameraCapture : Screen("camera_capture")
+
+    /**
+     * Onboarding screen (Story 5.7).
+     * First-launch flow with 4 screens: Welcome, Widget setup, Permissions, Settings prompt.
+     * Shows only once per install via OnboardingPreferences flag.
+     */
+    data object Onboarding : Screen("onboarding")
 }

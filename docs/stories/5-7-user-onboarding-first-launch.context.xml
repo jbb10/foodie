@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Story Context File: 5-7-user-onboarding-first-launch
+  Generated: 2025-11-23
+  Epic: 5 - Configuration & Polish
+  Story: 5.7 - User Onboarding (First Launch)
+  
+  Purpose: Provides dynamic technical context for dev agent implementation
+  Includes: Story requirements, relevant docs/code, interfaces, constraints, testing guidance
+-->
+
+<story-context>
+  <metadata>
+    <story-id>5.7</story-id>
+    <story-key>5-7-user-onboarding-first-launch</story-key>
+    <epic-id>5</epic-id>
+    <title>User Onboarding (First Launch)</title>
+    <status>ready-for-dev</status>
+    <generated-date>2025-11-23</generated-date>
+  </metadata>
+
+  <user-story>
+    <as-a>new user</as-a>
+    <i-want>clear guidance on first launch</i-want>
+    <so-that>I understand how to set up and use the app</so-that>
+  </user-story>
+
+  <acceptance-criteria>
+    <criterion id="AC-1">Welcome message displays on first launch explaining the core concept</criterion>
+    <criterion id="AC-2">User is prompted to add the home screen widget</criterion>
+    <criterion id="AC-3">Widget addition instructions state: "Long-press home screen → Widgets → Foodie"</criterion>
+    <criterion id="AC-4">Health Connect permissions are requested with clear rationale</criterion>
+    <criterion id="AC-5">Azure OpenAI configuration prompt directs user to Settings</criterion>
+    <criterion id="AC-6">Onboarding flow completes in &lt; 2 minutes</criterion>
+    <criterion id="AC-7">User can skip onboarding if desired ("Skip" button on each screen)</criterion>
+    <criterion id="AC-8">Onboarding shows only once (first-launch detection via SharedPreferences)</criterion>
+    <criterion id="AC-9">After onboarding, user is on MealListScreen ready to use the app</criterion>
+    <criterion id="AC-10">ViewPager2 or Compose HorizontalPager implementation uses 3-4 screens maximum</criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="1">Documentation Research &amp; Onboarding UX Best Practices (Prerequisite)</task>
+    <task id="2">First-Launch Detection Infrastructure (AC-8)</task>
+    <task id="3">ViewPager2/HorizontalPager Implementation (AC-10)</task>
+    <task id="4">Welcome Screen (Screen 1) (AC-1)</task>
+    <task id="5">Widget Setup Instructions (Screen 2) (AC-2, AC-3)</task>
+    <task id="6">Health Connect Permissions (Screen 3) (AC-4)</task>
+    <task id="7">Settings/API Configuration Prompt (Screen 4) (AC-5)</task>
+    <task id="8">Skip Functionality and Flow Control (AC-7)</task>
+    <task id="9">Onboarding Completion and Navigation (AC-9)</task>
+    <task id="10">Timing and Performance Validation (AC-6)</task>
+    <task id="11">Visual Polish and Accessibility (AC-1-10, leveraging Story 5.5)</task>
+    <task id="12">Unit Tests for Onboarding Logic</task>
+    <task id="13">Create Manual Test Guide for Onboarding</task>
+  </tasks>
+
+  <artifacts>
+    <documentation>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>MVP - V1.0</section>
+        <snippet>Core capture flow: Widget → Camera → AI analyzes → Health Connect saves. Product philosophy: "invisible tracking" - eliminate speed-accuracy tradeoff that kills manual tracking adherence. Target: ≤ 5 second capture time.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Technology Stack Details - Jetpack Compose</section>
+        <snippet>UI Framework: Jetpack Compose (BOM 2024.10.01) for declarative UI. All screens are Composables using Material 3 components. ViewModel + StateFlow pattern for state management. Hilt dependency injection for all layers.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Workflows and Sequencing - First-Launch Onboarding Flow</section>
+        <snippet>4-screen onboarding: (1) Welcome + core concept, (2) Widget setup instructions with visuals, (3) Health Connect permission request with rationale, (4) Settings prompt for API configuration. First-launch detection via SharedPreferences flag "onboarding_completed". Skip option on all screens. Completion navigates to MealListScreen with no back navigation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Data Models and Contracts - OnboardingState</section>
+        <snippet>OnboardingState data class: currentPage (0-3), totalPages (4), healthConnectPermissionsGranted (Boolean), canProceedToApp (Boolean). OnboardingPreferences interface: isOnboardingCompleted(), markOnboardingCompleted() using standard SharedPreferences.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 5.7: User Onboarding (First Launch)</section>
+        <snippet>As a new user, I want clear guidance on first launch, so that I understand how to set up and use the app. ViewPager2 implementation with 3-4 screens maximum. Skip option always available, never block app access. First-launch detection via SharedPreferences. Onboarding shows once, then navigates to MealListScreen.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-6-performance-optimization-and-polish.md</path>
+        <title>Story 5.6: Performance Optimization</title>
+        <section>Dev Notes - Learnings</section>
+        <snippet>Cold launch time baseline: 524ms (well below 2s target). Onboarding should add &lt; 200ms overhead for first-launch detection logic. Screen transitions validated at 60fps - onboarding ViewPager2/HorizontalPager animations should match. Memory footprint: 85.8 MB peak - onboarding should add &lt; 10 MB. APK size 5.5 MB - visual assets (widget screenshot) must be optimized.</snippet>
+      </doc>
+    </documentation>
+
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/MainActivity.kt</path>
+        <kind>Activity</kind>
+        <symbol>MainActivity</symbol>
+        <lines>1-210</lines>
+        <reason>Main activity hosts NavGraph. Contains first-launch detection logic using SharedPreferences "foodie_prefs" with "first_launch" flag. Health Connect permission launcher registered here. Shows pattern for permission request integration with onboarding flow.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+        <kind>Navigation</kind>
+        <symbol>NavGraph</symbol>
+        <lines>1-230</lines>
+        <reason>Main navigation graph defines routes and transitions. Onboarding route must be added with conditional startDestination based on onboarding_completed flag. Deep linking configured for widget integration. Material 3 slide transitions (300ms forward, 250ms back) should be applied to onboarding screens.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>Manager</kind>
+        <symbol>HealthConnectManager</symbol>
+        <lines>46-150</lines>
+        <reason>Health Connect SDK wrapper. Provides createPermissionRequestContract() method for permission launcher (line 119-124). REQUIRED_PERMISSIONS constant defines needed permissions (READ_NUTRITION, WRITE_NUTRITION). Onboarding Screen 3 must use this manager to request permissions with proper rationale.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt</path>
+        <kind>Data Source</kind>
+        <symbol>SecurePreferences</symbol>
+        <reason>Encrypted preferences for API key storage. Onboarding Screen 4 (Settings Prompt) checks API configuration status using hasApiKey() method. Status updates when user returns from Settings after configuring credentials.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt</path>
+        <kind>Screen</kind>
+        <symbol>SettingsScreen</symbol>
+        <reason>Settings screen from Story 5.1/5.2. Onboarding Screen 4 navigates here when user taps "Open Settings" button. Used for API configuration (endpoint, model, API key). Onboarding must handle navigation to Settings and return flow.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt</path>
+        <kind>Screen</kind>
+        <symbol>MealListScreen</symbol>
+        <reason>Main app screen - onboarding completion destination. After onboarding completed (or skipped), navigation goes to MealListScreen. Back button from MealListScreen must NOT return to onboarding (NavGraph configuration).</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <android>
+        <package name="androidx.compose.ui" version="BOM 2024.10.01">Compose UI toolkit for onboarding screens</package>
+        <package name="androidx.compose.material3" version="BOM 2024.10.01">Material Design 3 components (Button, Text, Icon, etc.)</package>
+        <package name="androidx.navigation.navigation-compose" version="2.8.4">Navigation with conditional start destination</package>
+        <package name="androidx.lifecycle.lifecycle-viewmodel-compose" version="2.8.7">ViewModel for OnboardingViewModel</package>
+        <package name="com.google.dagger.hilt-android" version="2.51.1">Dependency injection for OnboardingPreferences</package>
+        <package name="androidx.health.connect.connect-client" version="1.1.0">Health Connect permission requests</package>
+      </android>
+      <gradle>
+        <config>compileSdk 35, minSdk 28, targetSdk 35</config>
+        <config>Kotlin 2.2.21, JDK 17, Android Gradle Plugin 8.13.0</config>
+      </gradle>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>HealthConnectManager.createPermissionRequestContract</name>
+      <kind>Android ActivityResultContract</kind>
+      <signature>fun createPermissionRequestContract(): ActivityResultContract&lt;Set&lt;String&gt;, Set&lt;String&gt;&gt;</signature>
+      <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+      <usage>Used in MainActivity to register permission launcher. Onboarding Screen 3 must trigger this launcher to request Health Connect permissions. Pass REQUIRED_PERMISSIONS constant as input.</usage>
+    </interface>
+    <interface>
+      <name>NavGraph Route Configuration</name>
+      <kind>Compose Navigation</kind>
+      <signature>
+        sealed class Screen {
+            data object MealList : Screen() { val route = "mealList" }
+            data object Onboarding : Screen() { val route = "onboarding" } // NEW - Story 5.7
+            data object Settings : Screen() { val route = "settings" }
+        }
+      </signature>
+      <path>app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+      <usage>Add Onboarding route to Screen sealed class. Update NavGraph startDestination to conditionally show "onboarding" or "mealList" based on OnboardingPreferences.isOnboardingCompleted(). Deep link pattern: foodie://onboarding (optional).</usage>
+    </interface>
+    <interface>
+      <name>OnboardingPreferences</name>
+      <kind>Shared Preferences Wrapper</kind>
+      <signature>
+        class OnboardingPreferences @Inject constructor(@ApplicationContext context: Context) {
+            fun isOnboardingCompleted(): Boolean
+            fun markOnboardingCompleted()
+        }
+      </signature>
+      <path>app/src/main/java/com/foodie/app/data/local/preferences/OnboardingPreferences.kt (NEW)</path>
+      <usage>First-launch detection logic. Use standard SharedPreferences (not EncryptedSharedPreferences) with key "onboarding_completed". Check in NavGraph to determine start destination. Mark completed in onboarding final screen or skip flow.</usage>
+    </interface>
+    <interface>
+      <name>SecurePreferences.hasApiKey</name>
+      <kind>Preferences Method</kind>
+      <signature>fun hasApiKey(): Boolean</signature>
+      <path>app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt</path>
+      <usage>Onboarding Screen 4 checks API configuration status. Combined with endpoint check from standard SharedPreferences ("pref_azure_endpoint" key) to determine if API is fully configured. Updates status when user returns from Settings.</usage>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint id="ARCH-1">MVVM Architecture: Onboarding screens must follow ViewModel + StateFlow + Composable pattern. Create OnboardingViewModel with StateFlow&lt;OnboardingState&gt; exposing currentPage, healthConnectPermissionsGranted, apiConfigured.</constraint>
+    <constraint id="ARCH-2">Hilt Dependency Injection: OnboardingPreferences, OnboardingViewModel, HealthConnectManager must be injected via @Inject constructor. Register OnboardingPreferences in Hilt module.</constraint>
+    <constraint id="NAV-1">Navigation: Onboarding completion must navigate to MealListScreen with popUpTo("onboarding") { inclusive = true } to prevent back navigation. NavGraph startDestination conditional on isOnboardingCompleted().</constraint>
+    <constraint id="PERF-1">Performance: Onboarding initialization overhead &lt; 200ms added to cold launch time (baseline 524ms). ViewPager2/HorizontalPager transitions must maintain 60fps. Memory overhead &lt; 10 MB.</constraint>
+    <constraint id="UX-1">Skip Functionality: MANDATORY skip button on all 4 onboarding screens. Skip immediately marks onboarding completed and navigates to MealListScreen. User must never be blocked from accessing app.</constraint>
+    <constraint id="A11Y-1">Accessibility (Story 5.5): All onboarding screens must have content descriptions for TalkBack. Minimum 48dp touch targets for all buttons. Text must scale with system font size (use sp units).</constraint>
+    <constraint id="TEST-1">Testing: Unit tests required for OnboardingPreferences (isOnboardingCompleted, markOnboardingCompleted). Unit tests for OnboardingViewModel (permission state, API config state). Manual test guide with 10 scenarios (timing, TalkBack, navigation).</constraint>
+    <constraint id="PERM-1">Health Connect Permissions: Onboarding Screen 3 must display clear rationale BEFORE requesting permissions. Use HealthConnectManager.createPermissionRequestContract(). Handle both grant and deny flows gracefully (can proceed even if denied).</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      <framework>JUnit 4.13.2 + Mockito 5.14.2 for unit tests</framework>
+      <framework>Compose UI Test for instrumentation tests (androidx.compose.ui:ui-test-junit4)</framework>
+      <pattern>Test naming: methodName_whenCondition_thenExpectedResult or feature should behavior when condition</pattern>
+      <pattern>Assertion library: Truth library for readable assertions (assertThat(x).isEqualTo(y))</pattern>
+      <coverage>Unit tests required for OnboardingPreferences and OnboardingViewModel business logic (minimum 80% code coverage for new code)</coverage>
+      <manual>Manual test guide required with 10 scenarios: first-launch detection, welcome screen, widget instructions, permissions, settings prompt, skip, completion, timing, TalkBack, back button behavior</manual>
+    </standards>
+
+    <locations>
+      <test-dir>app/src/test/java/com/foodie/app</test-dir>
+      <test-pattern>app/src/test/**/*Test.kt (unit tests)</test-pattern>
+      <test-pattern>app/src/androidTest/**/*Test.kt (instrumentation tests)</test-pattern>
+    </locations>
+
+    <ideas>
+      <test-case ac-id="AC-8">Unit test: isOnboardingCompleted should return false by default on fresh install</test-case>
+      <test-case ac-id="AC-8">Unit test: markOnboardingCompleted should persist flag across app restarts</test-case>
+      <test-case ac-id="AC-4">Unit test: OnboardingViewModel.requestHealthConnectPermissions should update state on grant</test-case>
+      <test-case ac-id="AC-5">Unit test: OnboardingViewModel.checkApiConfigurationStatus should update state when API key and endpoint configured</test-case>
+      <test-case ac-id="AC-9">Instrumentation test: Onboarding completion navigates to MealListScreen and prevents back navigation</test-case>
+      <test-case ac-id="AC-7">Instrumentation test: Skip button from any screen marks onboarding completed and navigates to MealListScreen</test-case>
+      <test-case ac-id="AC-10">Manual test: ViewPager2/HorizontalPager swipe transitions render at 60fps with smooth animations</test-case>
+      <test-case ac-id="AC-6">Manual test: Complete onboarding flow in &lt; 2 minutes (timed test including reading all screens, granting permissions)</test-case>
+      <test-case ac-id="AC-1">Manual test: TalkBack announces welcome screen title, description, and button labels correctly</test-case>
+      <test-case ac-id="AC-2">Manual test: Widget setup instructions match actual Android widget picker flow (long-press home screen → Widgets → Foodie)</test-case>
+    </ideas>
+  </tests>
+
+  <implementation-notes>
+    <note priority="high">
+      <title>ViewPager2 vs Compose HorizontalPager Decision</title>
+      <description>Task 1 research must decide between ViewPager2 (traditional View-based, stable API, more examples) vs Accompanist HorizontalPager (Compose-native, cleaner integration, aligns with Story 5.4 Compose-only theme). Recommendation from Story 5.6: Use Compose HorizontalPager for consistency with full-Compose architecture.</description>
+    </note>
+    <note priority="high">
+      <title>First-Launch Detection Location</title>
+      <description>SharedPreferences check must occur in MainActivity.onCreate() or NavGraph initialization to determine start destination before first Compose. Current MainActivity already has first-launch logic for permissions (line 52-53) - extend pattern for onboarding detection.</description>
+    </note>
+    <note priority="medium">
+      <title>Health Connect Permission Integration</title>
+      <description>Onboarding Screen 3 must reuse existing permission launcher pattern from MainActivity (lines 57-70). Create OnboardingViewModel method that triggers same launcher. Handle grant/deny in ViewModel, update state, allow proceeding regardless of permission result.</description>
+    </note>
+    <note priority="medium">
+      <title>Settings Navigation from Onboarding</title>
+      <description>Onboarding Screen 4 "Open Settings" button navigates to Settings route. User configures API, navigates back. OnboardingViewModel must re-check API configuration status (hasApiKey + endpoint check) when screen resumes to update checkmark icon.</description>
+    </note>
+    <note priority="medium">
+      <title>Performance Validation</title>
+      <description>Measure cold launch time with onboarding enabled vs disabled. Baseline: 524ms (Story 5.6). Target with onboarding: &lt; 750ms (&lt; 250ms overhead). Profile with Android Profiler. Memory overhead target: &lt; 10 MB added to baseline 85.8 MB.</description>
+    </note>
+    <note priority="low">
+      <title>Visual Asset Optimization</title>
+      <description>Widget setup screenshot (Screen 2) should be WebP format, compressed to &lt; 200 KB to maintain APK size budget (5.5 MB baseline, &lt; 10 MB target). Consider placeholder graphic if screenshot adds too much size.</description>
+    </note>
+    <note priority="low">
+      <title>Animation Consistency</title>
+      <description>ViewPager2/HorizontalPager page transitions should use same Material 3 timing as NavGraph (300ms forward, 250ms back, FastOutSlowInEasing). Test at 60fps using GPU Rendering Profile. Add fade-in for "Done" button on final screen.</description>
+    </note>
+  </implementation-notes>
+
+  <dev-guidance>
+    <guidance>
+      <title>Start with Task 1 Research</title>
+      <details>DO NOT skip documentation research (Task 1). Review Android onboarding best practices, ViewPager2 vs HorizontalPager trade-offs, Health Connect permission patterns. Document decision rationale in Dev Notes before proceeding to implementation.</details>
+    </guidance>
+    <guidance>
+      <title>Reuse Existing Permission Patterns</title>
+      <details>MainActivity already has first-launch detection (line 52-53) and Health Connect permission launcher (lines 57-70). Extend these patterns for onboarding rather than reimplementing. OnboardingViewModel should trigger same launcher, not duplicate logic.</details>
+    </guidance>
+    <guidance>
+      <title>Skip Functionality is Non-Negotiable</title>
+      <details>Every onboarding screen MUST have a "Skip" button. Tapping skip marks onboarding_completed = true and navigates to MealListScreen immediately. User must never be blocked from accessing app. Test skip from all 4 screens.</details>
+    </guidance>
+    <guidance>
+      <title>Back Button Behavior</title>
+      <details>After onboarding completion (or skip), navigation to MealListScreen must use popUpTo("onboarding") { inclusive = true } to prevent back navigation. Back button from MealListScreen should exit app, not return to onboarding.</details>
+    </guidance>
+    <guidance>
+      <title>State Management via ViewModel</title>
+      <details>OnboardingViewModel exposes StateFlow with currentPage, healthConnectPermissionsGranted, apiConfigured. Screens collect state and render UI. User actions (button taps, permission results) are callbacks to ViewModel methods that update state.</details>
+    </guidance>
+    <guidance>
+      <title>Timing Validation is Critical</title>
+      <details>AC-6 requires &lt; 2 minute completion. Test with stopwatch: launch fresh install, read all 4 screens, grant permissions, open Settings (don't configure), tap Done. If exceeding 2 minutes, reduce text verbosity or consider 3 screens instead of 4.</details>
+    </guidance>
+    <guidance>
+      <title>TalkBack Testing</title>
+      <details>Enable TalkBack (Settings → Accessibility → TalkBack → ON) and navigate through onboarding. Every UI element must announce clearly: titles, body text, button purposes. Use contentDescription for icons. Test swipe navigation works smoothly.</details>
+    </guidance>
+  </dev-guidance>
+</story-context>
