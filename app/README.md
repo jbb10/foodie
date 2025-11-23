@@ -29,16 +29,18 @@ This README documents the MVVM (Model-View-ViewModel) architecture pattern and n
 adb devices  # should show your phone
 ```
 
-**Debug version (for testing):**
+**Using Make (recommended):**
 ```bash
-cd app
-./gradlew installDebug
+# From repository root
+make install-debug    # Build and install debug version
+make install-release  # Build and install release version
 ```
 
-**Release version (for daily use):**
+**Using Gradle directly:**
 ```bash
 cd app
-./gradlew installRelease
+./gradlew installDebug   # Debug version (for testing)
+./gradlew installRelease # Release version (for daily use)
 ```
 
 **Both at once:**
@@ -853,6 +855,16 @@ After 4 attempts, worker returns `Result.failure()` and photo is deleted.
 # Integration tests (requires emulator/device)
 ./gradlew :app:connectedAndroidTest
 ```
+
+**Using Make (from repository root):**
+
+```bash
+make test-unit            # Run all unit tests
+make test-instrumentation # Run all instrumentation tests (requires device/emulator)
+make test-all             # Run all tests (unit + instrumentation)
+```
+
+Run `make help` to see all available commands.
 
 ### Performance Expectations
 

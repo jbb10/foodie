@@ -42,6 +42,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -202,10 +204,13 @@ internal fun MealListScreenContent(
             TopAppBar(
                 title = { Text(stringResource(id = R.string.app_name)) },
                 actions = {
-                    IconButton(onClick = onSettingsClick) {
+                    IconButton(
+                        onClick = onSettingsClick,
+                        modifier = Modifier.semantics { contentDescription = "Open settings" }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings"
+                            contentDescription = null // Description on IconButton, not Icon
                         )
                     }
                 }
@@ -328,6 +333,9 @@ private fun MealEntryCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Meal entry, ${meal.calories} calories, ${meal.description}, ${formatTimestamp(meal.timestamp)}"
+            }
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick

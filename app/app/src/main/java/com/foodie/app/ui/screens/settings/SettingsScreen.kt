@@ -40,6 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -340,7 +342,9 @@ private fun PreferencePlaceholder(
     androidx.compose.material3.ListItem(
         headlineContent = { Text(title) },
         supportingContent = { Text(summary) },
-        modifier = modifier
+        modifier = modifier.semantics {
+            contentDescription = "$title, $summary"
+        }
     )
 }
 
@@ -475,6 +479,13 @@ private fun ThemePreference(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onThemeSelected(value) }
+                    .semantics {
+                        contentDescription = if (currentTheme == value) {
+                            "$label, selected"
+                        } else {
+                            "$label, not selected"
+                        }
+                    }
                     .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

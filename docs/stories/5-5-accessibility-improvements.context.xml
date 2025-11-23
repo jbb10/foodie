@@ -1,0 +1,234 @@
+<story-context id="5-5-accessibility-improvements" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5.5</storyId>
+    <title>Accessibility Improvements</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-23</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-5-accessibility-improvements.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user with accessibility needs</asA>
+    <iWant>the app to work with screen readers and support large text</iWant>
+    <soThat>I can use the app regardless of visual limitations</soThat>
+    <tasks>
+      - Task 1: Documentation Research and Accessibility Standards Validation (Android accessibility, Material 3 guidelines, WCAG AA, existing patterns, Accessibility Scanner usage)
+      - Task 2: Content Descriptions for All Interactive Elements (FAB, meal cards, toolbar, Settings items)
+      - Task 3: Minimum Touch Target Sizing (48dp enforcement via Modifier.size/heightIn/widthIn, 8dp spacing)
+      - Task 4: Text Scaling with System Font Size (MaterialTheme.typography, test at Largest font)
+      - Task 5: Color Contrast Ratio Validation (WCAG AA 4.5:1, non-color information)
+      - Task 6: Logical Focus Order for Keyboard/D-Pad Navigation (focus traversal testing)
+      - Task 7: TalkBack Support and Testing (all user flows with screen reader)
+      - Task 8: Accessibility Scanner Tool Validation (zero critical issues)
+      - Task 9: Create Accessibility Manual Test Guide (TalkBack scenarios, large font, D-pad nav)
+      - Task 10: Unit Tests for Accessibility Helpers (contrast calculation utilities if created)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1">All buttons and images have content descriptions</criterion>
+    <criterion id="AC-2">App supports TalkBack screen reader</criterion>
+    <criterion id="AC-3">Touch targets are minimum 48dp (WCAG compliance)</criterion>
+    <criterion id="AC-4">Text scales properly with system font size settings</criterion>
+    <criterion id="AC-5">Color contrast ratios meet WCAG AA standards (4.5:1 for normal text)</criterion>
+    <criterion id="AC-6">Important information is not conveyed by color alone</criterion>
+    <criterion id="AC-7">Focus order is logical for keyboard/D-pad navigation</criterion>
+    <criterion id="AC-8">Camera capture button is easily discoverable with TalkBack</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/epics.md" title="Epic Breakdown" section="Story 5.5: Accessibility Improvements">
+        "Enable users to view, edit, and delete their nutrition entries...Trust with transparency - users can review AI estimates and make corrections during evening review without disrupting the meal capture flow."
+      </doc>
+      <doc path="docs/tech-spec-epic-5.md" title="Epic 5 Technical Specification" section="Story 5.5: Accessibility Improvements">
+        "Comprehensive accessibility improvements including TalkBack support, content descriptions, WCAG AA compliance, 48dp touch targets, text scaling, color contrast validation, and focus order management. Primarily manual testing-focused with Android Accessibility Scanner validation."
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Document" section="Material Design 3 and Compose">
+        "Jetpack Compose with Material Design 3 components provides built-in accessibility support. MaterialTheme.colorScheme ensures proper contrast ratios. Material 3 components include default touch target sizing and focus indicators."
+      </doc>
+      <doc path="docs/PRD.md" title="Product Requirements Document" section="Mobile App Specific Requirements - Usability (NFR-4)">
+        "One-Handed Operation, Touch Targets minimum 48dp for all tappable elements (Android accessibility guideline), No Onboarding, Clear error messages, Dark Mode, Accessibility: Basic screen reader support (content descriptions for images/buttons)"
+      </doc>
+      <doc path="docs/stories/5-4-dark-mode-support.md" title="Story 5.4: Dark Mode Support" section="Dev Notes - Task 1 Research Checkpoint">
+        "Material Design 3 dark theme approach confirmed, color palette meets WCAG AA contrast standards, Compose-only implementation successful, manual testing validated on Pixel 8 Pro Android 16."
+      </doc>
+    </docs>
+    
+    <code>
+      <artifact path="app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt" kind="composable" symbol="MealListScreen" reason="Primary user-facing screen - needs content descriptions, touch target validation, text scaling verification">
+        Main meal list view with FAB, meal entry cards, and toolbar. Requires:
+        - FAB contentDescription ("Log new meal")
+        - Meal card semantics with mergeDescendants (calories, description, timestamp)
+        - Toolbar action contentDescriptions
+        - 48dp touch target validation for all interactive elements
+        - MaterialTheme.typography for text scaling
+      </artifact>
+      <artifact path="app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt" kind="composable" symbol="SettingsScreen" reason="Settings UI - needs preference item descriptions, focus order validation">
+        Settings screen with preference items. Requires:
+        - Content descriptions for all preference items (API config, theme, about)
+        - Back button contentDescription
+        - Focus order validation (top to bottom)
+        - Text scaling verification for preference titles/summaries
+      </artifact>
+      <artifact path="app/app/src/main/java/com/foodie/app/ui/screens/camera/CameraPreviewScreen.kt" kind="composable" symbol="CameraPreviewScreen" reason="Camera interface - AC-8 requires capture button TalkBack discoverability">
+        Camera preview with capture, retake, use photo buttons. Requires:
+        - Capture button contentDescription ("Capture photo" or "Take picture")
+        - Retake button contentDescription ("Retake photo")
+        - Use photo button contentDescription ("Use this photo")
+        - Large touch targets for one-handed use (already 48dp+, verify)
+      </artifact>
+      <artifact path="app/app/src/main/java/com/foodie/app/ui/theme/Color.kt" kind="theme" lines="1-82" reason="AC-5 requires WCAG AA contrast ratio validation for all color combinations">
+        Material 3 color palette from Story 5.4. Validate contrast ratios:
+        - md_theme_light_onBackground vs md_theme_light_background (≥4.5:1)
+        - md_theme_dark_onSurface vs md_theme_dark_surface (≥4.5:1)
+        - All text/background combinations must meet WCAG AA standards
+        - Document calculations in Dev Notes
+      </artifact>
+      <artifact path="app/app/src/main/java/com/foodie/app/ui/theme/Theme.kt" kind="theme" lines="117-145" reason="AC-4 requires text scaling - ensure MaterialTheme.typography used consistently">
+        FoodieTheme composable with typography definitions. Verify:
+        - All text uses MaterialTheme.typography (headlineMedium, bodyLarge, labelSmall, etc.)
+        - No hardcoded fontSize values (12.sp, 14.sp) exist in screens
+        - Typography scales with system font size settings
+      </artifact>
+      <artifact path="app/app/src/main/java/com/foodie/app/ui/components/MealEntryCard.kt" kind="composable" symbol="MealEntryCard" reason="Meal entry cards need comprehensive semantics for TalkBack announcements">
+        Meal entry card component. Requires:
+        - Modifier.semantics(mergeDescendants = true) to combine child descriptions
+        - contentDescription = "Meal entry, ${calories} calories, ${description}, ${timestamp}"
+        - 48dp minimum touch target (Card likely already meets this, validate)
+      </artifact>
+    </code>
+    
+    <dependencies>
+      <android>
+        <package name="androidx.compose.ui" version="compose-bom" note="Modifier.semantics for accessibility" />
+        <package name="androidx.compose.material3" version="compose-bom" note="Material 3 components with built-in accessibility" />
+        <package name="androidx.compose.foundation" version="compose-bom" note="Focus management APIs" />
+      </android>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <development>
+      - All interactive elements MUST have content descriptions for TalkBack compatibility
+      - Touch targets MUST be minimum 48dp as per Android accessibility guidelines (WCAG compliance)
+      - Text MUST use MaterialTheme.typography (never hardcoded fontSize) to support system font scaling
+      - Color contrast ratios MUST meet WCAG AA 4.5:1 for normal text, 3:1 for large text (18pt+)
+      - Information MUST NOT be conveyed by color alone - use icons + text labels + color
+      - Focus order MUST be logical top-to-bottom, left-to-right for keyboard/D-pad navigation
+      - Decorative images MUST use contentDescription = null (avoid cluttering TalkBack)
+      - Android Accessibility Scanner MUST report zero critical issues before story completion
+    </development>
+    
+    <architecture>
+      - Maintain Compose-only approach from Story 5.4 (no Android framework complexity)
+      - Leverage Material 3 built-in accessibility features (default focus indicators, touch targets)
+      - Follow existing project structure: accessibility improvements in-place (no new repositories)
+      - Reuse existing theme infrastructure (Color.kt, Theme.kt) for contrast validation
+    </architecture>
+    
+    <testing>
+      - TalkBack testing MANDATORY on physical device for all user flows
+      - Large font testing REQUIRED at "Largest" system font size (Settings → Display → Font Size)
+      - Android Accessibility Scanner validation REQUIRED (install from Play Store)
+      - D-pad/keyboard navigation testing if device supports
+      - Manual test guide MUST include TalkBack scenarios with expected announcements
+      - Unit tests only if utility functions created (e.g., contrast calculation helpers)
+    </testing>
+  </constraints>
+
+  <interfaces>
+    <compose-semantic>
+      <name>Modifier.semantics</name>
+      <kind>Compose accessibility API</kind>
+      <signature>fun Modifier.semantics(mergeDescendants: Boolean = false, properties: (SemanticsPropertyReceiver.() -> Unit)): Modifier</signature>
+      <usage>
+        Add content descriptions:
+        Modifier.semantics { contentDescription = "Log new meal" }
+        
+        Merge child descriptions:
+        Modifier.semantics(mergeDescendants = true) {
+          contentDescription = "Meal entry, 650 calories, Grilled chicken, Today at 12:30 PM"
+        }
+        
+        State descriptions for dynamic content:
+        Modifier.semantics { stateDescription = "Loading" }
+      </usage>
+    </compose-semantic>
+    
+    <material-theme-typography>
+      <name>MaterialTheme.typography</name>
+      <kind>Material 3 typography scale</kind>
+      <signature>headlineLarge, headlineMedium, headlineSmall, bodyLarge, bodyMedium, bodySmall, labelLarge, labelMedium, labelSmall</signature>
+      <usage>
+        Replace hardcoded font sizes:
+        Text("Calories", style = MaterialTheme.typography.bodyMedium)
+        
+        Use appropriate scale:
+        - Headers: headlineMedium
+        - Content: bodyLarge/bodyMedium
+        - Labels: labelSmall
+      </usage>
+    </material-theme-typography>
+    
+    <accessibility-scanner>
+      <name>Android Accessibility Scanner</name>
+      <kind>Testing tool</kind>
+      <signature>Play Store app: com.google.android.apps.accessibility.auditor</signature>
+      <usage>
+        1. Install from Play Store
+        2. Enable scanner in device Settings → Accessibility → Accessibility Scanner
+        3. Launch scanner, navigate to Foodie app screens
+        4. Tap scanner FAB to scan current screen
+        5. Review report: touch target violations, contrast failures, missing descriptions
+        6. Fix HIGH priority issues before story completion
+        7. Document MEDIUM/LOW issues as future enhancements
+      </usage>
+    </accessibility-scanner>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing for Story 5.5 is primarily manual and validation-focused. TalkBack testing on physical device is MANDATORY for all user flows. Android Accessibility Scanner validation is REQUIRED to ensure zero critical issues. Large font testing at "Largest" system font size validates text scaling. D-pad/keyboard navigation testing validates focus order. Unit tests only needed if accessibility utility functions are created (e.g., contrast ratio calculation helpers). Use Truth library for assertions, MockK for mocking if applicable. Follow test naming convention: methodName_whenCondition_thenExpectedResult.
+    </standards>
+    
+    <locations>
+      - Unit tests: app/app/src/test/java/com/foodie/app/util/ (if utility functions created)
+      - Manual test guide: docs/testing/manual-test-guide-story-5-5.md (Task 9)
+      - Accessibility Scanner reports: Document in Dev Notes (Task 8)
+      - TalkBack test scenarios: Included in manual test guide (Task 7)
+    </locations>
+    
+    <ideas>
+      <idea id="AC-1" desc="All buttons and images have content descriptions">
+        Manual: Enable TalkBack, navigate MealListScreen, verify FAB announces "Log new meal button", meal cards announce full details, toolbar actions announce purposes
+      </idea>
+      <idea id="AC-2" desc="App supports TalkBack screen reader">
+        Manual: Complete all user flows with TalkBack enabled (add meal, view details, edit, delete, settings), verify all elements announce correctly, no silent elements
+      </idea>
+      <idea id="AC-3" desc="Touch targets minimum 48dp">
+        Manual: Use Layout Inspector to measure touch targets, verify all FABs/IconButtons/Cards ≥48dp, run Accessibility Scanner to detect violations, fix any found
+      </idea>
+      <idea id="AC-4" desc="Text scales with system font size">
+        Manual: Set font to Largest (Settings → Display → Font Size → Largest), verify no text clipping, buttons resize, long descriptions wrap
+      </idea>
+      <idea id="AC-5" desc="Color contrast meets WCAG AA 4.5:1">
+        Manual: Calculate contrast ratios using WebAIM tool, verify all text/background combinations ≥4.5:1, run Accessibility Scanner for automated detection
+      </idea>
+      <idea id="AC-6" desc="Information not color-only">
+        Manual: Visual inspection of error states (icon + red color), success states (checkmark + green), status indicators (text + color)
+      </idea>
+      <idea id="AC-7" desc="Logical focus order">
+        Manual: Tab through all screens with keyboard/D-pad, verify top-to-bottom left-to-right traversal, no skipped elements, focus indicators visible
+      </idea>
+      <idea id="AC-8" desc="Camera button TalkBack discoverable">
+        Manual: Enable TalkBack, navigate to camera (via FAB or widget), verify capture button announces "Capture photo" or similar, easily located via swipe
+      </idea>
+      <idea id="UNIT-1" desc="Contrast ratio calculation (if utility created)">
+        Unit: Test calculateContrastRatio(foreground, background) returns ≥4.5 for WCAG AA minimum, handles edge cases (black/white, same color)
+      </idea>
+    </ideas>
+  </tests>
+</story-context>
