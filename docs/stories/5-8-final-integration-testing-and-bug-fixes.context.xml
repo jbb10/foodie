@@ -1,0 +1,564 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>8</storyId>
+    <title>Final Integration Testing and Bug Fixes</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-23</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-8-final-integration-testing-and-bug-fixes.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer</asA>
+    <iWant>to perform comprehensive integration testing</iWant>
+    <soThat>the MVP is stable and ready for daily use</soThat>
+    <tasks>
+**Task 1: Documentation Research &amp; Integration Testing Best Practices** ⚠️ COMPLETE BEFORE PROCEEDING
+- Research Android testing methodologies, test plan creation, E2E validation strategies
+- Review multi-device testing, Android version coverage (API 28-35), manufacturer quirks
+- Review edge case scenarios: network conditions, permissions, storage, battery optimization
+- Review performance validation: capture timing, list load, battery usage patterns
+- Review existing test coverage across all 5 epics (33 stories)
+- Review known issues from epic retrospectives for regression testing
+- Document findings before proceeding to Task 2
+
+**Task 2: Create Comprehensive Test Plan** (AC: #2, #3, #7, #8)
+- Build test matrix covering all 33 user stories across 5 epics
+- Define test scenarios: happy path, edge cases, integration points
+- Create edge case test matrix: network, permissions, storage, battery
+- Document device and Android version test coverage
+- Create test checklist template for manual execution
+
+**Task 3: Execute End-to-End Integration Tests** (AC: #1)
+- Epic 1: Foundation validation (build, MVVM, navigation, Health Connect, logging)
+- Epic 2: AI capture flow validation (widget→camera→API→WorkManager→HC save)
+- Epic 3: Data management validation (list, edit, update, delete, refresh)
+- Epic 4: Error handling validation (network errors, retries, photo cleanup, permissions)
+- Epic 5: Configuration &amp; polish validation (settings, API config, dark mode, accessibility, performance, onboarding)
+
+**Task 4: Edge Case Testing** (AC: #3)
+- Network conditions: offline, poor signal, Wi-Fi handoff, timeout scenarios
+- Permission denials: camera, Health Connect, notifications, storage
+- Low storage scenarios: photo capture, WorkManager processing, HC writes
+- Battery optimization: Doze mode, battery saver, app standby
+
+**Task 5: Performance Validation** (AC: #4, #9)
+- Capture flow timing: widget→camera→confirm→background processing (target &lt; 5s)
+- List load performance: first render, varying data volumes, scrolling 60fps
+- App launch times: cold launch (≤ 2s), warm launch (≤ 1s)
+- Battery usage: 3-5 captures/day profiling with Battery Historian
+
+**Task 6: Multi-Device and Android Version Testing** (AC: #7, #8)
+- Primary device testing: all Epic 1-5 scenarios, document device-specific issues
+- Secondary device testing: core flows, UI rendering differences
+- Minimum API 28 validation: all features working, compatibility checks
+- Target API 35 validation: new Android 15 behaviors, notification permissions
+
+**Task 7: Bug Identification and Documentation** (AC: #5, #6)
+- Create bug tracking with severity classification (Critical/Major/Minor)
+- Document issues with reproduction steps, screenshots, device info
+- Prioritize critical/major bugs for immediate fix
+- Document known issues with workarounds
+
+**Task 8: Critical and Major Bug Fixes** (AC: #5)
+- Investigate root causes, implement MVVM-compliant fixes
+- Add regression tests (unit or instrumentation)
+- Verify fixes on both test devices
+- Ensure no new bugs introduced
+
+**Task 9: Final Regression Testing** (AC: #1, #2, #4)
+- Re-execute complete integration test plan after bug fixes
+- Verify all 33 stories still working, performance targets met
+- Run automated test suite: ./gradlew test + connectedAndroidTest
+- Perform final smoke test on both devices
+
+**Task 10: Production Readiness Checklist** (AC: #1-10)
+- Code quality: warnings resolved, ProGuard validated, logging appropriate
+- Security: encrypted API keys, HTTPS enforced, obfuscation configured
+- Performance: APK &lt; 10MB, launch ≤ 2s, capture ≤ 5s, list ≤ 500ms, battery acceptable
+- Functionality: all 10 ACs verified, critical bugs fixed, known issues documented
+- Testing: automated tests passing, manual tests on 2+ devices, API 28/35 validated
+- Documentation: README updated, KNOWN_ISSUES.md created if needed, release notes prepared
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+**AC #1: Complete end-to-end flow works on physical device**
+- Given: All features implemented
+- When: Integration testing performed
+- Then: Full capture→edit→delete flow validated on physical device
+
+**AC #2: All user stories manually tested and verified**
+- Given: 33 stories across 5 epics
+- When: Integration test plan executed
+- Then: Each story validated with pass/fail documentation
+
+**AC #3: Edge cases tested**
+- Given: App running in non-ideal conditions
+- When: Edge case scenarios executed
+- Then: Poor network, permission denials, low storage handled gracefully
+
+**AC #4: Performance targets met**
+- Given: Performance validation executed
+- When: Timing measurements collected
+- Then: Capture &lt; 5s, list load &lt; 500ms verified
+
+**AC #5: No critical bugs preventing core functionality**
+- Given: Bug tracking maintained
+- When: Critical bugs identified
+- Then: All critical bugs fixed or documented with workarounds
+
+**AC #6: Known issues documented with workarounds**
+- Given: Non-critical issues identified
+- When: Issues documented
+- Then: KNOWN_ISSUES.md or README contains workarounds
+
+**AC #7: Tested on at least 2 different Android devices**
+- Given: Multi-device test plan
+- When: Tests executed on 2+ devices
+- Then: Different manufacturers validated, device-specific issues documented
+
+**AC #8: Different Android versions tested (minimum API 28, target API 35)**
+- Given: Android version coverage required
+- When: Tests on API 28 and API 35
+- Then: Compatibility verified, version-specific behaviors documented
+
+**AC #9: Battery usage acceptable for daily tracking (3-5 captures per day)**
+- Given: Battery profiling completed
+- When: Typical usage simulated
+- Then: Battery drain &lt; 5% per day with 3-5 captures
+
+**AC #10: Integration test plan documented with results**
+- Given: Test plan created and executed
+- When: All tests completed
+- Then: Results documented with pass/fail status for each story
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Success Criteria</section>
+        <snippet>Primary Success Criterion: Average capture time ≤ 5 seconds from widget tap to photo saved. This is the core hypothesis - can invisible tracking actually work in real life? Secondary: Sustained usage on workdays after 30 days (80%+ workdays logged), AI accuracy trust-based validation.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>MVP - V1.0 Scope</section>
+        <snippet>Core Capture Flow: Home screen widget → camera → Azure OpenAI GPT-4.1 API → background processing → auto-save to Health Connect → ephemeral photo deletion. Data Management: List view, edit capability, delete capability, full CRUD operations. Technical Foundation: Client-only architecture, no backend, native Android Kotlin.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Testing Strategy</section>
+        <snippet>Unit tests with JUnit 4.13.2 + Mockito 5.14.2, instrumentation tests with Espresso, manual testing for integration validation. Pattern: Arrange-Act-Assert, naming: methodName_whenCondition_thenExpectedResult, Truth library for assertions. Integration tests cover component boundaries, E2E tests validate complete workflows.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>MVVM Architecture Foundation</section>
+        <snippet>ViewModel + StateFlow + Compose screen structure established in Story 1.2. All screens follow this pattern: stateless composables, ViewModels manage business logic and state, Repository layer abstracts data sources. Hilt dependency injection throughout.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/tech-spec-epic-5.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Story 5.8 Acceptance Criteria</section>
+        <snippet>10 acceptance criteria covering: complete E2E flow on physical device, all 33 stories verified, edge cases tested (network/permissions/storage/battery), performance targets (&lt; 5s capture, &lt; 500ms list load), no critical bugs, known issues documented, multi-device testing (2+ devices), Android version coverage (API 28-35), battery usage acceptable (3-5 captures/day), documented test plan with results.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/retrospectives/epic-1-retrospective.md</path>
+        <title>Epic 1 Retrospective</title>
+        <section>Known Issues and Technical Debt</section>
+        <snippet>Foundation stories completed successfully with comprehensive test coverage. Health Connect integration tested with permissions flow. Logging framework captures errors correctly. No critical technical debt identified in Epic 1.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/retrospectives/epic-2-retrospective-2025-11-12.md</path>
+        <title>Epic 2 Retrospective</title>
+        <section>Known Issues and Learnings</section>
+        <snippet>WorkManager caching issue requiring app data clear for configuration changes (Story 2.5). Lock screen widget pivoted to home screen due to Android platform limitation. Camera integration uses system intent (2MP JPEG 80% quality). Manual testing preferred for WorkManager + Health Connect + Azure API integration stack.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/retrospectives/epic-3-retrospective-2025-11-13.md</path>
+        <title>Epic 3 Retrospective</title>
+        <section>Data Management Learnings</section>
+        <snippet>Health Connect cross-app sync validated successfully. Edit screen performance validated (107ms load time). Delete functionality with cross-app validation confirmed. Pull-to-refresh lifecycle integrated. No critical issues, smooth epic completion.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/retrospectives/epic-4-retrospective-2025-11-18.md</path>
+        <title>Epic 4 Retrospective</title>
+        <section>Error Handling and Reliability</section>
+        <snippet>Network error infrastructure complete with exponential backoff retry logic. API error classification handles auth, server, network, rate limit errors. Photo cleanup scheduler at 3am daily. Health Connect permission handling with Play Store redirect. Graceful degradation with user feedback. Persistent notifications with manual retry (Story 4.3 implementation).</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/stories/5-7-user-onboarding-first-launch.md</path>
+        <title>Story 5.7: User Onboarding</title>
+        <section>Dev Agent Record - Integration Points</section>
+        <snippet>OnboardingPreferences first-launch detection via SharedPreferences. MainActivity injects OnboardingPreferences, NavGraph checks isOnboardingCompleted() for conditional routing. Health Connect permissions granted during onboarding carry over to capture flow. API configuration in Settings from onboarding Screen 4. 19 unit tests passing, all 10 ACs verified.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/stories/5-6-performance-optimization-and-polish.md</path>
+        <title>Story 5.6: Performance Optimization</title>
+        <section>Performance Baselines</section>
+        <snippet>Cold launch: 524ms average (well below 2s target). Screen transitions: smooth 60fps validated. Memory footprint: peak 85.8 MB (below 100 MB limit). APK size: 5.5 MB with R8 optimization (below 10 MB target). Manual test guide structure with 8 scenarios + clear AC mapping. Physical device testing on Pixel 8 Pro.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/testing/manual-test-guide-story-5-3.md</path>
+        <title>Manual Test Guide Template (Story 5.3)</title>
+        <section>Test Structure Example</section>
+        <snippet>9 test scenarios + 4 edge cases covering all ACs. Clear steps, expected results, variations. Executed successfully on Pixel 8 Pro. Pattern: Scenario number, description, prerequisites, steps, expected behavior, validation checklist.</snippet>
+      </artifact>
+      <artifact>
+        <path>bmad/bmm/testarch/knowledge/test-levels-framework.md</path>
+        <title>Test Levels Framework</title>
+        <section>Integration and E2E Testing</section>
+        <snippet>Integration tests: component interaction verification, moderate execution time, test boundaries. E2E tests: critical user journeys, cross-system workflows, slower execution, complete workflows. Decision matrix: use integration for component boundaries, E2E for revenue-critical paths and final validation before release.</snippet>
+      </artifact>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+        <kind>navigation</kind>
+        <symbol>FoodieNavGraph</symbol>
+        <lines>1-150</lines>
+        <reason>Navigation configuration for all screens, includes conditional onboarding routing from Story 5.7. Integration testing must validate navigation between MealList→Edit→Settings screens.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/MainActivity.kt</path>
+        <kind>activity</kind>
+        <symbol>MainActivity</symbol>
+        <lines>1-100</lines>
+        <reason>Single activity with Compose, injects OnboardingPreferences for first-launch detection. Integration testing validates app startup flow and theme application.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>manager</kind>
+        <symbol>HealthConnectManager</symbol>
+        <lines>1-200</lines>
+        <reason>Health Connect integration for data persistence (Epic 1, 2, 3). Integration testing validates permissions, nutrition data save/query/update/delete operations across all flows.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <kind>worker</kind>
+        <symbol>AnalyzeMealWorker</symbol>
+        <lines>1-250</lines>
+        <reason>Background processing with WorkManager (Story 2.5), integrates Azure OpenAI API + Health Connect save. Integration testing validates retry logic, error handling, notification flow.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/remote/api/AzureOpenAiApi.kt</path>
+        <kind>api</kind>
+        <symbol>AzureOpenAiApi</symbol>
+        <lines>1-100</lines>
+        <reason>Retrofit API client for Azure OpenAI (Epic 2). Integration testing validates API key configuration from Settings, endpoint validation, network error handling (Epic 4).</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt</path>
+        <kind>compose-screen</kind>
+        <symbol>MealListScreen</symbol>
+        <lines>1-200</lines>
+        <reason>Primary screen showing meal history (Story 3.1). Integration testing validates Health Connect query, pull-to-refresh, navigation to edit screen, performance (&lt; 500ms load).</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/editmeal/EditMealScreen.kt</path>
+        <kind>compose-screen</kind>
+        <symbol>EditMealScreen</symbol>
+        <lines>1-250</lines>
+        <reason>Edit screen for meal entries (Story 3.2). Integration testing validates pre-population from Health Connect, save updates, delete functionality, navigation back to list.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt</path>
+        <kind>compose-screen</kind>
+        <symbol>SettingsScreen</symbol>
+        <lines>1-300</lines>
+        <reason>Settings screen with API configuration (Stories 5.1-5.3). Integration testing validates encrypted API key storage, test connection, model selection, dark mode toggle.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/onboarding/OnboardingScreen.kt</path>
+        <kind>compose-screen</kind>
+        <symbol>OnboardingScreen</symbol>
+        <lines>1-340</lines>
+        <reason>4-screen onboarding flow (Story 5.7). Integration testing validates first-launch detection, Health Connect permissions, Settings navigation, skip functionality, completion flag persistence.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt</path>
+        <kind>preferences</kind>
+        <symbol>SecurePreferences</symbol>
+        <lines>1-150</lines>
+        <reason>Encrypted API key storage (Story 5.2). Integration testing validates encryption/decryption, persistence across app restarts, integration with AzureOpenAiApi.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/theme/Theme.kt</path>
+        <kind>theme</kind>
+        <symbol>FoodieTheme</symbol>
+        <lines>1-100</lines>
+        <reason>Material 3 theme with dark mode support (Story 5.4). Integration testing validates theme switching across all screens, color accessibility (WCAG AA), dynamic color support.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt</path>
+        <kind>manager</kind>
+        <symbol>PhotoManager</symbol>
+        <lines>1-100</lines>
+        <reason>Photo capture and cleanup (Stories 2.3, 4.4). Integration testing validates temporary storage, deletion after analysis, low storage error handling.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+        <kind>handler</kind>
+        <symbol>ErrorHandler</symbol>
+        <lines>1-150</lines>
+        <reason>Error classification and handling (Epic 4). Integration testing validates network errors, API errors, permission errors, graceful degradation, user feedback.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/test/java/com/foodie/app</path>
+        <kind>test-directory</kind>
+        <symbol>Unit Tests</symbol>
+        <lines>N/A</lines>
+        <reason>Comprehensive unit test suite across all components. Integration testing validates all tests still passing after bug fixes (regression testing). Run: ./gradlew test</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/androidTest/java/com/foodie/app</path>
+        <kind>test-directory</kind>
+        <symbol>Instrumentation Tests</symbol>
+        <lines>N/A</lines>
+        <reason>Instrumentation tests for UI and integration validation. Integration testing validates tests passing where environmental issues allow. Run: ./gradlew connectedAndroidTest</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <android>
+        <package name="androidx.compose" version="2024.10.01" reason="Jetpack Compose UI framework - all screens validated in integration testing"/>
+        <package name="androidx.hilt" version="2.51.1" reason="Dependency injection - integration testing validates injection graph across all components"/>
+        <package name="androidx.navigation" version="2.8.4" reason="Navigation Compose - integration testing validates screen transitions and deep linking"/>
+        <package name="androidx.work" version="2.9.1" reason="WorkManager background processing - integration testing validates retry logic, constraints, notification flow"/>
+        <package name="androidx.health.connect" version="1.1.0" reason="Health Connect API - integration testing validates permissions, CRUD operations, cross-app sync"/>
+        <package name="com.squareup.retrofit2" version="2.11.0" reason="HTTP client for Azure OpenAI - integration testing validates API configuration, network errors, retry logic"/>
+        <package name="androidx.security.security-crypto" version="1.1.0-alpha06" reason="EncryptedSharedPreferences - integration testing validates API key encryption/decryption"/>
+        <package name="com.jakewharton.timber" version="5.0.1" reason="Logging framework - integration testing validates error logging, no PII leaks"/>
+      </android>
+      <testing>
+        <package name="junit" version="4.13.2" reason="Unit testing framework - regression testing validates all tests passing"/>
+        <package name="org.mockito" version="5.14.2" reason="Mocking framework - unit test support for isolated component testing"/>
+        <package name="com.google.truth" version="1.4.4" reason="Assertion library - readable test assertions across unit and integration tests"/>
+        <package name="androidx.test.espresso" version="3.6.1" reason="UI testing - instrumentation test support for Compose UI validation"/>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+**Architecture Constraints:**
+- MVVM pattern must be followed for all bug fixes (ViewModel + Repository + Data Source layers)
+- No new production code expected unless fixing critical bugs
+- Bug fixes must include regression tests (unit or instrumentation)
+- Maintain single activity architecture with Jetpack Compose navigation
+- Health Connect is single source of truth - no local database
+- Client-only architecture - no backend server, no cloud sync
+
+**Testing Constraints:**
+- Manual testing is PRIMARY validation method (established pattern from Epic 2-5)
+- Instrumentation tests may fail due to environmental "No compose hierarchies" issue (documented in Stories 5.1-5.3)
+- Physical device testing required for WorkManager, Health Connect, camera integration
+- Multi-device testing required: minimum 2 devices, different manufacturers
+- Android version coverage: API 28 (minimum) and API 35 (target) validation mandatory
+
+**Performance Constraints:**
+- Capture flow must complete in ≤ 5 seconds (widget tap → photo saved → return to previous activity) - PRD primary success criterion
+- List load must complete in &lt; 500ms (MealListScreen first render)
+- App cold launch must complete in ≤ 2 seconds (Story 5.6 target)
+- Screen transitions must maintain 60fps (no jank or frame drops)
+- Battery usage must be &lt; 5% per day with typical usage (3-5 captures)
+- APK size must remain &lt; 10 MB (current: 5.5 MB from Story 5.6)
+- Memory footprint must stay &lt; 100 MB peak (current: 85.8 MB from Story 5.6)
+
+**Security Constraints:**
+- API keys must use EncryptedSharedPreferences with Android Keystore encryption (Story 5.2 pattern)
+- No API keys in BuildConfig or version control (migrated to runtime storage in Story 5.2)
+- Network security config must enforce HTTPS only
+- ProGuard/R8 obfuscation must be enabled for release builds
+- No logging of sensitive data (API keys, user PII)
+
+**Integration Testing Constraints:**
+- All 33 user stories across 5 epics must be validated
+- Edge cases must be tested: network failures, permission denials, low storage, battery optimization
+- Test plan documentation required with pass/fail status for each story
+- Bug tracking with severity classification (Critical/Major/Minor) required
+- Known issues must be documented with workarounds if not fixed
+- Production readiness checklist must be completed before marking story done
+
+**Known Issues from Retrospectives:**
+- WorkManager configuration caching requires app data clear for changes (Story 2.5) - workaround documented
+- Lock screen widget not possible on Android (platform limitation) - pivoted to home screen widget (Story 2.2)
+- Instrumentation tests fail with "No compose hierarchies" error (environmental issue) - manual testing compensates (Stories 5.1-5.3)
+- Manual testing preferred for WorkManager + Health Connect + Azure API integration stack (Story 2.5 pattern)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>HealthConnectManager</name>
+      <kind>kotlin-interface</kind>
+      <signature>suspend fun requestPermissions(): Boolean, suspend fun hasPermissions(): Boolean, suspend fun insertNutritionRecord(calories: Int, description: String, photoTakenAt: Instant): String, suspend fun queryNutritionRecords(startTime: Instant, endTime: Instant): List&lt;NutritionRecord&gt;, suspend fun updateNutritionRecord(recordId: String, calories: Int, description: String): Boolean, suspend fun deleteNutritionRecord(recordId: String): Boolean</signature>
+      <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+    </interface>
+    <interface>
+      <name>AzureOpenAiApi</name>
+      <kind>retrofit-interface</kind>
+      <signature>@POST("openai/deployments/{deploymentId}/chat/completions") suspend fun analyzeMeal(@Path deploymentId: String, @Body request: ChatCompletionRequest, @Query api-version: String): Response&lt;ChatCompletionResponse&gt;</signature>
+      <path>app/src/main/java/com/foodie/app/data/remote/api/AzureOpenAiApi.kt</path>
+    </interface>
+    <interface>
+      <name>AnalyzeMealWorker</name>
+      <kind>workmanager-worker</kind>
+      <signature>class AnalyzeMealWorker @AssistedInject constructor(@Assisted context: Context, @Assisted params: WorkerParameters, healthConnectManager: HealthConnectManager, azureOpenAiApi: AzureOpenAiApi, photoManager: PhotoManager): CoroutineWorker(context, params). Input: photoUri String, photoTakenAt Long. Output: Success with recordId or Failure. Retry strategy: exponential backoff with network constraint.</signature>
+      <path>app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+    </interface>
+    <interface>
+      <name>SecurePreferences</name>
+      <kind>kotlin-interface</kind>
+      <signature>fun saveApiKey(apiKey: String), fun getApiKey(): String?, fun hasApiKey(): Boolean, fun clearApiKey(). Uses EncryptedSharedPreferences with Android Keystore AES256_GCM encryption.</signature>
+      <path>app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt</path>
+    </interface>
+    <interface>
+      <name>ErrorHandler</name>
+      <kind>kotlin-interface</kind>
+      <signature>fun classifyError(throwable: Throwable): ErrorType, fun shouldRetry(errorType: ErrorType): Boolean, fun getUserMessage(errorType: ErrorType): String. ErrorType enum: NETWORK, API_AUTH, API_SERVER, API_RATE_LIMIT, HEALTH_CONNECT_PERMISSION, STORAGE, UNKNOWN.</signature>
+      <path>app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt</path>
+    </interface>
+    <interface>
+      <name>FoodieNavGraph</name>
+      <kind>compose-navigation</kind>
+      <signature>@Composable fun FoodieNavGraph(navController: NavHostController, startDestination: String, onboardingPreferences: OnboardingPreferences). Routes: mealList, editMeal/{recordId}, settings, onboarding. Conditional start destination based on onboarding_completed flag.</signature>
+      <path>app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+**Unit Testing:**
+- Framework: JUnit 4.13.2 with Mockito 5.14.2 for mocking, Truth 1.4.4 for assertions
+- Location: app/src/test/java/com/foodie/app/
+- Pattern: Arrange-Act-Assert with methodName_whenCondition_thenExpectedResult naming
+- Coverage: All ViewModels, repositories, managers, workers, utilities have unit tests
+- Regression requirement: All tests must pass after bug fixes (./gradlew test → 0 failures)
+
+**Instrumentation Testing:**
+- Framework: Espresso 3.6.1 with Compose UI Test (androidx.compose.ui:ui-test-junit4)
+- Location: app/src/androidTest/java/com/foodie/app/
+- Known issue: Environmental "No compose hierarchies" error affects many UI tests (Stories 5.1-5.3)
+- Workaround: Manual testing compensates for instrumentation test failures (established pattern)
+- Regression requirement: Run ./gradlew connectedAndroidTest, document pass/fail status
+
+**Manual Testing:**
+- PRIMARY validation method for integration and E2E scenarios (Epic 2-5 pattern)
+- Required for: WorkManager, Health Connect, Azure API integration, multi-screen flows
+- Template: docs/testing/manual-test-guide-story-5-3.md (9 scenarios + edge cases structure)
+- Documentation: Create integration-test-plan.md with all 33 stories mapped to test scenarios
+
+**Integration Testing (Story 5.8 Specific):**
+- Comprehensive test plan covering all 33 user stories across 5 epics
+- Edge case matrix: network (offline, poor signal, handoff), permissions (camera, HC, notifications), storage (low space, cache full), battery (Doze, battery saver, app standby)
+- Multi-device validation: 2+ physical devices, different manufacturers (e.g., Pixel + Samsung)
+- Android version coverage: API 28 (minimum) + API 35 (target) validation mandatory
+- Performance validation: Capture timing (&lt; 5s), list load (&lt; 500ms), launch (&lt; 2s), battery (&lt; 5%/day), APK size (&lt; 10MB), memory (&lt; 100MB)
+
+**Testing Standards from Previous Stories:**
+- Story 5.7: 19 unit tests passing (OnboardingPreferencesTest: 4, OnboardingViewModelTest: 15)
+- Story 5.6: Manual test guide with 8 scenarios, physical device testing on Pixel 8 Pro
+- Story 5.3: 8 unit tests + 9 manual scenarios + 4 edge cases, all passing on physical device
+- Story 5.2: 35 automated tests (9 SecurePreferences + 7 ViewModel + 8 ApiConfiguration + 7 integration + 4 other)
+- Story 2.5: 187 tests passing, manual testing preferred for WorkManager + Health Connect + API stack
+    </standards>
+
+    <locations>
+      <location>app/src/test/java/com/foodie/app/ - Unit tests (comprehensive coverage across all components)</location>
+      <location>app/src/androidTest/java/com/foodie/app/ - Instrumentation tests (environmental issues may cause failures)</location>
+      <location>docs/testing/integration-test-plan.md - Test matrix for all 33 stories (TO BE CREATED in Task 2)</location>
+      <location>docs/testing/manual-test-guide-story-5-8.md - Manual test guide for integration scenarios (TO BE CREATED in Task 2)</location>
+      <location>docs/testing/bug-tracking.md - Bug tracking log with severity classification (TO BE CREATED in Task 7)</location>
+      <location>docs/testing/performance-validation.md - Performance measurement results (TO BE CREATED in Task 5)</location>
+      <location>docs/testing/device-test-results.md - Multi-device test results (TO BE CREATED in Task 6)</location>
+    </locations>
+
+    <ideas>
+**Epic 1 Foundation Tests:**
+- Verify project builds without errors (./gradlew assembleDebug)
+- Validate MVVM architecture patterns followed across all screens
+- Test navigation between MealList → Edit → Settings screens
+- Validate Health Connect permissions: request, grant, deny, revoke scenarios
+- Check logging framework captures errors correctly (no PII leaks)
+
+**Epic 2 AI Capture Flow Tests:**
+- Measure widget tap → camera launch timing (target &lt; 3s)
+- Verify camera capture → photo preview → retake flow
+- Confirm Azure OpenAI API integration with valid credentials from Settings
+- Validate background processing: WorkManager → ForegroundService → notification
+- Verify Health Connect saves nutrition data with correct time zone
+- Test end-to-end: widget → camera → confirm → analysis → HC save → notification dismiss
+- Validate foreground notification display, silent mode, dismissal
+
+**Epic 3 Data Management Tests:**
+- Test meal list loads all entries from Health Connect (last 7 days, sorted newest first)
+- Verify edit screen opens with pre-populated data from Health Connect
+- Confirm updates save to Health Connect and reflect in list immediately
+- Test delete removes entries from Health Connect and cross-app sync works
+- Validate pull-to-refresh updates meal list from Health Connect
+
+**Epic 4 Error Handling Tests:**
+- Test network error detection: offline mode, poor signal, timeout scenarios
+- Verify API error classification: auth (401), server (500), network, rate limit (429)
+- Confirm photo cleanup removes temporary files (PhotoCleanupWorker at 3am)
+- Test Health Connect permission handling: unavailable, denied, revoked mid-session
+- Validate graceful degradation: API unavailable shows clear user message
+- Test persistent notification with manual retry (RetryBroadcastReceiver)
+
+**Epic 5 Configuration &amp; Polish Tests:**
+- Test Settings screen displays and saves preferences correctly
+- Verify API key encryption (EncryptedSharedPreferences), test connection validation
+- Confirm model selection and custom deployment name configuration
+- Test dark mode switching across all screens (MealList, Edit, Settings, Onboarding)
+- Validate accessibility: TalkBack navigation, content descriptions, 48dp touch targets, WCAG AA contrast
+- Verify performance: launch &lt; 2s, transitions 60fps, APK &lt; 10MB, memory &lt; 100MB
+- Test onboarding flow: first-launch detection, widget guidance, HC permissions, API config, skip functionality
+
+**Edge Case Tests:**
+- Network: Offline capture → retry notification → auto-retry when network restored
+- Network: Poor signal → timeout → exponential backoff retry logic
+- Network: Wi-Fi to cellular handoff during API call → WorkManager retries
+- Permissions: Camera denied → user-friendly error → redirect to Settings
+- Permissions: Health Connect denied → prompt re-request, continue if still denied
+- Permissions: Notification denied (Android 13+) → ForegroundService still works
+- Storage: Low storage during photo capture → error message, skip save
+- Storage: Cache dir full during WorkManager processing → cleanup → retry
+- Battery: Doze mode → delayed WorkManager processing → completes eventually
+- Battery: Battery saver enabled → ForegroundService priority maintained
+
+**Performance Validation Tests:**
+- Capture flow timing: Widget tap → camera launch (&lt; 3s), photo → confirmation (&lt; 2s), complete flow (&lt; 5s)
+- List load: MealListScreen first render (&lt; 500ms), varying data volumes (10, 50, 100+ entries)
+- Scrolling: Meal list scrolling maintains 60fps (GPU Rendering Profile green bars)
+- App launch: Cold launch &lt; 2s (adb shell am start -W), warm launch &lt; 1s
+- Battery usage: Profile 3-5 captures/day over 24 hours with Battery Historian (&lt; 5% drain)
+
+**Multi-Device Tests:**
+- Primary device (e.g., Pixel 8 Pro API 35): Run all Epic 1-5 scenarios
+- Secondary device (e.g., Samsung Galaxy API 28): Test core flows (capture, edit, delete, settings)
+- Validate UI rendering: Different screen sizes, aspect ratios, notches
+- Check manufacturer quirks: Samsung One UI, Pixel stock Android, OnePlus OxygenOS
+- API 28 (Android 9): Verify all features work, Health Connect available, no API compatibility issues
+- API 35 (Android 15): Verify new Android 15 behaviors, notification permissions, predictive back gesture
+
+**Bug Tracking Tests:**
+- Create bug tracking log with columns: ID, Severity, Description, Repro Steps, Expected vs Actual, Device/Version, Status
+- Classify bugs: Critical (prevents core functionality), Major (significant UX issue), Minor (cosmetic)
+- Document all issues with screenshots/recordings, device info, clear reproduction steps
+- Prioritize critical/major bugs for immediate fix, defer minor bugs to V2.0
+- Document known issues with workarounds in KNOWN_ISSUES.md or README.md
+
+**Regression Tests After Bug Fixes:**
+- Re-run complete integration test plan (all 33 stories)
+- Execute automated test suite: ./gradlew test + connectedAndroidTest
+- Perform smoke test: capture → list → edit → delete → settings → dark mode → onboarding
+- Verify performance targets still met after fixes
+- Validate no new bugs introduced by fixes
+    </ideas>
+  </tests>
+</story-context>

@@ -278,12 +278,6 @@ fun SettingsScreen(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
             }
-            item(key = "appearance_accessibility") {
-                PreferencePlaceholder(
-                    title = "Accessibility",
-                    summary = "Configure in Story 5.5"
-                )
-            }
             item(key = "appearance_divider") {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             }
