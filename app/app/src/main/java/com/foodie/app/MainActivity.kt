@@ -1,11 +1,14 @@
 package com.foodie.app
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,7 +43,7 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    
+
     @Inject
     lateinit var healthConnectManager: HealthConnectManager
 
@@ -49,165 +52,145 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var onboardingPreferences: OnboardingPreferences
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         enableEdgeToEdge()
         setContent {
-            var showHealthConnectDialog by remember { mutableStateOf(false) }
-            
-            // Track first launch for one-time permission requests
-            val prefs = getSharedPreferences("foodie_prefs", MODE_PRIVATE)
-            val isFirstLaunch = remember { prefs.getBoolean("first_launch", true) }
-            
-            // Track whether to request notification permission after HC permissions
-            var shouldRequestNotificationPermission by remember { mutableStateOf(false) }
-            
-            // Register notification permission launcher (Android 13+)
-            val requestNotificationPermission = rememberLauncherForActivityResult(
-                androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
-            ) { granted ->
-                Timber.i("Notification permission result: granted=$granted")
-                shouldRequestNotificationPermission = false
-            }
-            
-            // Register Health Connect permission launcher
-            val requestHealthConnectPermissions = rememberLauncherForActivityResult(
-                healthConnectManager.createPermissionRequestContract()
-            ) { granted ->
-                Timber.i("Health Connect permission result: granted=${granted.size}, required=${HealthConnectManager.REQUIRED_PERMISSIONS.size}")
-                if (granted.containsAll(HealthConnectManager.REQUIRED_PERMISSIONS)) {
-                    Timber.i("Health Connect permissions granted")
-                } else {
-                    Timber.w("Health Connect permissions denied or incomplete")
-                }
-                
-                // After Health Connect permissions handled, request notification permission
-                if (shouldRequestNotificationPermission) {
-                    shouldRequestNotificationPermission = false
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                        val hasNotificationPermission = checkSelfPermission(
-                            android.Manifest.permission.POST_NOTIFICATIONS
-                        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-                        
-                        if (!hasNotificationPermission) {
-                            Timber.i("Requesting notification permission after HC...")
-                            requestNotificationPermission.launch(
-                                android.Manifest.permission.POST_NOTIFICATIONS
-                            )
-                        }
-                    }
-                }
-            }
-            
-            // Observe theme preference and determine dark mode (Story 5.4)
-            val themeMode by preferencesRepository.getThemeMode().collectAsState(initial = ThemeMode.SYSTEM_DEFAULT)
-            val systemInDarkTheme = isSystemInDarkTheme()
-            val darkTheme = when (themeMode) {
-                ThemeMode.LIGHT -> false
-                ThemeMode.DARK -> true
-                ThemeMode.SYSTEM_DEFAULT -> systemInDarkTheme
-            }
-            
-            FoodieTheme(darkTheme = darkTheme) {
-                // Check if we should navigate to a specific screen (e.g., from notification)
-                val navigateToRoute = intent?.getStringExtra("navigate_to")
-                
-                // Handle deep link actions from error notifications (Story 4.3)
-                LaunchedEffect(intent) {
-                    when (intent?.action) {
-                        "com.foodie.app.OPEN_SETTINGS" -> {
-                            Timber.i("Deep link action: Open Settings")
-                            // TODO: Navigate to settings screen when implemented (Story 5.1)
-                            // For now, log and do nothing - settings screen not yet implemented
-                        }
-                        "com.foodie.app.GRANT_PERMISSIONS" -> {
-                            Timber.i("Deep link action: Grant Permissions")
-                            // Request Health Connect permissions
-                            val hasPermissions = healthConnectManager.checkPermissions()
-                            if (!hasPermissions) {
-                                requestHealthConnectPermissions.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
-                            }
-                        }
-                    }
-                }
-                
-                // Permission check flow - runs on EVERY launch to ensure permissions are granted
-                LaunchedEffect(Unit) {
-                    Timber.i("🎯 Checking permissions on launch (first_launch=$isFirstLaunch)")
-                    
-                    // 1. Check Health Connect availability
-                    val available = healthConnectManager.isAvailable()
-                    Timber.d("Health Connect available: $available")
-                    
-                    if (!available) {
-                        showHealthConnectDialog = true
-                        return@LaunchedEffect
-                    }
-                    
-                    // 2. Check Health Connect permissions
-                    val hasHealthPermissions = healthConnectManager.checkPermissions()
-                    if (!hasHealthPermissions) {
-                        Timber.i("Health Connect permissions missing - requesting...")
-                        // Set flag to request notification permission after HC callback
-                        shouldRequestNotificationPermission = isFirstLaunch // Only request notification on first launch
-                        requestHealthConnectPermissions.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
-                    } else if (isFirstLaunch) {
-                        // First launch and already have HC permissions, request notification directly
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                            val hasNotificationPermission = checkSelfPermission(
-                                android.Manifest.permission.POST_NOTIFICATIONS
-                            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-                            
-                            if (!hasNotificationPermission) {
-                                Timber.i("Requesting notification permission...")
-                                requestNotificationPermission.launch(
-                                    android.Manifest.permission.POST_NOTIFICATIONS
-                                )
-                            }
-                        }
-                        
-                        // Mark first launch complete
-                        prefs.edit().putBoolean("first_launch", false).apply()
-                        Timber.i("✅ First launch permissions requested")
-                    }
-                }
-                
-                NavGraph(
-                    healthConnectManager = healthConnectManager,
-                    onboardingPreferences = onboardingPreferences,
-                    initialRoute = navigateToRoute
+            MainContent()
+        }
+    }
+
+    @Composable
+    private fun MainContent() {
+        var showHealthConnectDialog by remember { mutableStateOf(false) }
+        val prefs = getSharedPreferences("foodie_prefs", MODE_PRIVATE)
+        val isFirstLaunch = remember { prefs.getBoolean("first_launch", true) }
+
+        // Register permission launchers
+        val requestHealthConnectPermissions = createHealthConnectPermissionLauncher()
+
+        // Observe theme preference
+        val darkTheme = observeThemePreference()
+
+        FoodieTheme(darkTheme = darkTheme) {
+            val navigateToRoute = intent?.getStringExtra("navigate_to")
+
+            // Handle deep link actions
+            handleDeepLinkActions(requestHealthConnectPermissions)
+
+            // Permission check flow on launch
+            handlePermissionCheckFlow(
+                isFirstLaunch = isFirstLaunch,
+                prefs = prefs,
+                onShowDialog = { showHealthConnectDialog = it },
+                requestHealthConnect = requestHealthConnectPermissions
+            )
+
+            NavGraph(
+                healthConnectManager = healthConnectManager,
+                onboardingPreferences = onboardingPreferences,
+                initialRoute = navigateToRoute
+            )
+
+            if (showHealthConnectDialog) {
+                HealthConnectUnavailableDialog(
+                    onDismiss = { showHealthConnectDialog = false }
                 )
-                
-                if (showHealthConnectDialog) {
-                    HealthConnectUnavailableDialog(
-                        onDismiss = { showHealthConnectDialog = false }
-                    )
+            }
+        }
+    }
+
+    @Composable
+    private fun createHealthConnectPermissionLauncher(
+    ) = rememberLauncherForActivityResult(
+        healthConnectManager.createPermissionRequestContract()
+    ) { granted ->
+        Timber.i("Health Connect permission result: granted=${granted.size}, required=${HealthConnectManager.REQUIRED_PERMISSIONS.size}")
+
+        val allGranted = granted.containsAll(HealthConnectManager.REQUIRED_PERMISSIONS)
+        Timber.i(if (allGranted) "Health Connect permissions granted" else "Health Connect permissions denied or incomplete")
+    }
+
+    @Composable
+    private fun observeThemePreference(): Boolean {
+        val themeMode by preferencesRepository.getThemeMode().collectAsState(initial = ThemeMode.SYSTEM_DEFAULT)
+        val systemInDarkTheme = isSystemInDarkTheme()
+        return when (themeMode) {
+            ThemeMode.LIGHT -> false
+            ThemeMode.DARK -> true
+            ThemeMode.SYSTEM_DEFAULT -> systemInDarkTheme
+        }
+    }
+
+    @Composable
+    private fun handleDeepLinkActions(requestHealthConnectPermissions: ActivityResultLauncher<Set<String>>) {
+        LaunchedEffect(intent) {
+            when (intent?.action) {
+                "com.foodie.app.OPEN_SETTINGS" -> {
+                    Timber.i("Deep link action: Open Settings")
+                    // TODO: Navigate to settings screen when implemented (Story 5.1)
+                }
+                "com.foodie.app.GRANT_PERMISSIONS" -> {
+                    Timber.i("Deep link action: Grant Permissions")
+                    if (!healthConnectManager.checkPermissions()) {
+                        requestHealthConnectPermissions.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
+                    }
                 }
             }
         }
     }
-    
+
+    @Composable
+    private fun handlePermissionCheckFlow(
+        isFirstLaunch: Boolean,
+        prefs: SharedPreferences,
+        onShowDialog: (Boolean) -> Unit,
+        requestHealthConnect: ActivityResultLauncher<Set<String>>
+    ) {
+        LaunchedEffect(Unit) {
+            Timber.i("🎯 Checking permissions on launch (first_launch=$isFirstLaunch)")
+
+            if (!healthConnectManager.isAvailable()) {
+                Timber.d("Health Connect not available")
+                onShowDialog(true)
+                return@LaunchedEffect
+            }
+
+            val hasHealthPermissions = healthConnectManager.checkPermissions()
+            when {
+                !hasHealthPermissions -> {
+                    Timber.i("Health Connect permissions missing - requesting...")
+                    requestHealthConnect.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
+                }
+                isFirstLaunch -> {
+                    prefs.edit().putBoolean("first_launch", false).apply()
+                    Timber.i("✅ First launch completed")
+                }
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
-        
+
         // Re-check Health Connect availability and permissions when app resumes
         // This handles cases where:
         // - User installed HC from Play Store while app was in background
         // - User revoked HC permissions in Settings while app was in background
         lifecycleScope.launch {
             Timber.i("🔄 Checking HC availability/permissions on resume")
-            
+
             val available = healthConnectManager.isAvailable()
             val hasPermissions = if (available) {
                 healthConnectManager.checkPermissions()
             } else {
                 false
             }
-            
+
             Timber.i("HC state on resume: available=$available, hasPermissions=$hasPermissions")
-            
+
             // Note: UI state updates are handled by LaunchedEffect(Unit) in setContent
             // This just logs the state change for debugging
         }

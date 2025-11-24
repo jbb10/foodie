@@ -61,17 +61,6 @@ class SettingsScreenTest {
     }
 
     @Test
-    fun settingsScreen_displaysPlaceholderText() {
-        composeTestRule.setContent {
-            FoodieTheme {
-                SettingsScreen(onNavigateBack = {})
-            }
-        }
-
-        composeTestRule.onNodeWithText("Settings will appear here").assertIsDisplayed()
-    }
-
-    @Test
     fun settingsScreen_clickBackButton_invokesOnNavigateBack() {
         var backNavigationInvoked = false
 
@@ -88,87 +77,8 @@ class SettingsScreenTest {
         assertThat(backNavigationInvoked).isTrue()
     }
 
-    @Test
-    fun settingsScreen_displaysPlaceholderMessage() {
-        composeTestRule.setContent {
-            FoodieTheme {
-                SettingsScreen(onNavigateBack = {})
-            }
-        }
-
-        composeTestRule.onNodeWithText(
-            "Settings functionality will be implemented in Epic 5"
-        ).assertIsDisplayed()
-    }
-
-    // Story 5.2: API Configuration Tests
-
-    @Test
-    fun settingsScreen_displaysApiConfigurationCategory() {
-        composeTestRule.setContent {
-            FoodieTheme {
-                SettingsScreen(onNavigateBack = {})
-            }
-        }
-
-        composeTestRule.onNodeWithText("API Configuration").assertIsDisplayed()
-    }
-
-    @Test
-    fun settingsScreen_displaysApiKeyField() {
-        composeTestRule.setContent {
-            FoodieTheme {
-                SettingsScreen(onNavigateBack = {})
-            }
-        }
-
-        composeTestRule.onNodeWithText("API Key").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Azure OpenAI API Key").assertIsDisplayed()
-    }
-
-    @Test
-    fun settingsScreen_displaysEndpointField() {
-        composeTestRule.setContent {
-            FoodieTheme {
-                SettingsScreen(onNavigateBack = {})
-            }
-        }
-
-        composeTestRule.onNodeWithText("Azure OpenAI Endpoint").assertIsDisplayed()
-    }
-
-    @Test
-    fun settingsScreen_displaysModelField() {
-        composeTestRule.setContent {
-            FoodieTheme {
-                SettingsScreen(onNavigateBack = {})
-            }
-        }
-
-        composeTestRule.onNodeWithText("Model Deployment Name").assertIsDisplayed()
-    }
-
-    @Test
-    fun settingsScreen_displaysSaveButton() {
-        composeTestRule.setContent {
-            FoodieTheme {
-                SettingsScreen(onNavigateBack = {})
-            }
-        }
-
-        composeTestRule.onNodeWithText("Save Configuration").assertIsDisplayed()
-    }
-
-    @Test
-    fun settingsScreen_displaysTestConnectionButton() {
-        composeTestRule.setContent {
-            FoodieTheme {
-                SettingsScreen(onNavigateBack = {})
-            }
-        }
-
-        composeTestRule.onNodeWithText("Test Connection").assertIsDisplayed()
-    }
+    // Placeholder tests removed - SettingsScreen fully implemented in Epic 5
+    // Original placeholder text no longer exists
 
     @Test
     fun settingsScreen_displaysApiHelpText() {

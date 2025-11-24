@@ -1,0 +1,213 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>9</storyId>
+    <title>SonarQube Technical Debt Resolution</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-24</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-9-sonarqube-technical-debt-resolution.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer</asA>
+    <iWant>to systematically resolve SonarQube-identified code quality issues</iWant>
+    <soThat>the codebase remains maintainable and AI-driven development can continue without error-fixing loops</soThat>
+    <tasks>
+      - Task 1: Documentation Research &amp; SonarQube Best Practices (research phase)
+      - Task 2: Query SonarQube for Complete Issue Inventory (categorize BLOCKER/CRITICAL/MAJOR/MINOR/INFO)
+      - Task 3: Resolve BLOCKER Severity Issues (must fix, run tests, verify resolution)
+      - Task 4: Resolve CRITICAL Severity Issues (focus on security vulnerabilities and critical bugs)
+      - Task 5: Resolve MAJOR Severity Issues (assess fix vs. defer, prioritize high-impact)
+      - Task 6: Address Code Smells and Maintainability (high-impact maintainability improvements)
+      - Task 7: Final SonarQube Validation and Regression Testing (verify metrics, test suite)
+      - Task 8: Update Definition of Done with SonarQube Integration (process documentation)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">All BLOCKER severity issues are resolved</criterion>
+    <criterion id="2">All CRITICAL severity issues are resolved</criterion>
+    <criterion id="3">All MAJOR severity issues are resolved or documented with clear justification</criterion>
+    <criterion id="4">Security Rating improves from E to A or B</criterion>
+    <criterion id="5">Reliability Rating improves from B to A</criterion>
+    <criterion id="6">Maintainability Rating A is maintained</criterion>
+    <criterion id="7">All 387 unit tests continue passing after each fix</criterion>
+    <criterion id="8">No new SonarQube issues are introduced by fixes</criterion>
+    <criterion id="9">The codebase follows consistent patterns and best practices</criterion>
+    <criterion id="10">Technical debt is minimized to prevent AI error-fixing loops</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/retrospectives/epic-5-retrospective-2025-11-23.md</path>
+        <title>Epic 5 Retrospective - Configuration &amp; Polish</title>
+        <section>SonarQube Code Quality Analysis</section>
+        <snippet>SonarQube scan revealed 11 bugs (Reliability B), 1 vulnerability (Security E - token exposure), 704 code smells (Maintainability A). Critical insight from BMad: "I have worked on projects where quality slid too far and AI got stuck in error-fixing loops, unable to continue."</snippet>
+      </doc>
+      <doc>
+        <path>docs/retrospectives/epic-5-retrospective-2025-11-23.md</path>
+        <title>Epic 5 Retrospective</title>
+        <section>Action Items - Story 5-9 Definition</section>
+        <snippet>Systematic resolution workflow: Query SonarQube → Fix BLOCKER → Fix CRITICAL → Fix MAJOR → Address code smells. Target: Zero BLOCKER/CRITICAL, Security A/B, Reliability A, Maintainability A. All 387 unit tests must pass after fixes.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Foodie Architecture Document</title>
+        <section>MVVM Architecture Foundation</section>
+        <snippet>Clean MVVM pattern: ViewModel → Repository → DataSource. All repository methods return Result&lt;T&gt; for type-safe error handling. Hilt dependency injection throughout. Established in Epic 1 Story 1.2, consistently applied across all modules.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Foodie Architecture Document</title>
+        <section>Testing Strategy</section>
+        <snippet>Comprehensive unit test coverage (387 tests, 32s execution). Manual testing for integration scenarios. Fast feedback loops prevent compounding errors in AI-driven development. Run tests after EACH fix category to catch regressions immediately.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-2-azure-openai-api-key-and-endpoint-configuration.md</path>
+        <title>Story 5.2 - Azure OpenAI API Key and Endpoint Configuration</title>
+        <section>Task 2 - SecurePreferencesManager Implementation</section>
+        <snippet>EncryptedSharedPreferences with Android Keystore AES256_GCM encryption. Never log API keys, mask in UI. Pattern: SecurePreferencesManager wraps encrypted storage, PreferencesRepository provides domain abstraction. Reference for secure credential handling patterns.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-8-final-integration-testing-and-bug-fixes.md</path>
+        <title>Story 5.8 - Final Integration Testing</title>
+        <section>Test Infrastructure Status</section>
+        <snippet>387 unit tests passing (100% pass rate, 32 seconds execution). Epic 1-5 coverage across Data/Domain/UI layers. Zero tolerance for test regressions. Run `./gradlew test` after each SonarQube fix category for incremental validation.</snippet>
+      </doc>
+      <doc>
+        <path>sonar-project.properties</path>
+        <title>SonarQube Project Configuration</title>
+        <section>Configuration</section>
+        <snippet>Project key: Foodie, Sources: . (root), Host: http://localhost:9000, Token loaded from SONAR_TOKEN environment variable. Use for local SonarQube scanning and issue querying.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferencesManager.kt</path>
+        <kind>service</kind>
+        <symbol>SecurePreferencesManager</symbol>
+        <lines>1-81</lines>
+        <reason>Reference for secure credential handling using EncryptedSharedPreferences - pattern to apply when fixing token exposure vulnerability (Security E rating)</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/test/java/com/foodie/app/data/local/preferences/SecurePreferencesTest.kt</path>
+        <kind>test</kind>
+        <symbol>SecurePreferencesTest</symbol>
+        <lines>1-86</lines>
+        <reason>Test patterns for secure storage verification - ensure SonarQube fixes don't break encryption patterns</reason>
+      </artifact>
+      <artifact>
+        <path>app/build.gradle.kts</path>
+        <kind>config</kind>
+        <symbol>dependencies</symbol>
+        <lines>1-200</lines>
+        <reason>Dependency versions and configurations - verify SonarQube recommended dependency updates don't conflict with existing setup</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <android>
+        <package name="androidx.security:security-crypto" version="1.1.0-alpha06">Encrypted SharedPreferences for API key storage</package>
+        <package name="com.google.dagger:hilt-android" version="2.51.1">Dependency injection - verify Hilt patterns in SonarQube fixes</package>
+        <package name="org.jetbrains.kotlin:kotlin-stdlib" version="2.2.21">Kotlin standard library - null safety patterns</package>
+        <package name="androidx.compose:compose-bom" version="2024.10.01">Compose UI - verify composable patterns in code smell fixes</package>
+        <package name="com.squareup.retrofit2:retrofit" version="2.11.0">Networking - verify API client error handling patterns</package>
+        <package name="androidx.work:work-runtime-ktx" version="2.9.1">Background processing - verify WorkManager patterns</package>
+        <package name="junit:junit" version="4.13.2">Testing framework - maintain test patterns during fixes</package>
+        <package name="com.google.truth:truth" version="1.4.4">Assertion library - use for new tests if needed</package>
+      </android>
+      <tools>
+        <tool name="SonarQube">Static analysis platform - use MCP server to query issues and validate fixes</tool>
+        <tool name="Android Lint">Built-in Android code quality tool - complement to SonarQube</tool>
+        <tool name="Gradle">Build system - run `./gradlew test` after each fix category</tool>
+      </tools>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <architecture>
+      - Maintain MVVM architecture pattern: ViewModel → Repository → DataSource (no architectural changes)
+      - All repository methods must return Result&lt;T&gt; for type-safe error handling (established in Story 1.5)
+      - Use Hilt dependency injection with @Inject constructors, @Module classes, @HiltViewModel annotations
+      - Compose UI patterns: Stateless composables, state hoisting, ViewModel integration
+      - Material 3 theming and accessibility patterns from Stories 5.4-5.5
+    </architecture>
+    <testing>
+      - All 387 unit tests MUST pass after EACH SonarQube fix category (zero tolerance for regressions)
+      - Run `./gradlew test` incrementally: after BLOCKER fixes, CRITICAL fixes, MAJOR fixes
+      - Fast execution (32s) enables tight feedback loops - leverage for incremental validation
+      - Manual smoke test on Pixel 8 Pro after all fixes complete: capture flow, settings, data management
+      - Do NOT attempt to fix 31 failing instrumentation tests - separate action item, not Story 5-9 scope
+    </testing>
+    <security>
+      - Never log API keys or credentials (verify all logging statements during vulnerability fixes)
+      - Use EncryptedSharedPreferences for sensitive data (SecurePreferencesManager pattern from Story 5.2)
+      - Remove any hardcoded credentials or tokens (BuildConfig, source files, test files)
+      - Verify secure logging patterns: mask sensitive data, use appropriate log levels
+    </security>
+    <codeQuality>
+      - Follow Kotlin coding conventions: null safety, coroutine patterns, naming (camelCase functions, PascalCase classes)
+      - Systematic refactoring: fix → test → verify → commit (incremental changes with validation)
+      - Issue categorization: BLOCKER → CRITICAL → MAJOR → Code Smells (prioritize by severity and impact)
+      - Regression prevention: Use existing unit tests as safety net, add tests only if gaps found
+      - Consistent patterns: Maintain MVVM, Result&lt;T&gt;, Hilt DI, Compose UI patterns across all fixes
+    </codeQuality>
+    <process>
+      - Fix issues systematically by severity category, not randomly
+      - Document fix rationale in commit messages and Dev Notes
+      - Defer low-impact MAJOR issues with clear justification if extensive refactor required
+      - Use SonarQube MCP server to query issues and validate resolution
+      - Update Definition of Done with SonarQube integration process after fixes complete
+    </process>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>SonarQube MCP Server</name>
+      <kind>tool-integration</kind>
+      <signature>Query SonarQube issues by severity (BLOCKER/CRITICAL/MAJOR/MINOR/INFO), type (BUG/VULNERABILITY/CODE_SMELL), validate fix resolution</signature>
+      <path>N/A - External MCP server integration</path>
+    </interface>
+    <interface>
+      <name>Result&lt;T&gt; Pattern</name>
+      <kind>error-handling</kind>
+      <signature>sealed class Result&lt;out T&gt; { data class Success&lt;T&gt;(val data: T), data class Error(val exception: Exception) }</signature>
+      <path>app/src/main/java/com/foodie/app/domain/Result.kt</path>
+    </interface>
+    <interface>
+      <name>SecurePreferencesManager</name>
+      <kind>service</kind>
+      <signature>fun saveApiKey(key: String), fun getApiKey(): String?, fun clearApiKey() - EncryptedSharedPreferences wrapper</signature>
+      <path>app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferencesManager.kt</path>
+    </interface>
+    <interface>
+      <name>Gradle Test Task</name>
+      <kind>build-tool</kind>
+      <signature>./gradlew test --tests [TestClassName] for targeted tests, ./gradlew test for full suite</signature>
+      <path>app/build.gradle.kts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Comprehensive unit test coverage across Data/Domain/UI layers (387 tests, 100% pass rate, 32s execution). 
+      Test naming: methodName_whenCondition_thenExpectedResult or feature should behavior when condition. 
+      Assertion library: Truth for readable assertions (assertThat(x).isEqualTo(y)). 
+      Mocking: Mockito/Mockito-Kotlin for dependency mocking. 
+      Run tests incrementally after each SonarQube fix category to catch regressions immediately. 
+      Zero tolerance for test failures introduced by code quality fixes.
+    </standards>
+    <locations>
+      app/src/test/java/**/*Test.kt (unit tests)
+      app/src/androidTest/java/**/*Test.kt (instrumentation tests - do NOT modify failing tests)
+    </locations>
+    <ideas>
+      <idea acRef="1,2,3">After each fix category (BLOCKER, CRITICAL, MAJOR), run targeted test suite for affected modules to verify no regressions before proceeding</idea>
+      <idea acRef="7">Validate all 387 unit tests pass after EACH fix category - incremental validation prevents cascading failures</idea>
+      <idea acRef="8">Use SonarQube differential analysis to verify no new issues introduced by fixes - query before/after metrics</idea>
+      <idea acRef="9,10">Verify consistent patterns maintained: MVVM architecture, Result&lt;T&gt; error handling, Hilt DI annotations, Compose UI patterns - use existing tests as regression suite</idea>
+      <idea acRef="4,5,6">Final SonarQube scan must show Security A/B (from E), Reliability A (from B), Maintainability A (maintained) - comprehensive validation before marking complete</idea>
+    </ideas>
+  </tests>
+</story-context>

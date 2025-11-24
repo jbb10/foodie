@@ -3,7 +3,6 @@ package com.foodie.app.util
 import android.util.Log
 import com.google.common.truth.Truth.assertThat
 import io.mockk.every
-import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verify

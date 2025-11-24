@@ -8,7 +8,6 @@ import com.foodie.app.data.local.cache.PhotoManager
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
-import java.io.File
 
 /**
  * Background worker for cleaning up stale photos from the cache directory.

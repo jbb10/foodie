@@ -37,6 +37,12 @@ import org.junit.Test
 @ExperimentalCoroutinesApi
 class SettingsViewModelTest {
 
+    companion object {
+        private const val TEST_ENDPOINT = "https://test.openai.azure.com"
+        private const val TEST_API_KEY = "sk-test123"
+        private const val TEST_MODEL = "gpt-4.1"
+    }
+
     @get:Rule
     val instantExecutorRule = InstantTaskExecutorRule()
 
@@ -50,13 +56,13 @@ class SettingsViewModelTest {
         Dispatchers.setMain(testDispatcher)
         repository = mockk(relaxed = true)
         securePreferences = mockk(relaxed = true)
-        
+
         // Setup default mock behavior
         every { repository.observePreferences() } returns flowOf(emptyMap())
         every { securePreferences.azureOpenAiApiKey } returns null
         every { securePreferences.azureOpenAiEndpoint } returns null
         every { securePreferences.azureOpenAiModel } returns null
-        
+
         viewModel = SettingsViewModel(repository, securePreferences)
     }
 
@@ -68,16 +74,16 @@ class SettingsViewModelTest {
     @Test
     fun `saveApiConfiguration validatesInputs`() = runTest {
         // Given invalid endpoint (non-HTTPS)
-        val invalidApiKey = "sk-test123"
+        val invalidApiKey = TEST_API_KEY
         val invalidEndpoint = "http://test.openai.azure.com"
-        val model = "gpt-4.1"
+        val model = TEST_MODEL
 
         // When saving configuration
         viewModel.saveApiConfiguration(invalidApiKey, invalidEndpoint, model)
 
         // Then error is set in state
         assertThat(viewModel.state.value.error).isEqualTo("Endpoint must use HTTPS")
-        
+
         // And repository save not called
         coVerify(exactly = 0) { repository.saveApiConfiguration(any()) }
     }
@@ -85,10 +91,10 @@ class SettingsViewModelTest {
     @Test
     fun `saveApiConfiguration callsRepository whenValid`() = runTest {
         // Given valid configuration
-        val apiKey = "sk-test123"
-        val endpoint = "https://test.openai.azure.com"
-        val model = "gpt-4.1"
-        
+        val apiKey = TEST_API_KEY
+        val endpoint = TEST_ENDPOINT
+        val model = TEST_MODEL
+
         coEvery { repository.saveApiConfiguration(any()) } returns Result.success(Unit)
 
         // When saving configuration
@@ -113,7 +119,7 @@ class SettingsViewModelTest {
         coEvery { repository.testConnection(any(), any(), any()) } returns Result.success(TestConnectionResult.Success)
 
         // When testing connection
-        viewModel.testConnection("test-key", "https://test.openai.azure.com", "gpt-4.1")
+        viewModel.testConnection(TEST_API_KEY, TEST_ENDPOINT, TEST_MODEL)
         advanceUntilIdle()
 
         // Then state shows success message
@@ -130,7 +136,7 @@ class SettingsViewModelTest {
         )
 
         // When testing connection
-        viewModel.testConnection("test-key", "https://test.openai.azure.com", "gpt-4.1")
+        viewModel.testConnection(TEST_API_KEY, TEST_ENDPOINT, TEST_MODEL)
         advanceUntilIdle()
 
         // Then state shows error message

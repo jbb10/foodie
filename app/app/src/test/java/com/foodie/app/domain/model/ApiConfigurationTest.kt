@@ -11,12 +11,18 @@ import org.junit.Test
  */
 class ApiConfigurationTest {
 
+    companion object {
+        private const val TEST_ENDPOINT = "https://test.openai.azure.com"
+        private const val TEST_API_KEY = "sk-test123"
+        private const val TEST_MODEL = "gpt-4.1"
+    }
+
     @Test
     fun `validate emptyApiKey returnsError`() {
         val config = ApiConfiguration(
             apiKey = "",
-            endpoint = "https://test.openai.azure.com",
-            modelName = "gpt-4.1"
+            endpoint = TEST_ENDPOINT,
+            modelName = TEST_MODEL
         )
 
         val result = config.validate()
@@ -28,9 +34,9 @@ class ApiConfigurationTest {
     @Test
     fun `validate invalidEndpointFormat returnsError`() {
         val config = ApiConfiguration(
-            apiKey = "sk-test123",
+            apiKey = TEST_API_KEY,
             endpoint = "invalid-url",
-            modelName = "gpt-4.1"
+            modelName = TEST_MODEL
         )
 
         val result = config.validate()
@@ -41,9 +47,9 @@ class ApiConfigurationTest {
     @Test
     fun `validate nonHttpsEndpoint returnsError`() {
         val config = ApiConfiguration(
-            apiKey = "sk-test123",
+            apiKey = TEST_API_KEY,
             endpoint = "http://test.openai.azure.com",
-            modelName = "gpt-4.1"
+            modelName = TEST_MODEL
         )
 
         val result = config.validate()
@@ -55,9 +61,9 @@ class ApiConfigurationTest {
     @Test
     fun `validate wrongDomain returnsError`() {
         val config = ApiConfiguration(
-            apiKey = "sk-test123",
+            apiKey = TEST_API_KEY,
             endpoint = "https://wrong-domain.com",
-            modelName = "gpt-4.1"
+            modelName = TEST_MODEL
         )
 
         val result = config.validate()
@@ -69,8 +75,8 @@ class ApiConfigurationTest {
     @Test
     fun `validate emptyModelName returnsError`() {
         val config = ApiConfiguration(
-            apiKey = "sk-test123",
-            endpoint = "https://test.openai.azure.com",
+            apiKey = TEST_API_KEY,
+            endpoint = TEST_ENDPOINT,
             modelName = ""
         )
 
@@ -83,9 +89,9 @@ class ApiConfigurationTest {
     @Test
     fun `validate allFieldsValid returnsSuccess`() {
         val config = ApiConfiguration(
-            apiKey = "sk-test123",
-            endpoint = "https://test.openai.azure.com",
-            modelName = "gpt-4.1"
+            apiKey = TEST_API_KEY,
+            endpoint = TEST_ENDPOINT,
+            modelName = TEST_MODEL
         )
 
         val result = config.validate()
@@ -97,8 +103,8 @@ class ApiConfigurationTest {
     fun `isConfigured returnsFalse whenApiKeyBlank`() {
         val config = ApiConfiguration(
             apiKey = "",
-            endpoint = "https://test.openai.azure.com",
-            modelName = "gpt-4.1"
+            endpoint = TEST_ENDPOINT,
+            modelName = TEST_MODEL
         )
 
         assertThat(config.isConfigured).isFalse()
@@ -107,9 +113,9 @@ class ApiConfigurationTest {
     @Test
     fun `isConfigured returnsTrue whenAllFieldsSet`() {
         val config = ApiConfiguration(
-            apiKey = "sk-test123",
-            endpoint = "https://test.openai.azure.com",
-            modelName = "gpt-4.1"
+            apiKey = TEST_API_KEY,
+            endpoint = TEST_ENDPOINT,
+            modelName = TEST_MODEL
         )
 
         assertThat(config.isConfigured).isTrue()

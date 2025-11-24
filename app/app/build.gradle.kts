@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+    jacoco
 }
 
 android {
@@ -60,18 +61,18 @@ android {
             isMinifyEnabled = false
         }
     }
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    
+
     kotlinOptions {
         jvmTarget = "17"
-        
+
         // Strict compilation - treat all warnings as errors
         allWarningsAsErrors = true
-        
+
         // Enable additional warnings
         freeCompilerArgs += listOf(
             "-Xjsr305=strict",                    // Strict null-safety for Java interop
@@ -79,10 +80,87 @@ android {
             "-Xcontext-receivers"                 // Context receivers (experimental)
         )
     }
-    
+
+    // Android Lint Configuration
+    lint {
+        // Enable all checks by default
+        checkAllWarnings = true
+
+        // Treat warnings as errors
+        warningsAsErrors = true
+
+        // Abort build on errors
+        abortOnError = true
+
+        // Continue checking even if errors are found
+        checkReleaseBuilds = true
+
+        // Enable text report
+        textReport = true
+        textOutput = file("stdout")
+
+        // Enable HTML report
+        htmlReport = true
+        htmlOutput = file("${project.buildDir}/reports/lint/lint-report.html")
+
+        // Enable XML report for CI/CD
+        xmlReport = true
+        xmlOutput = file("${project.buildDir}/reports/lint/lint-report.xml")
+
+        // Enable SARIF report for GitHub integration
+        sarifReport = true
+        sarifOutput = file("${project.buildDir}/reports/lint/lint-report.sarif")
+
+        // Use baseline file to suppress existing issues
+        baseline = file("lint-baseline.xml")
+
+        // Disable specific checks that may be too noisy or not applicable
+        disable += listOf(
+            "ObsoleteLintCustomCheck",  // For migration periods
+            "GradleDependency"          // Managed separately
+        )
+
+        // Enable specific important checks
+        enable += listOf(
+            "Interoperability",         // Kotlin/Java interop issues
+            "UnusedResources",          // Dead code detection
+            "IconMissingDensityFolder", // Missing icon variants
+            "InvalidPackage"            // Invalid dependencies
+        )
+
+        // Treat specific checks as errors
+        error += listOf(
+            "StopShip",                 // TODOs marked for removal
+            "NewApi",                   // API version issues
+            "InlinedApi",               // Inlined constants
+            "ObsoleteSdkInt"            // Outdated SDK checks
+        )
+
+        // Treat specific checks as warnings
+        warning += listOf(
+            "UnusedResources",
+            "IconDensities"
+        )
+
+        // Informational only
+        informational += listOf(
+            "LogConditional"
+        )
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    testOptions {
+        unitTests.all {
+            // Enable JaCoCo coverage for unit tests
+            it.configure<JacocoTaskExtension> {
+                isIncludeNoLocationClasses = true
+                excludes = listOf("jdk.internal.*")
+            }
+        }
     }
 
     packaging {
@@ -171,4 +249,47 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
+}
+
+// JaCoCo Code Coverage Configuration
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+
+    val fileFilter = listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*",
+        "**/*_Hilt*.class",
+        "**/Hilt_*.class",
+        "**/*_Factory.class",
+        "**/*_MembersInjector.class",
+        "**/*Module.class",
+        "**/*Module$*.class",
+        "**/*Component.class",
+        "**/*Component$*.class",
+        "**/*ComposableSingletons$*.class",
+        "**/*_Impl.class",
+        "**/*_Impl$*.class"
+    )
+
+    val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+
+    val mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories.setFrom(files(mainSrc))
+    classDirectories.setFrom(files(debugTree))
+    executionData.setFrom(fileTree(project.buildDir) {
+        include("jacoco/testDebugUnitTest.exec")
+    })
 }

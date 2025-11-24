@@ -4,7 +4,6 @@ import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.units.Energy
-import com.foodie.app.domain.model.MealEntry
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.time.Instant

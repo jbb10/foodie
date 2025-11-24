@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.Instant
 import java.net.URLDecoder
+import java.time.Instant
 import javax.inject.Inject
 
 /**
@@ -154,7 +154,7 @@ class MealDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isSaving = false,
-                            error = result.message ?: "Failed to update entry. Please try again.",
+                            error = result.message,
                             successMessage = null
                         )
                     }
@@ -199,7 +199,7 @@ class MealDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isDeleting = false,
-                            error = result.message ?: "Failed to delete entry. Please try again."
+                            error = result.message
                         )
                     }
                 }

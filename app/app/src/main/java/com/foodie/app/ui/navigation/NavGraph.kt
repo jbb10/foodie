@@ -71,14 +71,14 @@ fun NavGraph(
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
-    
+
     // Determine start destination based on onboarding status (Story 5.7)
     val startDestination = if (onboardingPreferences.isOnboardingCompleted()) {
         Screen.MealList.route
     } else {
         Screen.Onboarding.route
     }
-    
+
     // Handle initial route navigation (e.g., from notification deep link)
     androidx.compose.runtime.LaunchedEffect(initialRoute) {
         if (initialRoute != null && navController.currentDestination?.route != initialRoute) {
@@ -88,7 +88,7 @@ fun NavGraph(
             }
         }
     }
-    
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -233,7 +233,7 @@ fun NavGraph(
                 }
             ) {
                 CapturePhotoScreen(
-                    onPhotoConfirmed = { photoUri ->
+                    onPhotoConfirmed = { _ ->
                         // Story 2-5: Background processing started via WorkManager
                         // Finish activity to return to home screen / previous app
                         activity?.finish()

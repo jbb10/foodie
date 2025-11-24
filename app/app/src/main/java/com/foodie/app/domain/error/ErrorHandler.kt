@@ -34,11 +34,11 @@ import javax.inject.Singleton
  */
 @Singleton
 class ErrorHandler @Inject constructor() {
-    
+
     companion object {
         private const val TAG = "ErrorHandler"
     }
-    
+
     /**
      * Classifies an exception into a structured ErrorType.
      *
@@ -60,7 +60,7 @@ class ErrorHandler @Inject constructor() {
     fun classify(exception: Throwable): ErrorType {
         // Log exception for debugging (DEBUG builds only)
         Timber.tag(TAG).d(exception, "Classifying exception: ${exception.javaClass.simpleName}")
-        
+
         return when (exception) {
             // Network-related errors (retryable)
             is SocketTimeoutException -> {
@@ -75,7 +75,7 @@ class ErrorHandler @Inject constructor() {
                 Timber.tag(TAG).d("Classified as NetworkError: IO exception")
                 ErrorType.NetworkError(exception)
             }
-            
+
             // HTTP errors
             is HttpException -> {
                 when (exception.code()) {
@@ -103,21 +103,21 @@ class ErrorHandler @Inject constructor() {
                     }
                 }
             }
-            
+
             // JSON parsing errors (non-retryable)
             is JsonSyntaxException, is JsonParseException -> {
                 Timber.tag(TAG).d("Classified as ParseError: JSON parsing failed")
                 ErrorType.ParseError(exception)
             }
-            
+
             // Permission errors (non-retryable)
             is SecurityException -> {
                 Timber.tag(TAG).d("Classified as PermissionDenied: Security exception")
                 ErrorType.PermissionDenied(
-                    permissions = extractPermissionsFromException(exception)
+                    permissions = extractPermissionsFromException()
                 )
             }
-            
+
             // Validation errors (non-retryable)
             is IllegalArgumentException -> {
                 // Check if this is a validation error with field context
@@ -130,7 +130,7 @@ class ErrorHandler @Inject constructor() {
                     ErrorType.UnknownError(exception)
                 }
             }
-            
+
             // Fallback for unknown exceptions
             else -> {
                 Timber.tag(TAG).w("Classified as UnknownError: ${exception.javaClass.simpleName}")
@@ -138,7 +138,7 @@ class ErrorHandler @Inject constructor() {
             }
         }
     }
-    
+
     /**
      * Generates user-friendly error message for an ErrorType.
      *
@@ -152,18 +152,18 @@ class ErrorHandler @Inject constructor() {
      */
     fun getUserMessage(error: ErrorType): String {
         return when (error) {
-            is ErrorType.NetworkError -> 
+            is ErrorType.NetworkError ->
                 "Request timed out. Check your internet connection."
-            
-            is ErrorType.ServerError -> 
+
+            is ErrorType.ServerError ->
                 "Service temporarily unavailable. Will retry automatically."
-            
-            is ErrorType.HealthConnectUnavailable -> 
+
+            is ErrorType.HealthConnectUnavailable ->
                 "Health Connect required. Install from Play Store?"
-            
-            is ErrorType.AuthError -> 
+
+            is ErrorType.AuthError ->
                 "API key invalid. Check settings."
-            
+
             is ErrorType.RateLimitError -> {
                 if (error.retryAfter != null) {
                     "Too many requests. Please wait ${error.retryAfter} seconds."
@@ -171,30 +171,30 @@ class ErrorHandler @Inject constructor() {
                     "Too many requests. Please wait a moment."
                 }
             }
-            
-            is ErrorType.ParseError -> 
+
+            is ErrorType.ParseError ->
                 "Unexpected response from AI service."
-            
-            is ErrorType.ValidationError -> 
+
+            is ErrorType.ValidationError ->
                 "Invalid ${error.field}: ${error.reason}"
-            
-            is ErrorType.PermissionDenied -> 
+
+            is ErrorType.PermissionDenied ->
                 "Health Connect permissions required. Tap to grant access."
-            
-            is ErrorType.CameraPermissionDenied -> 
+
+            is ErrorType.CameraPermissionDenied ->
                 "Camera access required for meal tracking"
-            
-            is ErrorType.ApiKeyMissing -> 
+
+            is ErrorType.ApiKeyMissing ->
                 "Configure Azure OpenAI key in Settings"
-            
-            is ErrorType.StorageFull -> 
+
+            is ErrorType.StorageFull ->
                 "Storage full. Free up space to continue."
-            
-            is ErrorType.UnknownError -> 
+
+            is ErrorType.UnknownError ->
                 "An unexpected error occurred. Please try again."
         }
     }
-    
+
     /**
      * Determines if an error type is retryable.
      *
@@ -223,7 +223,7 @@ class ErrorHandler @Inject constructor() {
             is ErrorType.NetworkError -> true
             is ErrorType.ServerError -> true
             is ErrorType.HealthConnectUnavailable -> true
-            
+
             // Non-retryable (permanent failures or require user action)
             is ErrorType.AuthError -> false
             is ErrorType.RateLimitError -> false
@@ -236,7 +236,7 @@ class ErrorHandler @Inject constructor() {
             is ErrorType.UnknownError -> false
         }
     }
-    
+
     /**
      * Generates notification content for an error type.
      *
@@ -248,13 +248,13 @@ class ErrorHandler @Inject constructor() {
      */
     fun getNotificationContent(error: ErrorType): NotificationContent {
         return when (error) {
-            is ErrorType.NetworkError -> 
+            is ErrorType.NetworkError ->
                 NotificationContent.networkError()
-            
-            is ErrorType.ServerError -> 
+
+            is ErrorType.ServerError ->
                 NotificationContent.serverError()
-            
-            is ErrorType.HealthConnectUnavailable -> 
+
+            is ErrorType.HealthConnectUnavailable ->
                 NotificationContent(
                     title = "Health Connect Required",
                     message = getUserMessage(error),
@@ -262,14 +262,14 @@ class ErrorHandler @Inject constructor() {
                     actionIntent = null,
                     isOngoing = false
                 )
-            
-            is ErrorType.AuthError -> 
+
+            is ErrorType.AuthError ->
                 NotificationContent.authError(settingsIntent = null)
-            
-            is ErrorType.RateLimitError -> 
+
+            is ErrorType.RateLimitError ->
                 NotificationContent.rateLimit()
-            
-            is ErrorType.ParseError -> 
+
+            is ErrorType.ParseError ->
                 NotificationContent(
                     title = "Service Error",
                     message = getUserMessage(error),
@@ -277,8 +277,8 @@ class ErrorHandler @Inject constructor() {
                     actionIntent = null,
                     isOngoing = false
                 )
-            
-            is ErrorType.ValidationError -> 
+
+            is ErrorType.ValidationError ->
                 NotificationContent(
                     title = "Invalid Input",
                     message = getUserMessage(error),
@@ -286,11 +286,11 @@ class ErrorHandler @Inject constructor() {
                     actionIntent = null,
                     isOngoing = false
                 )
-            
-            is ErrorType.PermissionDenied -> 
+
+            is ErrorType.PermissionDenied ->
                 NotificationContent.permissionDenied(permissionsIntent = null)
-            
-            is ErrorType.CameraPermissionDenied -> 
+
+            is ErrorType.CameraPermissionDenied ->
                 NotificationContent(
                     title = "Camera Permission Required",
                     message = getUserMessage(error),
@@ -298,8 +298,8 @@ class ErrorHandler @Inject constructor() {
                     actionIntent = null, // Intent created by caller with context
                     isOngoing = false
                 )
-            
-            is ErrorType.ApiKeyMissing -> 
+
+            is ErrorType.ApiKeyMissing ->
                 NotificationContent(
                     title = "Configuration Required",
                     message = getUserMessage(error),
@@ -307,8 +307,8 @@ class ErrorHandler @Inject constructor() {
                     actionIntent = null, // Intent created by caller with context
                     isOngoing = false
                 )
-            
-            is ErrorType.StorageFull -> 
+
+            is ErrorType.StorageFull ->
                 NotificationContent(
                     title = "Storage Full",
                     message = getUserMessage(error),
@@ -316,8 +316,8 @@ class ErrorHandler @Inject constructor() {
                     actionIntent = null,
                     isOngoing = false
                 )
-            
-            is ErrorType.UnknownError -> 
+
+            is ErrorType.UnknownError ->
                 NotificationContent(
                     title = "Error",
                     message = getUserMessage(error),
@@ -327,7 +327,7 @@ class ErrorHandler @Inject constructor() {
                 )
         }
     }
-    
+
     /**
      * Extracts retry-after header from HTTP 429 response.
      *
@@ -342,19 +342,18 @@ class ErrorHandler @Inject constructor() {
             null
         }
     }
-    
+
     /**
      * Extracts permission names from SecurityException message.
      *
-     * @param exception SecurityException
      * @return List of permission names, or generic list if extraction fails
      */
-    private fun extractPermissionsFromException(exception: SecurityException): List<String> {
+    private fun extractPermissionsFromException(): List<String> {
         // For now, return generic permission list
         // Future enhancement: Parse exception message for specific permissions
         return listOf("Health Connect")
     }
-    
+
     /**
      * Parses validation error from IllegalArgumentException message.
      *
@@ -366,11 +365,11 @@ class ErrorHandler @Inject constructor() {
      */
     private fun parseValidationError(exception: IllegalArgumentException): Pair<String?, String?> {
         val message = exception.message ?: return Pair(null, null)
-        
+
         // Try to parse "Invalid {field}: {reason}" pattern
         val invalidPattern = """Invalid (\w+): (.+)""".toRegex()
         val match = invalidPattern.find(message)
-        
+
         return if (match != null && match.groupValues.size >= 3) {
             Pair(match.groupValues[1], match.groupValues[2])
         } else {

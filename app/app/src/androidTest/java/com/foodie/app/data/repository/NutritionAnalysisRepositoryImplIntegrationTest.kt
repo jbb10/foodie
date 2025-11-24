@@ -6,10 +6,9 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.remote.api.AzureOpenAiApi
-import com.foodie.app.data.remote.dto.AzureResponseRequest
-import com.foodie.app.data.remote.dto.AzureResponseResponse
 import com.foodie.app.util.ImageUtils
 import com.foodie.app.util.Result
+import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import io.mockk.every
 import io.mockk.mockk
@@ -22,7 +21,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import com.google.common.truth.Truth.assertThat
 
 /**
  * Integration tests for NutritionAnalysisRepositoryImpl with MockWebServer.

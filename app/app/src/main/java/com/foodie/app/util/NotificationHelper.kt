@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.work.WorkManager
 import com.foodie.app.MainActivity
 import com.foodie.app.R
 import com.foodie.app.domain.error.ErrorHandler

@@ -3,8 +3,8 @@ package com.foodie.app.di
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.data.repository.HealthConnectRepository
-import com.foodie.app.domain.usecase.GetMealHistoryUseCase
 import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
+import com.foodie.app.domain.usecase.GetMealHistoryUseCase
 import com.foodie.app.ui.screens.meallist.MealListViewModel
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule

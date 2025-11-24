@@ -2,6 +2,7 @@ package com.foodie.app.di
 
 import android.content.Context
 import android.util.Log
+import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import com.foodie.app.BuildConfig
@@ -10,7 +11,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import androidx.hilt.work.HiltWorkerFactory
 import javax.inject.Singleton
 
 /**

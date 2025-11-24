@@ -1,6 +1,8 @@
 package com.foodie.app.ui.screens.meallist
 
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.annotation.VisibleForTesting
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -26,21 +27,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -48,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.foodie.app.R
@@ -82,107 +81,53 @@ fun MealListScreen(
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycleOwner = LocalLifecycleOwner.current
-    
+
     // Health Connect permission launcher
-    val requestHealthConnectPermissions = rememberLauncherForActivityResult(
-        viewModel.createPermissionRequestContract()
-    ) { granted ->
-        Timber.i("Health Connect permission result from MealListScreen: granted=${granted.size}")
-        if (granted.containsAll(HealthConnectManager.REQUIRED_PERMISSIONS)) {
-            Timber.i("Health Connect permissions granted, reloading meals")
-            viewModel.loadMeals()
-        } else {
-            Timber.w("Health Connect permissions denied or incomplete")
-        }
-    }
-    
+    val requestHealthConnectPermissions = setupHealthConnectPermissionLauncher(viewModel)
+
     // Initial load on first composition
-    LaunchedEffect(Unit) {
-        viewModel.loadMeals()
-    }
-    
+    HandleInitialLoad(viewModel)
+
     // Refresh when app resumes from background (AC #1, #2, #3, #4)
-    LaunchedEffect(lifecycleOwner) {
-        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            // This block runs when lifecycle enters STARTED state and cancels when it drops below
-            // We use STARTED instead of RESUMED to handle cases like multi-window mode
-            // Skip refresh if this is the first composition (already handled by loadMeals above)
-            if (!state.isLoading && state.mealsByDate.isNotEmpty()) {
-                viewModel.refresh()
-            }
-        }
-    }
-    
+    HandleLifecycleRefresh(lifecycleOwner, state, viewModel)
+
     // Show error snackbar with retry action, or request permissions if SecurityException
-    LaunchedEffect(state.error) {
-        state.error?.let { errorMessage ->
-            // Check if this is a permission error (SecurityException)
-            val isPermissionError = errorMessage.contains("Permission denied", ignoreCase = true) ||
-                                   errorMessage.contains("grant Health Connect access", ignoreCase = true)
-            
-            if (isPermissionError) {
-                // Request Health Connect permissions instead of showing useless retry
-                Timber.i("Permission error detected, requesting Health Connect permissions")
-                viewModel.clearError() // Clear error immediately
-                
-                // Check if permissions are actually missing
-                val hasPermissions = viewModel.hasHealthConnectPermissions()
-                if (!hasPermissions) {
-                    Timber.i("Requesting Health Connect permissions from MealListScreen")
-                    requestHealthConnectPermissions.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
-                } else {
-                    // Permissions exist but still got error - show regular retry snackbar
-                    Timber.w("Permission error but permissions exist - showing retry")
-                    val result = snackbarHostState.showSnackbar(
-                        message = errorMessage,
-                        actionLabel = "Retry",
-                        withDismissAction = true
-                    )
-                    if (result == SnackbarResult.ActionPerformed) {
-                        viewModel.retryLoadMeals()
-                    } else {
-                        viewModel.clearError()
-                    }
-                }
-            } else {
-                // Non-permission errors: show regular retry snackbar
-                val result = snackbarHostState.showSnackbar(
-                    message = errorMessage,
-                    actionLabel = "Retry",
-                    withDismissAction = true
-                )
-                if (result == SnackbarResult.ActionPerformed) {
-                    viewModel.retryLoadMeals()
-                } else {
-                    viewModel.clearError()
-                }
-            }
-        }
-    }
-    
+    HandleErrorSnackbar(
+        error = state.error,
+        snackbarHostState = snackbarHostState,
+        viewModel = viewModel,
+        requestHealthConnectPermissions = requestHealthConnectPermissions
+    )
+
     // Show success toast message
-    LaunchedEffect(state.successMessage) {
-        state.successMessage?.let { message ->
-            snackbarHostState.showSnackbar(
-                message = message,
-                withDismissAction = true
-            )
-            viewModel.clearSuccessMessage()
-        }
-    }
+    HandleSuccessMessage(state.successMessage, snackbarHostState, viewModel)
 
     MealListScreenContent(
         state = state,
         snackbarHostState = snackbarHostState,
-        onRefresh = viewModel::refresh,
-        onMealClick = onMealClick,
-        onSettingsClick = onSettingsClick,
-        onMealLongPress = viewModel::onMealLongPress,
-        onDismissDeleteDialog = viewModel::onDismissDeleteDialog,
-        onDeleteConfirmed = viewModel::onDeleteConfirmed,
+        callbacks = MealListCallbacks(
+            onRefresh = viewModel::refresh,
+            onMealClick = onMealClick,
+            onSettingsClick = onSettingsClick,
+            onMealLongPress = viewModel::onMealLongPress,
+            onDismissDeleteDialog = viewModel::onDismissDeleteDialog,
+            onDeleteConfirmed = viewModel::onDeleteConfirmed
+        ),
         modifier = modifier
     )
 }
+
+/**
+ * Data class to group callback functions and reduce parameter count
+ */
+internal data class MealListCallbacks(
+    val onRefresh: () -> Unit,
+    val onMealClick: (MealEntry) -> Unit,
+    val onSettingsClick: () -> Unit,
+    val onMealLongPress: (String) -> Unit,
+    val onDismissDeleteDialog: () -> Unit,
+    val onDeleteConfirmed: () -> Unit
+)
 
 @VisibleForTesting
 @OptIn(ExperimentalMaterial3Api::class)
@@ -190,12 +135,7 @@ fun MealListScreen(
 internal fun MealListScreenContent(
     state: MealListState,
     snackbarHostState: SnackbarHostState,
-    onRefresh: () -> Unit,
-    onMealClick: (MealEntry) -> Unit,
-    onSettingsClick: () -> Unit,
-    onMealLongPress: (String) -> Unit,
-    onDismissDeleteDialog: () -> Unit,
-    onDeleteConfirmed: () -> Unit,
+    callbacks: MealListCallbacks,
     modifier: Modifier = Modifier
 ) {
 
@@ -205,8 +145,8 @@ internal fun MealListScreenContent(
                 title = { Text(stringResource(id = R.string.app_name)) },
                 actions = {
                     IconButton(
-                        onClick = onSettingsClick,
-                        modifier = Modifier.semantics { contentDescription = "Open settings" }
+                        onClick = callbacks.onSettingsClick,
+                        modifier = Modifier.semantics { contentDescription = "Open Settings" }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
@@ -221,7 +161,7 @@ internal fun MealListScreenContent(
     ) { paddingValues ->
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
-            onRefresh = onRefresh,
+            onRefresh = callbacks.onRefresh,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -267,7 +207,7 @@ internal fun MealListScreenContent(
                                     modifier = Modifier.padding(vertical = 8.dp)
                                 )
                             }
-                            
+
                             // Meals for this date
                             items(
                                 items = meals,
@@ -275,8 +215,8 @@ internal fun MealListScreenContent(
                             ) { meal ->
                                 MealEntryCard(
                                     meal = meal,
-                                    onClick = { onMealClick(meal) },
-                                    onLongClick = { onMealLongPress(meal.id) },
+                                    onClick = { callbacks.onMealClick(meal) },
+                                    onLongClick = { callbacks.onMealLongPress(meal.id) },
                                     modifier = Modifier.padding(horizontal = 16.dp)
                                 )
                             }
@@ -290,12 +230,12 @@ internal fun MealListScreenContent(
     // Show delete confirmation dialog
     if (state.showDeleteDialog) {
         AlertDialog(
-            onDismissRequest = onDismissDeleteDialog,
+            onDismissRequest = callbacks.onDismissDeleteDialog,
             title = { Text(text = stringResource(id = R.string.meal_list_delete_title)) },
             text = { Text(text = stringResource(id = R.string.meal_list_delete_message)) },
             confirmButton = {
                 TextButton(
-                    onClick = onDeleteConfirmed,
+                    onClick = callbacks.onDeleteConfirmed,
                     colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )
@@ -304,7 +244,7 @@ internal fun MealListScreenContent(
                 }
             },
             dismissButton = {
-                TextButton(onClick = onDismissDeleteDialog) {
+                TextButton(onClick = callbacks.onDismissDeleteDialog) {
                     Text(text = stringResource(id = R.string.meal_list_delete_cancel))
                 }
             }
@@ -334,7 +274,7 @@ private fun MealEntryCard(
     val formattedTimestamp = remember(meal.timestamp) {
         formatTimestamp(meal.timestamp)
     }
-    
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -382,6 +322,162 @@ private fun formatTimestamp(timestamp: Instant): String {
 private val TIME_FORMATTER: DateTimeFormatter =
     DateTimeFormatter.ofPattern("h:mm a").withZone(ZoneId.systemDefault())
 
+/**
+ * Sets up Health Connect permission launcher with result handling.
+ */
+@Composable
+private fun setupHealthConnectPermissionLauncher(
+    viewModel: MealListViewModel
+): ManagedActivityResultLauncher<Set<String>, Set<String>> {
+    return rememberLauncherForActivityResult(
+        viewModel.createPermissionRequestContract()
+    ) { granted ->
+        Timber.i("Health Connect permission result from MealListScreen: granted=${granted.size}")
+        if (granted.containsAll(HealthConnectManager.REQUIRED_PERMISSIONS)) {
+            Timber.i("Health Connect permissions granted, reloading meals")
+            viewModel.loadMeals()
+        } else {
+            Timber.w("Health Connect permissions denied or incomplete")
+        }
+    }
+}
+
+/**
+ * Handles initial meal loading on first composition.
+ */
+@Composable
+private fun HandleInitialLoad(viewModel: MealListViewModel) {
+    LaunchedEffect(Unit) {
+        viewModel.loadMeals()
+    }
+}
+
+/**
+ * Handles automatic refresh when app resumes from background.
+ */
+@Composable
+private fun HandleLifecycleRefresh(
+    lifecycleOwner: LifecycleOwner,
+    state: MealListState,
+    viewModel: MealListViewModel
+) {
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            // This block runs when lifecycle enters STARTED state and cancels when it drops below
+            // We use STARTED instead of RESUMED to handle cases like multi-window mode
+            // Skip refresh if this is the first composition (already handled by loadMeals above)
+            if (!state.isLoading && state.mealsByDate.isNotEmpty()) {
+                viewModel.refresh()
+            }
+        }
+    }
+}
+
+/**
+ * Handles error snackbar display with permission request logic.
+ */
+@Composable
+private fun HandleErrorSnackbar(
+    error: String?,
+    snackbarHostState: SnackbarHostState,
+    viewModel: MealListViewModel,
+    requestHealthConnectPermissions: ManagedActivityResultLauncher<Set<String>, Set<String>>
+) {
+    LaunchedEffect(error) {
+        error?.let { errorMessage ->
+            val isPermissionError = isPermissionError(errorMessage)
+
+            if (isPermissionError) {
+                handlePermissionError(viewModel, snackbarHostState, errorMessage, requestHealthConnectPermissions)
+            } else {
+                handleRegularError(viewModel, snackbarHostState, errorMessage)
+            }
+        }
+    }
+}
+
+/**
+ * Checks if error message indicates a permission issue.
+ */
+private fun isPermissionError(errorMessage: String): Boolean {
+    return errorMessage.contains("Permission denied", ignoreCase = true) ||
+           errorMessage.contains("grant Health Connect access", ignoreCase = true)
+}
+
+/**
+ * Handles permission-related errors by requesting HC permissions or showing retry.
+ */
+private suspend fun handlePermissionError(
+    viewModel: MealListViewModel,
+    snackbarHostState: SnackbarHostState,
+    errorMessage: String,
+    requestHealthConnectPermissions: ManagedActivityResultLauncher<Set<String>, Set<String>>
+) {
+    Timber.i("Permission error detected, requesting Health Connect permissions")
+    viewModel.clearError() // Clear error immediately
+
+    val hasPermissions = viewModel.hasHealthConnectPermissions()
+    if (!hasPermissions) {
+        Timber.i("Requesting Health Connect permissions from MealListScreen")
+        requestHealthConnectPermissions.launch(HealthConnectManager.REQUIRED_PERMISSIONS)
+    } else {
+        // Permissions exist but still got error - show regular retry snackbar
+        Timber.w("Permission error but permissions exist - showing retry")
+        showRetrySnackbar(viewModel, snackbarHostState, errorMessage)
+    }
+}
+
+/**
+ * Handles regular (non-permission) errors by showing retry snackbar.
+ */
+private suspend fun handleRegularError(
+    viewModel: MealListViewModel,
+    snackbarHostState: SnackbarHostState,
+    errorMessage: String
+) {
+    showRetrySnackbar(viewModel, snackbarHostState, errorMessage)
+}
+
+/**
+ * Shows snackbar with retry action.
+ */
+private suspend fun showRetrySnackbar(
+    viewModel: MealListViewModel,
+    snackbarHostState: SnackbarHostState,
+    errorMessage: String
+) {
+    val result = snackbarHostState.showSnackbar(
+        message = errorMessage,
+        actionLabel = "Retry",
+        withDismissAction = true
+    )
+    if (result == SnackbarResult.ActionPerformed) {
+        viewModel.retryLoadMeals()
+    } else {
+        viewModel.clearError()
+    }
+}
+
+/**
+ * Handles success message display.
+ */
+@Composable
+private fun HandleSuccessMessage(
+    successMessage: String?,
+    snackbarHostState: SnackbarHostState,
+    viewModel: MealListViewModel
+) {
+    LaunchedEffect(successMessage) {
+        successMessage?.let { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                withDismissAction = true
+            )
+            viewModel.clearSuccessMessage()
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun MealListScreenPreview() {
@@ -401,12 +497,15 @@ private fun MealListScreenPreview() {
         MealListScreenContent(
             state = state,
             snackbarHostState = snackbarHostState,
-            onRefresh = {},
-            onMealClick = {},
-            onSettingsClick = {},
-            onMealLongPress = {},
-            onDismissDeleteDialog = {},
-            onDeleteConfirmed = {}
+            callbacks = MealListCallbacks(
+                onRefresh = {},
+                onMealClick = {},
+                onSettingsClick = {},
+                onMealLongPress = {},
+                onDismissDeleteDialog = {},
+                onDeleteConfirmed = {}
+            )
         )
     }
 }
+

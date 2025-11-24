@@ -1,14 +1,13 @@
 package com.foodie.app.data.local.cache
 
 import android.content.Context
-import android.net.Uri
+import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
-import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.test.runTest
 import java.io.File
 
 /**

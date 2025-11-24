@@ -2,13 +2,13 @@ package com.foodie.app.data.repository
 
 import android.content.Context
 import com.foodie.app.data.local.preferences.SecurePreferences
-import io.mockk.mockk
 import com.foodie.app.data.remote.api.AzureOpenAiApi
 import com.foodie.app.data.remote.dto.AzureResponseRequest
 import com.foodie.app.data.remote.dto.ContentItem
 import com.foodie.app.data.remote.dto.InputMessage
 import com.foodie.app.data.remote.interceptor.AuthInterceptor
 import com.google.gson.Gson
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

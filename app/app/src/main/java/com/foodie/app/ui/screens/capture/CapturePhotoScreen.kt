@@ -1,16 +1,29 @@
 package com.foodie.app.ui.screens.capture
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -56,7 +69,28 @@ fun CapturePhotoScreen(
     val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
 
-    // Health Connect permission launcher (must come before camera)
+    // Set up permission and camera launchers
+    val launchers = setupLaunchers(viewModel, onNavigateBack, hapticFeedback, context)
+
+    // Handle state-driven side effects
+    HandleStateEffects(state, launchers, viewModel, context)
+
+    // Check permission on initial load
+    LaunchedEffect(Unit) {
+        viewModel.checkPermissionAndPrepare(context)
+    }
+
+    // Render UI based on state
+    CaptureScreenContent(state, viewModel, onPhotoConfirmed, onNavigateBack, context)
+}
+
+@Composable
+private fun setupLaunchers(
+    viewModel: CapturePhotoViewModel,
+    onNavigateBack: () -> Unit,
+    hapticFeedback: HapticFeedback,
+    context: Context
+): CaptureLaunchers {
     val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
         contract = viewModel.createHealthConnectPermissionContract()
     ) { granted ->
@@ -66,12 +100,10 @@ fun CapturePhotoScreen(
             viewModel.onHealthConnectPermissionGranted(context)
         } else {
             Timber.w("❌ Health Connect permissions denied (granted: ${granted.size})")
-            // User denied permissions - cannot proceed, navigate back
             onNavigateBack()
         }
     }
 
-    // Camera permission launcher
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -82,12 +114,10 @@ fun CapturePhotoScreen(
         }
     }
 
-    // Camera intent launcher
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            // Haptic feedback on successful photo capture (AC#8)
             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
             Timber.d("Photo captured with haptic feedback")
             viewModel.onPhotoCaptured()
@@ -103,160 +133,196 @@ fun CapturePhotoScreen(
         viewModel.onNotificationPermissionResult(granted, context)
     }
 
-    // Handle state changes
+    return CaptureLaunchers(
+        healthConnect = healthConnectPermissionLauncher,
+        camera = cameraLauncher,
+        permission = permissionLauncher,
+        notification = notificationPermissionLauncher
+    )
+}
+
+@Composable
+private fun HandleStateEffects(
+    state: CaptureState,
+    launchers: CaptureLaunchers,
+    viewModel: CapturePhotoViewModel,
+    context: Context
+) {
     LaunchedEffect(state) {
         when (state) {
             is CaptureState.RequestingHealthConnectPermission -> {
-                healthConnectPermissionLauncher.launch(
+                launchers.healthConnect.launch(
                     com.foodie.app.data.local.healthconnect.HealthConnectManager.REQUIRED_PERMISSIONS
                 )
             }
             is CaptureState.RequestingPermission -> {
-                permissionLauncher.launch(Manifest.permission.CAMERA)
+                launchers.permission.launch(Manifest.permission.CAMERA)
             }
             is CaptureState.ReadyToCapture -> {
-                val photoUri = (state as CaptureState.ReadyToCapture).photoUri
-                cameraLauncher.launch(photoUri)
-            }
-            is CaptureState.ProcessingComplete -> {
-                val processedUri = (state as CaptureState.ProcessingComplete).processedPhotoUri
-                // Don't auto-proceed - wait for preview screen interaction
+                val photoUri = state.photoUri
+                launchers.camera.launch(photoUri)
             }
             is CaptureState.NotificationPermissionRequired -> {
                 if (viewModel.isNotificationPermissionRequired()) {
-                    notificationPermissionLauncher.launch(NotificationPermissionManager.PERMISSION)
+                    launchers.notification.launch(NotificationPermissionManager.PERMISSION)
                 } else {
                     viewModel.onNotificationPermissionResult(granted = true, context = context)
                 }
             }
-            else -> {}
+            else -> {
+                // All other states (Ready, Preview, ProcessingPhoto, etc.) are handled in UI rendering
+            }
         }
     }
+}
 
-    // Check permission on initial load
-    LaunchedEffect(Unit) {
-        viewModel.checkPermissionAndPrepare(context)
-    }
-
-    // Render UI based on state
+@Composable
+private fun CaptureScreenContent(
+    state: CaptureState,
+    viewModel: CapturePhotoViewModel,
+    onPhotoConfirmed: (Uri) -> Unit,
+    onNavigateBack: () -> Unit,
+    context: Context
+) {
     when (state) {
         is CaptureState.Idle,
         is CaptureState.RequestingHealthConnectPermission,
         is CaptureState.RequestingPermission,
         is CaptureState.ReadyToCapture,
         is CaptureState.Processing -> {
-            // Loading state while preparing camera or processing photo
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    CircularProgressIndicator()
-                    Text(
-                        text = when (state) {
-                            is CaptureState.RequestingPermission -> stringResource(R.string.capture_requesting_permission)
-                            is CaptureState.ReadyToCapture -> stringResource(R.string.capture_launching_camera)
-                            is CaptureState.Processing -> stringResource(R.string.capture_processing_photo)
-                            else -> stringResource(R.string.capture_preparing_camera)
-                        },
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
+            LoadingState(state)
         }
-
         is CaptureState.BackgroundProcessingStarted -> {
-            // Background processing started, navigate back
             LaunchedEffect(Unit) {
-                onPhotoConfirmed(android.net.Uri.EMPTY) // Signal completion, URI not needed
+                onPhotoConfirmed(android.net.Uri.EMPTY)
             }
         }
-
         is CaptureState.NotificationPermissionRequired -> {
-            // Keep showing preview while permission dialog is displayed
-            // The LaunchedEffect above will trigger the permission request
-            viewModel.getProcessedPhotoUri()?.let { processedUri ->
-                PreviewScreen(
-                    photoUri = processedUri,
-                    onRetake = {
-                        viewModel.onRetake()
-                    },
-                    onUsePhoto = { ctx ->
-                        // Do nothing - already waiting for permission result
-                    },
-                    confirmationEnabled = false
-                )
-            }
+            NotificationPermissionRequiredState(viewModel)
         }
-
         is CaptureState.NotificationPermissionDenied -> {
-            NotificationPermissionDeniedScreen(
-                onRetry = { viewModel.retryNotificationPermission() },
-                onOpenSettings = {
-                    val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                    }
-                    context.startActivity(intent)
-                },
-                onCancel = onNavigateBack
-            )
+            NotificationPermissionDeniedState(viewModel, onNavigateBack, context)
         }
-
         is CaptureState.ProcessingComplete -> {
-            val processedUri = (state as CaptureState.ProcessingComplete).processedPhotoUri
-            PreviewScreen(
-                photoUri = processedUri,
-                onRetake = {
-                    viewModel.onRetake()
-                    // Retake will reset state to ReadyToCapture, relaunching camera
-                },
-                onUsePhoto = { ctx ->
-                    viewModel.onUsePhoto(ctx)
-                }
-            )
+            ProcessingCompleteState(state, viewModel)
         }
-
         is CaptureState.Error -> {
-            val errorMessage = (state as CaptureState.Error).message
-            CaptureErrorScreen(
-                message = errorMessage,
-                onRetry = {
-                    viewModel.checkPermissionAndPrepare(context)
-                },
-                onCancel = onNavigateBack
-            )
+            ErrorState(state, viewModel, onNavigateBack, context)
         }
-
         is CaptureState.PermissionDenied -> {
-            PermissionDeniedScreen(
-                onOpenSettings = {
-                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.fromParts("package", context.packageName, null)
-                    }
-                    context.startActivity(intent)
-                },
-                onCancel = onNavigateBack
-            )
+            PermissionDeniedState(onNavigateBack, context)
         }
-
         is CaptureState.HealthConnectPermissionDenied -> {
-            // User denied Health Connect permissions - navigate back to previous screen
             LaunchedEffect(Unit) {
                 Timber.w("Health Connect permissions denied - closing capture screen")
                 onNavigateBack()
             }
         }
-
         is CaptureState.StorageFull -> {
-            StorageFullScreen(
-                onCancel = onNavigateBack
+            StorageFullScreen(onCancel = onNavigateBack)
+        }
+    }
+}
+
+@Composable
+private fun LoadingState(state: CaptureState) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            CircularProgressIndicator()
+            Text(
+                text = when (state) {
+                    is CaptureState.RequestingPermission -> stringResource(R.string.capture_requesting_permission)
+                    is CaptureState.ReadyToCapture -> stringResource(R.string.capture_launching_camera)
+                    is CaptureState.Processing -> stringResource(R.string.capture_processing_photo)
+                    else -> stringResource(R.string.capture_preparing_camera)
+                },
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }
 }
+
+@Composable
+private fun NotificationPermissionRequiredState(viewModel: CapturePhotoViewModel) {
+    viewModel.getProcessedPhotoUri()?.let { processedUri ->
+        PreviewScreen(
+            photoUri = processedUri,
+            onRetake = { viewModel.onRetake() },
+            onUsePhoto = { },
+            confirmationEnabled = false
+        )
+    }
+}
+
+@Composable
+private fun NotificationPermissionDeniedState(
+    viewModel: CapturePhotoViewModel,
+    onNavigateBack: () -> Unit,
+    context: Context
+) {
+    NotificationPermissionDeniedScreen(
+        onRetry = { viewModel.retryNotificationPermission() },
+        onOpenSettings = {
+            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+            }
+            context.startActivity(intent)
+        },
+        onCancel = onNavigateBack
+    )
+}
+
+@Composable
+private fun ProcessingCompleteState(
+    state: CaptureState.ProcessingComplete,
+    viewModel: CapturePhotoViewModel
+) {
+    PreviewScreen(
+        photoUri = state.processedPhotoUri,
+        onRetake = { viewModel.onRetake() },
+        onUsePhoto = { ctx -> viewModel.onUsePhoto(ctx) }
+    )
+}
+
+@Composable
+private fun ErrorState(
+    state: CaptureState.Error,
+    viewModel: CapturePhotoViewModel,
+    onNavigateBack: () -> Unit,
+    context: Context
+) {
+    CaptureErrorScreen(
+        message = state.message,
+        onRetry = { viewModel.checkPermissionAndPrepare(context) },
+        onCancel = onNavigateBack
+    )
+}
+
+@Composable
+private fun PermissionDeniedState(onNavigateBack: () -> Unit, context: Context) {
+    PermissionDeniedScreen(
+        onOpenSettings = {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", context.packageName, null)
+            }
+            context.startActivity(intent)
+        },
+        onCancel = onNavigateBack
+    )
+}
+
+private data class CaptureLaunchers(
+    val healthConnect: androidx.activity.result.ActivityResultLauncher<Set<String>>,
+    val camera: androidx.activity.result.ActivityResultLauncher<Uri>,
+    val permission: androidx.activity.result.ActivityResultLauncher<String>,
+    val notification: androidx.activity.result.ActivityResultLauncher<String>
+)
 
 /**
  * Error screen shown when capture or processing fails.
@@ -396,7 +462,7 @@ private fun NotificationPermissionDeniedScreen(
 
 /**
  * Screen shown when Health Connect permissions are denied.
- * 
+ *
  * Explains why Health Connect is required and provides options to grant access or cancel.
  *
  * @param onOpenHealthConnect Callback to re-request Health Connect permissions

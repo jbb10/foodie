@@ -12,7 +12,6 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.foodie.app.R
 import com.foodie.app.data.local.cache.PhotoManager
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.data.worker.AnalyzeMealWorker
@@ -118,7 +117,7 @@ class CapturePhotoViewModel @Inject constructor(
 
     private var currentPhotoUri: Uri? = null
     private var processedPhotoUri: Uri? = null
-    
+
     // Performance tracking (Story 2-7, AC#1)
     private var screenLaunchTime: Long = 0L
 
@@ -150,16 +149,16 @@ class CapturePhotoViewModel @Inject constructor(
                 _state.value = CaptureState.StorageFull
                 return@launch
             }
-            
+
             // Storage OK, check Health Connect permissions
             val hasHealthConnectPermissions = healthConnectManager.checkPermissions()
-            
+
             if (!hasHealthConnectPermissions) {
                 Timber.i("Health Connect permissions missing - requesting before camera")
                 _state.value = CaptureState.RequestingHealthConnectPermission
                 return@launch
             }
-            
+
             // HC permissions granted, now check camera permission
             val hasCameraPermission = ContextCompat.checkSelfPermission(
                 context,
@@ -180,7 +179,7 @@ class CapturePhotoViewModel @Inject constructor(
      */
     fun onHealthConnectPermissionGranted(context: Context) {
         Timber.i("Health Connect permissions granted, checking camera permission")
-        
+
         val hasCameraPermission = ContextCompat.checkSelfPermission(
             context,
             android.Manifest.permission.CAMERA
@@ -310,7 +309,7 @@ class CapturePhotoViewModel @Inject constructor(
      * Creates permission request contract for Health Connect.
      * Exposes the contract from HealthConnectManager for use in Composable.
      */
-    fun createHealthConnectPermissionContract() = 
+    fun createHealthConnectPermissionContract() =
         healthConnectManager.createPermissionRequestContract()
 
     private fun hasNotificationPermission(context: Context): Boolean {
@@ -375,11 +374,11 @@ class CapturePhotoViewModel @Inject constructor(
             try {
                 currentPhotoUri = photoManager.createPhotoFile()
                 _state.value = CaptureState.ReadyToCapture(currentPhotoUri!!)
-                
+
                 // Performance logging: widget → camera ready (AC#1)
                 val prepDuration = System.currentTimeMillis() - screenLaunchTime
                 Timber.d("Camera ready in ${prepDuration}ms from screen launch (target: <500ms)")
-                
+
                 if (prepDuration > 500) {
                     Timber.w("Camera preparation exceeded 500ms target: ${prepDuration}ms")
                 }
@@ -411,7 +410,7 @@ class CapturePhotoViewModel @Inject constructor(
                     // Delete original unprocessed photo
                     photoManager.deletePhoto(originalUri)
                 } else {
-                    throw IllegalStateException("Photo processing returned null")
+                    error("Photo processing returned null")
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to process photo")

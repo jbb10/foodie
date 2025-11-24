@@ -5,6 +5,11 @@ ksp = "2.1.0-1.0.29"
 composeBom = "2024.10.01"
 composeCompiler = "1.5.15"
 
+# Code Quality & Linting
+detekt = "1.23.7"
+spotless = "6.25.0"
+ktlint = "1.0.1"
+
 # AndroidX
 coreKtx = "1.15.0"
 lifecycleRuntimeKtx = "2.8.7"
@@ -126,3 +131,5 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

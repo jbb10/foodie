@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import androidx.navigation.NavDestination
 import com.google.common.truth.Truth.assertThat
 
 /**

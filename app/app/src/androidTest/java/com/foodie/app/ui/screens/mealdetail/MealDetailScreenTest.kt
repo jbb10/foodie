@@ -12,12 +12,12 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.foodie.app.ui.theme.FoodieTheme
 import com.google.common.truth.Truth.assertThat
+import org.junit.Rule
+import org.junit.Test
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import org.junit.Rule
-import org.junit.Test
 
 /**
  * Instrumentation tests verifying the edit meal screen renders form state correctly and

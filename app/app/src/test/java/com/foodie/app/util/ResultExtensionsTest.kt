@@ -1,12 +1,8 @@
 package com.foodie.app.util
 
 import com.google.common.truth.Truth.assertThat
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import timber.log.Timber
 import java.io.IOException
 
 /**

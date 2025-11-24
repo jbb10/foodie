@@ -3,12 +3,12 @@ package com.foodie.app.data.worker
 import android.annotation.SuppressLint
 import android.app.ForegroundServiceStartNotAllowedException
 import android.content.Context
-import android.net.Uri
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.foodie.app.R
 import com.foodie.app.data.local.cache.PhotoManager
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.data.network.NetworkMonitor
@@ -19,14 +19,11 @@ import com.foodie.app.domain.error.ErrorType
 import com.foodie.app.domain.exception.NoFoodDetectedException
 import com.foodie.app.domain.model.NutritionData
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
-import com.foodie.app.R
-import com.foodie.app.util.Result as ApiResult
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
-import java.io.IOException
-import java.net.SocketTimeoutException
 import java.time.Instant
+import com.foodie.app.util.Result as ApiResult
 
 /**
  * Background worker for analyzing meal photos and saving nutrition data to Health Connect.
@@ -88,17 +85,17 @@ class AnalyzeMealWorker @AssistedInject constructor(
 
     companion object {
         private const val TAG = "AnalyzeMealWorker"
-        
+
         /**
          * Input data key for photo URI (String).
          */
         const val KEY_PHOTO_URI = "photo_uri"
-        
+
         /**
          * Input data key for meal timestamp in epoch seconds (Long).
          */
         const val KEY_TIMESTAMP = "timestamp"
-        
+
         /**
          * Maximum number of processing attempts (initial + retries).
          * Attempts: 1 (immediate), 2 (1s delay), 3 (2s delay), 4 (4s delay)
@@ -169,223 +166,284 @@ class AnalyzeMealWorker @AssistedInject constructor(
      */
     override suspend fun doWork(): androidx.work.ListenableWorker.Result {
         val startTime = System.currentTimeMillis()
-        
-        // Extract input data
-        val photoUriString = inputData.getString(KEY_PHOTO_URI)
+
+        // Extract and validate input data
+        val inputValidation = validateInputData()
+        if (inputValidation != null) return inputValidation
+
+        val photoUriString = inputData.getString(KEY_PHOTO_URI)!!
         val timestampSeconds = inputData.getLong(KEY_TIMESTAMP, 0L)
-        
-        if (photoUriString == null) {
-            Timber.tag(TAG).e("Photo URI missing from input data")
-            notifyFailure("Photo URI missing from input data")
-            return androidx.work.ListenableWorker.Result.failure()
-        }
-        
         val photoUri = photoUriString.toUri()
         val timestamp = Instant.ofEpochSecond(timestampSeconds)
-        
+
         Timber.tag(TAG).d(
             "Starting meal analysis (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): " +
             "uri=$photoUri, timestamp=$timestamp"
         )
 
         startForeground(R.string.notification_meal_analysis_status_preparing)?.let { return it }
-        
-        // Check network connectivity before proceeding
+
+        // Check network connectivity
+        val networkCheck = checkNetworkConnectivity()
+        if (networkCheck != null) return networkCheck
+
+        updateForeground(R.string.notification_meal_analysis_status_uploading, progressPercent = 10)
+
+        return try {
+            processAnalysis(photoUri, timestamp, startTime)
+        } catch (e: Exception) {
+            handleUnexpectedException(e, photoUri)
+        }
+    }
+
+    private fun validateInputData(): androidx.work.ListenableWorker.Result? {
+        val photoUriString = inputData.getString(KEY_PHOTO_URI)
+
+        if (photoUriString == null) {
+            Timber.tag(TAG).e("Photo URI missing from input data")
+            notifyFailure("Photo URI missing from input data")
+            return androidx.work.ListenableWorker.Result.failure()
+        }
+
+        return null
+    }
+
+    private suspend fun checkNetworkConnectivity(): androidx.work.ListenableWorker.Result? {
         if (!networkMonitor.checkConnectivity()) {
             Timber.tag(TAG).w(
                 "No network connectivity (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS)"
             )
-            
-            if (runAttemptCount + 1 >= MAX_ATTEMPTS) {
-                // Max retries exhausted - keep photo for manual retry when network restored
+
+            return if (runAttemptCount + 1 >= MAX_ATTEMPTS) {
                 Timber.tag(TAG).e(
                     "Max retry attempts exhausted with no network. " +
-                    "Keeping photo for future retry: $photoUri"
+                    "Keeping photo for future retry"
                 )
                 notifyFailure("No internet connection. Please check your network and try again.")
-                return androidx.work.ListenableWorker.Result.failure()
+                androidx.work.ListenableWorker.Result.failure()
             } else {
-                // Retry when network restored
                 updateForeground(R.string.notification_meal_analysis_status_preparing)
-                return androidx.work.ListenableWorker.Result.retry()
+                androidx.work.ListenableWorker.Result.retry()
             }
         }
-        
-        updateForeground(R.string.notification_meal_analysis_status_uploading, progressPercent = 10)
-        
-        try {
-            // Verify photo file exists
-            // Note: This is a basic check - actual file existence will be verified during API call
-            
-            // Call API for nutrition analysis
-            updateForeground(R.string.notification_meal_analysis_status_calling_api, progressPercent = 30)
-            val apiStartTime = System.currentTimeMillis()
-            val apiResult = nutritionAnalysisRepository.analyzePhoto(photoUri)
-            val apiDuration = System.currentTimeMillis() - apiStartTime
-            
-            Timber.tag(TAG).d("API call completed in ${apiDuration}ms")
-            
-            when (apiResult) {
-                is ApiResult.Success -> {
-                    val nutritionData = apiResult.data
-                    Timber.tag(TAG).i(
-                        "API analysis successful: ${nutritionData.calories} kcal, " +
-                        "'${nutritionData.description}'"
-                    )
-                    
-                    // Save to Health Connect
-                    updateForeground(R.string.notification_meal_analysis_status_saving, progressPercent = 80)
-                    val saveStartTime = System.currentTimeMillis()
-                    try {
-                        // Check Health Connect availability before saving
-                        if (!healthConnectManager.isAvailable()) {
-                            Timber.tag(TAG).e("Health Connect not available - cannot save nutrition data")
-                            notificationHelper.showErrorNotification(ErrorType.HealthConnectUnavailable)
-                            return androidx.work.ListenableWorker.Result.failure()
-                        }
-                        
-                        val recordId = healthConnectManager.insertNutritionRecord(
-                            calories = nutritionData.calories,
-                            description = nutritionData.description,
-                            timestamp = timestamp
-                        )
-                        val saveDuration = System.currentTimeMillis() - saveStartTime
-                        
-                        Timber.tag(TAG).i(
-                            "Health Connect save successful in ${saveDuration}ms: recordId=$recordId"
-                        )
-                        
-                        // Delete photo after successful save
-                        val deleted = photoManager.deletePhoto(photoUri)
-                        if (deleted) {
-                            Timber.tag(TAG).d("Photo deleted successfully")
-                        } else {
-                            Timber.tag(TAG).w("Failed to delete photo (may have been already deleted)")
-                        }
-                        
-                        val totalDuration = System.currentTimeMillis() - startTime
-                        Timber.tag(TAG).i(
-                            "Processing completed successfully in ${totalDuration}ms " +
-                            "(API: ${apiDuration}ms, Save: ${saveDuration}ms)"
-                        )
-                        
-                        if (totalDuration > 20_000) {
-                            Timber.tag(TAG).w(
-                                "Slow processing detected: ${totalDuration}ms (target: <15s typical)"
-                            )
-                        }
-                        
-                        notifySuccess(nutritionData, recordId, timestamp)
-                        return androidx.work.ListenableWorker.Result.success()
-                        
-                    } catch (e: IllegalStateException) {
-                        // Health Connect unavailable (not installed or disabled)
-                        Timber.tag(TAG).e(e, "Health Connect unavailable - keeping photo for retry after HC installation")
-                        notificationHelper.showErrorNotification(ErrorType.HealthConnectUnavailable)
-                        return androidx.work.ListenableWorker.Result.failure()
-                    } catch (e: SecurityException) {
-                        // Health Connect permission denied - keep photo for manual retry
-                        Timber.tag(TAG).e(
-                            e,
-                            "Health Connect permission denied - keeping photo for manual intervention"
-                        )
-                        notifyFailure(e.message)
-                        return androidx.work.ListenableWorker.Result.failure()
-                    } catch (e: IllegalArgumentException) {
-                        // Validation error (calories out of range or blank description)
-                        // Keep photo for investigation - this indicates API bug
-                        Timber.tag(TAG).e(
-                            e,
-                            "Invalid nutrition data from API - keeping photo for investigation. " +
-                            "Photo: $photoUri"
-                        )
-                        notifyFailure(e.message)
-                        return androidx.work.ListenableWorker.Result.failure()
-                    }
-                }
-                
-                is ApiResult.Error -> {
-                    val exception = apiResult.exception
-                    
-                    // Check for NoFoodDetectedException - this is non-retryable and needs special handling
-                    if (exception is NoFoodDetectedException) {
-                        Timber.tag(TAG).w("No food detected in image: ${apiResult.message}")
-                        photoManager.deletePhoto(photoUri)
-                        notifyFailure("No food detected. Please take a photo of your meal.")
-                        return androidx.work.ListenableWorker.Result.failure()
-                    }
-                    
-                    // Classify error using ErrorHandler
-                    val errorType = errorHandler.classify(exception)
-                    val isRetryable = errorHandler.isRetryable(errorType)
-                    val userMessage = errorHandler.getUserMessage(errorType)
-                    
-                    // Enhanced logging with full error context (Story 4.3 AC #7)
-                    Timber.tag(TAG).e(
-                        exception,
-                        "API error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): " +
-                        "errorType=${errorType.javaClass.simpleName}, retryable=$isRetryable, " +
-                        "photoUri=$photoUri, timestamp=$timestamp"
-                    )
-                    
-                    if (isRetryable) {
-                        if (runAttemptCount + 1 >= MAX_ATTEMPTS) {
-                            // Max retries exhausted - keep photo for manual retry
-                            Timber.tag(TAG).e(
-                                exception,
-                                "Max retry attempts exhausted ($MAX_ATTEMPTS), keeping photo for manual retry. " +
-                                "ErrorType=${errorType.javaClass.simpleName}, photoUri=$photoUri"
-                            )
-                            notifyFailure(userMessage)
-                            return androidx.work.ListenableWorker.Result.failure()
-                        } else {
-                            // Retry with exponential backoff
-                            Timber.tag(TAG).w(
-                                exception,
-                                "Retryable error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): $userMessage. " +
-                                "Will retry with backoff."
-                            )
-                            return androidx.work.ListenableWorker.Result.retry()
-                        }
-                    } else {
-                        // Non-retryable error - keep photo for manual retry after issue fixed
-                        Timber.tag(TAG).e(
-                            exception,
-                            "Non-retryable error: ${errorType.javaClass.simpleName}, " +
-                            "message='$userMessage', photoUri=$photoUri. Keeping photo for manual retry."
-                        )
-                        
-                        // Show persistent notification for critical non-retryable errors (Story 4.3 AC #8)
-                        when (errorType) {
-                            is ErrorType.AuthError -> {
-                                notificationHelper.showErrorNotification(errorType)
-                            }
-                            is ErrorType.PermissionDenied -> {
-                                notificationHelper.showErrorNotification(errorType)
-                            }
-                            else -> {
-                                // Other non-retryable errors: show standard failure notification (no action button)
-                                notifyFailure(userMessage)
-                            }
-                        }
-                        
-                        return androidx.work.ListenableWorker.Result.failure()
-                    }
-                }
-                
-                is ApiResult.Loading -> {
-                    // Should never happen in repository response, but handle gracefully
-                    Timber.tag(TAG).e("Unexpected Loading state from repository")
-                    notifyFailure("Unexpected repository state")
-                    return androidx.work.ListenableWorker.Result.failure()
-                }
+
+        return null
+    }
+
+    private suspend fun processAnalysis(
+        photoUri: android.net.Uri,
+        timestamp: Instant,
+        startTime: Long
+    ): androidx.work.ListenableWorker.Result {
+        updateForeground(R.string.notification_meal_analysis_status_calling_api, progressPercent = 30)
+        val apiStartTime = System.currentTimeMillis()
+        val apiResult = nutritionAnalysisRepository.analyzePhoto(photoUri)
+        val apiDuration = System.currentTimeMillis() - apiStartTime
+
+        Timber.tag(TAG).d("API call completed in ${apiDuration}ms")
+
+        return when (apiResult) {
+            is ApiResult.Success -> handleSuccessResult(apiResult.data, photoUri, timestamp, startTime, apiDuration)
+            is ApiResult.Error -> handleErrorResult(apiResult, photoUri, timestamp)
+            is ApiResult.Loading -> handleUnexpectedLoadingState()
+        }
+    }
+
+    private suspend fun handleSuccessResult(
+        nutritionData: NutritionData,
+        photoUri: android.net.Uri,
+        timestamp: Instant,
+        startTime: Long,
+        apiDuration: Long
+    ): androidx.work.ListenableWorker.Result {
+        Timber.tag(TAG).i(
+            "API analysis successful: ${nutritionData.calories} kcal, " +
+            "'${nutritionData.description}'"
+        )
+
+        updateForeground(R.string.notification_meal_analysis_status_saving, progressPercent = 80)
+        val saveStartTime = System.currentTimeMillis()
+
+        return try {
+            if (!healthConnectManager.isAvailable()) {
+                Timber.tag(TAG).e("Health Connect not available - cannot save nutrition data")
+                notificationHelper.showErrorNotification(ErrorType.HealthConnectUnavailable)
+                return androidx.work.ListenableWorker.Result.failure()
             }
-            
-        } catch (e: Exception) {
-            // Unexpected exception - keep photo for investigation
-            Timber.tag(TAG).e(e, "Unexpected exception in worker, keeping photo for investigation: $photoUri")
-            notifyFailure(e.message)
+
+            val recordId = healthConnectManager.insertNutritionRecord(
+                calories = nutritionData.calories,
+                description = nutritionData.description,
+                timestamp = timestamp
+            )
+            val saveDuration = System.currentTimeMillis() - saveStartTime
+
+            Timber.tag(TAG).i(
+                "Health Connect save successful in ${saveDuration}ms: recordId=$recordId"
+            )
+
+            cleanupAfterSuccess(photoUri, startTime, apiDuration, saveDuration, nutritionData, recordId, timestamp)
+
+        } catch (e: IllegalStateException) {
+            handleHealthConnectUnavailable(e)
+        } catch (e: SecurityException) {
+            handlePermissionDenied(e)
+        } catch (e: IllegalArgumentException) {
+            handleInvalidData(e, photoUri)
+        }
+    }
+
+    private suspend fun cleanupAfterSuccess(
+        photoUri: android.net.Uri,
+        startTime: Long,
+        apiDuration: Long,
+        saveDuration: Long,
+        nutritionData: NutritionData,
+        recordId: String,
+        timestamp: Instant
+    ): androidx.work.ListenableWorker.Result {
+        val deleted = photoManager.deletePhoto(photoUri)
+        if (deleted) {
+            Timber.tag(TAG).d("Photo deleted successfully")
+        } else {
+            Timber.tag(TAG).w("Failed to delete photo (may have been already deleted)")
+        }
+
+        val totalDuration = System.currentTimeMillis() - startTime
+        Timber.tag(TAG).i(
+            "Processing completed successfully in ${totalDuration}ms " +
+            "(API: ${apiDuration}ms, Save: ${saveDuration}ms)"
+        )
+
+        if (totalDuration > 20_000) {
+            Timber.tag(TAG).w(
+                "Slow processing detected: ${totalDuration}ms (target: <15s typical)"
+            )
+        }
+
+        notifySuccess(nutritionData, recordId, timestamp)
+        return androidx.work.ListenableWorker.Result.success()
+    }
+
+    private fun handleHealthConnectUnavailable(e: IllegalStateException): androidx.work.ListenableWorker.Result {
+        Timber.tag(TAG).e(e, "Health Connect unavailable - keeping photo for retry after HC installation")
+        notificationHelper.showErrorNotification(ErrorType.HealthConnectUnavailable)
+        return androidx.work.ListenableWorker.Result.failure()
+    }
+
+    private fun handlePermissionDenied(e: SecurityException): androidx.work.ListenableWorker.Result {
+        Timber.tag(TAG).e(
+            e,
+            "Health Connect permission denied - keeping photo for manual intervention"
+        )
+        notifyFailure(e.message)
+        return androidx.work.ListenableWorker.Result.failure()
+    }
+
+    private fun handleInvalidData(e: IllegalArgumentException, photoUri: android.net.Uri): androidx.work.ListenableWorker.Result {
+        Timber.tag(TAG).e(
+            e,
+            "Invalid nutrition data from API - keeping photo for investigation. " +
+            "Photo: $photoUri"
+        )
+        notifyFailure(e.message)
+        return androidx.work.ListenableWorker.Result.failure()
+    }
+
+    private suspend fun handleErrorResult(
+        apiResult: ApiResult.Error,
+        photoUri: android.net.Uri,
+        timestamp: Instant
+    ): androidx.work.ListenableWorker.Result {
+        val exception = apiResult.exception
+
+        // Check for NoFoodDetectedException - non-retryable
+        if (exception is NoFoodDetectedException) {
+            Timber.tag(TAG).w("No food detected in image: ${apiResult.message}")
+            photoManager.deletePhoto(photoUri)
+            notifyFailure("No food detected. Please take a photo of your meal.")
             return androidx.work.ListenableWorker.Result.failure()
         }
+
+        // Classify error using ErrorHandler
+        val errorType = errorHandler.classify(exception)
+        val isRetryable = errorHandler.isRetryable(errorType)
+        val userMessage = errorHandler.getUserMessage(errorType)
+
+        Timber.tag(TAG).e(
+            exception,
+            "API error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): " +
+            "errorType=${errorType.javaClass.simpleName}, retryable=$isRetryable, " +
+            "photoUri=$photoUri, timestamp=$timestamp"
+        )
+
+        return if (isRetryable) {
+            handleRetryableError(exception, errorType, userMessage, photoUri)
+        } else {
+            handleNonRetryableError(exception, errorType, userMessage, photoUri)
+        }
+    }
+
+    private fun handleRetryableError(
+        exception: Throwable,
+        errorType: ErrorType,
+        userMessage: String,
+        photoUri: android.net.Uri
+    ): androidx.work.ListenableWorker.Result {
+        return if (runAttemptCount + 1 >= MAX_ATTEMPTS) {
+            Timber.tag(TAG).e(
+                exception,
+                "Max retry attempts exhausted ($MAX_ATTEMPTS), keeping photo for manual retry. " +
+                "ErrorType=${errorType.javaClass.simpleName}, photoUri=$photoUri"
+            )
+            notifyFailure(userMessage)
+            androidx.work.ListenableWorker.Result.failure()
+        } else {
+            Timber.tag(TAG).w(
+                exception,
+                "Retryable error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): $userMessage. " +
+                "Will retry with backoff."
+            )
+            androidx.work.ListenableWorker.Result.retry()
+        }
+    }
+
+    private fun handleNonRetryableError(
+        exception: Throwable,
+        errorType: ErrorType,
+        userMessage: String,
+        photoUri: android.net.Uri
+    ): androidx.work.ListenableWorker.Result {
+        Timber.tag(TAG).e(
+            exception,
+            "Non-retryable error: ${errorType.javaClass.simpleName}, " +
+            "message='$userMessage', photoUri=$photoUri. Keeping photo for manual retry."
+        )
+
+        when (errorType) {
+            is ErrorType.AuthError -> {
+                notificationHelper.showErrorNotification(errorType)
+            }
+            is ErrorType.PermissionDenied -> {
+                notificationHelper.showErrorNotification(errorType)
+            }
+            else -> {
+                notifyFailure(userMessage)
+            }
+        }
+
+        return androidx.work.ListenableWorker.Result.failure()
+    }
+
+    private fun handleUnexpectedLoadingState(): androidx.work.ListenableWorker.Result {
+        Timber.tag(TAG).e("Unexpected Loading state from repository")
+        notifyFailure("Unexpected repository state")
+        return androidx.work.ListenableWorker.Result.failure()
+    }
+
+    private fun handleUnexpectedException(e: Exception, photoUri: android.net.Uri): androidx.work.ListenableWorker.Result {
+        Timber.tag(TAG).e(e, "Unexpected exception in worker, keeping photo for investigation: $photoUri")
+        notifyFailure(e.message)
+        return androidx.work.ListenableWorker.Result.failure()
     }
 }

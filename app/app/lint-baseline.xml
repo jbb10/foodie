@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Android Lint Baseline File -->
+<!-- This file is used to suppress existing lint issues while enforcing clean code for new changes -->
+<!-- To regenerate: ./gradlew :app:lintDebug -->
+<issues format="6" by="lint 8.13.0">
+
+</issues>

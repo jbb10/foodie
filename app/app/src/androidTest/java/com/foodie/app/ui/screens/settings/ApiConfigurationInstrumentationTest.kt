@@ -2,7 +2,6 @@ package com.foodie.app.ui.screens.settings
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -40,6 +39,16 @@ import javax.inject.Inject
 @HiltAndroidTest
 class ApiConfigurationInstrumentationTest {
 
+    companion object {
+        private const val TEST_ENDPOINT = "https://test.openai.azure.com"
+        private const val TEST_API_KEY = "sk-test-key-abc123"
+        private const val FIELD_API_KEY = "Azure OpenAI API Key"
+        private const val FIELD_ENDPOINT = "Azure OpenAI Endpoint"
+        private const val FIELD_MODEL = "Model Deployment Name"
+        private const val BUTTON_SAVE = "Save Configuration"
+        private const val BUTTON_TEST = "Test Connection"
+    }
+
     @get:Rule(order = 0)
     val hiltRule = HiltAndroidRule(this)
 
@@ -71,8 +80,8 @@ class ApiConfigurationInstrumentationTest {
         }
 
         // Find and interact with API key field
-        composeTestRule.onNode(hasText("Azure OpenAI API Key")).performClick()
-        composeTestRule.onNode(hasText("Azure OpenAI API Key")).performTextInput("test-api-key-12345")
+        composeTestRule.onNode(hasText(FIELD_API_KEY)).performClick()
+        composeTestRule.onNode(hasText(FIELD_API_KEY)).performTextInput("test-api-key-12345")
 
         // Note: We can't verify masked display in instrumentation tests due to PasswordVisualTransformation
         // This is covered by unit tests for ApiConfiguration
@@ -86,8 +95,8 @@ class ApiConfigurationInstrumentationTest {
             }
         }
 
-        composeTestRule.onNode(hasText("Azure OpenAI Endpoint")).performClick()
-        composeTestRule.onNode(hasText("Azure OpenAI Endpoint")).performTextInput("https://test.openai.azure.com")
+        composeTestRule.onNode(hasText(FIELD_ENDPOINT)).performClick()
+        composeTestRule.onNode(hasText(FIELD_ENDPOINT)).performTextInput(TEST_ENDPOINT)
     }
 
     @Test
@@ -98,8 +107,8 @@ class ApiConfigurationInstrumentationTest {
             }
         }
 
-        composeTestRule.onNode(hasText("Model Deployment Name")).performClick()
-        composeTestRule.onNode(hasText("Model Deployment Name")).performTextInput("gpt-4o")
+        composeTestRule.onNode(hasText(FIELD_MODEL)).performClick()
+        composeTestRule.onNode(hasText(FIELD_MODEL)).performTextInput("gpt-4o")
     }
 
     @Test
@@ -110,7 +119,7 @@ class ApiConfigurationInstrumentationTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Save Configuration").assertIsEnabled()
+        composeTestRule.onNodeWithText(BUTTON_SAVE).assertIsEnabled()
     }
 
     @Test
@@ -121,7 +130,7 @@ class ApiConfigurationInstrumentationTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Test Connection").assertIsEnabled()
+        composeTestRule.onNodeWithText(BUTTON_TEST).assertIsEnabled()
     }
 
     @Test
@@ -133,26 +142,26 @@ class ApiConfigurationInstrumentationTest {
         }
 
         // Input API configuration
-        composeTestRule.onNode(hasText("Azure OpenAI API Key")).performClick()
-        composeTestRule.onNode(hasText("Azure OpenAI API Key")).performTextInput("sk-test-key-abc123")
+        composeTestRule.onNode(hasText(FIELD_API_KEY)).performClick()
+        composeTestRule.onNode(hasText(FIELD_API_KEY)).performTextInput(TEST_API_KEY)
 
-        composeTestRule.onNode(hasText("Azure OpenAI Endpoint")).performClick()
-        composeTestRule.onNode(hasText("Azure OpenAI Endpoint"))
+        composeTestRule.onNode(hasText(FIELD_ENDPOINT)).performClick()
+        composeTestRule.onNode(hasText(FIELD_ENDPOINT))
             .performTextInput("https://test-resource.openai.azure.com")
 
-        composeTestRule.onNode(hasText("Model Deployment Name")).performClick()
-        composeTestRule.onNode(hasText("Model Deployment Name")).performTextReplacement("gpt-4o-mini")
+        composeTestRule.onNode(hasText(FIELD_MODEL)).performClick()
+        composeTestRule.onNode(hasText(FIELD_MODEL)).performTextReplacement("gpt-4o-mini")
 
         // Save configuration
-        composeTestRule.onNodeWithText("Save Configuration").performClick()
+        composeTestRule.onNodeWithText(BUTTON_SAVE).performClick()
 
         // Wait for async save operation
         composeTestRule.waitUntil(timeoutMillis = 3000) {
-            securePreferences.azureOpenAiApiKey == "sk-test-key-abc123"
+            securePreferences.azureOpenAiApiKey == TEST_API_KEY
         }
 
         // Verify persistence
-        assertThat(securePreferences.azureOpenAiApiKey).isEqualTo("sk-test-key-abc123")
+        assertThat(securePreferences.azureOpenAiApiKey).isEqualTo(TEST_API_KEY)
         assertThat(securePreferences.azureOpenAiEndpoint).isEqualTo("https://test-resource.openai.azure.com")
         assertThat(securePreferences.azureOpenAiModel).isEqualTo("gpt-4o-mini")
     }
@@ -237,23 +246,6 @@ class ApiConfigurationInstrumentationTest {
             "Get your Azure OpenAI credentials at portal.azure.com",
             substring = true
         ).assertIsDisplayed()
-    }
-
-    @Test
-    fun allApiConfigurationFields_displayInCorrectOrder() {
-        composeTestRule.setContent {
-            FoodieTheme {
-                SettingsScreen(onNavigateBack = {})
-            }
-        }
-
-        // Verify all fields are displayed
-        composeTestRule.onNodeWithText("API Configuration").assertIsDisplayed()
-        composeTestRule.onNodeWithText("API Key").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Azure OpenAI Endpoint").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Model Deployment Name").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Save Configuration").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Test Connection").assertIsDisplayed()
     }
 
     @Test

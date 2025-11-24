@@ -28,6 +28,13 @@ class MealRepositoryImpl @Inject constructor(
     private val healthConnectDataSource: HealthConnectDataSource
 ) : MealRepository {
 
+    companion object {
+        private const val ERROR_PERMISSIONS_NOT_GRANTED = 
+            "Health Connect permissions not granted. Please grant permissions in Settings."
+        private const val ERROR_HEALTH_CONNECT_UNAVAILABLE = 
+            "Health Connect is not available on this device."
+    }
+
     override fun getMealHistory(): Flow<Result<List<MealEntry>>> = flow {
         emit(Result.Loading)
         
@@ -68,13 +75,11 @@ class MealRepositoryImpl @Inject constructor(
             emit(Result.Success(mealEntries))
             
         } catch (e: SecurityException) {
-            val message = "Health Connect permissions not granted. Please grant permissions in Settings."
-            Timber.e(e, message)
-            emit(Result.Error(e, message))
+            Timber.e(e, ERROR_PERMISSIONS_NOT_GRANTED)
+            emit(Result.Error(e, ERROR_PERMISSIONS_NOT_GRANTED))
         } catch (e: IllegalStateException) {
-            val message = "Health Connect is not available on this device."
-            Timber.e(e, message)
-            emit(Result.Error(e, message))
+            Timber.e(e, ERROR_HEALTH_CONNECT_UNAVAILABLE)
+            emit(Result.Error(e, ERROR_HEALTH_CONNECT_UNAVAILABLE))
         } catch (e: Exception) {
             val message = "Failed to fetch meal history. Please try again."
             Timber.e(e, message)
@@ -115,13 +120,11 @@ class MealRepositoryImpl @Inject constructor(
             Result.Success(Unit)
             
         } catch (e: SecurityException) {
-            val message = "Health Connect permissions not granted. Please grant permissions in Settings."
-            Timber.e(e, message)
-            Result.Error(e, message)
+            Timber.e(e, ERROR_PERMISSIONS_NOT_GRANTED)
+            Result.Error(e, ERROR_PERMISSIONS_NOT_GRANTED)
         } catch (e: IllegalStateException) {
-            val message = "Health Connect is not available on this device."
-            Timber.e(e, message)
-            Result.Error(e, message)
+            Timber.e(e, ERROR_HEALTH_CONNECT_UNAVAILABLE)
+            Result.Error(e, ERROR_HEALTH_CONNECT_UNAVAILABLE)
         } catch (e: IllegalArgumentException) {
             Timber.e(e, e.message)
             Result.Error(e, e.message ?: "Invalid input")
@@ -142,13 +145,11 @@ class MealRepositoryImpl @Inject constructor(
             Result.Success(Unit)
             
         } catch (e: SecurityException) {
-            val message = "Health Connect permissions not granted. Please grant permissions in Settings."
-            Timber.e(e, message)
-            Result.Error(e, message)
+            Timber.e(e, ERROR_PERMISSIONS_NOT_GRANTED)
+            Result.Error(e, ERROR_PERMISSIONS_NOT_GRANTED)
         } catch (e: IllegalStateException) {
-            val message = "Health Connect is not available on this device."
-            Timber.e(e, message)
-            Result.Error(e, message)
+            Timber.e(e, ERROR_HEALTH_CONNECT_UNAVAILABLE)
+            Result.Error(e, ERROR_HEALTH_CONNECT_UNAVAILABLE)
         } catch (e: Exception) {
             val message = "Failed to delete meal. Please try again."
             Timber.e(e, message)

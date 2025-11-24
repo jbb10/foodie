@@ -1,8 +1,6 @@
 package com.foodie.app
 
 import android.app.Application
-import android.content.Context
-import android.content.SharedPreferences
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import androidx.work.Constraints
@@ -36,39 +34,39 @@ import javax.inject.Inject
  */
 @HiltAndroidApp
 class FoodieApplication : Application(), Configuration.Provider {
-    
+
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
     @Inject
     lateinit var securePreferences: SecurePreferences
-    
+
     override fun onCreate() {
         super.onCreate()
-        
+
         // Initialize Timber for logging
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         } else {
             Timber.plant(ReleaseTree())
         }
-        
+
         Timber.d("FoodieApplication initialized with HiltWorkerFactory")
 
         MealAnalysisNotificationSpec.ensureChannel(this)
-        
+
         // Migrate BuildConfig credentials to EncryptedSharedPreferences (Story 5.2)
         migrateCredentialsIfNeeded()
-        
+
         // Schedule periodic photo cleanup (Story 4.4)
         schedulePhotoCleanup()
     }
-    
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
             .build()
-    
+
     /**
      * Schedules periodic photo cleanup task.
      *
@@ -84,29 +82,29 @@ class FoodieApplication : Application(), Configuration.Provider {
         val constraints = Constraints.Builder()
             .setRequiresDeviceIdle(true)
             .build()
-        
+
         // Calculate initial delay to align first run with 3am
         val initialDelaySeconds = calculateDelayUntil3AM()
-        
+
         val cleanupRequest = PeriodicWorkRequestBuilder<PhotoCleanupWorker>(
             24, TimeUnit.HOURS
         )
             .setConstraints(constraints)
             .setInitialDelay(initialDelaySeconds, TimeUnit.SECONDS)
             .build()
-        
+
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "photo_cleanup_periodic",
             ExistingPeriodicWorkPolicy.KEEP,
             cleanupRequest
         )
-        
+
         Timber.d(
             "Photo cleanup scheduled: daily at 3am " +
             "(initial delay: ${initialDelaySeconds / 3600}h ${(initialDelaySeconds % 3600) / 60}m)"
         )
     }
-    
+
     /**
      * Calculates seconds until next 3am occurrence.
      *
@@ -118,14 +116,14 @@ class FoodieApplication : Application(), Configuration.Provider {
     private fun calculateDelayUntil3AM(): Long {
         val now = LocalDateTime.now()
         val targetTime = LocalTime.of(3, 0) // 3:00 AM
-        
+
         var next3AM = now.with(targetTime)
-        
+
         // If 3am today has passed, schedule for 3am tomorrow
         if (now.isAfter(next3AM)) {
             next3AM = next3AM.plusDays(1)
         }
-        
+
         return Duration.between(now, next3AM).seconds
     }
 
@@ -144,9 +142,9 @@ class FoodieApplication : Application(), Configuration.Provider {
      * Story 5.2: Azure OpenAI API Key and Endpoint Configuration
      */
     private fun migrateCredentialsIfNeeded() {
-        val prefs = getSharedPreferences("foodie_prefs", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("foodie_prefs", MODE_PRIVATE)
         val migrated = prefs.getBoolean("credentials_migrated", false)
-        
+
         if (migrated) {
             Timber.d("Credentials already migrated, skipping")
             return

@@ -6,7 +6,6 @@ import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.repository.PreferencesRepository
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify

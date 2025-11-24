@@ -9,7 +9,6 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 import java.io.ByteArrayInputStream
-import java.io.IOException
 
 /**
  * Unit tests for ImageUtils.
@@ -58,7 +57,7 @@ class ImageUtilsTest {
             0xD9.toByte()
         )
 
-        val inputStream = ByteArrayInputStream(minimalJpeg)
+        ByteArrayInputStream(minimalJpeg)
         whenever(mockContext.contentResolver).thenReturn(null)  // Simplified - full test in androidTest
 
         // This test is simplified for unit testing without Android framework

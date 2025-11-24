@@ -29,6 +29,12 @@ import org.junit.Test
  */
 class ModelSelectionTest {
 
+    companion object {
+        private const val TEST_ENDPOINT = "https://test.openai.azure.com"
+        private const val TEST_API_KEY = "test-key"
+        private const val TEST_MODEL = "gpt-4.1"
+    }
+
     private lateinit var repository: PreferencesRepositoryImpl
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
@@ -54,23 +60,23 @@ class ModelSelectionTest {
     @Test
     fun `getApiConfiguration returns default model gpt-4-1`() = runTest {
         // Given: No model configured
-        every { securePreferences.azureOpenAiApiKey } returns "test-key"
-        every { sharedPreferences.getString("pref_azure_endpoint", "") } returns "https://test.openai.azure.com"
-        every { sharedPreferences.getString("pref_azure_model", "gpt-4.1") } returns "gpt-4.1"
+        every { securePreferences.azureOpenAiApiKey } returns TEST_API_KEY
+        every { sharedPreferences.getString("pref_azure_endpoint", "") } returns TEST_ENDPOINT
+        every { sharedPreferences.getString("pref_azure_model", "gpt-4.1") } returns TEST_MODEL
 
         // When: Getting API configuration
         val config = repository.getApiConfiguration().first()
 
         // Then: Default model is gpt-4.1
-        assertThat(config.modelName).isEqualTo("gpt-4.1")
+        assertThat(config.modelName).isEqualTo(TEST_MODEL)
     }
 
     @Test
     fun `saveApiConfiguration persistsCustomModelName`() = runTest {
         // Given: Custom model name
         val config = ApiConfiguration(
-            apiKey = "test-key",
-            endpoint = "https://test.openai.azure.com",
+            apiKey = TEST_API_KEY,
+            endpoint = TEST_ENDPOINT,
             modelName = "gpt-4o-mini"
         )
 
@@ -90,8 +96,8 @@ class ModelSelectionTest {
     fun `saveApiConfiguration acceptsArbitraryDeploymentName`() = runTest {
         // Given: Arbitrary deployment name
         val config = ApiConfiguration(
-            apiKey = "test-key",
-            endpoint = "https://test.openai.azure.com",
+            apiKey = TEST_API_KEY,
+            endpoint = TEST_ENDPOINT,
             modelName = "my-custom-deployment-123"
         )
 

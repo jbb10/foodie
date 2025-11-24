@@ -1,7 +1,7 @@
 package com.foodie.app
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.junit.Assert.*
 
 /**
  * Build configuration tests to verify project setup.

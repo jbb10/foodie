@@ -22,8 +22,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 
 /**
  * Unit tests for MealListViewModel.

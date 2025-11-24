@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -45,7 +44,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -93,13 +91,81 @@ fun SettingsScreen(
     var editedEndpoint by remember { mutableStateOf("") }
     var editedModel by remember { mutableStateOf("") }
 
-    // Initialize local state from ViewModel state
-    LaunchedEffect(state.apiKey, state.apiEndpoint, state.modelName) {
-        if (editedApiKey.isEmpty()) editedApiKey = state.apiKey
-        if (editedEndpoint.isEmpty()) editedEndpoint = state.apiEndpoint
-        if (editedModel.isEmpty()) editedModel = state.modelName
+    // Initialize and handle side effects
+    InitializeEditStateFromViewModel(state, editedApiKey) { key, endpoint, model ->
+        editedApiKey = key
+        editedEndpoint = endpoint
+        editedModel = model
     }
 
+    HandleSnackbarMessages(state, snackbarHostState, viewModel)
+
+    SettingsScaffold(
+        onNavigateBack = onNavigateBack,
+        snackbarHostState = snackbarHostState,
+        modifier = modifier
+    ) { paddingValues ->
+        val apiConfigState = ApiConfigEditState(
+            editedApiKey = editedApiKey,
+            editedEndpoint = editedEndpoint,
+            editedModel = editedModel,
+            onApiKeyChange = { editedApiKey = it },
+            onEndpointChange = { editedEndpoint = it },
+            onModelChange = { editedModel = it }
+        )
+
+        SettingsContent(
+            state = state,
+            apiConfigState = apiConfigState,
+            onSaveClick = {
+                focusManager.clearFocus()
+                viewModel.saveApiConfiguration(editedApiKey, editedEndpoint, editedModel)
+            },
+            onTestClick = {
+                focusManager.clearFocus()
+                viewModel.testConnection(
+                    apiKey = state.apiKey,
+                    endpoint = state.apiEndpoint,
+                    modelName = state.modelName
+                )
+            },
+            onThemeChange = { viewModel.updateThemeMode(it) },
+            paddingValues = paddingValues
+        )
+    }
+}
+
+/**
+ * Data class to group API configuration editing state and reduce parameter count
+ */
+private data class ApiConfigEditState(
+    val editedApiKey: String,
+    val editedEndpoint: String,
+    val editedModel: String,
+    val onApiKeyChange: (String) -> Unit,
+    val onEndpointChange: (String) -> Unit,
+    val onModelChange: (String) -> Unit
+)
+
+@Composable
+private fun InitializeEditStateFromViewModel(
+    state: SettingsState,
+    editedApiKey: String,
+    onInitialize: (String, String, String) -> Unit
+) {
+    LaunchedEffect(state.apiKey, state.apiEndpoint, state.modelName) {
+        if (editedApiKey.isEmpty()) {
+            onInitialize(state.apiKey, state.apiEndpoint, state.modelName)
+        }
+    }
+}
+
+@Composable
+private fun HandleSnackbarMessages(
+    state: SettingsState,
+    snackbarHostState: SnackbarHostState,
+    viewModel: SettingsViewModel
+) {
     // Show test connection result
     LaunchedEffect(state.testConnectionResult) {
         state.testConnectionResult?.let { result ->
@@ -133,7 +199,16 @@ fun SettingsScreen(
             viewModel.clearError()
         }
     }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsScaffold(
+    onNavigateBack: () -> Unit,
+    snackbarHostState: SnackbarHostState,
+    modifier: Modifier = Modifier,
+    content: @Composable (androidx.compose.foundation.layout.PaddingValues) -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -149,149 +224,150 @@ fun SettingsScreen(
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        modifier = modifier
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // API Configuration category
-            item(key = "api_config_header") {
-                PreferenceCategoryHeader(title = "API Configuration")
-            }
-            item(key = "api_help_text") {
-                Text(
-                    text = stringResource(R.string.settings_api_help_text),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
-            item(key = "api_key") {
-                ApiKeyPreference(
-                    value = editedApiKey,
-                    onValueChange = { editedApiKey = it },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
-            item(key = "api_endpoint") {
-                EditTextPreference(
-                    title = "Azure OpenAI Endpoint",
-                    value = editedEndpoint,
-                    onValueChange = { editedEndpoint = it },
-                    hint = "https://your-resource.openai.azure.com",
-                    keyboardType = KeyboardType.Uri,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
-            item(key = "api_model") {
-                EditTextPreference(
-                    title = "Model Deployment Name",
-                    value = editedModel,
-                    onValueChange = { editedModel = it },
-                    hint = "gpt-4.1",
-                    keyboardType = KeyboardType.Text,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
-            item(key = "api_model_description") {
-                Text(
-                    text = stringResource(R.string.settings_model_description),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                )
-            }
-            item(key = "api_save_button") {
-                Button(
-                    onClick = {
-                        focusManager.clearFocus()
-                        viewModel.saveApiConfiguration(editedApiKey, editedEndpoint, editedModel)
-                    },
-                    enabled = !state.isLoading && !state.isTestingConnection,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    if (state.isLoading) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                    }
-                    Text("Save Configuration")
-                }
-            }
-            item(key = "api_test_button") {
-                Button(
-                    onClick = {
-                        focusManager.clearFocus()
-                        viewModel.testConnection(
-                            apiKey = state.apiKey,
-                            endpoint = state.apiEndpoint,
-                            modelName = state.modelName
-                        )
-                    },
-                    enabled = !state.isLoading && !state.isTestingConnection,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    if (state.isTestingConnection) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
-                    Text("Test Connection")
-                }
-            }
-            item(key = "api_divider") {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            }
+        modifier = modifier,
+        content = content
+    )
+}
 
-            // Appearance category
-            item(key = "appearance_header") {
-                PreferenceCategoryHeader(title = "Appearance")
+@Composable
+private fun SettingsContent(
+    state: SettingsState,
+    apiConfigState: ApiConfigEditState,
+    onSaveClick: () -> Unit,
+    onTestClick: () -> Unit,
+    onThemeChange: (com.foodie.app.domain.model.ThemeMode) -> Unit,
+    paddingValues: androidx.compose.foundation.layout.PaddingValues
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+    ) {
+        // API Configuration category
+        item(key = "api_config_header") {
+            PreferenceCategoryHeader(title = "API Configuration")
+        }
+        item(key = "api_help_text") {
+            Text(
+                text = stringResource(R.string.settings_api_help_text),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+        item(key = "api_key") {
+            ApiKeyPreference(
+                value = apiConfigState.editedApiKey,
+                onValueChange = apiConfigState.onApiKeyChange,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+        item(key = "api_endpoint") {
+            EditTextPreference(
+                title = "Azure OpenAI Endpoint",
+                value = apiConfigState.editedEndpoint,
+                onValueChange = apiConfigState.onEndpointChange,
+                hint = "https://your-resource.openai.azure.com",
+                keyboardType = KeyboardType.Uri,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+        item(key = "api_model") {
+            EditTextPreference(
+                title = "Model Deployment Name",
+                value = apiConfigState.editedModel,
+                onValueChange = apiConfigState.onModelChange,
+                hint = "gpt-4.1",
+                keyboardType = KeyboardType.Text,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+        item(key = "api_model_description") {
+            Text(
+                text = stringResource(R.string.settings_model_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
+        item(key = "api_save_button") {
+            Button(
+                onClick = onSaveClick,
+                enabled = !state.isLoading && !state.isTestingConnection,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                }
+                Text("Save Configuration")
             }
-            item(key = "appearance_theme") {
-                ThemePreference(
-                    currentTheme = state.themeMode,
-                    onThemeSelected = { theme ->
-                        val themeMode = when (theme) {
-                            "light" -> com.foodie.app.domain.model.ThemeMode.LIGHT
-                            "dark" -> com.foodie.app.domain.model.ThemeMode.DARK
-                            else -> com.foodie.app.domain.model.ThemeMode.SYSTEM_DEFAULT
-                        }
-                        viewModel.updateThemeMode(themeMode)
-                    },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
+        }
+        item(key = "api_test_button") {
+            Button(
+                onClick = onTestClick,
+                enabled = !state.isLoading && !state.isTestingConnection,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                if (state.isTestingConnection) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text("Test Connection")
             }
-            item(key = "appearance_theme_description") {
-                Text(
-                    text = stringResource(R.string.settings_theme_description),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                )
-            }
-            item(key = "appearance_divider") {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            }
+        }
+        item(key = "api_divider") {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        }
 
-            // About category
-            item(key = "about_header") {
-                PreferenceCategoryHeader(title = "About")
-            }
-            item(key = "about_version") {
-                PreferencePlaceholder(
-                    title = "Version",
-                    summary = "1.0.0 (MVP)"
-                )
-            }
+        // Appearance category
+        item(key = "appearance_header") {
+            PreferenceCategoryHeader(title = "Appearance")
+        }
+        item(key = "appearance_theme") {
+            ThemePreference(
+                currentTheme = state.themeMode,
+                onThemeSelected = { theme ->
+                    val themeMode = when (theme) {
+                        "light" -> com.foodie.app.domain.model.ThemeMode.LIGHT
+                        "dark" -> com.foodie.app.domain.model.ThemeMode.DARK
+                        else -> com.foodie.app.domain.model.ThemeMode.SYSTEM_DEFAULT
+                    }
+                    onThemeChange(themeMode)
+                },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+        item(key = "appearance_theme_description") {
+            Text(
+                text = stringResource(R.string.settings_theme_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
+        item(key = "appearance_divider") {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        }
+
+        // About category
+        item(key = "about_header") {
+            PreferenceCategoryHeader(title = "About")
+        }
+        item(key = "about_version") {
+            PreferencePlaceholder(
+                title = "Version",
+                summary = "1.0.0 (MVP)"
+            )
         }
     }
 }
@@ -367,16 +443,11 @@ private fun ApiKeyPreference(
     }
 
     Column(modifier = modifier) {
-        Text(
-            text = "API Key",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             label = { Text("Azure OpenAI API Key") },
-            placeholder = { Text("API Key") },
+            placeholder = { Text("sk-...") },
             visualTransformation = PasswordVisualTransformation(),
             supportingText = {
                 if (value.isNotBlank()) {
@@ -388,7 +459,9 @@ private fun ApiKeyPreference(
                 imeAction = ImeAction.Next
             ),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "api_key_field" }
         )
     }
 }
@@ -417,11 +490,6 @@ private fun EditTextPreference(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
@@ -432,7 +500,9 @@ private fun EditTextPreference(
                 imeAction = ImeAction.Next
             ),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "${title.lowercase().replace(" ", "_")}_field" }
         )
     }
 }

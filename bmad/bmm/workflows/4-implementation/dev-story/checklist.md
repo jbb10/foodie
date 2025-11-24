@@ -25,6 +25,24 @@ validation-rules:
 - [ ] All tests pass locally (no regressions introduced)
 - [ ] Linting and static checks (if configured) pass
 
+## SonarQube Quality Gate
+
+**Critical Step:** Run SonarQube scan and verify quality standards before marking story complete
+
+- [ ] SonarQube scan executed after implementation (`sonar-scanner`)
+- [ ] SonarQube dashboard reviewed (http://localhost:9000/dashboard?id=Foodie)
+- [ ] **BLOCKER severity issues:** 0 (must fix before story completion)
+- [ ] **CRITICAL severity issues:** 0 (must fix or document as known issue)
+- [ ] **MAJOR severity issues:** < 5 new issues (fix or defer with justification in Dev Notes)
+- [ ] **Quality Ratings meet thresholds:**
+  - Security Rating: A or B (no critical vulnerabilities)
+  - Reliability Rating: A or B (no critical bugs)
+  - Maintainability Rating: A (technical debt ratio < 5%)
+- [ ] SonarQube results documented in story Dev Notes
+- [ ] If violations found: fixes applied, tests re-run, SonarQube re-scanned to verify resolution
+
+**Reference:** See `docs/development/definition-of-done.md` for complete SonarQube integration process
+
 ## Story File Updates
 
 - [ ] File List section includes every new/modified/deleted file (paths relative to repo root)
@@ -35,4 +53,5 @@ validation-rules:
 ## Final Status
 
 - [ ] Regression suite executed successfully
+- [ ] Definition of Done checklist validated (see `docs/development/definition-of-done.md`)
 - [ ] Story Status is set to "Ready for Review"
