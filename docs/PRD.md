@@ -104,21 +104,33 @@ This is the core hypothesis - can invisible tracking actually work in real life?
 
 ### Growth Features (V2.0 - Post-MVP)
 
-**Enhanced Tracking:**
+**Energy Balance & Caloric Deficit Tracking:**
+- User profile settings (sex, age, weight, height with Health Connect pre-population)
+- Basal Metabolic Rate (BMR) calculation using Mifflin-St Jeor equation
+  - Males: BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age_years) + 5
+  - Females: BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age_years) - 161
+- Passive energy expenditure (NEAT) from step data using 0.04 kcal/step formula
+- Active energy expenditure from Health Connect ActiveEnergyBurned
+- Total Daily Energy Expenditure (TDEE) = BMR + NEAT + Active
+- Calories In vs Calories Out dashboard with deficit/surplus visualization
+- Scientific formulas: fully transparent and controllable calculations
+
+**Enhanced Nutrition Tracking:**
 - Macros tracking (protein, carbs, fat) in addition to calories
-- Custom dashboard/analytics within app
-- Daily summary notifications
+- Barcode scanning + OpenFoodFacts integration for packaged foods
+- Offline capability: photo queuing when network unavailable with automatic retry
 - Smart auto-categorization (breakfast/lunch/dinner/snacks based on time)
+- Daily summary notifications
 
-**Integration & Insights:**
-- Garmin Connect integration for energy balance (calories in vs. calories out)
+**Model & Prompt Optimization:**
+- Test bench for model comparison (GPT-4.1 vs alternatives)
+- Prompt variation testing framework
+- Accuracy evaluation against known-calorie photo dataset
+- Cost/accuracy reporting to optimize API usage
+
+**Additional Enhancements:**
 - Smart scale integration for body composition trend analysis
-- Home screen widget (alternative access point)
-
-**Offline Capability:**
-- Photo queuing when network unavailable
-- Automatic background processing when network restored
-- Invisible retry logic (no user intervention required)
+- Custom analytics and trend visualization
 
 ### Vision Features (V3.0+ - Future)
 
@@ -126,7 +138,6 @@ This is the core hypothesis - can invisible tracking actually work in real life?
 - Before/after photos for portion size adjustment
 - Family meal portions: "I ate 1/4 of this casserole"
 - Voice annotations for context or corrections
-- Barcode scanning + OpenFoodFacts integration for packaged foods
 
 **Intelligence:**
 - Recipe recognition from home-cooked meals
@@ -177,6 +188,12 @@ This is the core hypothesis - can invisible tracking actually work in real life?
 - Health Connect permissions:
   - `READ_NUTRITION` - View existing nutrition entries
   - `WRITE_NUTRITION` - Save calorie data to Health Connect
+  - `READ_WEIGHT` - Read user weight for BMR calculation (V2.0+)
+  - `WRITE_WEIGHT` - Save manually entered weight to Health Connect (V2.0+)
+  - `READ_HEIGHT` - Read user height for BMR calculation (V2.0+)
+  - `WRITE_HEIGHT` - Save manually entered height to Health Connect (V2.0+)
+  - `READ_STEPS` - Read daily step count for NEAT calculation (V2.0+)
+  - `READ_ACTIVE_CALORIES_BURNED` - Read active energy expenditure (V2.0+)
 
 **Permission Handling:**
 - Request camera permission on first widget activation

@@ -92,3 +92,6 @@ development_status:
   5-8-final-integration-testing-and-bug-fixes: done  # ✅ COMPLETED 2025-11-23 - Test plan created, automated tests verified (387 passing), Tasks 3-8 skipped (personal use app), production ready for daily use
   5-9-sonarqube-technical-debt-resolution: done  # ✅ APPROVED 2025-11-24 - 87 violations fixed (Security E→A, Reliability B→A, Maintainability A), DoD created, 387 unit tests + 106 instrumentation tests passing, comprehensive test regression fix (24→0), production-ready
   epic-5-retrospective: done  # ✅ COMPLETED 2025-11-23 - All 8 stories reviewed, zero blockers celebrated, Story 5-9 added for SonarQube cleanup, AI-driven development quality insights captured
+
+  # Epic 6: Energy Balance & Caloric Deficit Tracking
+  epic-6: contexted  # Tech spec created 2025-11-26 - TDEE = BMR + NEAT + Active, scientifically grounded formulas, Health Connect integration for weight/height/steps/active calories
