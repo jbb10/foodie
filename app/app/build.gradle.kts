@@ -59,6 +59,8 @@ android {
         }
         debug {
             isMinifyEnabled = false
+            enableAndroidTestCoverage = true
+            enableUnitTestCoverage = true
         }
     }
 
@@ -254,6 +256,8 @@ dependencies {
 // JaCoCo Code Coverage Configuration
 tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
+    // Note: createDebugCoverageReport requires device/emulator and working test runner
+    // Currently disabled due to HiltTestRunner configuration issues
 
     reports {
         xml.required.set(true)
@@ -290,6 +294,10 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     sourceDirectories.setFrom(files(mainSrc))
     classDirectories.setFrom(files(debugTree))
     executionData.setFrom(fileTree(project.buildDir) {
-        include("jacoco/testDebugUnitTest.exec")
+        include(
+            "jacoco/testDebugUnitTest.exec",
+            "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
+            "outputs/code_coverage/debugAndroidTest/connected/**/*.ec"
+        )
     })
 }
