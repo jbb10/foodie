@@ -95,3 +95,25 @@ development_status:
 
   # Epic 6: Energy Balance & Caloric Deficit Tracking
   epic-6: contexted  # Tech spec created 2025-11-26 - TDEE = BMR + NEAT + Active, scientifically grounded formulas, Health Connect integration for weight/height/steps/active calories
+  6-1-user-profile-settings: backlog
+  6-2-bmr-calculation: backlog
+  6-3-passive-energy-neat-calculation: backlog
+  6-4-active-energy-expenditure: backlog
+  6-5-total-daily-energy-expenditure-tdee: backlog
+  6-6-calories-in-vs-calories-out-dashboard: backlog
+  6-7-weight-height-health-connect-sync: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: Enhanced Nutrition Tracking
+  epic-7: backlog
+  7-1-macros-tracking-protein-carbs-fat: backlog
+  7-2-barcode-scanning-integration: backlog
+  7-3-offline-photo-queuing: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: Model & Prompt Optimization
+  epic-8: backlog
+  8-1-test-dataset-management: backlog
+  8-2-model-comparison-test-runner: backlog
+  8-3-prompt-variation-testing: backlog
+  epic-8-retrospective: optional
