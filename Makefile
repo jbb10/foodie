@@ -1,7 +1,7 @@
 # Foodie App - Makefile
 # Convenient commands for building, deploying, and testing the Android app
 
-.PHONY: help install-debug install-release test-unit test-instrumentation test-all clean sonar coverage lint lint-check format format-check detekt ktlint android-lint lint-all lint-fix
+.PHONY: help install-debug install-release test-unit test-instrumentation test-all clean sonar coverage lint lint-fix format format-check detekt android-lint
 
 # Default target - show available commands
 help:
@@ -15,18 +15,15 @@ help:
 	@echo "  make test-unit            - Run all unit tests"
 	@echo "  make test-instrumentation - Run all instrumentation tests (requires device/emulator)"
 	@echo "  make test-all             - Run all tests (unit + instrumentation)"
-	@echo "  make coverage             - Generate code coverage report"
+	@echo "  make coverage             - Generate coverage reports for all tests"
 	@echo ""
 	@echo "Code Quality & Linting:"
 	@echo "  make lint                 - Run all linters and formatters (check mode)"
-	@echo "  make lint-check           - Same as 'make lint'"
 	@echo "  make lint-fix             - Run all linters with auto-fix enabled"
 	@echo "  make format               - Auto-format code with Spotless"
 	@echo "  make format-check         - Check code formatting without changes"
 	@echo "  make detekt               - Run Detekt Kotlin static analysis"
-	@echo "  make ktlint               - Check Kotlin code style with ktlint"
 	@echo "  make android-lint         - Run Android Lint checks"
-	@echo "  make lint-all             - Run all linters sequentially (detekt, ktlint, android-lint)"
 	@echo ""
 	@echo "Analysis & Reporting:"
 	@echo "  make sonar                - Run tests, generate coverage, and upload to SonarQube"
@@ -57,10 +54,7 @@ test-instrumentation:
 	cd app && ./gradlew :app:connectedDebugAndroidTest
 
 # Run all tests (unit + instrumentation)
-test-all:
-	@echo "Running all tests (unit + instrumentation)..."
-	@echo "Make sure a device or emulator is connected (run 'adb devices' to check)"
-	cd app && ./gradlew :app:testDebugUnitTest :app:connectedDebugAndroidTest
+test-all: test-unit test-instrumentation
 
 # Clean build artifacts
 clean:
@@ -68,10 +62,14 @@ clean:
 	cd app && ./gradlew clean
 
 # Generate code coverage report
-coverage: test-unit
-	@echo "Generating code coverage report..."
+coverage: test-unit test-instrumentation
+	@echo "Generating unit test coverage report..."
 	cd app && ./gradlew jacocoTestReport
-	@echo "Coverage report generated at: app/app/build/reports/jacoco/jacocoTestReport/html/index.html"
+	@echo "Generating instrumentation test coverage report..."
+	cd app && ./gradlew createDebugAndroidTestCoverageReport
+	@echo "Coverage reports generated:"
+	@echo "  - Unit tests: app/app/build/reports/jacoco/jacocoTestReport/html/index.html"
+	@echo "  - Instrumentation tests: app/app/build/reports/coverage/androidTest/debug/connected/index.html"
 
 # Run SonarQube analysis with code coverage
 sonar: coverage
@@ -83,46 +81,22 @@ sonar: coverage
 
 # Run all linters in check mode (no auto-fix)
 lint: format-check detekt android-lint
-	@echo "✓ All lint checks completed successfully!"
-
-lint-check: lint
 
 # Run all linters with auto-fix enabled
 lint-fix: format detekt android-lint
-	@echo "✓ All lint fixes applied successfully!"
 
 # Auto-format code with Spotless
 format:
-	@echo "Formatting code with Spotless..."
 	cd app && ./gradlew spotlessApply
-	@echo "✓ Code formatting complete!"
 
 # Check code formatting without making changes
 format-check:
-	@echo "Checking code formatting with Spotless..."
 	cd app && ./gradlew spotlessCheck
-	@echo "✓ Code formatting check complete!"
 
 # Run Detekt Kotlin static analysis
 detekt:
-	@echo "Running Detekt static analysis..."
 	cd app && ./gradlew detekt
-	@echo "✓ Detekt analysis complete!"
-	@echo "View report at: app/build/reports/detekt/detekt.html"
-
-# Check Kotlin code style with ktlint (via Spotless)
-ktlint:
-	@echo "Checking Kotlin code style with ktlint..."
-	cd app && ./gradlew spotlessKotlinCheck
-	@echo "✓ ktlint check complete!"
 
 # Run Android Lint checks
 android-lint:
-	@echo "Running Android Lint checks..."
 	cd app && ./gradlew :app:lintDebug
-	@echo "✓ Android Lint complete!"
-	@echo "View report at: app/app/build/reports/lint/lint-report.html"
-
-# Run all linters sequentially
-lint-all: detekt format-check android-lint
-	@echo "✓ All lint checks completed!"
