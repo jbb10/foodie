@@ -1,8 +1,10 @@
 package com.foodie.app.di
 
+import com.foodie.app.data.repository.EnergyBalanceRepositoryImpl
 import com.foodie.app.data.repository.MealRepositoryImpl
 import com.foodie.app.data.repository.NutritionAnalysisRepositoryImpl
 import com.foodie.app.data.repository.UserProfileRepositoryImpl
+import com.foodie.app.domain.repository.EnergyBalanceRepository
 import com.foodie.app.domain.repository.MealRepository
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
 import com.foodie.app.domain.repository.UserProfileRepository
@@ -51,5 +53,17 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindUserProfileRepository(impl: UserProfileRepositoryImpl): UserProfileRepository
+
+    /**
+     * Binds EnergyBalanceRepository interface to its implementation.
+     *
+     * Provides BMR (Basal Metabolic Rate) calculations using the Mifflin-St Jeor equation.
+     * Depends on UserProfileRepository for user demographic data.
+     *
+     * @Singleton ensures only one instance exists throughout the app lifecycle.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindEnergyBalanceRepository(impl: EnergyBalanceRepositoryImpl): EnergyBalanceRepository
 }
 

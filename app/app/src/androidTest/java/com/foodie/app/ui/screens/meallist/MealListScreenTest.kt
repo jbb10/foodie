@@ -197,7 +197,8 @@ class MealListScreenTest {
                 MealListScreenContent(
                     state = MealListState(
                         mealsByDate = mapOf("Today" to listOf(sampleMeal)),
-                        showDeleteDialog = true,  // Dialog is shown via state
+                        // Dialog is shown via state
+                        showDeleteDialog = true,
                         deleteTargetId = sampleMeal.id
                     ),
                     snackbarHostState = snackbarHostState,

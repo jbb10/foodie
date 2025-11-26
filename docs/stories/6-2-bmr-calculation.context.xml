@@ -1,0 +1,105 @@
+<story-context id="6-2-bmr-calculation" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>6-2</storyId>
+    <title>BMR Calculation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-2-bmr-calculation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>my Basal Metabolic Rate (BMR) automatically calculated from my profile</iWant>
+    <soThat>I have a scientifically accurate baseline for my daily energy expenditure</soThat>
+    <tasks>
+      <task id="1" name="Create EnergyBalanceRepository Interface">
+        <subtask>Create `data/repository/EnergyBalanceRepository.kt` interface</subtask>
+        <subtask>Define method: `suspend fun calculateBMR(profile: UserProfile): Result&lt;Double&gt;`</subtask>
+        <subtask>Define method: `fun getBMR(): Flow&lt;Result&lt;Double&gt;&gt;` (reactive stream)</subtask>
+      </task>
+      <task id="2" name="Implement EnergyBalanceRepository">
+        <subtask>Create `data/repository/EnergyBalanceRepositoryImpl.kt`</subtask>
+        <subtask>Inject `UserProfileRepository`</subtask>
+        <subtask>Implement `calculateBMR` using Mifflin-St Jeor formula</subtask>
+        <subtask>Implement `getBMR()` flow</subtask>
+      </task>
+      <task id="3" name="Unit Tests for BMR Calculation">
+        <subtask>Create `data/repository/EnergyBalanceRepositoryTest.kt`</subtask>
+        <subtask>Test Case 1: Male, 30y, 75.5kg, 178cm -> Verify BMR approx 1715</subtask>
+        <subtask>Test Case 2: Female, 30y, 60kg, 165cm -> Verify BMR approx 1320</subtask>
+        <subtask>Test Case 3: Missing profile data -> Verify error result</subtask>
+        <subtask>Test Case 4: Boundary values (min/max age/weight/height)</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion>Given a valid user profile (sex, age, weight, height) When the BMR is calculated Then the Mifflin-St Jeor equation is used</criterion>
+    <criterion>And for Males: BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age_years) + 5</criterion>
+    <criterion>And for Females: BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age_years) - 161</criterion>
+    <criterion>And the result is returned in kilocalories/day (Double)</criterion>
+    <criterion>And the calculation updates automatically when profile data changes (reactive flow)</criterion>
+    <criterion>And invalid profiles (missing data) return a specific error result</criterion>
+    <criterion>And unit tests verify the formula against known test cases (e.g., Male, 30y, 75.5kg, 178cm = 1715 kcal)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-6.md">
+        <summary>Epic Technical Specification: Energy Balance &amp; Caloric Deficit Tracking</summary>
+        <relevant_section>Overview</relevant_section>
+        <relevant_section>Objectives and Scope</relevant_section>
+        <relevant_section>System Architecture Alignment</relevant_section>
+      </doc>
+      <doc path="docs/architecture.md">
+        <summary>Foodie - Architecture Document</summary>
+        <relevant_section>Executive Summary</relevant_section>
+      </doc>
+    </docs>
+    <code>
+      <code_file path="app/app/src/main/java/com/foodie/app/domain/repository/UserProfileRepository.kt">
+        <reason>Dependency for BMR calculation (provides user profile data)</reason>
+      </code_file>
+    </code>
+    <dependencies>
+      <dependency>androidx.health.connect:connect-client</dependency>
+      <dependency>kotlinx.coroutines.flow</dependency>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Use Mifflin-St Jeor equation for BMR calculation</constraint>
+    <constraint>Reactive flow updates for real-time calculation</constraint>
+    <constraint>Handle missing profile data gracefully (Result.Error)</constraint>
+    <constraint>Unit tests required, no instrumentation tests</constraint>
+  </constraints>
+  <interfaces>
+    <interface name="EnergyBalanceRepository">
+      <method>suspend fun calculateBMR(profile: UserProfile): Result&lt;Double&gt;</method>
+      <method>fun getBMR(): Flow&lt;Result&lt;Double&gt;&gt;</method>
+    </interface>
+    <interface name="UserProfileRepository">
+      <method>fun getUserProfile(): Flow&lt;UserProfile?&gt;</method>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      <standard>Unit Tests Required: Yes</standard>
+      <standard>Instrumentation Tests Required: No</standard>
+      <standard>Test Naming Convention: methodName_whenCondition_thenExpectedResult</standard>
+      <standard>Assertion Library: Truth library</standard>
+      <standard>Mocking: Mockito-Kotlin</standard>
+    </standards>
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/data/repository/EnergyBalanceRepositoryTest.kt</location>
+    </locations>
+    <ideas>
+      <idea>Verify BMR calculation for Male: 30y, 75.5kg, 178cm -> approx 1715 kcal</idea>
+      <idea>Verify BMR calculation for Female: 30y, 60kg, 165cm -> approx 1320 kcal</idea>
+      <idea>Verify error result when profile data is missing</idea>
+      <idea>Verify boundary values (min/max age/weight/height)</idea>
+    </ideas>
+  </tests>
+</story-context>
