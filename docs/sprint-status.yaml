@@ -98,7 +98,7 @@ development_status:
   6-1-user-profile-settings: done  # ✅ APPROVED 2025-11-26 - All ACs verified, 400 tests passing (+13 new), manual testing complete (6/6 scenarios PASSED), production-ready
   6-2-bmr-calculation: done  # ✅ APPROVED 2025-11-26 - All 7 ACs verified, 19 unit tests passing (419 total tests, 0 regressions), production-ready (Mifflin-St Jeor equation)
   6-3-passive-energy-neat-calculation: done  # ✅ APPROVED 2025-11-26 - All 8 ACs verified, 9 unit tests passing (428 total, 0 regressions), production-ready (NEAT = steps × 0.04 kcal/step), 0 false completions, excellent architecture alignment
-  6-4-active-energy-expenditure: backlog
+  6-4-active-energy-expenditure: done  # ✅ APPROVED 2025-11-26 - 5/6 ACs implemented (AC-4 deferred to 6.6), 8 unit tests passing (436 total, 0 regressions), textbook-perfect implementation, 0 false completions, production-ready
   6-5-total-daily-energy-expenditure-tdee: backlog
   6-6-calories-in-vs-calories-out-dashboard: backlog
   6-7-weight-height-health-connect-sync: backlog

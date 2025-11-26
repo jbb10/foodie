@@ -212,6 +212,77 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
             }
         }
     }
+
+    /**
+     * Calculates Active Energy Expenditure from workout calories.
+     *
+     * **Data Flow:**
+     * 1. Calculate time range: midnight to now (local timezone)
+     * 2. Query total active calories (throws SecurityException if permission denied)
+     * 3. Return active calories as Result.success or Result.failure
+     *
+     * **Zero Workouts:**
+     * - Returns Result.success(0.0) if no workout data (valid rest day)
+     * - Not an error condition
+     *
+     * **Permission Errors:**
+     * - Catches SecurityException from HealthConnectManager.queryActiveCalories()
+     * - Returns Result.failure(SecurityException) for caller to handle
+     *
+     * @return Result.success(activeCalories) in kcal, or Result.failure if permission denied
+     */
+    override suspend fun calculateActiveCalories(): Result<Double> {
+        return try {
+            // Calculate time range: midnight to now (local timezone)
+            val startOfDay = LocalDate.now()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+            val now = Instant.now()
+
+            // Query total active calories (throws SecurityException if permission denied)
+            val activeCalories = healthConnectManager.queryActiveCalories(startOfDay, now)
+
+            Timber.tag(TAG).d("Active Energy calculated: $activeCalories kcal")
+            Result.success(activeCalories)
+        } catch (e: SecurityException) {
+            // READ_ACTIVE_CALORIES_BURNED permission denied
+            Timber.tag(TAG).w("Active Energy calculation failed - READ_ACTIVE_CALORIES_BURNED permission denied")
+            Result.failure(e)
+        } catch (e: Exception) {
+            // Unexpected error (should not happen - HealthConnectManager handles most errors)
+            Timber.tag(TAG).e(e, "Unexpected error calculating Active Energy")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Observes Active Energy Expenditure with reactive updates.
+     *
+     * **Data Flow:**
+     * 1. Collect active calories from HealthConnectManager.observeActiveCalories()
+     * 2. Emit Result.success(activeCalories) or Result.failure on permission error
+     *
+     * **Update Interval:**
+     * - Polls Health Connect every 5 minutes
+     * - Detects new workout data synced from Garmin Connect (5-15 minute delay)
+     *
+     * **Permission Errors:**
+     * - If READ_ACTIVE_CALORIES_BURNED permission denied, emits Result.failure(SecurityException)
+     * - Caller should prompt for permission or gracefully degrade
+     *
+     * @return Flow emitting Result<Double> with Active Energy in kcal every 5 minutes
+     */
+    override fun getActiveCalories(): Flow<Result<Double>> {
+        return healthConnectManager.observeActiveCalories().map { activeCalories ->
+            try {
+                Timber.tag(TAG).d("Active Energy updated: $activeCalories kcal")
+                Result.success(activeCalories)
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error calculating Active Energy from flow")
+                Result.failure(e)
+            }
+        }
+    }
 }
 
 /**

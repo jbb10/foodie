@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
+import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.HeightRecord
 import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.StepsRecord
@@ -69,6 +70,7 @@ class HealthConnectManager @Inject constructor(
             "android.permission.health.READ_HEIGHT",
             "android.permission.health.WRITE_HEIGHT",
             "android.permission.health.READ_STEPS",
+            "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
         )
     }
 
@@ -579,6 +581,95 @@ class HealthConnectManager @Inject constructor(
             val now = Instant.now()
             val steps = querySteps(startOfDay, now)
             emit(steps)
+            delay(5.minutes)
+        }
+    }
+
+    /**
+     * Queries total active calories burned from Health Connect within a time range.
+     *
+     * **Multi-Record Summation:**
+     * Health Connect may store multiple ActiveCaloriesBurnedRecord entries per day
+     * (e.g., Garmin writes one record per workout session). This method sums all
+     * ActiveCaloriesBurnedRecord.energy.inKilocalories values to get total active calories.
+     *
+     * **Permission Check:**
+     * - Throws SecurityException if READ_ACTIVE_CALORIES_BURNED permission not granted
+     * - Caller should catch SecurityException and return appropriate error type
+     *
+     * **Use Cases:**
+     * - Active Energy calculation: queryActiveCalories(startOfDay, now) for today's workout calories
+     * - Historical queries: queryActiveCalories(yesterday, yesterday + 1 day) for past days
+     *
+     * @param startTime Start of the query time range (inclusive)
+     * @param endTime End of the query time range (inclusive)
+     * @return Total active calories in kcal summed across all records, or 0.0 if no records exist
+     * @throws SecurityException if READ_ACTIVE_CALORIES_BURNED permission not granted
+     */
+    suspend fun queryActiveCalories(startTime: Instant, endTime: Instant): Double {
+        Timber.tag(TAG).d("Querying active calories: $startTime to $endTime")
+
+        // Check permissions before query (throw SecurityException to be caught by caller)
+        val hasPermission = healthConnectClient.permissionController.getGrantedPermissions()
+            .contains("android.permission.health.READ_ACTIVE_CALORIES_BURNED")
+
+        if (!hasPermission) {
+            Timber.tag(TAG).e("READ_ACTIVE_CALORIES_BURNED permission denied")
+            throw SecurityException("READ_ACTIVE_CALORIES_BURNED permission denied")
+        }
+
+        return try {
+            val response = healthConnectClient.readRecords(
+                ReadRecordsRequest(
+                    recordType = ActiveCaloriesBurnedRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
+                ),
+            )
+
+            // Sum all ActiveCaloriesBurnedRecord.energy.inKilocalories values
+            // (Garmin may write multiple records - one per workout session)
+            val totalActiveCalories = response.records.sumOf { it.energy.inKilocalories }
+
+            Timber.tag(TAG).i("Total active calories: $totalActiveCalories kcal (from ${response.records.size} records)")
+            totalActiveCalories
+        } catch (e: SecurityException) {
+            // Re-throw SecurityException for caller to handle
+            Timber.tag(TAG).e(e, "Permission denied querying active calories")
+            throw e
+        } catch (e: Exception) {
+            // Other errors return 0.0 (graceful degradation)
+            Timber.tag(TAG).e(e, "Failed to query active calories, returning 0.0")
+            0.0
+        }
+    }
+
+    /**
+     * Observes active calories burned changes over time using polling.
+     *
+     * **Polling Strategy:**
+     * Health Connect does not support real-time change listeners. This method polls
+     * queryActiveCalories() every 5 minutes to detect new workout data synced from
+     * Garmin Connect (typical 5-15 minute sync delay after workout completion).
+     *
+     * **Flow Lifecycle:**
+     * - Emits immediately with current active calories
+     * - Polls every 5 minutes while Flow is active (collector is listening)
+     * - Cancels polling when Flow collector is cancelled
+     *
+     * **Use Cases:**
+     * - EnergyBalanceRepository.getActiveCalories() reactive stream
+     * - Dashboard real-time Active Energy updates when Garmin syncs workouts
+     *
+     * @return Flow emitting total active calories in kcal every 5 minutes (from midnight to now)
+     */
+    fun observeActiveCalories(): Flow<Double> = flow {
+        while (true) {
+            val startOfDay = java.time.LocalDate.now()
+                .atStartOfDay(java.time.ZoneId.systemDefault())
+                .toInstant()
+            val now = Instant.now()
+            val activeCalories = queryActiveCalories(startOfDay, now)
+            emit(activeCalories)
             delay(5.minutes)
         }
     }

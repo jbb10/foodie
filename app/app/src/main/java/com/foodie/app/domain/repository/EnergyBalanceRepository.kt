@@ -101,4 +101,48 @@ interface EnergyBalanceRepository {
      * @return Flow emitting Result.success(neat) with NEAT in kcal, or Result.failure if permission denied
      */
     fun getNEAT(): Flow<Result<Double>>
+
+    /**
+     * Calculates Active Energy Expenditure from workout calories burned.
+     *
+     * Queries Health Connect ActiveCaloriesBurnedRecord for current day (midnight to now),
+     * sums all workout records from Garmin Connect, and returns total active calories.
+     *
+     * **Data Source:**
+     * - Queries Health Connect ActiveCaloriesBurnedRecord from midnight to current time (local timezone)
+     * - Sums all active calorie records (Garmin writes one record per workout session)
+     *
+     * **Zero Workouts Handling:**
+     * - Returns Result.success(0.0) if no workout data exists (valid rest day)
+     * - Not an error - user may not have exercised yet today
+     *
+     * **Permission Handling:**
+     * - Returns Result.failure(SecurityException) if READ_ACTIVE_CALORIES_BURNED permission denied
+     * - Caller should prompt user for permission or gracefully degrade
+     *
+     * @return Result.success(activeCalories) with Active Energy in kcal, or Result.failure if permission denied
+     */
+    suspend fun calculateActiveCalories(): Result<Double>
+
+    /**
+     * Observes Active Energy Expenditure with reactive updates when workout data changes.
+     *
+     * Polls Health Connect every 5 minutes to detect new workout data synced from:
+     * - Garmin Connect (typical 5-15 minute sync delay after workout)
+     * - Google Fit
+     * - Samsung Health
+     * - Other fitness tracking apps
+     *
+     * **Polling Interval:**
+     * - 5 minutes (Health Connect does not support real-time change listeners)
+     * - Accounts for Garmin sync delays (workouts appear 5-15 minutes after completion)
+     *
+     * **Use Cases:**
+     * - Dashboard displaying current Active Energy
+     * - TDEE calculation (Active is a component: TDEE = BMR + NEAT + Active)
+     * - Real-time energy balance tracking
+     *
+     * @return Flow emitting Result.success(activeCalories) with Active Energy in kcal, or Result.failure if permission denied
+     */
+    fun getActiveCalories(): Flow<Result<Double>>
 }

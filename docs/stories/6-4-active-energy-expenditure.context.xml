@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Story Context: 6.4 - Active Energy Expenditure
+  Generated: 2025-11-26
+  Status: ready-for-dev
+-->
+<story-context>
+  <meta>
+    <story>
+      <id>6.4</id>
+      <key>6-4-active-energy-expenditure</key>
+      <title>Active Energy Expenditure</title>
+      <epic>6</epic>
+      <status>ready-for-dev</status>
+    </story>
+    <generated>2025-11-26</generated>
+  </meta>
+
+  <user-story>
+    <as-a>user</as-a>
+    <i-want>my active exercise calories read from Health Connect</i-want>
+    <so-that>I account for workout energy expenditure in my daily TDEE</so-that>
+  </user-story>
+
+  <acceptance-criteria>
+    <criterion id="AC-1">
+      <given>Health Connect contains active calorie data from Garmin</given>
+      <when>the app calculates active energy expenditure</when>
+      <then>it reads ActiveCaloriesBurnedRecord records from Health Connect</then>
+    </criterion>
+    <criterion id="AC-2">
+      <description>Active calories are queried for the current day (midnight to now)</description>
+    </criterion>
+    <criterion id="AC-3">
+      <description>All active calorie records are summed</description>
+    </criterion>
+    <criterion id="AC-4">
+      <description>Active value is displayed in energy balance dashboard with label "Active Exercise"</description>
+    </criterion>
+    <criterion id="AC-5">
+      <description>If no active data exists, shows "0 kcal"</description>
+    </criterion>
+    <criterion id="AC-6">
+      <description>Data refreshes automatically when new workouts are synced</description>
+    </criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="1" critical="true">
+      <title>Documentation Research &amp; Technical Validation</title>
+      <acs>All</acs>
+      <checkpoint>COMPLETE BEFORE PROCEEDING TO IMPLEMENTATION</checkpoint>
+      <deliverables>
+        <item>ActiveCaloriesBurnedRecord API patterns confirmed</item>
+        <item>Multi-record summation approach validated</item>
+        <item>Energy.inKilocalories accessor documented</item>
+        <item>Garmin sync delay handling strategy documented</item>
+      </deliverables>
+    </task>
+    <task id="2">
+      <title>Extend HealthConnectManager for Active Calories Queries</title>
+      <acs>AC-1, AC-2, AC-3</acs>
+      <subtasks>
+        <item>Add queryActiveCalories(startTime, endTime) method</item>
+        <item>Use HealthConnectClient.readRecords&lt;ActiveCaloriesBurnedRecord&gt;() with TimeRangeFilter</item>
+        <item>Sum all ActiveCaloriesBurnedRecord.energy.inKilocalories values</item>
+        <item>Return total active calories as Double (in kcal)</item>
+        <item>Handle empty results (return 0.0)</item>
+        <item>Add observeActiveCalories() Flow for reactive updates (5-minute polling)</item>
+      </subtasks>
+    </task>
+    <task id="3">
+      <title>Update HealthConnectManager Permissions</title>
+      <acs>AC-1</acs>
+      <subtasks>
+        <item>Add HealthPermission.READ_ACTIVE_CALORIES_BURNED to REQUIRED_PERMISSIONS</item>
+        <item>Update HealthConnectManagerTest to assert 8 permissions (was 7)</item>
+      </subtasks>
+    </task>
+    <task id="4">
+      <title>Implement Active Calories Calculation in EnergyBalanceRepository</title>
+      <acs>AC-3, AC-5, AC-6</acs>
+      <subtasks>
+        <item>Add calculateActiveCalories() method to EnergyBalanceRepository interface</item>
+        <item>Implement in EnergyBalanceRepositoryImpl (query startOfDay to now)</item>
+        <item>Add getActiveCalories() Flow reactive stream</item>
+        <item>Handle zero case gracefully (valid for rest days)</item>
+      </subtasks>
+    </task>
+    <task id="5">
+      <title>Error Handling for Permission Denied</title>
+      <acs>AC-1</acs>
+      <subtasks>
+        <item>Catch SecurityException in queryActiveCalories()</item>
+        <item>Return Result.Error with permission denied message</item>
+        <item>Test permission denied scenario in unit tests</item>
+      </subtasks>
+    </task>
+    <task id="6">
+      <title>Unit Tests for Active Calories Calculation</title>
+      <acs>AC-3, AC-5</acs>
+      <subtasks>
+        <item>Create EnergyBalanceRepositoryActiveCaloriesTest.kt</item>
+        <item>Test Case 1: Single workout (500 kcal) → 500 kcal active</item>
+        <item>Test Case 2: Multiple workouts sum correctly</item>
+        <item>Test Case 3: Zero workouts → 0 kcal (valid rest day)</item>
+        <item>Test Case 4: Permission denied returns specific error</item>
+        <item>Test Case 5: Reactive Flow emits updated values</item>
+      </subtasks>
+    </task>
+    <task id="7">
+      <title>Update EnergyBalance Domain Model</title>
+      <acs>AC-4</acs>
+      <subtasks>
+        <item>Confirm EnergyBalance data class has activeCalories field</item>
+        <item>Verify TDEE calculation will include Active component</item>
+      </subtasks>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-6.md</path>
+        <title>Epic Technical Specification: Energy Balance &amp; Caloric Deficit Tracking</title>
+        <section>Active Energy Expenditure Query from Health Connect ActiveCaloriesBurnedRecord</section>
+        <snippet>Query ActiveCaloriesBurnedRecord using TimeRangeFilter for current day (midnight to now), sum all records, handle Garmin sync delays (5-15 minutes typical). TDEE = BMR + NEAT + Active.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Foodie - Epic Breakdown</title>
+        <section>Story 6.4: Active Energy Expenditure</section>
+        <snippet>Read ActiveCaloriesBurned records from Health Connect, query for current day, sum all records, display with label "Active Exercise", show 0 kcal if no data, refresh when workouts sync.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Foodie - Architecture Document</title>
+        <section>Health Connect Data Storage</section>
+        <snippet>Health Connect is the single source of truth for all health data. Use HealthConnectClient for queries, handle permissions gracefully, validate data types before insertion.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document - Foodie</title>
+        <section>Energy Balance &amp; Caloric Deficit Tracking</section>
+        <snippet>Calculate TDEE as BMR + NEAT + Active. Active calories sourced from Garmin workouts synced to Health Connect. Display Calories In vs Calories Out with deficit/surplus.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-3-passive-energy-neat-calculation.md</path>
+        <title>Story 6.3: Passive Energy (NEAT) Calculation</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Repository pattern established with calculateNEAT() and getNEAT(). Health Connect query uses TimeRangeFilter.between(startOfDay, now) with record summation. 5-minute polling for reactive Flow. Permission handling with SecurityException.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+        <kind>interface</kind>
+        <symbol>EnergyBalanceRepository</symbol>
+        <lines>27-105</lines>
+        <reason>Domain interface to extend with calculateActiveCalories() and getActiveCalories() methods, following existing calculateNEAT() and getNEAT() patterns</reason>
+      </file>
+      <file>
+        <path>app/src/main/java/com/foodie/app/data/repository/EnergyBalanceRepositoryImpl.kt</path>
+        <kind>repository implementation</kind>
+        <symbol>EnergyBalanceRepositoryImpl</symbol>
+        <lines>1-220</lines>
+        <reason>Repository implementation to extend with Active Calories calculation logic, using existing NEAT calculation as template (Result&lt;Double&gt; pattern, time range query, Flow reactivity)</reason>
+      </file>
+      <file>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>data source</kind>
+        <symbol>HealthConnectManager</symbol>
+        <lines>500-650</lines>
+        <reason>Extend with queryActiveCalories() and observeActiveCalories() methods following existing querySteps()/observeSteps() patterns (TimeRangeFilter, record summation, 5-minute polling)</reason>
+      </file>
+      <file>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>constants</kind>
+        <symbol>REQUIRED_PERMISSIONS</symbol>
+        <lines>60-80</lines>
+        <reason>Add READ_ACTIVE_CALORIES_BURNED permission to required list (currently 7 permissions from Story 6-3, will be 8 after this story)</reason>
+      </file>
+      <file>
+        <path>app/src/test/java/com/foodie/app/data/repository/EnergyBalanceRepositoryTest.kt</path>
+        <kind>unit test</kind>
+        <symbol>EnergyBalanceRepositoryNeatTest</symbol>
+        <reason>Reference test structure for Active Calories tests - mock HealthConnectManager, verify summation, test permission denied, test reactive Flow</reason>
+      </file>
+    </code>
+
+    <interfaces>
+      <interface>
+        <name>EnergyBalanceRepository.calculateActiveCalories</name>
+        <kind>suspend function</kind>
+        <signature>suspend fun calculateActiveCalories(): Result&lt;Double&gt;</signature>
+        <path>app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+        <notes>New method to add - follows calculateNEAT() pattern, queries Health Connect for current day active calories, returns Result&lt;Double&gt; with kcal or error</notes>
+      </interface>
+      <interface>
+        <name>EnergyBalanceRepository.getActiveCalories</name>
+        <kind>Flow function</kind>
+        <signature>fun getActiveCalories(): Flow&lt;Result&lt;Double&gt;&gt;</signature>
+        <path>app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+        <notes>New reactive stream to add - follows getNEAT() pattern, emits updated active calories every 5 minutes when Garmin syncs</notes>
+      </interface>
+      <interface>
+        <name>HealthConnectManager.queryActiveCalories</name>
+        <kind>suspend function</kind>
+        <signature>suspend fun queryActiveCalories(startTime: Instant, endTime: Instant): Double</signature>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <notes>New method to add - follows querySteps() pattern, reads ActiveCaloriesBurnedRecord, sums energy.inKilocalories, throws SecurityException if permission denied</notes>
+      </interface>
+      <interface>
+        <name>HealthConnectManager.observeActiveCalories</name>
+        <kind>Flow function</kind>
+        <signature>fun observeActiveCalories(): Flow&lt;Double&gt;</signature>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <notes>New polling Flow to add - follows observeSteps() pattern, polls queryActiveCalories() every 5 minutes, handles Garmin sync delays</notes>
+      </interface>
+      <interface>
+        <name>Health Connect ActiveCaloriesBurnedRecord</name>
+        <kind>Health Connect data type</kind>
+        <signature>androidx.health.connect.client.records.ActiveCaloriesBurnedRecord</signature>
+        <path>External: Health Connect SDK</path>
+        <notes>Record type to query - has energy: Energy field with inKilocalories accessor, startTime/endTime for filtering, metadata for source attribution</notes>
+      </interface>
+    </interfaces>
+
+    <dependencies>
+      <framework name="Health Connect SDK" version="1.1.0">
+        <package>androidx.health.connect.client.records.ActiveCaloriesBurnedRecord</package>
+        <package>androidx.health.connect.client.records.metadata.DataOrigin</package>
+        <package>androidx.health.connect.client.request.ReadRecordsRequest</package>
+        <package>androidx.health.connect.client.time.TimeRangeFilter</package>
+      </framework>
+      <framework name="Kotlin Coroutines" version="1.9.0">
+        <package>kotlinx.coroutines.flow.Flow</package>
+        <package>kotlinx.coroutines.flow.flow</package>
+        <package>kotlinx.coroutines.delay</package>
+      </framework>
+      <framework name="Hilt" version="2.51.1">
+        <package>javax.inject.Inject</package>
+        <package>javax.inject.Singleton</package>
+      </framework>
+      <framework name="Timber" version="5.0.1">
+        <package>timber.log.Timber</package>
+      </framework>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">
+      <rule>Repository Pattern: EnergyBalanceRepository interface (domain) + EnergyBalanceRepositoryImpl (data)</rule>
+      <source>docs/architecture.md - MVVM Architecture Foundation</source>
+    </constraint>
+    <constraint type="architecture">
+      <rule>Health Connect Single Source of Truth: All health data queries go through HealthConnectManager</rule>
+      <source>docs/architecture.md - Health Connect Data Storage</source>
+    </constraint>
+    <constraint type="error-handling">
+      <rule>Use Result&lt;T&gt; for all repository methods that can fail (permission errors, validation errors)</rule>
+      <source>Story 6-3 Dev Notes - Result&lt;T&gt; Error Handling pattern</source>
+    </constraint>
+    <constraint type="reactivity">
+      <rule>Flow reactive streams for real-time updates - poll Health Connect every 5 minutes (no native change listeners)</rule>
+      <source>Story 6-3 Dev Notes - 5-Minute Polling Strategy</source>
+    </constraint>
+    <constraint type="time-range">
+      <rule>Query current day data using TimeRangeFilter.between(LocalDate.now().atStartOfDay(), Instant.now())</rule>
+      <source>app/src/main/java/com/foodie/app/data/repository/EnergyBalanceRepositoryImpl.kt:158-165</source>
+    </constraint>
+    <constraint type="permission">
+      <rule>Catch SecurityException when Health Connect permission denied, return Result.failure for caller to handle</rule>
+      <source>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt:530-540</source>
+    </constraint>
+    <constraint type="summation">
+      <rule>Sum all ActiveCaloriesBurnedRecord.energy.inKilocalories values (multiple workouts per day require summation)</rule>
+      <source>docs/tech-spec-epic-6.md - Active Energy Expenditure Section</source>
+    </constraint>
+    <constraint type="external-sync">
+      <rule>Account for Garmin sync delays (5-15 minutes typical) - use polling to detect new workout data</rule>
+      <source>docs/stories/6-4-active-energy-expenditure.md Dev Notes - Garmin Sync Behavior</source>
+    </constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Unit tests required for all repository methods (calculateActiveCalories, getActiveCalories) and HealthConnectManager methods (queryActiveCalories, observeActiveCalories). Mock HealthConnectManager using Mockito-Kotlin. Test naming: methodName_whenCondition_thenExpectedResult. Assertion library: Truth (assertThat(x).isEqualTo(y)). Target 100% AC coverage. No instrumentation tests needed - Health Connect mocked in unit tests.
+    </standards>
+    <locations>
+      <location>app/src/test/java/com/foodie/app/data/repository/EnergyBalanceRepositoryActiveCaloriesTest.kt</location>
+      <location>app/src/test/java/com/foodie/app/data/local/healthconnect/HealthConnectManagerTest.kt</location>
+    </locations>
+    <ideas>
+      <idea ac-ref="AC-3">
+        <description>Test single workout summation: Mock queryActiveCalories to return single ActiveCaloriesBurnedRecord with 500 kcal, verify calculateActiveCalories() returns Result.success(500.0)</description>
+      </idea>
+      <idea ac-ref="AC-3">
+        <description>Test multiple workout summation: Mock two records (300 kcal run + 200 kcal lift), verify total is 500 kcal</description>
+      </idea>
+      <idea ac-ref="AC-5">
+        <description>Test zero workouts: Mock empty record list, verify calculateActiveCalories() returns Result.success(0.0) not error</description>
+      </idea>
+      <idea ac-ref="AC-1">
+        <description>Test permission denied: Mock queryActiveCalories to throw SecurityException, verify calculateActiveCalories() returns Result.failure</description>
+      </idea>
+      <idea ac-ref="AC-6">
+        <description>Test reactive Flow: Mock observeActiveCalories to emit 0, then 500, verify getActiveCalories() Flow emits both values</description>
+      </idea>
+      <idea ac-ref="AC-2">
+        <description>Test time range: Verify queryActiveCalories called with TimeRangeFilter.between(startOfDay, now) for current day query</description>
+      </idea>
+    </ideas>
+  </tests>
+
+  <references>
+    <doc path="docs/tech-spec-epic-6.md" section="Active Energy Expenditure Query from Health Connect ActiveCaloriesBurnedRecord"/>
+    <doc path="docs/epics.md" section="Story 6.4: Active Energy Expenditure"/>
+    <doc path="docs/architecture.md" section="Health Connect Data Storage"/>
+    <doc path="docs/PRD.md" section="Energy Balance &amp; Caloric Deficit Tracking"/>
+    <doc path="docs/stories/6-3-passive-energy-neat-calculation.md" section="Learnings from Previous Story"/>
+    <external href="https://developer.android.com/health-and-fitness/guides/health-connect/plan/data-types#active-calories-burned">Health Connect ActiveCaloriesBurnedRecord API</external>
+  </references>
+</story-context>

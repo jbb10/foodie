@@ -28,7 +28,7 @@ class HealthConnectManagerTest {
         val permissions = HealthConnectManager.REQUIRED_PERMISSIONS
 
         // Then
-        assertThat(permissions).hasSize(7)
+        assertThat(permissions).hasSize(8)
         assertThat(permissions).contains("android.permission.health.READ_NUTRITION")
         assertThat(permissions).contains("android.permission.health.WRITE_NUTRITION")
         assertThat(permissions).contains("android.permission.health.READ_WEIGHT")
@@ -36,13 +36,14 @@ class HealthConnectManagerTest {
         assertThat(permissions).contains("android.permission.health.READ_HEIGHT")
         assertThat(permissions).contains("android.permission.health.WRITE_HEIGHT")
         assertThat(permissions).contains("android.permission.health.READ_STEPS")
+        assertThat(permissions).contains("android.permission.health.READ_ACTIVE_CALORIES_BURNED")
     }
 
     @Test
     fun `REQUIRED_PERMISSIONS contains correct number of permissions`() {
         // Then
         assertThat(HealthConnectManager.REQUIRED_PERMISSIONS).isNotEmpty()
-        assertThat(HealthConnectManager.REQUIRED_PERMISSIONS.size).isEqualTo(7)
+        assertThat(HealthConnectManager.REQUIRED_PERMISSIONS.size).isEqualTo(8)
     }
 
     @Test
