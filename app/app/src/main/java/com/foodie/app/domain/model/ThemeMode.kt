@@ -26,7 +26,8 @@ enum class ThemeMode(val value: String, val displayName: String) {
     /**
      * Force dark mode regardless of system setting.
      */
-    DARK("dark", "Dark");
+    DARK("dark", "Dark"),
+    ;
 
     companion object {
         /**

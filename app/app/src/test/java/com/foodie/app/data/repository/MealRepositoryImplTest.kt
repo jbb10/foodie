@@ -5,6 +5,8 @@ import androidx.health.connect.client.units.Energy
 import com.foodie.app.data.local.healthconnect.HealthConnectDataSource
 import com.foodie.app.util.Result
 import com.google.common.truth.Truth.assertThat
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -14,8 +16,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 /**
  * Unit tests for MealRepositoryImpl.
@@ -46,7 +46,7 @@ class MealRepositoryImplTest {
         val mockRecords = listOf(
             createNutritionRecord("id1", now.minus(1, ChronoUnit.HOURS), 450, "Chicken salad"),
             createNutritionRecord("id2", now.minus(2, ChronoUnit.HOURS), 250, "Protein shake"),
-            createNutritionRecord("id3", now.minus(3, ChronoUnit.HOURS), 350, "Oatmeal")
+            createNutritionRecord("id3", now.minus(3, ChronoUnit.HOURS), 350, "Oatmeal"),
         )
         whenever(healthConnectDataSource.queryNutritionRecords(any(), any()))
             .thenReturn(mockRecords)
@@ -104,7 +104,7 @@ class MealRepositoryImplTest {
             createNutritionRecord("id1", now, 450, "Valid meal"),
             createNutritionRecord("id2", now, 0, "Invalid - zero calories"),
             createNutritionRecord("id3", now, 6000, "Invalid - too many calories"),
-            createNutritionRecord("id4", now, 250, "Valid meal 2")
+            createNutritionRecord("id4", now, 250, "Valid meal 2"),
         )
         whenever(healthConnectDataSource.queryNutritionRecords(any(), any()))
             .thenReturn(mockRecords)
@@ -127,7 +127,7 @@ class MealRepositoryImplTest {
         val mockRecords = listOf(
             createNutritionRecord("id1", now.minus(5, ChronoUnit.HOURS), 100, "Oldest"),
             createNutritionRecord("id2", now.minus(1, ChronoUnit.HOURS), 200, "Newest"),
-            createNutritionRecord("id3", now.minus(3, ChronoUnit.HOURS), 150, "Middle")
+            createNutritionRecord("id3", now.minus(3, ChronoUnit.HOURS), 150, "Middle"),
         )
         whenever(healthConnectDataSource.queryNutritionRecords(any(), any()))
             .thenReturn(mockRecords)
@@ -224,7 +224,7 @@ class MealRepositoryImplTest {
 
     /**
      * Helper to create mock NutritionRecords for testing.
-     * 
+     *
      * Note: In actual Health Connect usage, metadata is auto-generated.
      * For testing, we use Mockito to create mock records with the necessary data.
      */
@@ -232,7 +232,7 @@ class MealRepositoryImplTest {
         id: String,
         timestamp: Instant,
         calories: Int,
-        description: String
+        description: String,
     ): NutritionRecord {
         return mock<NutritionRecord>().apply {
             whenever(this.metadata).thenReturn(mock())

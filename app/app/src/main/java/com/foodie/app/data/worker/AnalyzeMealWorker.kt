@@ -19,11 +19,11 @@ import com.foodie.app.domain.error.ErrorType
 import com.foodie.app.domain.exception.NoFoodDetectedException
 import com.foodie.app.domain.model.NutritionData
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
+import com.foodie.app.util.Result as ApiResult
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import timber.log.Timber
 import java.time.Instant
-import com.foodie.app.util.Result as ApiResult
+import timber.log.Timber
 
 /**
  * Background worker for analyzing meal photos and saving nutrition data to Health Connect.
@@ -80,7 +80,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
     private val foregroundNotifier: MealAnalysisForegroundNotifier,
     private val networkMonitor: NetworkMonitor,
     private val errorHandler: ErrorHandler,
-    private val notificationHelper: com.foodie.app.util.NotificationHelper
+    private val notificationHelper: com.foodie.app.util.NotificationHelper,
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -133,7 +133,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
     private fun notifySuccess(data: NutritionData, recordId: String, timestamp: Instant) {
         notificationManager.notify(
             MealAnalysisNotificationSpec.COMPLETION_NOTIFICATION_ID,
-            foregroundNotifier.createCompletionNotification(data, recordId, timestamp)
+            foregroundNotifier.createCompletionNotification(data, recordId, timestamp),
         )
     }
 
@@ -144,7 +144,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
 
         notificationManager.notify(
             MealAnalysisNotificationSpec.COMPLETION_NOTIFICATION_ID,
-            foregroundNotifier.createFailureNotification(id, displayMessage)
+            foregroundNotifier.createFailureNotification(id, displayMessage),
         )
     }
 
@@ -178,7 +178,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
 
         Timber.tag(TAG).d(
             "Starting meal analysis (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): " +
-            "uri=$photoUri, timestamp=$timestamp"
+                "uri=$photoUri, timestamp=$timestamp",
         )
 
         startForeground(R.string.notification_meal_analysis_status_preparing)?.let { return it }
@@ -211,13 +211,13 @@ class AnalyzeMealWorker @AssistedInject constructor(
     private suspend fun checkNetworkConnectivity(): androidx.work.ListenableWorker.Result? {
         if (!networkMonitor.checkConnectivity()) {
             Timber.tag(TAG).w(
-                "No network connectivity (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS)"
+                "No network connectivity (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS)",
             )
 
             return if (runAttemptCount + 1 >= MAX_ATTEMPTS) {
                 Timber.tag(TAG).e(
                     "Max retry attempts exhausted with no network. " +
-                    "Keeping photo for future retry"
+                        "Keeping photo for future retry",
                 )
                 notifyFailure("No internet connection. Please check your network and try again.")
                 androidx.work.ListenableWorker.Result.failure()
@@ -233,7 +233,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
     private suspend fun processAnalysis(
         photoUri: android.net.Uri,
         timestamp: Instant,
-        startTime: Long
+        startTime: Long,
     ): androidx.work.ListenableWorker.Result {
         updateForeground(R.string.notification_meal_analysis_status_calling_api, progressPercent = 30)
         val apiStartTime = System.currentTimeMillis()
@@ -254,11 +254,11 @@ class AnalyzeMealWorker @AssistedInject constructor(
         photoUri: android.net.Uri,
         timestamp: Instant,
         startTime: Long,
-        apiDuration: Long
+        apiDuration: Long,
     ): androidx.work.ListenableWorker.Result {
         Timber.tag(TAG).i(
             "API analysis successful: ${nutritionData.calories} kcal, " +
-            "'${nutritionData.description}'"
+                "'${nutritionData.description}'",
         )
 
         updateForeground(R.string.notification_meal_analysis_status_saving, progressPercent = 80)
@@ -274,16 +274,15 @@ class AnalyzeMealWorker @AssistedInject constructor(
             val recordId = healthConnectManager.insertNutritionRecord(
                 calories = nutritionData.calories,
                 description = nutritionData.description,
-                timestamp = timestamp
+                timestamp = timestamp,
             )
             val saveDuration = System.currentTimeMillis() - saveStartTime
 
             Timber.tag(TAG).i(
-                "Health Connect save successful in ${saveDuration}ms: recordId=$recordId"
+                "Health Connect save successful in ${saveDuration}ms: recordId=$recordId",
             )
 
             cleanupAfterSuccess(photoUri, startTime, apiDuration, saveDuration, nutritionData, recordId, timestamp)
-
         } catch (e: IllegalStateException) {
             handleHealthConnectUnavailable(e)
         } catch (e: SecurityException) {
@@ -300,7 +299,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
         saveDuration: Long,
         nutritionData: NutritionData,
         recordId: String,
-        timestamp: Instant
+        timestamp: Instant,
     ): androidx.work.ListenableWorker.Result {
         val deleted = photoManager.deletePhoto(photoUri)
         if (deleted) {
@@ -312,12 +311,12 @@ class AnalyzeMealWorker @AssistedInject constructor(
         val totalDuration = System.currentTimeMillis() - startTime
         Timber.tag(TAG).i(
             "Processing completed successfully in ${totalDuration}ms " +
-            "(API: ${apiDuration}ms, Save: ${saveDuration}ms)"
+                "(API: ${apiDuration}ms, Save: ${saveDuration}ms)",
         )
 
         if (totalDuration > 20_000) {
             Timber.tag(TAG).w(
-                "Slow processing detected: ${totalDuration}ms (target: <15s typical)"
+                "Slow processing detected: ${totalDuration}ms (target: <15s typical)",
             )
         }
 
@@ -334,7 +333,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
     private fun handlePermissionDenied(e: SecurityException): androidx.work.ListenableWorker.Result {
         Timber.tag(TAG).e(
             e,
-            "Health Connect permission denied - keeping photo for manual intervention"
+            "Health Connect permission denied - keeping photo for manual intervention",
         )
         notifyFailure(e.message)
         return androidx.work.ListenableWorker.Result.failure()
@@ -344,7 +343,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
         Timber.tag(TAG).e(
             e,
             "Invalid nutrition data from API - keeping photo for investigation. " +
-            "Photo: $photoUri"
+                "Photo: $photoUri",
         )
         notifyFailure(e.message)
         return androidx.work.ListenableWorker.Result.failure()
@@ -353,7 +352,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
     private suspend fun handleErrorResult(
         apiResult: ApiResult.Error,
         photoUri: android.net.Uri,
-        timestamp: Instant
+        timestamp: Instant,
     ): androidx.work.ListenableWorker.Result {
         val exception = apiResult.exception
 
@@ -373,8 +372,8 @@ class AnalyzeMealWorker @AssistedInject constructor(
         Timber.tag(TAG).e(
             exception,
             "API error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): " +
-            "errorType=${errorType.javaClass.simpleName}, retryable=$isRetryable, " +
-            "photoUri=$photoUri, timestamp=$timestamp"
+                "errorType=${errorType.javaClass.simpleName}, retryable=$isRetryable, " +
+                "photoUri=$photoUri, timestamp=$timestamp",
         )
 
         return if (isRetryable) {
@@ -388,13 +387,13 @@ class AnalyzeMealWorker @AssistedInject constructor(
         exception: Throwable,
         errorType: ErrorType,
         userMessage: String,
-        photoUri: android.net.Uri
+        photoUri: android.net.Uri,
     ): androidx.work.ListenableWorker.Result {
         return if (runAttemptCount + 1 >= MAX_ATTEMPTS) {
             Timber.tag(TAG).e(
                 exception,
                 "Max retry attempts exhausted ($MAX_ATTEMPTS), keeping photo for manual retry. " +
-                "ErrorType=${errorType.javaClass.simpleName}, photoUri=$photoUri"
+                    "ErrorType=${errorType.javaClass.simpleName}, photoUri=$photoUri",
             )
             notifyFailure(userMessage)
             androidx.work.ListenableWorker.Result.failure()
@@ -402,7 +401,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
             Timber.tag(TAG).w(
                 exception,
                 "Retryable error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): $userMessage. " +
-                "Will retry with backoff."
+                    "Will retry with backoff.",
             )
             androidx.work.ListenableWorker.Result.retry()
         }
@@ -412,12 +411,12 @@ class AnalyzeMealWorker @AssistedInject constructor(
         exception: Throwable,
         errorType: ErrorType,
         userMessage: String,
-        photoUri: android.net.Uri
+        photoUri: android.net.Uri,
     ): androidx.work.ListenableWorker.Result {
         Timber.tag(TAG).e(
             exception,
             "Non-retryable error: ${errorType.javaClass.simpleName}, " +
-            "message='$userMessage', photoUri=$photoUri. Keeping photo for manual retry."
+                "message='$userMessage', photoUri=$photoUri. Keeping photo for manual retry.",
         )
 
         when (errorType) {

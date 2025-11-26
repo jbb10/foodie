@@ -30,6 +30,6 @@ fun NutritionRecord.toDomainModel(): MealEntry {
         timestamp = startTime,
         description = description,
         calories = energy?.inKilocalories?.toInt() ?: 0,
-        zoneOffset = startZoneOffset
+        zoneOffset = startZoneOffset,
     )
 }

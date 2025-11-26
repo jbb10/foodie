@@ -23,7 +23,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class AppModule {
-    
+
     /**
      * Binds NetworkMonitor interface to NetworkMonitorImpl.
      *
@@ -81,4 +81,3 @@ abstract class AppModule {
         }
     }
 }
-

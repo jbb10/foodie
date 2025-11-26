@@ -9,13 +9,13 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
-import javax.inject.Singleton
 
 /**
  * Network module providing Retrofit and OkHttp instances for Azure OpenAI API.
@@ -40,13 +40,13 @@ import javax.inject.Singleton
 object NetworkModule {
 
     private const val TAG = "NetworkModule"
-    private const val DEFAULT_ENDPOINT = "https://placeholder.openai.azure.com/"  // Fallback for unconfigured state
+    private const val DEFAULT_ENDPOINT = "https://placeholder.openai.azure.com/" // Fallback for unconfigured state
 
     @Provides
     @Singleton
     fun provideGson(): Gson {
         return GsonBuilder()
-            .setLenient()  // Allow lenient parsing for AI-generated JSON
+            .setLenient() // Allow lenient parsing for AI-generated JSON
             .create()
     }
 
@@ -62,14 +62,14 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(
         loggingInterceptor: HttpLoggingInterceptor,
-        authInterceptor: AuthInterceptor
+        authInterceptor: AuthInterceptor,
     ): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)  // Auth interceptor BEFORE logging to see headers
+            .addInterceptor(authInterceptor) // Auth interceptor BEFORE logging to see headers
             .addInterceptor(loggingInterceptor)
-            .connectTimeout(15, TimeUnit.SECONDS)  // Reduced from 30s - Azure typically fast
-            .readTimeout(30, TimeUnit.SECONDS)     // AI vision analysis can take 10-30s
-            .writeTimeout(30, TimeUnit.SECONDS)    // Base64 images can be large (~500KB-1MB)
+            .connectTimeout(15, TimeUnit.SECONDS) // Reduced from 30s - Azure typically fast
+            .readTimeout(30, TimeUnit.SECONDS) // AI vision analysis can take 10-30s
+            .writeTimeout(30, TimeUnit.SECONDS) // Base64 images can be large (~500KB-1MB)
             .build()
     }
 
@@ -78,7 +78,7 @@ object NetworkModule {
     fun provideRetrofit(
         okHttpClient: OkHttpClient,
         securePreferences: SecurePreferences,
-        gson: Gson
+        gson: Gson,
     ): Retrofit {
         // Read base URL from SecurePreferences, fallback to placeholder if not configured
         val baseUrl = securePreferences.azureOpenAiEndpoint?.let { endpoint ->
@@ -104,5 +104,3 @@ object NetworkModule {
         return retrofit.create(AzureOpenAiApi::class.java)
     }
 }
-
-

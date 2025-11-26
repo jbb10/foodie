@@ -39,7 +39,7 @@ class PreferencesRepositoryThemeTest {
             sharedPreferences = sharedPreferences,
             securePreferences = mockk(relaxed = true),
             azureOpenAiApi = mockk(relaxed = true),
-            gson = mockk(relaxed = true)
+            gson = mockk(relaxed = true),
         )
     }
 

@@ -53,10 +53,10 @@ import com.foodie.app.R
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.ui.theme.FoodieTheme
-import timber.log.Timber
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import timber.log.Timber
 
 /**
  * Meal list screen displaying nutrition entries from Health Connect.
@@ -76,7 +76,7 @@ fun MealListScreen(
     onMealClick: (MealEntry) -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: MealListViewModel = hiltViewModel()
+    viewModel: MealListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -96,7 +96,7 @@ fun MealListScreen(
         error = state.error,
         snackbarHostState = snackbarHostState,
         viewModel = viewModel,
-        requestHealthConnectPermissions = requestHealthConnectPermissions
+        requestHealthConnectPermissions = requestHealthConnectPermissions,
     )
 
     // Show success toast message
@@ -111,9 +111,9 @@ fun MealListScreen(
             onSettingsClick = onSettingsClick,
             onMealLongPress = viewModel::onMealLongPress,
             onDismissDeleteDialog = viewModel::onDismissDeleteDialog,
-            onDeleteConfirmed = viewModel::onDeleteConfirmed
+            onDeleteConfirmed = viewModel::onDeleteConfirmed,
         ),
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -126,7 +126,7 @@ internal data class MealListCallbacks(
     val onSettingsClick: () -> Unit,
     val onMealLongPress: (String) -> Unit,
     val onDismissDeleteDialog: () -> Unit,
-    val onDeleteConfirmed: () -> Unit
+    val onDeleteConfirmed: () -> Unit,
 )
 
 @VisibleForTesting
@@ -136,9 +136,8 @@ internal fun MealListScreenContent(
     state: MealListState,
     snackbarHostState: SnackbarHostState,
     callbacks: MealListCallbacks,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -146,32 +145,32 @@ internal fun MealListScreenContent(
                 actions = {
                     IconButton(
                         onClick = callbacks.onSettingsClick,
-                        modifier = Modifier.semantics { contentDescription = "Open Settings" }
+                        modifier = Modifier.semantics { contentDescription = "Open Settings" },
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = null // Description on IconButton, not Icon
+                            contentDescription = null, // Description on IconButton, not Icon
                         )
                     }
-                }
+                },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        modifier = modifier
+        modifier = modifier,
     ) { paddingValues ->
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
             onRefresh = callbacks.onRefresh,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
         ) {
             when {
                 state.isLoading -> {
                     // Show loading indicator on first load
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator()
                     }
@@ -180,13 +179,13 @@ internal fun MealListScreenContent(
                     // Show empty state
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = stringResource(id = R.string.meal_list_empty_state),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(32.dp)
+                            modifier = Modifier.padding(32.dp),
                         )
                     }
                 }
@@ -195,7 +194,7 @@ internal fun MealListScreenContent(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         state.mealsByDate.forEach { (dateHeader, meals) ->
                             // Date header
@@ -204,20 +203,20 @@ internal fun MealListScreenContent(
                                     text = dateHeader,
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(vertical = 8.dp)
+                                    modifier = Modifier.padding(vertical = 8.dp),
                                 )
                             }
 
                             // Meals for this date
                             items(
                                 items = meals,
-                                key = { meal -> meal.id }
+                                key = { meal -> meal.id },
                             ) { meal ->
                                 MealEntryCard(
                                     meal = meal,
                                     onClick = { callbacks.onMealClick(meal) },
                                     onLongClick = { callbacks.onMealLongPress(meal.id) },
-                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                    modifier = Modifier.padding(horizontal = 16.dp),
                                 )
                             }
                         }
@@ -237,8 +236,8 @@ internal fun MealListScreenContent(
                 TextButton(
                     onClick = callbacks.onDeleteConfirmed,
                     colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
+                        contentColor = MaterialTheme.colorScheme.error,
+                    ),
                 ) {
                     Text(text = stringResource(id = R.string.meal_list_delete_confirm))
                 }
@@ -247,7 +246,7 @@ internal fun MealListScreenContent(
                 TextButton(onClick = callbacks.onDismissDeleteDialog) {
                     Text(text = stringResource(id = R.string.meal_list_delete_cancel))
                 }
-            }
+            },
         )
     }
 }
@@ -268,7 +267,7 @@ private fun MealEntryCard(
     meal: MealEntry,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     // Cache formatted timestamp to prevent recalculation on every recomposition (Story 5.6)
     val formattedTimestamp = remember(meal.timestamp) {
@@ -283,27 +282,27 @@ private fun MealEntryCard(
             }
             .combinedClickable(
                 onClick = onClick,
-                onLongClick = onLongClick
+                onLongClick = onLongClick,
             ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
                 text = meal.description,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
             )
             Text(
                 text = formattedTimestamp,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = "${meal.calories} kcal",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -327,10 +326,10 @@ private val TIME_FORMATTER: DateTimeFormatter =
  */
 @Composable
 private fun setupHealthConnectPermissionLauncher(
-    viewModel: MealListViewModel
+    viewModel: MealListViewModel,
 ): ManagedActivityResultLauncher<Set<String>, Set<String>> {
     return rememberLauncherForActivityResult(
-        viewModel.createPermissionRequestContract()
+        viewModel.createPermissionRequestContract(),
     ) { granted ->
         Timber.i("Health Connect permission result from MealListScreen: granted=${granted.size}")
         if (granted.containsAll(HealthConnectManager.REQUIRED_PERMISSIONS)) {
@@ -359,7 +358,7 @@ private fun HandleInitialLoad(viewModel: MealListViewModel) {
 private fun HandleLifecycleRefresh(
     lifecycleOwner: LifecycleOwner,
     state: MealListState,
-    viewModel: MealListViewModel
+    viewModel: MealListViewModel,
 ) {
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -381,7 +380,7 @@ private fun HandleErrorSnackbar(
     error: String?,
     snackbarHostState: SnackbarHostState,
     viewModel: MealListViewModel,
-    requestHealthConnectPermissions: ManagedActivityResultLauncher<Set<String>, Set<String>>
+    requestHealthConnectPermissions: ManagedActivityResultLauncher<Set<String>, Set<String>>,
 ) {
     LaunchedEffect(error) {
         error?.let { errorMessage ->
@@ -401,7 +400,7 @@ private fun HandleErrorSnackbar(
  */
 private fun isPermissionError(errorMessage: String): Boolean {
     return errorMessage.contains("Permission denied", ignoreCase = true) ||
-           errorMessage.contains("grant Health Connect access", ignoreCase = true)
+        errorMessage.contains("grant Health Connect access", ignoreCase = true)
 }
 
 /**
@@ -411,7 +410,7 @@ private suspend fun handlePermissionError(
     viewModel: MealListViewModel,
     snackbarHostState: SnackbarHostState,
     errorMessage: String,
-    requestHealthConnectPermissions: ManagedActivityResultLauncher<Set<String>, Set<String>>
+    requestHealthConnectPermissions: ManagedActivityResultLauncher<Set<String>, Set<String>>,
 ) {
     Timber.i("Permission error detected, requesting Health Connect permissions")
     viewModel.clearError() // Clear error immediately
@@ -433,7 +432,7 @@ private suspend fun handlePermissionError(
 private suspend fun handleRegularError(
     viewModel: MealListViewModel,
     snackbarHostState: SnackbarHostState,
-    errorMessage: String
+    errorMessage: String,
 ) {
     showRetrySnackbar(viewModel, snackbarHostState, errorMessage)
 }
@@ -444,12 +443,12 @@ private suspend fun handleRegularError(
 private suspend fun showRetrySnackbar(
     viewModel: MealListViewModel,
     snackbarHostState: SnackbarHostState,
-    errorMessage: String
+    errorMessage: String,
 ) {
     val result = snackbarHostState.showSnackbar(
         message = errorMessage,
         actionLabel = "Retry",
-        withDismissAction = true
+        withDismissAction = true,
     )
     if (result == SnackbarResult.ActionPerformed) {
         viewModel.retryLoadMeals()
@@ -465,13 +464,13 @@ private suspend fun showRetrySnackbar(
 private fun HandleSuccessMessage(
     successMessage: String?,
     snackbarHostState: SnackbarHostState,
-    viewModel: MealListViewModel
+    viewModel: MealListViewModel,
 ) {
     LaunchedEffect(successMessage) {
         successMessage?.let { message ->
             snackbarHostState.showSnackbar(
                 message = message,
-                withDismissAction = true
+                withDismissAction = true,
             )
             viewModel.clearSuccessMessage()
         }
@@ -487,11 +486,11 @@ private fun MealListScreenPreview() {
                 id = "1",
                 timestamp = Instant.now(),
                 description = "Avocado toast",
-                calories = 320
-            )
+                calories = 320,
+            ),
         )
         val state = MealListState(
-            mealsByDate = mapOf("Today" to sampleMeals)
+            mealsByDate = mapOf("Today" to sampleMeals),
         )
         val snackbarHostState = remember { SnackbarHostState() }
         MealListScreenContent(
@@ -503,9 +502,8 @@ private fun MealListScreenPreview() {
                 onSettingsClick = {},
                 onMealLongPress = {},
                 onDismissDeleteDialog = {},
-                onDeleteConfirmed = {}
-            )
+                onDeleteConfirmed = {},
+            ),
         )
     }
 }
-

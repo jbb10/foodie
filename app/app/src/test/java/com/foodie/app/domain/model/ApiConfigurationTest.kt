@@ -22,7 +22,7 @@ class ApiConfigurationTest {
         val config = ApiConfiguration(
             apiKey = "",
             endpoint = TEST_ENDPOINT,
-            modelName = TEST_MODEL
+            modelName = TEST_MODEL,
         )
 
         val result = config.validate()
@@ -36,7 +36,7 @@ class ApiConfigurationTest {
         val config = ApiConfiguration(
             apiKey = TEST_API_KEY,
             endpoint = "invalid-url",
-            modelName = TEST_MODEL
+            modelName = TEST_MODEL,
         )
 
         val result = config.validate()
@@ -49,7 +49,7 @@ class ApiConfigurationTest {
         val config = ApiConfiguration(
             apiKey = TEST_API_KEY,
             endpoint = "http://test.openai.azure.com",
-            modelName = TEST_MODEL
+            modelName = TEST_MODEL,
         )
 
         val result = config.validate()
@@ -63,7 +63,7 @@ class ApiConfigurationTest {
         val config = ApiConfiguration(
             apiKey = TEST_API_KEY,
             endpoint = "https://wrong-domain.com",
-            modelName = TEST_MODEL
+            modelName = TEST_MODEL,
         )
 
         val result = config.validate()
@@ -77,7 +77,7 @@ class ApiConfigurationTest {
         val config = ApiConfiguration(
             apiKey = TEST_API_KEY,
             endpoint = TEST_ENDPOINT,
-            modelName = ""
+            modelName = "",
         )
 
         val result = config.validate()
@@ -91,7 +91,7 @@ class ApiConfigurationTest {
         val config = ApiConfiguration(
             apiKey = TEST_API_KEY,
             endpoint = TEST_ENDPOINT,
-            modelName = TEST_MODEL
+            modelName = TEST_MODEL,
         )
 
         val result = config.validate()
@@ -104,7 +104,7 @@ class ApiConfigurationTest {
         val config = ApiConfiguration(
             apiKey = "",
             endpoint = TEST_ENDPOINT,
-            modelName = TEST_MODEL
+            modelName = TEST_MODEL,
         )
 
         assertThat(config.isConfigured).isFalse()
@@ -115,7 +115,7 @@ class ApiConfigurationTest {
         val config = ApiConfiguration(
             apiKey = TEST_API_KEY,
             endpoint = TEST_ENDPOINT,
-            modelName = TEST_MODEL
+            modelName = TEST_MODEL,
         )
 
         assertThat(config.isConfigured).isTrue()
@@ -135,7 +135,7 @@ class ApiConfigurationTest {
         val config = ApiConfiguration(
             apiKey = "sk-test123",
             endpoint = "https://test.openai.azure.com",
-            modelName = "gpt-4o-mini"
+            modelName = "gpt-4o-mini",
         )
 
         val result = config.validate()
@@ -148,7 +148,7 @@ class ApiConfigurationTest {
         val config = ApiConfiguration(
             apiKey = "sk-test123",
             endpoint = "https://test.openai.azure.com",
-            modelName = "my-custom-deployment-123"
+            modelName = "my-custom-deployment-123",
         )
 
         val result = config.validate()
@@ -161,7 +161,7 @@ class ApiConfigurationTest {
         val config = ApiConfiguration(
             apiKey = "sk-test123",
             endpoint = "https://test.openai.azure.com",
-            modelName = ""
+            modelName = "",
         )
 
         assertThat(config.isConfigured).isFalse()

@@ -1,7 +1,10 @@
 package com.foodie.app.ui.screens.settings
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.repository.PreferencesRepository
+import com.foodie.app.domain.model.ApiConfiguration
+import com.foodie.app.domain.model.TestConnectionResult
 import com.foodie.app.domain.repository.UserProfileRepository
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
@@ -10,39 +13,45 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 /**
- * Unit tests for SettingsViewModel preference handling (Story 5.1).
+ * Unit tests for SettingsViewModel API configuration functionality.
  *
- * Tests state management, preference loading, saving, and reactive updates.
- * Uses MockK for mocking PreferencesRepository and standard Flow testing.
+ * Tests:
+ * - API configuration save with validation
+ * - Test connection flow
+ * - State updates
+ * - Error handling
  *
- * Test coverage:
- * - Preference loading on initialization
- * - Preference saving (string and boolean)
- * - Reactive state updates when preferences change
- * - Error handling for save failures
- * - Loading states during async operations
- *
- * NOTE: API configuration tests are in SettingsViewModelApiConfigTest (Story 5.2).
+ * Story 5.2: Azure OpenAI API Key and Endpoint Configuration
  */
-@OptIn(ExperimentalCoroutinesApi::class)
-class SettingsViewModelPreferencesTest {
+@ExperimentalCoroutinesApi
+class SettingsViewModelTest {
 
-    private lateinit var viewModel: SettingsViewModel
+    companion object {
+        private const val TEST_ENDPOINT = "https://test.openai.azure.com"
+        private const val TEST_API_KEY = "sk-test123"
+        private const val TEST_MODEL = "gpt-4.1"
+    }
+
+    @get:Rule
+    val instantExecutorRule = InstantTaskExecutorRule()
+
+    private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: PreferencesRepository
     private lateinit var securePreferences: SecurePreferences
     private lateinit var userProfileRepository: UserProfileRepository
-    private val testDispatcher = UnconfinedTestDispatcher()
+    private lateinit var viewModel: SettingsViewModel
 
     @Before
     fun setup() {
@@ -51,12 +60,14 @@ class SettingsViewModelPreferencesTest {
         securePreferences = mockk(relaxed = true)
         userProfileRepository = mockk(relaxed = true)
 
-        // Default mock behavior
+        // Setup default mock behavior
         every { repository.observePreferences() } returns flowOf(emptyMap())
         every { securePreferences.azureOpenAiApiKey } returns null
         every { securePreferences.azureOpenAiEndpoint } returns null
         every { securePreferences.azureOpenAiModel } returns null
         every { userProfileRepository.getUserProfile() } returns flowOf(null)
+
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
     }
 
     @After
@@ -65,152 +76,107 @@ class SettingsViewModelPreferencesTest {
     }
 
     @Test
-    fun `loadPreferences loads from repository on init`() = runTest {
-        // Given: SecurePreferences and Repository return values
-        every { securePreferences.azureOpenAiApiKey } returns "sk-test-key"
-        every { securePreferences.azureOpenAiEndpoint } returns "https://test.openai.azure.com"
-        every { securePreferences.azureOpenAiModel } returns "gpt-4"
-        every { repository.observePreferences() } returns flowOf(emptyMap())
+    fun `saveApiConfiguration validatesInputs`() = runTest {
+        // Given invalid endpoint (non-HTTPS)
+        val invalidApiKey = TEST_API_KEY
+        val invalidEndpoint = "http://test.openai.azure.com"
+        val model = TEST_MODEL
 
-        // When: ViewModel initialized
-        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
+        // When saving configuration
+        viewModel.saveApiConfiguration(invalidApiKey, invalidEndpoint, model)
 
-        // Then: State updated with preference values from SecurePreferences
-        val state = viewModel.state.first()
-        assertThat(state.apiKey).isEqualTo("sk-test-key")
-        assertThat(state.apiEndpoint).isEqualTo("https://test.openai.azure.com")
-        assertThat(state.modelName).isEqualTo("gpt-4")
-        assertThat(state.isLoading).isFalse()
+        // Then error is set in state
+        assertThat(viewModel.state.value.error).isEqualTo("Endpoint must use HTTPS")
+
+        // And repository save not called
+        coVerify(exactly = 0) { repository.saveApiConfiguration(any()) }
     }
 
     @Test
-    fun `loadPreferences uses default values when preferences empty`() = runTest {
-        // Given: Repository returns empty preferences
-        every { repository.observePreferences() } returns flowOf(emptyMap())
+    fun `saveApiConfiguration callsRepository whenValid`() = runTest {
+        // Given valid configuration
+        val apiKey = TEST_API_KEY
+        val endpoint = TEST_ENDPOINT
+        val model = TEST_MODEL
 
-        // When: ViewModel initialized
-        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
+        coEvery { repository.saveApiConfiguration(any()) } returns Result.success(Unit)
 
-        // Then: State has default values
-        val state = viewModel.state.first()
-        assertThat(state.apiEndpoint).isEmpty()
-        assertThat(state.modelName).isEqualTo("gpt-4.1")
+        // When saving configuration
+        viewModel.saveApiConfiguration(apiKey, endpoint, model)
+
+        // Then repository is called with correct config
+        coVerify {
+            repository.saveApiConfiguration(
+                ApiConfiguration(apiKey, endpoint, model),
+            )
+        }
+
+        // And state is updated
+        assertThat(viewModel.state.value.apiKey).isEqualTo(apiKey)
+        assertThat(viewModel.state.value.apiEndpoint).isEqualTo(endpoint)
+        assertThat(viewModel.state.value.modelName).isEqualTo(model)
     }
 
     @Test
-    fun `saveString persists to repository successfully`() = runTest {
-        // Given: ViewModel initialized
-        coEvery { repository.setString(any(), any()) } returns Result.success(Unit)
-        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
+    fun `testConnection success updatesState`() = runTest {
+        // Given successful test connection
+        coEvery { repository.testConnection(any(), any(), any()) } returns Result.success(TestConnectionResult.Success)
 
-        // When: Saving a string preference
-        viewModel.saveString("pref_test", "test_value")
+        // When testing connection
+        viewModel.testConnection(TEST_API_KEY, TEST_ENDPOINT, TEST_MODEL)
+        advanceUntilIdle()
 
-        // Then: Repository called with correct parameters
-        coVerify { repository.setString("pref_test", "test_value") }
+        // Then state shows success message
+        assertThat(viewModel.state.value.saveSuccessMessage).isEqualTo("API configuration valid")
+        assertThat(viewModel.state.value.isTestingConnection).isFalse()
     }
 
     @Test
-    fun `saveString sets error state on failure`() = runTest {
-        // Given: Repository fails to save
-        val exception = Exception("Save failed")
-        coEvery { repository.setString(any(), any()) } returns Result.failure(exception)
-        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
-
-        // When: Attempting to save
-        viewModel.saveString("pref_test", "test_value")
-
-        // Then: Error state set
-        val errorState = viewModel.state.value
-        assertThat(errorState.isLoading).isFalse()
-        assertThat(errorState.error).isEqualTo("Failed to save setting")
-    }
-
-    @Test
-    fun `saveBoolean persists to repository successfully`() = runTest {
-        // Given: ViewModel initialized
-        coEvery { repository.setBoolean(any(), any()) } returns Result.success(Unit)
-        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
-
-        // When: Saving a boolean preference
-        viewModel.saveBoolean("pref_test", true)
-
-        // Then: Repository called with correct parameters
-        coVerify { repository.setBoolean("pref_test", true) }
-    }
-
-    @Test
-    fun `clearError removes error from state`() = runTest {
-        // Given: ViewModel with error state
-        val exception = Exception("Save failed")
-        coEvery { repository.setString(any(), any()) } returns Result.failure(exception)
-        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
-
-        viewModel.saveString("pref_test", "test_value")
-
-        // Verify error is set
-        assertThat(viewModel.state.value.error).isNotNull()
-
-        // When: Clearing error
-        viewModel.clearError()
-
-        // Then: Error removed from state
-        val clearedState = viewModel.state.value
-        assertThat(clearedState.error).isNull()
-    }
-
-    @Test
-    fun `saveBoolean sets error state on failure`() = runTest {
-        // Given: Repository fails to save
-        val exception = Exception("Boolean save failed")
-        coEvery { repository.setBoolean(any(), any()) } returns Result.failure(exception)
-        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
-
-        // When: Attempting to save boolean
-        viewModel.saveBoolean("pref_test_bool", false)
-
-        // Then: Error state set
-        val errorState = viewModel.state.value
-        assertThat(errorState.isLoading).isFalse()
-        assertThat(errorState.error).isEqualTo("Failed to save setting")
-    }
-
-    @Test
-    fun `observePreferences handles exception gracefully`() = runTest {
-        // Given: Repository throws exception during observation
-        every { repository.observePreferences() } throws RuntimeException("Observation failed")
-
-        // When: ViewModel initializes (triggers observation)
-        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
-
-        // Then: Error is set in state
-        val state = viewModel.state.value
-        assertThat(state.error).isEqualTo("Failed to load preferences")
-        assertThat(state.isLoading).isFalse()
-    }
-
-    @Test
-    fun `loadApiConfiguration preserves values during observe`() = runTest {
-        // Given: SecurePreferences has values
-        every { securePreferences.azureOpenAiApiKey } returns "sk-initial-key"
-        every { securePreferences.azureOpenAiEndpoint } returns "https://initial.openai.azure.com"
-        every { securePreferences.azureOpenAiModel } returns "gpt-4-initial"
-
-        // And repository observePreferences emits update without endpoint/model
-        every { repository.observePreferences() } returns flowOf(
-            mapOf("pref_theme_mode" to "dark")
+    fun `testConnection failure displaysError`() = runTest {
+        // Given failed test connection
+        val errorMessage = "Invalid API key"
+        coEvery { repository.testConnection(any(), any(), any()) } returns Result.success(
+            TestConnectionResult.Failure(errorMessage),
         )
 
-        // When: ViewModel initializes
-        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
+        // When testing connection
+        viewModel.testConnection(TEST_API_KEY, TEST_ENDPOINT, TEST_MODEL)
+        advanceUntilIdle()
 
-        // Then: Initial values from SecurePreferences are preserved
-        val state = viewModel.state.value
-        assertThat(state.apiKey).isEqualTo("sk-initial-key")
-        assertThat(state.apiEndpoint).isEqualTo("https://initial.openai.azure.com")
-        assertThat(state.modelName).isEqualTo("gpt-4-initial")
-        assertThat(state.themeMode).isEqualTo("dark")
+        // Then state shows error message
+        assertThat(viewModel.state.value.error).isEqualTo(errorMessage)
+        assertThat(viewModel.state.value.isTestingConnection).isFalse()
+    }
+
+    @Test
+    fun `apiConfiguration loadsFromRepository`() = runTest {
+        // Given API configuration in secure preferences
+        every { securePreferences.azureOpenAiApiKey } returns "sk-test123"
+        every { securePreferences.azureOpenAiEndpoint } returns "https://test.openai.azure.com"
+        every { securePreferences.azureOpenAiModel } returns "gpt-4.1"
+
+        // When ViewModel is initialized
+        val newViewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
+
+        // Then state is populated from preferences
+        assertThat(newViewModel.state.value.apiKey).isEqualTo("sk-test123")
+        assertThat(newViewModel.state.value.apiEndpoint).isEqualTo("https://test.openai.azure.com")
+        assertThat(newViewModel.state.value.modelName).isEqualTo("gpt-4.1")
+    }
+
+    @Test
+    fun `clearSaveSuccess clearsSuccessMessage`() = runTest {
+        // Given success message exists
+        coEvery { repository.testConnection(any(), any(), any()) } returns Result.success(TestConnectionResult.Success)
+        viewModel.testConnection("test-key", "https://test.openai.azure.com", "gpt-4.1")
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.saveSuccessMessage).isNotNull()
+
+        // When clearing success message
+        viewModel.clearSaveSuccess()
+        advanceUntilIdle()
+
+        // Then message is null
+        assertThat(viewModel.state.value.saveSuccessMessage).isNull()
     }
 }
-
-

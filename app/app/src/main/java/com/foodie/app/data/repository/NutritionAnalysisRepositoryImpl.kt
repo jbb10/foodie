@@ -16,11 +16,11 @@ import com.foodie.app.util.Result
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import dagger.hilt.android.qualifiers.ApplicationContext
-import retrofit2.HttpException
-import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+import retrofit2.HttpException
+import timber.log.Timber
 
 /**
  * Implementation of NutritionAnalysisRepository using Azure OpenAI Responses API.
@@ -56,12 +56,12 @@ class NutritionAnalysisRepositoryImpl @Inject constructor(
     private val imageUtils: ImageUtils,
     private val securePreferences: SecurePreferences,
     private val gson: Gson,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) : NutritionAnalysisRepository {
 
     companion object {
         private const val TAG = "NutritionAnalysisRepo"
-        private const val DEFAULT_MODEL = "gpt-4.1"  // Fallback if not configured
+        private const val DEFAULT_MODEL = "gpt-4.1" // Fallback if not configured
         private const val PROMPT_FILE = "prompts/nutrition_analysis.md"
     }
 
@@ -119,7 +119,7 @@ Return only the JSON object, no other text."""
                 Timber.tag(TAG).e(e, "IOException encoding image to base64")
                 return Result.Error(
                     exception = e,
-                    message = "Failed to encode image: ${e.message}"
+                    message = "Failed to encode image: ${e.message}",
                 )
             }
 
@@ -127,7 +127,7 @@ Return only the JSON object, no other text."""
                 Timber.tag(TAG).e("Failed to encode image to base64 (returned null)")
                 return Result.Error(
                     exception = IllegalStateException("Image encoding returned null"),
-                    message = "Failed to encode image to base64"
+                    message = "Failed to encode image to base64",
                 )
             }
 
@@ -146,10 +146,10 @@ Return only the JSON object, no other text."""
                         role = "user",
                         content = listOf(
                             ContentItem.TextContent(text = "Analyze this meal and estimate the total calories."),
-                            ContentItem.ImageContent(imageUrl = base64DataUrl)
-                        )
-                    )
-                )
+                            ContentItem.ImageContent(imageUrl = base64DataUrl),
+                        ),
+                    ),
+                ),
             )
 
             // Step 4: Call Azure OpenAI API
@@ -160,14 +160,14 @@ Return only the JSON object, no other text."""
                 Timber.tag(TAG).e(e, "Network error calling Azure OpenAI")
                 return Result.Error(
                     exception = e,
-                    message = "Network error: ${e.message}"
+                    message = "Network error: ${e.message}",
                 )
             } catch (e: HttpException) {
                 val statusCode = e.code()
                 Timber.tag(TAG).e(e, "HTTP error $statusCode from Azure OpenAI")
                 return Result.Error(
                     exception = e,
-                    message = "API error ($statusCode): ${e.message}"
+                    message = "API error ($statusCode): ${e.message}",
                 )
             }
 
@@ -184,7 +184,7 @@ Return only the JSON object, no other text."""
                 ?: outputTextFromArray?.takeIf { it.isNotBlank() }
 
             Timber.tag(TAG).d(
-                "Received response: status=${response.status}, directLength=${response.outputText?.length}, fallbackLength=${outputTextFromArray?.length}"
+                "Received response: status=${response.status}, directLength=${response.outputText?.length}, fallbackLength=${outputTextFromArray?.length}",
             )
 
             // Step 5: Parse output_text as JSON
@@ -192,7 +192,7 @@ Return only the JSON object, no other text."""
                 Timber.tag(TAG).e("Response output_text is null or blank")
                 return Result.Error(
                     exception = IllegalStateException("Empty API response"),
-                    message = "API returned empty response"
+                    message = "API returned empty response",
                 )
             }
 
@@ -204,7 +204,7 @@ Return only the JSON object, no other text."""
                 Timber.tag(TAG).e(e, "JSON parse error parsing output_text: $outputText")
                 return Result.Error(
                     exception = e,
-                    message = "Failed to parse nutrition data from API response"
+                    message = "Failed to parse nutrition data from API response",
                 )
             }
 
@@ -214,7 +214,7 @@ Return only the JSON object, no other text."""
                 Timber.tag(TAG).w("No food detected: $reason")
                 return Result.Error(
                     exception = NoFoodDetectedException(reason),
-                    message = reason
+                    message = reason,
                 )
             }
 
@@ -222,27 +222,25 @@ Return only the JSON object, no other text."""
             val nutritionData = try {
                 NutritionData(
                     calories = apiNutrition.calories ?: throw IllegalArgumentException("Missing calories field"),
-                    description = apiNutrition.description ?: throw IllegalArgumentException("Missing description field")
+                    description = apiNutrition.description ?: throw IllegalArgumentException("Missing description field"),
                 )
             } catch (e: IllegalArgumentException) {
                 Timber.tag(TAG).e(e, "Validation error creating NutritionData")
                 return Result.Error(
                     exception = e,
-                    message = "Invalid nutrition data: ${e.message}"
+                    message = "Invalid nutrition data: ${e.message}",
                 )
             }
 
             Timber.tag(TAG).d("Successfully analyzed nutrition: $nutritionData")
             return Result.Success(nutritionData)
-
         } catch (e: Exception) {
             // Catch-all for unexpected errors
             Timber.tag(TAG).e(e, "Unexpected error analyzing photo")
             return Result.Error(
                 exception = e,
-                message = "Unexpected error: ${e.message}"
+                message = "Unexpected error: ${e.message}",
             )
         }
     }
 }
-

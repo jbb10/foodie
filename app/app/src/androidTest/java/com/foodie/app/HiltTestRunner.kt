@@ -11,11 +11,11 @@ import androidx.test.runner.AndroidJUnitRunner
  * to enable Hilt dependency injection and WorkManager configuration in tests.
  */
 class HiltTestRunner : AndroidJUnitRunner() {
-    
+
     override fun newApplication(
         cl: ClassLoader?,
         className: String?,
-        context: Context?
+        context: Context?,
     ): Application {
         return super.newApplication(cl, FoodieTestApplication_Application::class.java.name, context)
     }

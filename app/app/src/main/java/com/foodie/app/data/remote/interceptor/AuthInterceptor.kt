@@ -1,10 +1,10 @@
 package com.foodie.app.data.remote.interceptor
 
 import com.foodie.app.data.local.preferences.SecurePreferences
+import javax.inject.Inject
 import okhttp3.Interceptor
 import okhttp3.Response
 import timber.log.Timber
-import javax.inject.Inject
 
 /**
  * OkHttp interceptor for adding Azure OpenAI authentication headers to API requests.
@@ -41,7 +41,7 @@ import javax.inject.Inject
  * https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#authentication
  */
 class AuthInterceptor @Inject constructor(
-    private val securePreferences: SecurePreferences
+    private val securePreferences: SecurePreferences,
 ) : Interceptor {
 
     companion object {

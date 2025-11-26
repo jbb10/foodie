@@ -11,8 +11,8 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.foodie.app.data.worker.AnalyzeMealWorker
-import timber.log.Timber
 import java.util.concurrent.TimeUnit
+import timber.log.Timber
 
 /**
  * Broadcast receiver for handling retry analysis action from notifications.
@@ -28,28 +28,28 @@ import java.util.concurrent.TimeUnit
  * Story: 4.3 - API Error Classification and Handling
  */
 class RetryAnalysisBroadcastReceiver : BroadcastReceiver() {
-    
+
     companion object {
         private const val TAG = "RetryAnalysisReceiver"
     }
-    
+
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != "com.foodie.app.RETRY_ANALYSIS") {
             Timber.tag(TAG).w("Received unexpected action: ${intent.action}")
             return
         }
-        
+
         val workIdString = intent.getStringExtra("work_id")
         val photoUriString = intent.getStringExtra("photo_uri")
         val timestamp = intent.getLongExtra("timestamp", 0L)
-        
+
         if (photoUriString == null || timestamp == 0L) {
             Timber.tag(TAG).e("Missing required data for retry: photoUri=$photoUriString, timestamp=$timestamp")
             return
         }
-        
+
         Timber.tag(TAG).i("Retry requested for work $workIdString, photoUri=$photoUriString")
-        
+
         // Verify photo URI is valid
         val photoUri = try {
             photoUriString.toUri()
@@ -57,28 +57,29 @@ class RetryAnalysisBroadcastReceiver : BroadcastReceiver() {
             Timber.tag(TAG).e(e, "Invalid photo URI: $photoUriString")
             return
         }
-        
+
         // Enqueue new work request with same input data and constraints
         val workRequest = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
             .setInputData(
                 workDataOf(
                     AnalyzeMealWorker.KEY_PHOTO_URI to photoUri.toString(),
-                    AnalyzeMealWorker.KEY_TIMESTAMP to timestamp
-                )
+                    AnalyzeMealWorker.KEY_TIMESTAMP to timestamp,
+                ),
             )
             .setConstraints(
                 Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
+                    .build(),
             )
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
-                1, TimeUnit.SECONDS
+                1,
+                TimeUnit.SECONDS,
             )
             .build()
-        
+
         WorkManager.getInstance(context).enqueue(workRequest)
-        
+
         Timber.tag(TAG).i("Analysis re-enqueued: workId=${workRequest.id}, photoUri=$photoUri")
     }
 }

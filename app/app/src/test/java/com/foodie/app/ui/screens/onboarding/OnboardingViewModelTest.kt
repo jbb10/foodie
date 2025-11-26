@@ -61,7 +61,7 @@ class OnboardingViewModelTest {
             healthConnectManager,
             onboardingPreferences,
             securePreferences,
-            preferencesRepository
+            preferencesRepository,
         )
     }
 
@@ -180,7 +180,7 @@ class OnboardingViewModelTest {
             "android.permission.health.READ_WEIGHT",
             "android.permission.health.WRITE_WEIGHT",
             "android.permission.health.READ_HEIGHT",
-            "android.permission.health.WRITE_HEIGHT"
+            "android.permission.health.WRITE_HEIGHT",
         )
 
         // When: Handle permission result

@@ -66,4 +66,3 @@ abstract class RepositoryModule {
     @Singleton
     abstract fun bindEnergyBalanceRepository(impl: EnergyBalanceRepositoryImpl): EnergyBalanceRepository
 }
-

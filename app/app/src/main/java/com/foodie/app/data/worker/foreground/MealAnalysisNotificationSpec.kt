@@ -13,7 +13,7 @@ object MealAnalysisNotificationSpec {
     const val CHANNEL_NAME = "Meal Analysis"
     const val CHANNEL_DESCRIPTION = "Silent notifications for background meal logging."
     const val ONGOING_NOTIFICATION_ID = 201
-    const val COMPLETION_NOTIFICATION_ID = 202  // Different ID for success/failure notifications
+    const val COMPLETION_NOTIFICATION_ID = 202 // Different ID for success/failure notifications
 
     data class NotificationChannelSpec(
         val id: String,
@@ -22,17 +22,17 @@ object MealAnalysisNotificationSpec {
         val importance: Int,
         val showBadge: Boolean,
         val enableVibration: Boolean,
-        val enableSound: Boolean
+        val enableSound: Boolean,
     )
 
     fun channelSpec(): NotificationChannelSpec = NotificationChannelSpec(
         id = CHANNEL_ID,
         name = CHANNEL_NAME,
         description = CHANNEL_DESCRIPTION,
-        importance = NotificationManager.IMPORTANCE_LOW,  // Silent notifications
+        importance = NotificationManager.IMPORTANCE_LOW, // Silent notifications
         showBadge = false,
         enableVibration = false,
-        enableSound = false
+        enableSound = false,
     )
 
     fun ensureChannel(context: Context) {

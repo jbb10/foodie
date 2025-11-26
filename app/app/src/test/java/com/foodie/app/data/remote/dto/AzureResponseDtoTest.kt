@@ -45,10 +45,10 @@ class AzureResponseDtoTest {
                 InputMessage(
                     role = "user",
                     content = listOf(
-                        ContentItem.TextContent(text = "What's in this meal?")
-                    )
-                )
-            )
+                        ContentItem.TextContent(text = "What's in this meal?"),
+                    ),
+                ),
+            ),
         )
 
         // Act
@@ -59,14 +59,15 @@ class AzureResponseDtoTest {
         assertThat(json).contains("\"instructions\":\"Analyze the food image.\"")
         assertThat(json).contains("\"role\":\"user\"")
         assertThat(json).contains("\"type\":\"input_text\"")
-        assertThat(json).contains("\"text\":")  // Don't check exact string due to JSON escaping
+        assertThat(json).contains("\"text\":") // Don't check exact string due to JSON escaping
         assertThat(json).contains("this meal")
     }
 
     @Test
     fun azureResponseRequest_whenSerializedWithMultimodal_thenProducesCorrectJson() {
         // Arrange
-        val base64Image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        val base64Image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awA" +
+            "AAABJ RU5ErkJggg=="
         val request = AzureResponseRequest(
             model = "gpt-4.1",
             instructions = "Analyze nutrition.",
@@ -75,10 +76,10 @@ class AzureResponseDtoTest {
                     role = "user",
                     content = listOf(
                         ContentItem.TextContent(text = "Analyze this meal."),
-                        ContentItem.ImageContent(imageUrl = "data:image/jpeg;base64,$base64Image")
-                    )
-                )
-            )
+                        ContentItem.ImageContent(imageUrl = "data:image/jpeg;base64,$base64Image"),
+                    ),
+                ),
+            ),
         )
 
         // Act
@@ -90,7 +91,7 @@ class AzureResponseDtoTest {
         assertThat(json).contains("\"type\":\"input_image\"")
         assertThat(json).contains("\"image_url\":")
         assertThat(json).contains("data:image/jpeg;base64")
-        assertThat(json).contains(base64Image.substring(0, 20))  // Check partial base64 to avoid escaping issues
+        assertThat(json).contains(base64Image.substring(0, 20)) // Check partial base64 to avoid escaping issues
     }
 
     @Test
@@ -102,9 +103,9 @@ class AzureResponseDtoTest {
             input = listOf(
                 InputMessage(
                     role = "user",
-                    content = listOf(ContentItem.TextContent(text = "Hello"))
-                )
-            )
+                    content = listOf(ContentItem.TextContent(text = "Hello")),
+                ),
+            ),
         )
 
         // Act
@@ -286,8 +287,8 @@ class AzureResponseDtoTest {
             role = "user",
             content = listOf(
                 ContentItem.TextContent(text = "What's the calorie count?"),
-                ContentItem.ImageContent(imageUrl = "data:image/jpeg;base64,abc123")
-            )
+                ContentItem.ImageContent(imageUrl = "data:image/jpeg;base64,abc123"),
+            ),
         )
 
         // Act
@@ -320,10 +321,10 @@ class AzureResponseDtoTest {
                     role = "user",
                     content = listOf(
                         ContentItem.TextContent(text = "Test text"),
-                        ContentItem.ImageContent(imageUrl = "data:image/jpeg;base64,test")
-                    )
-                )
-            )
+                        ContentItem.ImageContent(imageUrl = "data:image/jpeg;base64,test"),
+                    ),
+                ),
+            ),
         )
 
         // Act

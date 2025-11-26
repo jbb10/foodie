@@ -35,7 +35,7 @@ fun ErrorMessage(
     message: String?,
     snackbarHostState: SnackbarHostState,
     onRetry: (() -> Unit)? = null,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     LaunchedEffect(message) {
         message?.let { errorText ->
@@ -43,9 +43,9 @@ fun ErrorMessage(
                 message = errorText,
                 actionLabel = if (onRetry != null) "Retry" else null,
                 withDismissAction = true,
-                duration = SnackbarDuration.Long // 4 seconds
+                duration = SnackbarDuration.Long, // 4 seconds
             )
-            
+
             when (result) {
                 SnackbarResult.ActionPerformed -> onRetry?.invoke()
                 SnackbarResult.Dismissed -> onDismiss()
@@ -70,12 +70,12 @@ fun ErrorMessage(
 fun ErrorMessage(
     message: String?,
     snackbarHostState: SnackbarHostState,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     ErrorMessage(
         message = message,
         snackbarHostState = snackbarHostState,
         onRetry = null,
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
     )
 }

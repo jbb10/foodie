@@ -37,7 +37,7 @@ class HealthConnectPermissionsRationaleActivity : ComponentActivity() {
         setContent {
             FoodieTheme {
                 PermissionsRationaleScreen(
-                    onBackClick = { finish() }
+                    onBackClick = { finish() },
                 )
             }
         }
@@ -47,7 +47,7 @@ class HealthConnectPermissionsRationaleActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PermissionsRationaleScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -57,42 +57,42 @@ private fun PermissionsRationaleScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
         ) {
             Text(
                 text = "Health Connect Permissions",
                 style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
             )
 
             Text(
                 text = "Why Foodie Needs Health Connect Access",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
             )
 
             Text(
                 text = "Foodie requests permission to read and write nutrition data in Health Connect to provide you with a seamless meal tracking experience.",
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
             )
 
             Text(
                 text = "What Data We Access",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
             )
 
             Text(
@@ -102,13 +102,13 @@ private fun PermissionsRationaleScreen(
                     • Read Access: We read your existing nutrition records to display your meal history within the app.
                 """.trimIndent(),
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
             )
 
             Text(
                 text = "How We Use Your Data",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
             )
 
             Text(
@@ -126,13 +126,13 @@ private fun PermissionsRationaleScreen(
                     • Access any health data beyond nutrition records
                 """.trimIndent(),
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
             )
 
             Text(
                 text = "Your Privacy Rights",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
             )
 
             Text(
@@ -146,13 +146,13 @@ private fun PermissionsRationaleScreen(
                     • Deleting the Foodie app will not delete your Health Connect data; you must delete it separately through the Health Connect app
                 """.trimIndent(),
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
             )
 
             Text(
                 text = "Data Security",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
             )
 
             Text(
@@ -166,18 +166,18 @@ private fun PermissionsRationaleScreen(
                     • Health Connect data is protected by Android's built-in security and permission system
                 """.trimIndent(),
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
             )
 
             Text(
                 text = "Questions or Concerns?",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
             )
 
             Text(
                 text = "This is a personal project for meal tracking. If you have any questions about how your data is handled, please review the app's open-source code or contact the developer.",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }

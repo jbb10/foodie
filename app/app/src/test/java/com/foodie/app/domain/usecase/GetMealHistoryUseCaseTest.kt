@@ -4,6 +4,7 @@ import com.foodie.app.data.repository.HealthConnectRepository
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.util.Result
 import com.google.common.truth.Truth.assertThat
+import java.time.Instant
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -12,7 +13,6 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.time.Instant
 
 /**
  * Unit tests for GetMealHistoryUseCase.
@@ -35,7 +35,7 @@ class GetMealHistoryUseCaseTest {
     fun `invoke delegates to repository getMealHistory`() = runTest {
         // Given
         val testMeals = listOf(
-            MealEntry("1", Instant.now(), "Breakfast", 500)
+            MealEntry("1", Instant.now(), "Breakfast", 500),
         )
         whenever(healthConnectRepository.getMealHistory())
             .thenReturn(flowOf(Result.Success(testMeals)))
@@ -72,7 +72,7 @@ class GetMealHistoryUseCaseTest {
     fun `invoke passes through loading state`() = runTest {
         // Given
         val testMeals = listOf(
-            MealEntry("1", Instant.now(), "Lunch", 600)
+            MealEntry("1", Instant.now(), "Lunch", 600),
         )
         whenever(healthConnectRepository.getMealHistory())
             .thenReturn(flowOf(Result.Loading, Result.Success(testMeals)))

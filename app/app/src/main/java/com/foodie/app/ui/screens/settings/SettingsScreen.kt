@@ -90,7 +90,7 @@ import java.time.format.DateTimeFormatter
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -113,7 +113,7 @@ fun SettingsScreen(
     SettingsScaffold(
         onNavigateBack = onNavigateBack,
         snackbarHostState = snackbarHostState,
-        modifier = modifier
+        modifier = modifier,
     ) { paddingValues ->
         val apiConfigState = ApiConfigEditState(
             editedApiKey = editedApiKey,
@@ -121,7 +121,7 @@ fun SettingsScreen(
             editedModel = editedModel,
             onApiKeyChange = { editedApiKey = it },
             onEndpointChange = { editedEndpoint = it },
-            onModelChange = { editedModel = it }
+            onModelChange = { editedModel = it },
         )
 
         SettingsContent(
@@ -136,7 +136,7 @@ fun SettingsScreen(
                 viewModel.testConnection(
                     apiKey = state.apiKey,
                     endpoint = state.apiEndpoint,
-                    modelName = state.modelName
+                    modelName = state.modelName,
                 )
             },
             onThemeChange = { viewModel.updateThemeMode(it) },
@@ -145,7 +145,7 @@ fun SettingsScreen(
             onWeightChanged = { viewModel.onWeightChanged(it) },
             onHeightChanged = { viewModel.onHeightChanged(it) },
             onSaveProfile = { viewModel.saveUserProfile() },
-            paddingValues = paddingValues
+            paddingValues = paddingValues,
         )
     }
 }
@@ -159,14 +159,14 @@ private data class ApiConfigEditState(
     val editedModel: String,
     val onApiKeyChange: (String) -> Unit,
     val onEndpointChange: (String) -> Unit,
-    val onModelChange: (String) -> Unit
+    val onModelChange: (String) -> Unit,
 )
 
 @Composable
 private fun InitializeEditStateFromViewModel(
     state: SettingsState,
     editedApiKey: String,
-    onInitialize: (String, String, String) -> Unit
+    onInitialize: (String, String, String) -> Unit,
 ) {
     LaunchedEffect(state.apiKey, state.apiEndpoint, state.modelName) {
         if (editedApiKey.isEmpty()) {
@@ -179,7 +179,7 @@ private fun InitializeEditStateFromViewModel(
 private fun HandleSnackbarMessages(
     state: SettingsState,
     snackbarHostState: SnackbarHostState,
-    viewModel: SettingsViewModel
+    viewModel: SettingsViewModel,
 ) {
     // Show test connection result
     LaunchedEffect(state.testConnectionResult) {
@@ -198,7 +198,7 @@ private fun HandleSnackbarMessages(
         LaunchedEffect(message) {
             snackbarHostState.showSnackbar(
                 message = message,
-                duration = SnackbarDuration.Short
+                duration = SnackbarDuration.Short,
             )
             viewModel.clearSaveSuccess()
         }
@@ -209,7 +209,7 @@ private fun HandleSnackbarMessages(
         LaunchedEffect(error) {
             snackbarHostState.showSnackbar(
                 message = error,
-                duration = SnackbarDuration.Long
+                duration = SnackbarDuration.Long,
             )
             viewModel.clearError()
         }
@@ -220,7 +220,7 @@ private fun HandleSnackbarMessages(
         LaunchedEffect(error) {
             snackbarHostState.showSnackbar(
                 message = error,
-                duration = SnackbarDuration.Long
+                duration = SnackbarDuration.Long,
             )
         }
     }
@@ -230,7 +230,7 @@ private fun HandleSnackbarMessages(
         if (state.profileSaveSuccess) {
             snackbarHostState.showSnackbar(
                 message = "Profile updated",
-                duration = SnackbarDuration.Short
+                duration = SnackbarDuration.Short,
             )
             viewModel.clearProfileSaveSuccess()
         }
@@ -242,7 +242,7 @@ private fun HandleSnackbarMessages(
             snackbarHostState.showSnackbar(
                 message = "Grant Health Connect permissions to save weight and height",
                 actionLabel = "OK",
-                duration = SnackbarDuration.Long
+                duration = SnackbarDuration.Long,
             )
             viewModel.clearProfilePermissionError()
         }
@@ -255,7 +255,7 @@ private fun SettingsScaffold(
     onNavigateBack: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
-    content: @Composable (androidx.compose.foundation.layout.PaddingValues) -> Unit
+    content: @Composable (androidx.compose.foundation.layout.PaddingValues) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -265,15 +265,15 @@ private fun SettingsScaffold(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
                         )
                     }
-                }
+                },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = modifier,
-        content = content
+        content = content,
     )
 }
 
@@ -289,12 +289,12 @@ private fun SettingsContent(
     onWeightChanged: (String) -> Unit,
     onHeightChanged: (String) -> Unit,
     onSaveProfile: () -> Unit,
-    paddingValues: androidx.compose.foundation.layout.PaddingValues
+    paddingValues: androidx.compose.foundation.layout.PaddingValues,
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues)
+            .padding(paddingValues),
     ) {
         // API Configuration category
         item(key = "api_config_header") {
@@ -305,14 +305,14 @@ private fun SettingsContent(
                 text = stringResource(R.string.settings_api_help_text),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
         item(key = "api_key") {
             ApiKeyPreference(
                 value = apiConfigState.editedApiKey,
                 onValueChange = apiConfigState.onApiKeyChange,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
         item(key = "api_endpoint") {
@@ -322,7 +322,7 @@ private fun SettingsContent(
                 onValueChange = apiConfigState.onEndpointChange,
                 hint = "https://your-resource.openai.azure.com",
                 keyboardType = KeyboardType.Uri,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
         item(key = "api_model") {
@@ -332,7 +332,7 @@ private fun SettingsContent(
                 onValueChange = apiConfigState.onModelChange,
                 hint = "gpt-4.1",
                 keyboardType = KeyboardType.Text,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
         item(key = "api_model_description") {
@@ -340,7 +340,7 @@ private fun SettingsContent(
                 text = stringResource(R.string.settings_model_description),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
         item(key = "api_save_button") {
@@ -349,12 +349,12 @@ private fun SettingsContent(
                 enabled = !state.isLoading && !state.isTestingConnection,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
                 if (state.isLoading) {
                     CircularProgressIndicator(
                         color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier.padding(end = 8.dp),
                     )
                 }
                 Text("Save Configuration")
@@ -366,12 +366,12 @@ private fun SettingsContent(
                 enabled = !state.isLoading && !state.isTestingConnection,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
                 if (state.isTestingConnection) {
                     CircularProgressIndicator(
                         color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
@@ -391,19 +391,19 @@ private fun SettingsContent(
                 text = "Configure your demographic profile for accurate BMR calculation",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
         item(key = "user_profile_sex") {
             SexPreference(
                 value = state.editableSex,
-                onValueChange = onSexChanged
+                onValueChange = onSexChanged,
             )
         }
         item(key = "user_profile_birthdate") {
             BirthDatePreference(
                 value = state.editableBirthDate,
-                onValueChange = onBirthDateChanged
+                onValueChange = onBirthDateChanged,
             )
         }
         item(key = "user_profile_weight") {
@@ -414,22 +414,23 @@ private fun SettingsContent(
                 placeholder = { Text("e.g., 75.5") },
                 supportingText = {
                     Text(
-                        if (state.weightSourcedFromHC && !state.isEditingProfile)
+                        if (state.weightSourcedFromHC && !state.isEditingProfile) {
                             "Synced from Health Connect"
-                        else if (state.isEditingProfile && !state.weightSourcedFromHC)
+                        } else if (state.isEditingProfile && !state.weightSourcedFromHC) {
                             "Will sync to Health Connect"
-                        else
+                        } else {
                             "Used for BMR calculation"
+                        },
                     )
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal,
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Next,
                 ),
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
         item(key = "user_profile_height") {
@@ -440,22 +441,23 @@ private fun SettingsContent(
                 placeholder = { Text("e.g., 178") },
                 supportingText = {
                     Text(
-                        if (state.heightSourcedFromHC && !state.isEditingProfile)
+                        if (state.heightSourcedFromHC && !state.isEditingProfile) {
                             "Synced from Health Connect"
-                        else if (state.isEditingProfile && !state.heightSourcedFromHC)
+                        } else if (state.isEditingProfile && !state.heightSourcedFromHC) {
                             "Will sync to Health Connect"
-                        else
+                        } else {
                             "Used for BMR calculation"
+                        },
                     )
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal,
-                    imeAction = ImeAction.Done
+                    imeAction = ImeAction.Done,
                 ),
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
         item(key = "user_profile_save_button") {
@@ -464,7 +466,7 @@ private fun SettingsContent(
                 enabled = state.isEditingProfile && !state.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
                 Text("Save Profile")
             }
@@ -488,7 +490,7 @@ private fun SettingsContent(
                     }
                     onThemeChange(themeMode)
                 },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
         item(key = "appearance_theme_description") {
@@ -496,7 +498,7 @@ private fun SettingsContent(
                 text = stringResource(R.string.settings_theme_description),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
         item(key = "appearance_divider") {
@@ -510,7 +512,7 @@ private fun SettingsContent(
         item(key = "about_version") {
             PreferencePlaceholder(
                 title = "Version",
-                summary = "1.0.0 (MVP)"
+                summary = "1.0.0 (MVP)",
             )
         }
     }
@@ -527,13 +529,13 @@ private fun SettingsContent(
 @Composable
 private fun PreferenceCategoryHeader(
     title: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Text(
         text = title,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        modifier = modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 12.dp),
     )
 }
 
@@ -551,14 +553,14 @@ private fun PreferenceCategoryHeader(
 private fun PreferencePlaceholder(
     title: String,
     summary: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     androidx.compose.material3.ListItem(
         headlineContent = { Text(title) },
         supportingContent = { Text(summary) },
         modifier = modifier.semantics {
             contentDescription = "$title, $summary"
-        }
+        },
     )
 }
 
@@ -578,7 +580,7 @@ private fun PreferencePlaceholder(
 private fun ApiKeyPreference(
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val displayValue = if (value.isNotBlank() && value.length > 4) {
         "••••${value.takeLast(4)}"
@@ -600,12 +602,12 @@ private fun ApiKeyPreference(
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Next
+                imeAction = ImeAction.Next,
             ),
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = "api_key_field" }
+                .semantics { contentDescription = "api_key_field" },
         )
     }
 }
@@ -631,7 +633,7 @@ private fun EditTextPreference(
     onValueChange: (String) -> Unit,
     hint: String,
     keyboardType: KeyboardType = KeyboardType.Text,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         OutlinedTextField(
@@ -641,12 +643,12 @@ private fun EditTextPreference(
             placeholder = { Text(hint) },
             keyboardOptions = KeyboardOptions(
                 keyboardType = keyboardType,
-                imeAction = ImeAction.Next
+                imeAction = ImeAction.Next,
             ),
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = "${title.lowercase().replace(" ", "_")}_field" }
+                .semantics { contentDescription = "${title.lowercase().replace(" ", "_")}_field" },
         )
     }
 }
@@ -667,19 +669,19 @@ private fun EditTextPreference(
 private fun ThemePreference(
     currentTheme: String,
     onThemeSelected: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         Text(
             text = "Theme",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp),
         )
 
         val themeOptions = listOf(
             "system" to stringResource(R.string.theme_system_default),
             "light" to stringResource(R.string.theme_light),
-            "dark" to stringResource(R.string.theme_dark)
+            "dark" to stringResource(R.string.theme_dark),
         )
 
         themeOptions.forEach { (value, label) ->
@@ -695,16 +697,16 @@ private fun ThemePreference(
                         }
                     }
                     .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 RadioButton(
                     selected = currentTheme == value,
-                    onClick = { onThemeSelected(value) }
+                    onClick = { onThemeSelected(value) },
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
         }
@@ -727,7 +729,7 @@ private fun ThemePreference(
 private fun SexPreference(
     value: UserProfile.Sex?,
     onValueChange: (UserProfile.Sex) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
@@ -737,10 +739,10 @@ private fun SexPreference(
         trailingContent = {
             Text(
                 text = value?.name?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "Not set",
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         },
-        modifier = modifier.clickable { showDialog = true }
+        modifier = modifier.clickable { showDialog = true },
     )
 
     if (showDialog) {
@@ -758,19 +760,19 @@ private fun SexPreference(
                                     showDialog = false
                                 }
                                 .padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             RadioButton(
                                 selected = value == sex,
                                 onClick = {
                                     onValueChange(sex)
                                     showDialog = false
-                                }
+                                },
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = sex.name.lowercase().replaceFirstChar { it.uppercase() },
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyLarge,
                             )
                         }
                     }
@@ -780,7 +782,7 @@ private fun SexPreference(
                 androidx.compose.material3.TextButton(onClick = { showDialog = false }) {
                     Text("Cancel")
                 }
-            }
+            },
         )
     }
 }
@@ -797,11 +799,11 @@ private fun SexPreference(
 private fun BirthDatePreference(
     value: LocalDate?,
     onValueChange: (LocalDate) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = value?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+        initialSelectedDateMillis = value?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
     )
 
     // Calculate age from birth date
@@ -822,16 +824,16 @@ private fun BirthDatePreference(
                     "Age: $age years"
                 } else {
                     "Required for BMR calculation"
-                }
+                },
             )
         },
         trailingContent = {
             Text(
                 text = value?.format(DateTimeFormatter.ofPattern("MMM d, yyyy")) ?: "Not set",
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         },
-        modifier = modifier.clickable { showDialog = true }
+        modifier = modifier.clickable { showDialog = true },
     )
 
     if (showDialog) {
@@ -847,7 +849,7 @@ private fun BirthDatePreference(
                             onValueChange(localDate)
                         }
                         showDialog = false
-                    }
+                    },
                 ) {
                     Text("OK")
                 }
@@ -856,7 +858,7 @@ private fun BirthDatePreference(
                 TextButton(onClick = { showDialog = false }) {
                     Text("Cancel")
                 }
-            }
+            },
         ) {
             DatePicker(state = datePickerState)
         }
@@ -868,7 +870,7 @@ private fun BirthDatePreference(
 private fun SettingsScreenPreview() {
     FoodieTheme {
         SettingsScreen(
-            onNavigateBack = {}
+            onNavigateBack = {},
         )
     }
 }

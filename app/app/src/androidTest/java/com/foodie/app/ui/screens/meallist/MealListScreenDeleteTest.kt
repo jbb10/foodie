@@ -4,7 +4,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
@@ -12,9 +11,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.ui.theme.FoodieTheme
+import java.time.Instant
 import org.junit.Rule
 import org.junit.Test
-import java.time.Instant
 
 /**
  * Instrumentation tests for delete functionality in MealListScreen.
@@ -35,11 +34,11 @@ class MealListScreenDeleteTest {
             id = "test-meal-1",
             timestamp = Instant.now(),
             description = "Test Lunch",
-            calories = 600
+            calories = 600,
         )
         val state = MealListState(
             mealsByDate = mapOf("Today" to listOf(testMeal)),
-            isLoading = false
+            isLoading = false,
         )
 
         var longPressedId: String? = null
@@ -55,8 +54,8 @@ class MealListScreenDeleteTest {
                         onSettingsClick = {},
                         onMealLongPress = { longPressedId = it },
                         onDismissDeleteDialog = {},
-                        onDeleteConfirmed = {}
-                    )
+                        onDeleteConfirmed = {},
+                    ),
                 )
             }
         }
@@ -75,7 +74,7 @@ class MealListScreenDeleteTest {
         val state = MealListState(
             mealsByDate = emptyMap(),
             showDeleteDialog = true,
-            deleteTargetId = "test-meal-1"
+            deleteTargetId = "test-meal-1",
         )
 
         composeTestRule.setContent {
@@ -89,8 +88,8 @@ class MealListScreenDeleteTest {
                         onSettingsClick = {},
                         onMealLongPress = {},
                         onDismissDeleteDialog = {},
-                        onDeleteConfirmed = {}
-                    )
+                        onDeleteConfirmed = {},
+                    ),
                 )
             }
         }
@@ -109,7 +108,7 @@ class MealListScreenDeleteTest {
         val state = MealListState(
             mealsByDate = emptyMap(),
             showDeleteDialog = true,
-            deleteTargetId = "test-meal-1"
+            deleteTargetId = "test-meal-1",
         )
 
         var dismissCalled = false
@@ -125,8 +124,8 @@ class MealListScreenDeleteTest {
                         onSettingsClick = {},
                         onMealLongPress = {},
                         onDismissDeleteDialog = { dismissCalled = true },
-                        onDeleteConfirmed = {}
-                    )
+                        onDeleteConfirmed = {},
+                    ),
                 )
             }
         }
@@ -144,7 +143,7 @@ class MealListScreenDeleteTest {
         val state = MealListState(
             mealsByDate = emptyMap(),
             showDeleteDialog = true,
-            deleteTargetId = "test-meal-1"
+            deleteTargetId = "test-meal-1",
         )
 
         var deleteConfirmedCalled = false
@@ -160,8 +159,8 @@ class MealListScreenDeleteTest {
                         onSettingsClick = {},
                         onMealLongPress = {},
                         onDismissDeleteDialog = {},
-                        onDeleteConfirmed = { deleteConfirmedCalled = true }
-                    )
+                        onDeleteConfirmed = { deleteConfirmedCalled = true },
+                    ),
                 )
             }
         }
@@ -179,7 +178,7 @@ class MealListScreenDeleteTest {
         val state = MealListState(
             mealsByDate = emptyMap(),
             showDeleteDialog = false,
-            deleteTargetId = null
+            deleteTargetId = null,
         )
 
         composeTestRule.setContent {
@@ -193,8 +192,8 @@ class MealListScreenDeleteTest {
                         onSettingsClick = {},
                         onMealLongPress = {},
                         onDismissDeleteDialog = {},
-                        onDeleteConfirmed = {}
-                    )
+                        onDeleteConfirmed = {},
+                    ),
                 )
             }
         }
@@ -222,11 +221,11 @@ class MealListScreenDeleteTest {
             id = "test-meal-1",
             timestamp = Instant.now(),
             description = "Test Lunch",
-            calories = 600
+            calories = 600,
         )
         val state = MealListState(
             mealsByDate = mapOf("Today" to listOf(testMeal)),
-            isLoading = false
+            isLoading = false,
         )
 
         var normalClickCalled = false
@@ -243,8 +242,8 @@ class MealListScreenDeleteTest {
                         onSettingsClick = {},
                         onMealLongPress = { longPressedId = it },
                         onDismissDeleteDialog = {},
-                        onDeleteConfirmed = {}
-                    )
+                        onDeleteConfirmed = {},
+                    ),
                 )
             }
         }

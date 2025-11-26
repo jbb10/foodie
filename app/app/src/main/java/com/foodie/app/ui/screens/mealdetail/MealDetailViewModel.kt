@@ -7,15 +7,15 @@ import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
 import com.foodie.app.domain.usecase.UpdateMealEntryUseCase
 import com.foodie.app.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.net.URLDecoder
+import java.time.Instant
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.net.URLDecoder
-import java.time.Instant
-import javax.inject.Inject
 
 /**
  * ViewModel for the meal detail/edit screen.
@@ -30,7 +30,7 @@ import javax.inject.Inject
 class MealDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val updateMealEntryUseCase: UpdateMealEntryUseCase,
-    private val deleteMealEntryUseCase: DeleteMealEntryUseCase
+    private val deleteMealEntryUseCase: DeleteMealEntryUseCase,
 ) : ViewModel() {
 
     companion object {
@@ -42,7 +42,7 @@ class MealDetailViewModel @Inject constructor(
         checkNotNull(savedStateHandle["recordId"]) {
             "recordId is required for MealDetailScreen"
         },
-        Charsets.UTF_8.name()
+        Charsets.UTF_8.name(),
     )
     private val initialCalories: String = checkNotNull(savedStateHandle["calories"]) {
         "calories is required for MealDetailScreen"
@@ -51,7 +51,7 @@ class MealDetailViewModel @Inject constructor(
         checkNotNull(savedStateHandle["description"]) {
             "description is required for MealDetailScreen"
         },
-        Charsets.UTF_8.name()
+        Charsets.UTF_8.name(),
     )
     private val timestampMillis: Long = checkNotNull(savedStateHandle["timestamp"]) {
         "timestamp is required for MealDetailScreen"
@@ -62,8 +62,8 @@ class MealDetailViewModel @Inject constructor(
             recordId = recordId,
             calories = initialCalories,
             description = initialDescription,
-            timestamp = Instant.ofEpochMilli(timestampMillis)
-        )
+            timestamp = Instant.ofEpochMilli(timestampMillis),
+        ),
     )
     val uiState: StateFlow<MealDetailState> = _uiState.asStateFlow()
 
@@ -135,7 +135,7 @@ class MealDetailViewModel @Inject constructor(
                 recordId = currentState.recordId,
                 calories = calories,
                 description = currentState.description,
-                timestamp = currentState.timestamp
+                timestamp = currentState.timestamp,
             )
 
             when (result) {
@@ -145,7 +145,7 @@ class MealDetailViewModel @Inject constructor(
                         it.copy(
                             isSaving = false,
                             shouldNavigateBack = true,
-                            successMessage = "Entry updated"
+                            successMessage = "Entry updated",
                         )
                     }
                 }
@@ -155,7 +155,7 @@ class MealDetailViewModel @Inject constructor(
                         it.copy(
                             isSaving = false,
                             error = result.message,
-                            successMessage = null
+                            successMessage = null,
                         )
                     }
                 }
@@ -190,7 +190,7 @@ class MealDetailViewModel @Inject constructor(
                         it.copy(
                             isDeleting = false,
                             shouldNavigateBack = true,
-                            successMessage = "Entry deleted"
+                            successMessage = "Entry deleted",
                         )
                     }
                 }
@@ -199,7 +199,7 @@ class MealDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isDeleting = false,
-                            error = result.message
+                            error = result.message,
                         )
                     }
                 }

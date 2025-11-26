@@ -26,6 +26,6 @@ abstract class DataSourceModule {
     @Binds
     @Singleton
     abstract fun bindHealthConnectDataSource(
-        impl: HealthConnectDataSourceImpl
+        impl: HealthConnectDataSourceImpl,
     ): HealthConnectDataSource
 }

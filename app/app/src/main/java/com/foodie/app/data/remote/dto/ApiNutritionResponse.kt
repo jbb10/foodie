@@ -29,11 +29,11 @@ import com.google.gson.annotations.SerializedName
  * ```kotlin
  * val response: AzureResponseResponse = api.analyzeNutrition(request)
  * val nutritionData = gson.fromJson(response.outputText, ApiNutritionResponse::class.java)
- * 
+ *
  * if (nutritionData.hasFood == false) {
  *     throw NoFoodDetectedException(nutritionData.reason ?: "No food detected")
  * }
- * 
+ *
  * return NutritionData(
  *     calories = nutritionData.calories ?: 0,
  *     description = nutritionData.description ?: ""
@@ -51,13 +51,13 @@ import com.google.gson.annotations.SerializedName
 data class ApiNutritionResponse(
     @SerializedName("hasFood")
     val hasFood: Boolean? = null,
-    
+
     @SerializedName("calories")
     val calories: Int? = null,
-    
+
     @SerializedName("description")
     val description: String? = null,
-    
+
     @SerializedName("reason")
-    val reason: String? = null
+    val reason: String? = null,
 )

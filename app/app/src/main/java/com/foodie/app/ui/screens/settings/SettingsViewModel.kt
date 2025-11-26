@@ -12,6 +12,8 @@ import com.foodie.app.domain.model.ValidationError
 import com.foodie.app.domain.model.ValidationResult
 import com.foodie.app.domain.repository.UserProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,8 +22,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.LocalDate
-import javax.inject.Inject
 
 /**
  * ViewModel for the Settings screen.
@@ -58,7 +58,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
     private val securePreferences: SecurePreferences,
-    private val userProfileRepository: UserProfileRepository
+    private val userProfileRepository: UserProfileRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -93,11 +93,13 @@ class SettingsViewModel @Inject constructor(
                 val endpoint = securePreferences.azureOpenAiEndpoint ?: ""
                 val model = securePreferences.azureOpenAiModel ?: "gpt-4.1"
 
-                _state.update { it.copy(
-                    apiKey = apiKey,
-                    apiEndpoint = endpoint,
-                    modelName = model
-                )}
+                _state.update {
+                    it.copy(
+                        apiKey = apiKey,
+                        apiEndpoint = endpoint,
+                        modelName = model,
+                    )
+                }
 
                 // Now observe preferences for updates
                 preferencesRepository.observePreferences()
@@ -107,7 +109,7 @@ class SettingsViewModel @Inject constructor(
                                 apiEndpoint = preferences["pref_azure_endpoint"] as? String ?: currentState.apiEndpoint,
                                 modelName = preferences["pref_azure_model"] as? String ?: currentState.modelName,
                                 themeMode = preferences["pref_theme_mode"] as? String ?: "system",
-                                isLoading = false
+                                isLoading = false,
                             )
                         }
                     }
@@ -196,13 +198,15 @@ class SettingsViewModel @Inject constructor(
             preferencesRepository.saveApiConfiguration(config)
                 .onSuccess {
                     Timber.d("API configuration saved successfully")
-                    _state.update { it.copy(
-                        apiKey = apiKey,
-                        apiEndpoint = endpoint,
-                        modelName = modelName,
-                        isLoading = false,
-                        saveSuccessMessage = "Configuration saved"
-                    )}
+                    _state.update {
+                        it.copy(
+                            apiKey = apiKey,
+                            apiEndpoint = endpoint,
+                            modelName = modelName,
+                            isLoading = false,
+                            saveSuccessMessage = "Configuration saved",
+                        )
+                    }
                 }
                 .onFailure { error ->
                     Timber.e(error, "Failed to save API configuration")
@@ -229,10 +233,12 @@ class SettingsViewModel @Inject constructor(
             val validationResult = config.validate()
 
             if (validationResult is ValidationResult.Error) {
-                _state.update { it.copy(
-                    error = validationResult.message,
-                    isTestingConnection = false
-                )}
+                _state.update {
+                    it.copy(
+                        error = validationResult.message,
+                        isTestingConnection = false,
+                    )
+                }
                 return@launch
             }
 
@@ -241,25 +247,31 @@ class SettingsViewModel @Inject constructor(
                     Timber.d("Connection test completed: $result")
                     when (result) {
                         is TestConnectionResult.Success -> {
-                            _state.update { it.copy(
-                                isTestingConnection = false,
-                                saveSuccessMessage = "API configuration valid"
-                            )}
+                            _state.update {
+                                it.copy(
+                                    isTestingConnection = false,
+                                    saveSuccessMessage = "API configuration valid",
+                                )
+                            }
                         }
                         is TestConnectionResult.Failure -> {
-                            _state.update { it.copy(
-                                isTestingConnection = false,
-                                error = result.errorMessage
-                            )}
+                            _state.update {
+                                it.copy(
+                                    isTestingConnection = false,
+                                    error = result.errorMessage,
+                                )
+                            }
                         }
                     }
                 }
                 .onFailure { error ->
                     Timber.e(error, "Connection test failed")
-                    _state.update { it.copy(
-                        isTestingConnection = false,
-                        error = "Test failed: ${error.message}"
-                    )}
+                    _state.update {
+                        it.copy(
+                            isTestingConnection = false,
+                            error = "Test failed: ${error.message}",
+                        )
+                    }
                 }
         }
     }
@@ -299,10 +311,12 @@ class SettingsViewModel @Inject constructor(
             preferencesRepository.saveThemeMode(mode)
                 .onSuccess {
                     Timber.d("Theme mode updated: ${mode.value}")
-                    _state.update { it.copy(
-                        themeMode = mode.value,
-                        isLoading = false
-                    )}
+                    _state.update {
+                        it.copy(
+                            themeMode = mode.value,
+                            isLoading = false,
+                        )
+                    }
                 }
                 .onFailure { error ->
                     Timber.e(error, "Failed to save theme mode")
@@ -325,15 +339,17 @@ class SettingsViewModel @Inject constructor(
                 .onEach { profile ->
                     if (profile != null) {
                         Timber.d("User profile loaded: sex=${profile.sex}, birthDate=${profile.birthDate}, weight=${profile.weightKg}, height=${profile.heightCm}")
-                        _state.update { it.copy(
-                            editableSex = profile.sex,
-                            editableBirthDate = profile.birthDate,
-                            editableWeight = "%.1f".format(profile.weightKg),
-                            editableHeight = "%.0f".format(profile.heightCm),
-                            weightSourcedFromHC = true, // Assume HC-sourced initially
-                            heightSourcedFromHC = true,
-                            isEditingProfile = false
-                        )}
+                        _state.update {
+                            it.copy(
+                                editableSex = profile.sex,
+                                editableBirthDate = profile.birthDate,
+                                editableWeight = "%.1f".format(profile.weightKg),
+                                editableHeight = "%.0f".format(profile.heightCm),
+                                weightSourcedFromHC = true, // Assume HC-sourced initially
+                                heightSourcedFromHC = true,
+                                isEditingProfile = false,
+                            )
+                        }
                     } else {
                         Timber.d("User profile not configured")
                     }
@@ -365,7 +381,7 @@ class SettingsViewModel @Inject constructor(
                         Timber.d("Pre-populating weight from HC: $weightKg kg")
                         newState = newState.copy(
                             editableWeight = "%.1f".format(weightKg),
-                            weightSourcedFromHC = true
+                            weightSourcedFromHC = true,
                         )
                     }
 
@@ -375,7 +391,7 @@ class SettingsViewModel @Inject constructor(
                         Timber.d("Pre-populating height from HC: $heightCm cm")
                         newState = newState.copy(
                             editableHeight = "%.0f".format(heightCm),
-                            heightSourcedFromHC = true
+                            heightSourcedFromHC = true,
                         )
                     }
 
@@ -395,10 +411,12 @@ class SettingsViewModel @Inject constructor(
      * Story 6.1: User Profile Settings (AC-4)
      */
     fun onSexChanged(sex: UserProfile.Sex) {
-        _state.update { it.copy(
-            editableSex = sex,
-            isEditingProfile = true
-        )}
+        _state.update {
+            it.copy(
+                editableSex = sex,
+                isEditingProfile = true,
+            )
+        }
     }
 
     /**
@@ -409,10 +427,12 @@ class SettingsViewModel @Inject constructor(
      * Story 6.1: User Profile Settings (AC-5)
      */
     fun onBirthDateChanged(birthDate: LocalDate) {
-        _state.update { it.copy(
-            editableBirthDate = birthDate,
-            isEditingProfile = true
-        )}
+        _state.update {
+            it.copy(
+                editableBirthDate = birthDate,
+                isEditingProfile = true,
+            )
+        }
     }
 
     /**
@@ -424,11 +444,13 @@ class SettingsViewModel @Inject constructor(
      * Story 6.1: User Profile Settings (AC-6, AC-10)
      */
     fun onWeightChanged(weight: String) {
-        _state.update { it.copy(
-            editableWeight = weight,
-            weightSourcedFromHC = false, // User edited, no longer HC-sourced
-            isEditingProfile = true
-        )}
+        _state.update {
+            it.copy(
+                editableWeight = weight,
+                weightSourcedFromHC = false, // User edited, no longer HC-sourced
+                isEditingProfile = true,
+            )
+        }
     }
 
     /**
@@ -440,11 +462,13 @@ class SettingsViewModel @Inject constructor(
      * Story 6.1: User Profile Settings (AC-7, AC-10)
      */
     fun onHeightChanged(height: String) {
-        _state.update { it.copy(
-            editableHeight = height,
-            heightSourcedFromHC = false, // User edited, no longer HC-sourced
-            isEditingProfile = true
-        )}
+        _state.update {
+            it.copy(
+                editableHeight = height,
+                heightSourcedFromHC = false, // User edited, no longer HC-sourced
+                isEditingProfile = true,
+            )
+        }
     }
 
     /**
@@ -467,11 +491,13 @@ class SettingsViewModel @Inject constructor(
      */
     fun saveUserProfile() {
         viewModelScope.launch {
-            _state.update { it.copy(
-                profileValidationError = null,
-                profileSaveSuccess = false,
-                showProfilePermissionError = false
-            )}
+            _state.update {
+                it.copy(
+                    profileValidationError = null,
+                    profileSaveSuccess = false,
+                    showProfilePermissionError = false,
+                )
+            }
 
             // Parse inputs
             val sex = _state.value.editableSex
@@ -519,12 +545,14 @@ class SettingsViewModel @Inject constructor(
 
             result.onSuccess {
                 Timber.i("Profile saved successfully")
-                _state.update { it.copy(
-                    profileSaveSuccess = true,
-                    isEditingProfile = false,
-                    weightSourcedFromHC = !writeWeightToHC, // If we wrote to HC, it's now HC-sourced
-                    heightSourcedFromHC = !writeHeightToHC
-                )}
+                _state.update {
+                    it.copy(
+                        profileSaveSuccess = true,
+                        isEditingProfile = false,
+                        weightSourcedFromHC = !writeWeightToHC, // If we wrote to HC, it's now HC-sourced
+                        heightSourcedFromHC = !writeHeightToHC,
+                    )
+                }
             }.onFailure { error ->
                 Timber.e(error, "Failed to save profile")
                 when (error) {
@@ -564,4 +592,3 @@ class SettingsViewModel @Inject constructor(
         _state.update { it.copy(showProfilePermissionError = false) }
     }
 }
-

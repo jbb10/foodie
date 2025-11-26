@@ -27,7 +27,7 @@ import com.google.common.truth.Truth.assertThat
  * @see [Android Deep Link Testing](https://developer.android.com/guide/navigation/navigation-testing)
  */
 object DeepLinkTestHelper {
-    
+
     /**
      * Creates an Android Intent configured for deep link navigation.
      *
@@ -50,7 +50,7 @@ object DeepLinkTestHelper {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
     }
-    
+
     /**
      * Verifies that the navigation back stack contains the expected destination routes.
      *
@@ -69,17 +69,17 @@ object DeepLinkTestHelper {
      */
     fun assertBackStackContains(
         navController: NavController,
-        expectedRoutes: List<String>
+        expectedRoutes: List<String>,
     ) {
         val actualRoutes = navController.currentBackStack.value
             .filter { it.destination.route != null } // Filter out graph destinations
             .map { it.destination.route!! }
-        
+
         assertThat(actualRoutes)
             .containsExactlyElementsIn(expectedRoutes)
             .inOrder()
     }
-    
+
     /**
      * Verifies that the current navigation destination matches the expected route.
      *
@@ -96,12 +96,12 @@ object DeepLinkTestHelper {
      */
     fun assertCurrentDestination(
         navController: NavController,
-        expectedRoute: String
+        expectedRoute: String,
     ) {
         val currentRoute = navController.currentDestination?.route
         assertThat(currentRoute).isEqualTo(expectedRoute)
     }
-    
+
     /**
      * Extracts navigation arguments from a back stack entry.
      *
@@ -120,11 +120,11 @@ object DeepLinkTestHelper {
      */
     fun extractArgument(
         backStackEntry: NavBackStackEntry?,
-        argumentName: String
+        argumentName: String,
     ): String? {
         return backStackEntry?.arguments?.getString(argumentName)
     }
-    
+
     /**
      * Creates a list of common deep link URIs for testing.
      *
@@ -141,9 +141,10 @@ object DeepLinkTestHelper {
     fun getCommonTestUris(): Map<String, String> = mapOf(
         "meal_list" to "foodie://meals",
         "meal_detail_valid" to "foodie://meals/test-meal-123",
-        "home_legacy" to "foodie://home", // Legacy deep link from Story 1-3
+        // Legacy deep link from Story 1-3
+        "home_legacy" to "foodie://home",
         "malformed_no_host" to "foodie://",
         "malformed_invalid_host" to "foodie://invalid",
-        "malformed_invalid_meal_id" to "foodie://meals/"
+        "malformed_invalid_meal_id" to "foodie://meals/",
     )
 }

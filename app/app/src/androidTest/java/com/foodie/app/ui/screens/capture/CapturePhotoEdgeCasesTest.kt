@@ -36,13 +36,13 @@ class CapturePhotoEdgeCasesTest {
 
         // Then: Error dialog is displayed
         composeTestRule.onNodeWithText(
-            "Storage Full"
+            "Storage Full",
         ).assertIsDisplayed()
-        
+
         composeTestRule.onNodeWithText(
-            "Storage full. Free up space to continue."
+            "Storage full. Free up space to continue.",
         ).assertIsDisplayed()
-        
+
         // And: OK button is present
         composeTestRule.onNodeWithText("OK").assertIsDisplayed()
     }
@@ -79,20 +79,20 @@ class CapturePhotoEdgeCasesTest {
             FoodieTheme {
                 PermissionDeniedScreen(
                     onOpenSettings = {},
-                    onCancel = {}
+                    onCancel = {},
                 )
             }
         }
 
         // Then: Error dialog is displayed
         composeTestRule.onNodeWithText(
-            "Camera Permission Required"
+            "Camera Permission Required",
         ).assertIsDisplayed()
-        
+
         composeTestRule.onNodeWithText(
-            "Camera access is needed to photograph meals. Please grant permission in app settings."
+            "Camera access is needed to photograph meals. Please grant permission in app settings.",
         ).assertIsDisplayed()
-        
+
         // And: "Open Settings" button is present
         composeTestRule.onNodeWithText("Open Settings").assertIsDisplayed()
     }
@@ -109,7 +109,7 @@ class CapturePhotoEdgeCasesTest {
             FoodieTheme {
                 PermissionDeniedScreen(
                     onOpenSettings = { settingsOpened = true },
-                    onCancel = {}
+                    onCancel = {},
                 )
             }
         }
@@ -124,7 +124,7 @@ class CapturePhotoEdgeCasesTest {
     /**
      * Story 4.6, AC #7: Visual checkmark animation exists
      * Test: PreviewScreen includes checkmark animation logic
-     * 
+     *
      * Note: This is a smoke test verifying the component renders.
      * Visual animation timing verified via manual testing.
      */
@@ -132,14 +132,14 @@ class CapturePhotoEdgeCasesTest {
     fun previewScreen_rendersSuccessfully() {
         // Given: PreviewScreen with mock photo URI
         val mockUri = android.net.Uri.parse("content://test/photo.jpg")
-        
+
         composeTestRule.setContent {
             FoodieTheme {
                 PreviewScreen(
                     photoUri = mockUri,
                     onRetake = {},
                     onUsePhoto = {},
-                    confirmationEnabled = true
+                    confirmationEnabled = true,
                 )
             }
         }

@@ -5,6 +5,7 @@ import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.domain.repository.MealRepository
 import com.foodie.app.util.Result
 import com.google.common.truth.Truth.assertThat
+import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
@@ -18,7 +19,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.time.Instant
 
 /**
  * Unit tests for SampleViewModel.
@@ -65,7 +65,7 @@ class SampleViewModelTest {
         // Given
         val mockMeals = listOf(
             MealEntry("id1", Instant.now(), "Meal 1", 450),
-            MealEntry("id2", Instant.now(), "Meal 2", 250)
+            MealEntry("id2", Instant.now(), "Meal 2", 250),
         )
         val mockFlow = flow {
             emit(Result.Loading)
@@ -173,17 +173,21 @@ class SampleViewModelTest {
         val firstMeals = listOf(MealEntry("id1", Instant.now(), "Meal 1", 450))
         val secondMeals = listOf(
             MealEntry("id2", Instant.now(), "Meal 2", 250),
-            MealEntry("id3", Instant.now(), "Meal 3", 350)
+            MealEntry("id3", Instant.now(), "Meal 3", 350),
         )
         whenever(mealRepository.getMealHistory())
-            .thenReturn(flow {
-                emit(Result.Loading)
-                emit(Result.Success(firstMeals))
-            })
-            .thenReturn(flow {
-                emit(Result.Loading)
-                emit(Result.Success(secondMeals))
-            })
+            .thenReturn(
+                flow {
+                    emit(Result.Loading)
+                    emit(Result.Success(firstMeals))
+                },
+            )
+            .thenReturn(
+                flow {
+                    emit(Result.Loading)
+                    emit(Result.Success(secondMeals))
+                },
+            )
         viewModel = SampleViewModel(mealRepository)
 
         // When

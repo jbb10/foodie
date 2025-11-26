@@ -6,13 +6,13 @@ import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.util.Result
 import com.foodie.app.util.logDebug
 import com.foodie.app.util.runCatchingResult
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import timber.log.Timber
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import timber.log.Timber
 
 /**
  * Repository for Health Connect nutrition data operations.
@@ -25,7 +25,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class HealthConnectRepository @Inject constructor(
-    private val healthConnectManager: HealthConnectManager
+    private val healthConnectManager: HealthConnectManager,
 ) {
     companion object {
         private const val TAG = "HealthConnectRepository"
@@ -42,7 +42,7 @@ class HealthConnectRepository @Inject constructor(
     suspend fun insertNutritionRecord(
         calories: Int,
         description: String,
-        timestamp: Instant
+        timestamp: Instant,
     ): Result<String> = runCatchingResult {
         logDebug("Inserting nutrition record: $calories cal, $description")
         val recordId = healthConnectManager.insertNutritionRecord(calories, description, timestamp)
@@ -59,7 +59,7 @@ class HealthConnectRepository @Inject constructor(
      */
     suspend fun queryNutritionRecords(
         startTime: Instant,
-        endTime: Instant
+        endTime: Instant,
     ): Result<List<MealEntry>> = runCatchingResult {
         logDebug("Querying nutrition records: $startTime to $endTime")
         val records = healthConnectManager.queryNutritionRecords(startTime, endTime)
@@ -84,7 +84,7 @@ class HealthConnectRepository @Inject constructor(
         recordId: String,
         calories: Int,
         description: String,
-        timestamp: Instant
+        timestamp: Instant,
     ): Result<Unit> = runCatchingResult {
         logDebug("Updating nutrition record: $recordId")
         healthConnectManager.updateNutritionRecord(recordId, calories, description, timestamp)

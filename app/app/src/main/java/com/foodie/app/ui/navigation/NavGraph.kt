@@ -67,7 +67,7 @@ fun NavGraph(
     onboardingPreferences: OnboardingPreferences,
     navController: NavHostController = rememberNavController(),
     initialRoute: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
@@ -92,7 +92,7 @@ fun NavGraph(
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier
+        modifier = modifier,
     ) {
         // Onboarding screen (Story 5.7 - first launch only)
         composable(
@@ -102,7 +102,7 @@ fun NavGraph(
             },
             exitTransition = {
                 fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
-            }
+            },
         ) {
             OnboardingScreen(
                 onOnboardingComplete = {
@@ -121,7 +121,7 @@ fun NavGraph(
                     // Navigate to Settings, keep onboarding in backstack
                     navController.navigate(Screen.Settings.route)
                 },
-                healthConnectManager = healthConnectManager
+                healthConnectManager = healthConnectManager,
             )
         }
 
@@ -129,8 +129,10 @@ fun NavGraph(
         composable(
             route = Screen.MealList.route,
             deepLinks = listOf(
-                navDeepLink { uriPattern = "foodie://home" }, // Legacy - Story 1-3
-                navDeepLink { uriPattern = "foodie://meals" } // Primary - Story 2-0
+                // Legacy - Story 1-3
+                navDeepLink { uriPattern = "foodie://home" },
+                // Primary - Story 2-0
+                navDeepLink { uriPattern = "foodie://meals" },
             ),
             enterTransition = {
                 // Slide from right when returning from detail/settings
@@ -138,7 +140,7 @@ fun NavGraph(
                     Screen.MealDetail.route, Screen.Settings.route ->
                         slideIntoContainer(
                             AnimatedContentTransitionScope.SlideDirection.Right,
-                            animationSpec = tween(300, easing = FastOutSlowInEasing)
+                            animationSpec = tween(300, easing = FastOutSlowInEasing),
                         )
                     else -> fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
                 }
@@ -149,11 +151,11 @@ fun NavGraph(
                     Screen.MealDetail.route, Screen.Settings.route ->
                         slideOutOfContainer(
                             AnimatedContentTransitionScope.SlideDirection.Left,
-                            animationSpec = tween(250, easing = FastOutSlowInEasing)
+                            animationSpec = tween(250, easing = FastOutSlowInEasing),
                         )
                     else -> fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
                 }
-            }
+            },
         ) {
             MealListScreen(
                 onMealClick = { meal ->
@@ -162,13 +164,13 @@ fun NavGraph(
                             recordId = meal.id,
                             calories = meal.calories,
                             description = meal.description,
-                            timestamp = meal.timestamp.toEpochMilli()
-                        )
+                            timestamp = meal.timestamp.toEpochMilli(),
+                        ),
                     )
                 },
                 onSettingsClick = {
                     navController.navigate(Screen.Settings.route)
-                }
+                },
             )
         }
 
@@ -187,28 +189,32 @@ fun NavGraph(
                 },
                 navArgument("timestamp") {
                     type = NavType.LongType
-                }
+                },
             ),
             deepLinks = listOf(
-                navDeepLink { uriPattern = "foodie://meals/{recordId}?calories={calories}&description={description}&timestamp={timestamp}" } // Updated for Story 3-2
+                // Updated for Story 3-2
+                navDeepLink {
+                    uriPattern = "foodie://meals/{recordId}?" +
+                        "calories={calories}&description={description}&timestamp={timestamp}"
+                },
             ),
             enterTransition = {
                 slideIntoContainer(
                     AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                    animationSpec = tween(300, easing = FastOutSlowInEasing),
                 )
             },
             exitTransition = {
                 slideOutOfContainer(
                     AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(250, easing = FastOutSlowInEasing)
+                    animationSpec = tween(250, easing = FastOutSlowInEasing),
                 )
-            }
+            },
         ) {
             MealDetailScreen(
                 onNavigateBack = {
                     navController.popBackStack()
-                }
+                },
             )
         }
 
@@ -216,21 +222,22 @@ fun NavGraph(
         composable(
             route = Screen.CameraCapture.route,
             deepLinks = listOf(
-                navDeepLink { uriPattern = "foodie://capture" } // Widget - Story 2-2
+                // Widget - Story 2-2
+                navDeepLink { uriPattern = "foodie://capture" },
             ),
             enterTransition = {
                 fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
             },
             exitTransition = {
                 fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
-            }
+            },
         ) {
             HealthConnectPermissionGate(
                 healthConnectManager = healthConnectManager,
                 onPermissionsDenied = {
                     // User cancelled permission flow - finish activity
                     activity?.finish()
-                }
+                },
             ) {
                 CapturePhotoScreen(
                     onPhotoConfirmed = { _ ->
@@ -241,7 +248,7 @@ fun NavGraph(
                     onNavigateBack = {
                         // User cancelled - finish activity
                         activity?.finish()
-                    }
+                    },
                 )
             }
         }
@@ -252,20 +259,20 @@ fun NavGraph(
             enterTransition = {
                 slideIntoContainer(
                     AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                    animationSpec = tween(300, easing = FastOutSlowInEasing),
                 )
             },
             exitTransition = {
                 slideOutOfContainer(
                     AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(250, easing = FastOutSlowInEasing)
+                    animationSpec = tween(250, easing = FastOutSlowInEasing),
                 )
-            }
+            },
         ) {
             SettingsScreen(
                 onNavigateBack = {
                     navController.popBackStack()
-                }
+                },
             )
         }
     }

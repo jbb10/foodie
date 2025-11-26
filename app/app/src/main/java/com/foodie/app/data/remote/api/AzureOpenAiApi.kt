@@ -79,7 +79,6 @@ interface AzureOpenAiApi {
      */
     @POST("openai/v1/responses")
     suspend fun analyzeNutrition(
-        @Body request: AzureResponseRequest
+        @Body request: AzureResponseRequest,
     ): AzureResponseResponse
 }
-

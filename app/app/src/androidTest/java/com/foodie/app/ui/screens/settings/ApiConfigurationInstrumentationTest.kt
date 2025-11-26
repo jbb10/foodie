@@ -14,11 +14,11 @@ import com.foodie.app.ui.theme.FoodieTheme
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import javax.inject.Inject
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.inject.Inject
 
 /**
  * Instrumentation tests for Story 5.2: Azure OpenAI API Configuration.
@@ -244,7 +244,7 @@ class ApiConfigurationInstrumentationTest {
 
         composeTestRule.onNodeWithText(
             "Get your Azure OpenAI credentials at portal.azure.com",
-            substring = true
+            substring = true,
         ).assertIsDisplayed()
     }
 

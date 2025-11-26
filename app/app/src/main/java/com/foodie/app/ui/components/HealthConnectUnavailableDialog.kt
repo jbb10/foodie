@@ -19,15 +19,15 @@ import timber.log.Timber
  */
 @Composable
 fun HealthConnectUnavailableDialog(
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Health Connect Required") },
-        text = { 
-            Text("Health Connect is required but not installed. Install from Play Store?") 
+        text = {
+            Text("Health Connect is required but not installed. Install from Play Store?")
         },
         confirmButton = {
             TextButton(
@@ -36,7 +36,7 @@ fun HealthConnectUnavailableDialog(
                         // Try Play Store app first
                         val playStoreIntent = Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse("market://details?id=com.google.android.apps.healthdata")
+                            Uri.parse("market://details?id=com.google.android.apps.healthdata"),
                         )
                         context.startActivity(playStoreIntent)
                         Timber.d("Launched Play Store for Health Connect installation")
@@ -45,7 +45,7 @@ fun HealthConnectUnavailableDialog(
                         try {
                             val browserIntent = Intent(
                                 Intent.ACTION_VIEW,
-                                Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata")
+                                Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata"),
                             )
                             context.startActivity(browserIntent)
                             Timber.d("Launched browser for Health Connect installation")
@@ -54,7 +54,7 @@ fun HealthConnectUnavailableDialog(
                         }
                     }
                     onDismiss()
-                }
+                },
             ) {
                 Text("Install")
             }
@@ -63,6 +63,6 @@ fun HealthConnectUnavailableDialog(
             TextButton(onClick = onDismiss) {
                 Text("Cancel")
             }
-        }
+        },
     )
 }

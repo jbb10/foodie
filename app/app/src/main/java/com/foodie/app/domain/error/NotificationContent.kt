@@ -27,7 +27,7 @@ data class NotificationContent(
     val message: String,
     val actionText: String? = null,
     val actionIntent: PendingIntent? = null,
-    val isOngoing: Boolean = false
+    val isOngoing: Boolean = false,
 ) {
     companion object {
         /**
@@ -46,9 +46,9 @@ data class NotificationContent(
             message = "Request timed out. Check your internet connection.",
             actionText = null,
             actionIntent = null,
-            isOngoing = false
+            isOngoing = false,
         )
-        
+
         /**
          * Creates notification content for server errors.
          *
@@ -59,9 +59,9 @@ data class NotificationContent(
             message = "Service temporarily unavailable. Will retry automatically.",
             actionText = null,
             actionIntent = null,
-            isOngoing = false
+            isOngoing = false,
         )
-        
+
         /**
          * Creates notification content for authentication errors.
          *
@@ -74,9 +74,9 @@ data class NotificationContent(
             message = "API key invalid. Check settings.",
             actionText = "Open Settings",
             actionIntent = settingsIntent,
-            isOngoing = true
+            isOngoing = true,
         )
-        
+
         /**
          * Creates notification content for permission denied errors.
          *
@@ -89,9 +89,9 @@ data class NotificationContent(
             message = "Health Connect permissions required. Tap to grant access.",
             actionText = "Grant Access",
             actionIntent = permissionsIntent,
-            isOngoing = true
+            isOngoing = true,
         )
-        
+
         /**
          * Creates notification content for rate limit errors.
          *
@@ -102,7 +102,7 @@ data class NotificationContent(
             message = "Too many requests. Please wait a moment.",
             actionText = null,
             actionIntent = null,
-            isOngoing = false
+            isOngoing = false,
         )
     }
 }

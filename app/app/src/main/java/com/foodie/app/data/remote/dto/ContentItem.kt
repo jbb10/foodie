@@ -41,7 +41,7 @@ sealed class ContentItem {
         @SerializedName("type")
         override val type: String = "input_text",
         @SerializedName("text")
-        val text: String
+        val text: String,
     ) : ContentItem()
 
     /**
@@ -55,6 +55,6 @@ sealed class ContentItem {
         @SerializedName("type")
         override val type: String = "input_image",
         @SerializedName("image_url")
-        val imageUrl: String
+        val imageUrl: String,
     ) : ContentItem()
 }

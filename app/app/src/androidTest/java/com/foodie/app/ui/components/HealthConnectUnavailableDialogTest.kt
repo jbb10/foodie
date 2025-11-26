@@ -17,36 +17,36 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class HealthConnectUnavailableDialogTest {
-    
+
     @get:Rule
     val composeTestRule = createComposeRule()
-    
+
     @Test
     fun dialog_displaysCorrectMessage() {
         // Given
         composeTestRule.setContent {
             HealthConnectUnavailableDialog(onDismiss = {})
         }
-        
+
         // Then
         composeTestRule.onNodeWithText("Health Connect Required").assertIsDisplayed()
         composeTestRule.onNodeWithText(
-            "Health Connect is required but not installed. Install from Play Store?"
+            "Health Connect is required but not installed. Install from Play Store?",
         ).assertIsDisplayed()
     }
-    
+
     @Test
     fun dialog_hasCancelAndInstallButtons() {
         // Given
         composeTestRule.setContent {
             HealthConnectUnavailableDialog(onDismiss = {})
         }
-        
+
         // Then
         composeTestRule.onNodeWithText("Cancel").assertIsDisplayed()
         composeTestRule.onNodeWithText("Install").assertIsDisplayed()
     }
-    
+
     @Test
     fun cancelButton_invokesOnDismiss() {
         // Given
@@ -54,14 +54,14 @@ class HealthConnectUnavailableDialogTest {
         composeTestRule.setContent {
             HealthConnectUnavailableDialog(onDismiss = { dismissed = true })
         }
-        
+
         // When
         composeTestRule.onNodeWithText("Cancel").performClick()
-        
+
         // Then
         assertThat(dismissed).isTrue()
     }
-    
+
     @Test
     fun installButton_invokesOnDismissAfterLaunchingIntent() {
         // Given
@@ -69,10 +69,10 @@ class HealthConnectUnavailableDialogTest {
         composeTestRule.setContent {
             HealthConnectUnavailableDialog(onDismiss = { dismissed = true })
         }
-        
+
         // When
         composeTestRule.onNodeWithText("Install").performClick()
-        
+
         // Then
         assertThat(dismissed).isTrue()
     }

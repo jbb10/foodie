@@ -2,15 +2,11 @@ package com.foodie.app.ui.screens.meallist
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.longClick
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTouchInput
 import com.foodie.app.HiltTestActivity
 import com.foodie.app.R
 import com.foodie.app.domain.model.MealEntry
@@ -18,10 +14,10 @@ import com.foodie.app.ui.theme.FoodieTheme
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import java.time.Instant
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.Instant
 
 /**
  * Instrumentation tests for [MealListScreen].
@@ -61,8 +57,8 @@ class MealListScreenTest {
                         onSettingsClick = {},
                         onMealLongPress = {},
                         onDismissDeleteDialog = {},
-                        onDeleteConfirmed = {}
-                    )
+                        onDeleteConfirmed = {},
+                    ),
                 )
             }
         }
@@ -84,8 +80,8 @@ class MealListScreenTest {
                         onSettingsClick = {},
                         onMealLongPress = {},
                         onDismissDeleteDialog = {},
-                        onDeleteConfirmed = {}
-                    )
+                        onDeleteConfirmed = {},
+                    ),
                 )
             }
         }
@@ -109,8 +105,8 @@ class MealListScreenTest {
                         onSettingsClick = { settingsClicked = true },
                         onMealLongPress = {},
                         onDismissDeleteDialog = {},
-                        onDeleteConfirmed = {}
-                    )
+                        onDeleteConfirmed = {},
+                    ),
                 )
             }
         }
@@ -126,16 +122,16 @@ class MealListScreenTest {
             id = "meal-001",
             timestamp = Instant.now(),
             description = "Grilled chicken with quinoa and vegetables",
-            calories = 520
+            calories = 520,
         )
-    var clickedMeal: MealEntry? = null
+        var clickedMeal: MealEntry? = null
 
         composeTestRule.setContent {
             FoodieTheme {
                 val snackbarHostState = remember { SnackbarHostState() }
                 MealListScreenContent(
                     state = MealListState(
-                        mealsByDate = mapOf("Today" to listOf(sampleMeal))
+                        mealsByDate = mapOf("Today" to listOf(sampleMeal)),
                     ),
                     snackbarHostState = snackbarHostState,
                     callbacks = MealListCallbacks(
@@ -144,16 +140,16 @@ class MealListScreenTest {
                         onSettingsClick = {},
                         onMealLongPress = {},
                         onDismissDeleteDialog = {},
-                        onDeleteConfirmed = {}
-                    )
+                        onDeleteConfirmed = {},
+                    ),
                 )
             }
         }
 
         composeTestRule.onNodeWithText(sampleMeal.description).performClick()
 
-    assertThat(clickedMeal?.id).isEqualTo(sampleMeal.id)
-    assertThat(clickedMeal?.description).isEqualTo(sampleMeal.description)
+        assertThat(clickedMeal?.id).isEqualTo(sampleMeal.id)
+        assertThat(clickedMeal?.description).isEqualTo(sampleMeal.description)
     }
 
     @Test
@@ -170,8 +166,8 @@ class MealListScreenTest {
                         onSettingsClick = {},
                         onMealLongPress = {},
                         onDismissDeleteDialog = {},
-                        onDeleteConfirmed = {}
-                    )
+                        onDeleteConfirmed = {},
+                    ),
                 )
             }
         }
@@ -186,7 +182,7 @@ class MealListScreenTest {
             id = "1",
             timestamp = Instant.now(),
             description = "Sample meal",
-            calories = 450
+            calories = 450,
         )
 
         var longPressedId: String? = null
@@ -199,7 +195,7 @@ class MealListScreenTest {
                         mealsByDate = mapOf("Today" to listOf(sampleMeal)),
                         // Dialog is shown via state
                         showDeleteDialog = true,
-                        deleteTargetId = sampleMeal.id
+                        deleteTargetId = sampleMeal.id,
                     ),
                     snackbarHostState = snackbarHostState,
                     callbacks = MealListCallbacks(
@@ -208,8 +204,8 @@ class MealListScreenTest {
                         onSettingsClick = {},
                         onMealLongPress = { longPressedId = it },
                         onDismissDeleteDialog = {},
-                        onDeleteConfirmed = {}
-                    )
+                        onDeleteConfirmed = {},
+                    ),
                 )
             }
         }
@@ -219,7 +215,6 @@ class MealListScreenTest {
         composeTestRule.onNodeWithText(deleteTitle).assertIsDisplayed()
 
         val cancelLabel = composeTestRule.activity.getString(R.string.meal_list_delete_cancel)
-    composeTestRule.onNodeWithText(cancelLabel).assertIsDisplayed()
+        composeTestRule.onNodeWithText(cancelLabel).assertIsDisplayed()
     }
 }
-

@@ -3,6 +3,7 @@ package com.foodie.app.domain.usecase
 import com.foodie.app.data.repository.HealthConnectRepository
 import com.foodie.app.util.Result
 import com.google.common.truth.Truth.assertThat
+import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -10,7 +11,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.time.Instant
 
 class UpdateMealEntryUseCaseTest {
 
@@ -42,7 +42,7 @@ class UpdateMealEntryUseCaseTest {
             recordId = testRecordId,
             calories = calories,
             description = description,
-            timestamp = testTimestamp
+            timestamp = testTimestamp,
         )
         assertThat(result).isInstanceOf(Result.Success::class.java)
     }
@@ -143,7 +143,7 @@ class UpdateMealEntryUseCaseTest {
             recordId = testRecordId,
             calories = calories,
             description = description,
-            timestamp = testTimestamp
+            timestamp = testTimestamp,
         )
         assertThat(result).isInstanceOf(Result.Success::class.java)
     }
@@ -164,7 +164,7 @@ class UpdateMealEntryUseCaseTest {
             recordId = testRecordId,
             calories = calories,
             description = description,
-            timestamp = testTimestamp
+            timestamp = testTimestamp,
         )
         assertThat(result).isInstanceOf(Result.Success::class.java)
     }
@@ -185,7 +185,7 @@ class UpdateMealEntryUseCaseTest {
             recordId = testRecordId,
             calories = calories,
             description = description,
-            timestamp = testTimestamp
+            timestamp = testTimestamp,
         )
         assertThat(result).isInstanceOf(Result.Success::class.java)
     }

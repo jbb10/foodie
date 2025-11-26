@@ -20,7 +20,7 @@ class NetworkModuleTest {
     fun setUp() {
         mockSecurePreferences = mock()
         mockAuthInterceptor = mock()
-        
+
         // Configure mocks with default values
         whenever(mockSecurePreferences.azureOpenAiEndpoint).thenReturn(null)
         whenever(mockSecurePreferences.azureOpenAiModel).thenReturn(null)
@@ -30,7 +30,7 @@ class NetworkModuleTest {
     fun `NetworkModule should provide OkHttpClient`() {
         val loggingInterceptor = NetworkModule.provideHttpLoggingInterceptor()
         val okHttpClient = NetworkModule.provideOkHttpClient(loggingInterceptor, mockAuthInterceptor)
-        
+
         assertThat(okHttpClient).isNotNull()
         assertThat(okHttpClient.interceptors).contains(mockAuthInterceptor)
         assertThat(okHttpClient.interceptors).contains(loggingInterceptor)
@@ -42,7 +42,7 @@ class NetworkModuleTest {
         val gson = NetworkModule.provideGson()
         val okHttpClient = NetworkModule.provideOkHttpClient(loggingInterceptor, mockAuthInterceptor)
         val retrofit = NetworkModule.provideRetrofit(okHttpClient, mockSecurePreferences, gson)
-        
+
         assertThat(retrofit).isNotNull()
         assertThat(retrofit.baseUrl().toString()).contains("openai.azure.com")
     }
@@ -50,8 +50,7 @@ class NetworkModuleTest {
     @Test
     fun `NetworkModule should provide Gson`() {
         val gson = NetworkModule.provideGson()
-        
+
         assertThat(gson).isNotNull()
     }
 }
-

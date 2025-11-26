@@ -47,5 +47,5 @@ data class AzureResponseRequest(
     @SerializedName("instructions")
     val instructions: String? = null,
     @SerializedName("input")
-    val input: List<InputMessage>
+    val input: List<InputMessage>,
 )

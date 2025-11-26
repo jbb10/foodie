@@ -15,11 +15,11 @@ package com.foodie.app.domain.error
  * Story: 4.1 - Network & Error Handling Infrastructure
  */
 sealed class ErrorType {
-    
+
     // ========================================
     // RETRYABLE ERRORS (Transient Failures)
     // ========================================
-    
+
     /**
      * Network connectivity error.
      *
@@ -34,7 +34,7 @@ sealed class ErrorType {
      * User Action: Check internet connection, wait for connectivity restoration
      */
     data class NetworkError(val cause: Throwable) : ErrorType()
-    
+
     /**
      * Server-side error (HTTP 5xx).
      *
@@ -49,7 +49,7 @@ sealed class ErrorType {
      * User Action: Wait, app will retry automatically
      */
     data class ServerError(val statusCode: Int, val message: String) : ErrorType()
-    
+
     /**
      * Health Connect temporarily unavailable.
      *
@@ -64,11 +64,11 @@ sealed class ErrorType {
      * User Action: Install Health Connect from Play Store, restart app
      */
     data object HealthConnectUnavailable : ErrorType()
-    
+
     // ========================================
     // NON-RETRYABLE ERRORS (Permanent Failures)
     // ========================================
-    
+
     /**
      * Authentication/Authorization error (HTTP 401/403).
      *
@@ -83,7 +83,7 @@ sealed class ErrorType {
      * User Action: Check API key in settings, verify configuration
      */
     data class AuthError(val message: String) : ErrorType()
-    
+
     /**
      * Rate limit exceeded (HTTP 429).
      *
@@ -97,7 +97,7 @@ sealed class ErrorType {
      * User Action: Wait before retrying (respect retryAfter header if present)
      */
     data class RateLimitError(val retryAfter: Int?) : ErrorType()
-    
+
     /**
      * JSON parsing error.
      *
@@ -112,7 +112,7 @@ sealed class ErrorType {
      * User Action: Report issue, developer investigation needed
      */
     data class ParseError(val cause: Throwable) : ErrorType()
-    
+
     /**
      * Data validation error.
      *
@@ -127,7 +127,7 @@ sealed class ErrorType {
      * User Action: Correct invalid field per validation message
      */
     data class ValidationError(val field: String, val reason: String) : ErrorType()
-    
+
     /**
      * Permission denied error.
      *
@@ -142,7 +142,7 @@ sealed class ErrorType {
      * User Action: Grant required permissions via system settings
      */
     data class PermissionDenied(val permissions: List<String>) : ErrorType()
-    
+
     /**
      * Camera permission denied error.
      *
@@ -156,7 +156,7 @@ sealed class ErrorType {
      * Story: 4.6 - Graceful Degradation (AC#1)
      */
     data object CameraPermissionDenied : ErrorType()
-    
+
     /**
      * API key missing or not configured.
      *
@@ -170,7 +170,7 @@ sealed class ErrorType {
      * Story: 4.6 - Graceful Degradation (AC#2)
      */
     data object ApiKeyMissing : ErrorType()
-    
+
     /**
      * Storage space full or insufficient.
      *
@@ -184,7 +184,7 @@ sealed class ErrorType {
      * Story: 4.6 - Graceful Degradation (AC#4)
      */
     data object StorageFull : ErrorType()
-    
+
     /**
      * Unknown/unexpected error.
      *

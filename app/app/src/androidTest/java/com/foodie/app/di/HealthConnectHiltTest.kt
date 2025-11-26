@@ -9,11 +9,11 @@ import com.foodie.app.ui.screens.meallist.MealListViewModel
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import javax.inject.Inject
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import javax.inject.Inject
 
 /**
  * Instrumentation test verifying Hilt dependency injection works correctly.
@@ -24,68 +24,68 @@ import javax.inject.Inject
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
 class HealthConnectHiltTest {
-    
+
     @get:Rule
     var hiltRule = HiltAndroidRule(this)
-    
+
     @Inject
     lateinit var healthConnectManager: HealthConnectManager
-    
+
     @Inject
     lateinit var healthConnectRepository: HealthConnectRepository
-    
+
     @Inject
     lateinit var getMealHistoryUseCase: GetMealHistoryUseCase
-    
+
     @Inject
     lateinit var deleteMealEntryUseCase: DeleteMealEntryUseCase
-    
+
     @Before
     fun setup() {
         hiltRule.inject()
     }
-    
+
     @Test
     fun healthConnectManager_isInjectedSuccessfully() {
         // Then
         assertThat(healthConnectManager).isNotNull()
     }
-    
+
     @Test
     fun healthConnectRepository_isInjectedSuccessfully() {
         // Then
         assertThat(healthConnectRepository).isNotNull()
     }
-    
+
     @Test
     fun healthConnectRepository_hasHealthConnectManager() {
         // Then - Repository was constructed with injected manager
         assertThat(healthConnectRepository).isNotNull()
         // Repository should work correctly with injected dependencies
     }
-    
+
     @Test
     fun getMealHistoryUseCase_isInjectedSuccessfully() {
         // Then
         assertThat(getMealHistoryUseCase).isNotNull()
     }
-    
+
     @Test
     fun mealListViewModel_canBeCreatedWithInjectedUseCase() {
         // Given - Use cases are injected
-        
+
         // When - Create ViewModel with use cases
         val viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
-        
+
         // Then - ViewModel is created successfully
         assertThat(viewModel).isNotNull()
     }
-    
+
     @Test
     fun hiltDependencyGraph_compilesSuccessfully() {
         // This test passing proves the Hilt dependency graph compiles
         // and all required dependencies are provided correctly
-        
+
         // Then
         assertThat(healthConnectManager).isNotNull()
         assertThat(healthConnectRepository).isNotNull()

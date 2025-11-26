@@ -6,12 +6,12 @@ import androidx.core.app.NotificationCompat
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.foodie.app.domain.model.NutritionData
+import java.util.UUID
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class MealAnalysisForegroundNotifierTest {
@@ -45,7 +45,7 @@ class MealAnalysisForegroundNotifierTest {
         val notification = notifier.createCompletionNotification(
             data = data,
             recordId = "test-record-123",
-            timestamp = java.time.Instant.now()
+            timestamp = java.time.Instant.now(),
         )
 
         assertEquals(MealAnalysisNotificationSpec.CHANNEL_ID, notification.channelId)

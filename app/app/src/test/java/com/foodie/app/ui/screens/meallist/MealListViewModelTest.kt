@@ -7,6 +7,7 @@ import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
 import com.foodie.app.domain.usecase.GetMealHistoryUseCase
 import com.foodie.app.util.Result
 import com.google.common.truth.Truth.assertThat
+import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -21,7 +22,6 @@ import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.time.Instant
 
 /**
  * Unit tests for MealListViewModel.
@@ -30,17 +30,17 @@ import java.time.Instant
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MealListViewModelTest {
-    
+
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
-    
+
     private val testDispatcher = UnconfinedTestDispatcher()
-    
+
     private lateinit var getMealHistoryUseCase: GetMealHistoryUseCase
     private lateinit var deleteMealEntryUseCase: DeleteMealEntryUseCase
     private lateinit var healthConnectManager: HealthConnectManager
     private lateinit var viewModel: MealListViewModel
-    
+
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
@@ -48,17 +48,17 @@ class MealListViewModelTest {
         deleteMealEntryUseCase = mock()
         healthConnectManager = mock()
     }
-    
+
     @After
     fun tearDown() {
         Dispatchers.resetMain()
     }
-    
+
     @Test
     fun `init loads meals automatically`() = runTest {
         // Given
         val testMeals = listOf(
-            MealEntry("1", Instant.now(), "Breakfast", 500)
+            MealEntry("1", Instant.now(), "Breakfast", 500),
         )
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(testMeals)))
@@ -80,11 +80,11 @@ class MealListViewModelTest {
         val today = Instant.now()
         val yesterday = today.minusSeconds(86400) // 1 day ago
         val twoDaysAgo = today.minusSeconds(172800) // 2 days ago
-        
+
         val testMeals = listOf(
             MealEntry("1", today, "Lunch", 600),
             MealEntry("2", yesterday, "Dinner", 700),
-            MealEntry("3", twoDaysAgo, "Breakfast", 400)
+            MealEntry("3", twoDaysAgo, "Breakfast", 400),
         )
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(testMeals)))
@@ -102,7 +102,7 @@ class MealListViewModelTest {
     }
 
     // Error handling tests (Story 1.5)
-    
+
     @Test
     fun `loadMeals sets loading state when called`() = runTest {
         // Given
@@ -124,7 +124,7 @@ class MealListViewModelTest {
     fun `loadMeals updates state with meals on success`() = runTest {
         // Given
         val testMeals = listOf(
-            MealEntry("1", Instant.now(), "Test meal", 500)
+            MealEntry("1", Instant.now(), "Test meal", 500),
         )
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(testMeals)))
@@ -224,7 +224,7 @@ class MealListViewModelTest {
         // When
         val newMeals = listOf(
             MealEntry("2", Instant.now(), "New meal", 500),
-            MealEntry("3", Instant.now(), "Another meal", 600)
+            MealEntry("3", Instant.now(), "Another meal", 600),
         )
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(newMeals)))
@@ -295,13 +295,13 @@ class MealListViewModelTest {
         // Given
         val testMeals = listOf(
             MealEntry("meal-1", Instant.now(), "Breakfast", 400),
-            MealEntry("meal-2", Instant.now(), "Lunch", 600)
+            MealEntry("meal-2", Instant.now(), "Lunch", 600),
         )
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(testMeals)))
         whenever(deleteMealEntryUseCase(any()))
             .thenReturn(Result.Success(Unit))
-        
+
         viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         viewModel.onMealLongPress("meal-1")
@@ -326,7 +326,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(testMeals)))
         whenever(deleteMealEntryUseCase(any()))
             .thenReturn(Result.Success(Unit))
-        
+
         viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         viewModel.onMealLongPress("meal-1")
@@ -350,7 +350,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(testMeals)))
         whenever(deleteMealEntryUseCase(any()))
             .thenReturn(Result.Error(Exception("Network error"), errorMessage))
-        
+
         viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         viewModel.onMealLongPress("meal-1")
@@ -374,7 +374,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(testMeals)))
         whenever(deleteMealEntryUseCase(any()))
             .thenReturn(Result.Error(SecurityException("Permission denied"), errorMessage))
-        
+
         viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         viewModel.onMealLongPress("meal-1")
@@ -393,7 +393,7 @@ class MealListViewModelTest {
         val testMeals = listOf(MealEntry("meal-1", Instant.now(), "Breakfast", 400))
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(testMeals)))
-        
+
         viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         val stateBefore = viewModel.state.value
@@ -413,7 +413,7 @@ class MealListViewModelTest {
             .thenReturn(flowOf(Result.Success(testMeals)))
         whenever(deleteMealEntryUseCase(any()))
             .thenReturn(Result.Success(Unit))
-        
+
         viewModel = MealListViewModel(getMealHistoryUseCase, deleteMealEntryUseCase, healthConnectManager)
         viewModel.loadMeals()
         viewModel.onMealLongPress("meal-1")
@@ -440,7 +440,7 @@ class MealListViewModelTest {
         // When
         val updatedMeals = listOf(
             MealEntry("2", Instant.now(), "New entry", 500),
-            MealEntry("3", Instant.now(), "Another entry", 600)
+            MealEntry("3", Instant.now(), "Another entry", 600),
         )
         whenever(getMealHistoryUseCase.invoke())
             .thenReturn(flowOf(Result.Success(updatedMeals)))
@@ -519,4 +519,3 @@ class MealListViewModelTest {
         assertThat(viewModel.state.value.mealsByDate).isNotEmpty()
     }
 }
-

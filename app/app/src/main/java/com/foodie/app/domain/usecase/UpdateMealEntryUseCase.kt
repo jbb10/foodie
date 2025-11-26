@@ -18,7 +18,7 @@ import javax.inject.Inject
  * @param healthConnectRepository Repository for Health Connect operations
  */
 class UpdateMealEntryUseCase @Inject constructor(
-    private val healthConnectRepository: HealthConnectRepository
+    private val healthConnectRepository: HealthConnectRepository,
 ) {
     /**
      * Invokes the use case to update a meal entry.
@@ -33,26 +33,26 @@ class UpdateMealEntryUseCase @Inject constructor(
         recordId: String,
         calories: Int,
         description: String,
-        timestamp: Instant
+        timestamp: Instant,
     ): Result<Unit> {
         // Validate calories range
         if (calories !in 1..5000) {
             return Result.Error(
-                IllegalArgumentException("Calories must be between 1 and 5000, got $calories")
+                IllegalArgumentException("Calories must be between 1 and 5000, got $calories"),
             )
         }
 
         // Validate description is not blank
         if (description.isBlank()) {
             return Result.Error(
-                IllegalArgumentException("Description cannot be blank")
+                IllegalArgumentException("Description cannot be blank"),
             )
         }
 
         // Validate description length
         if (description.length > 200) {
             return Result.Error(
-                IllegalArgumentException("Description cannot exceed 200 characters, got ${description.length}")
+                IllegalArgumentException("Description cannot exceed 200 characters, got ${description.length}"),
             )
         }
 
@@ -61,7 +61,7 @@ class UpdateMealEntryUseCase @Inject constructor(
             recordId = recordId,
             calories = calories,
             description = description,
-            timestamp = timestamp
+            timestamp = timestamp,
         )
     }
 }

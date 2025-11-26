@@ -11,6 +11,10 @@ import com.foodie.app.domain.model.TestConnectionResult
 import com.foodie.app.domain.model.ThemeMode
 import com.foodie.app.domain.model.ValidationResult
 import com.google.gson.Gson
+import java.io.IOException
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -22,10 +26,6 @@ import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
-import java.io.IOException
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Implementation of PreferencesRepository using Android SharedPreferences.
@@ -57,7 +57,7 @@ class PreferencesRepositoryImpl @Inject constructor(
     private val sharedPreferences: SharedPreferences,
     private val securePreferences: SecurePreferences,
     private val azureOpenAiApi: AzureOpenAiApi,
-    private val gson: Gson
+    private val gson: Gson,
 ) : PreferencesRepository {
 
     /**
@@ -238,7 +238,7 @@ class PreferencesRepositoryImpl @Inject constructor(
     override suspend fun testConnection(
         apiKey: String,
         endpoint: String,
-        modelName: String
+        modelName: String,
     ): Result<TestConnectionResult> {
         return try {
             // Validate configuration
@@ -258,10 +258,10 @@ class PreferencesRepositoryImpl @Inject constructor(
                     InputMessage(
                         role = "user",
                         content = listOf(
-                            ContentItem.TextContent(text = "Hello")
-                        )
-                    )
-                )
+                            ContentItem.TextContent(text = "Hello"),
+                        ),
+                    ),
+                ),
             )
 
             val response = testApi.analyzeNutrition(testRequest)

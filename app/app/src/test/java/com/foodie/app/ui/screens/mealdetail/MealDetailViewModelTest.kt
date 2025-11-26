@@ -5,6 +5,7 @@ import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
 import com.foodie.app.domain.usecase.UpdateMealEntryUseCase
 import com.foodie.app.util.Result
 import com.google.common.truth.Truth.assertThat
+import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -20,7 +21,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MealDetailViewModelTest {
@@ -47,8 +47,8 @@ class MealDetailViewModelTest {
                 "recordId" to testRecordId,
                 "calories" to testCalories,
                 "description" to testDescription,
-                "timestamp" to testTimestamp.toEpochMilli()
-            )
+                "timestamp" to testTimestamp.toEpochMilli(),
+            ),
         )
 
         viewModel = MealDetailViewModel(savedStateHandle, updateMealEntryUseCase, deleteMealEntryUseCase)
@@ -223,7 +223,7 @@ class MealDetailViewModelTest {
             recordId = testRecordId,
             calories = testCalories.toInt(),
             description = testDescription,
-            timestamp = testTimestamp
+            timestamp = testTimestamp,
         )
         val state = viewModel.uiState.value
         assertThat(state.isSaving).isFalse()
@@ -263,7 +263,7 @@ class MealDetailViewModelTest {
             recordId = testRecordId,
             calories = testCalories.toInt(),
             description = testDescription,
-            timestamp = testTimestamp
+            timestamp = testTimestamp,
         )
         val state = viewModel.uiState.value
         assertThat(state.isSaving).isFalse()

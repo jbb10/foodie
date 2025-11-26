@@ -18,14 +18,14 @@ import com.foodie.app.data.worker.AnalyzeMealWorker
 import com.foodie.app.notifications.NotificationPermissionManager
 import com.foodie.app.util.StorageUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.Instant
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
 /**
  * State for camera capture flow.
@@ -105,7 +105,7 @@ class CapturePhotoViewModel @Inject constructor(
     private val photoManager: PhotoManager,
     private val workManager: WorkManager,
     private val healthConnectManager: HealthConnectManager,
-    private val storageUtil: StorageUtil
+    private val storageUtil: StorageUtil,
 ) : ViewModel() {
 
     companion object {
@@ -162,7 +162,7 @@ class CapturePhotoViewModel @Inject constructor(
             // HC permissions granted, now check camera permission
             val hasCameraPermission = ContextCompat.checkSelfPermission(
                 context,
-                android.Manifest.permission.CAMERA
+                android.Manifest.permission.CAMERA,
             ) == PackageManager.PERMISSION_GRANTED
 
             if (hasCameraPermission) {
@@ -182,7 +182,7 @@ class CapturePhotoViewModel @Inject constructor(
 
         val hasCameraPermission = ContextCompat.checkSelfPermission(
             context,
-            android.Manifest.permission.CAMERA
+            android.Manifest.permission.CAMERA,
         ) == PackageManager.PERMISSION_GRANTED
 
         if (hasCameraPermission) {
@@ -331,17 +331,18 @@ class CapturePhotoViewModel @Inject constructor(
                 .setInputData(
                     workDataOf(
                         AnalyzeMealWorker.KEY_PHOTO_URI to photoUri.toString(),
-                        AnalyzeMealWorker.KEY_TIMESTAMP to timestamp.epochSecond
-                    )
+                        AnalyzeMealWorker.KEY_TIMESTAMP to timestamp.epochSecond,
+                    ),
                 )
                 .setConstraints(
                     Constraints.Builder()
                         .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build()
+                        .build(),
                 )
                 .setBackoffCriteria(
                     BackoffPolicy.EXPONENTIAL,
-                    1, TimeUnit.SECONDS
+                    1,
+                    TimeUnit.SECONDS,
                 )
                 .addTag("analyze_meal")
                 .build()
@@ -352,12 +353,11 @@ class CapturePhotoViewModel @Inject constructor(
             Timber.tag(TAG).i(
                 "Meal analysis enqueued: id=%s, elapsed=%dms",
                 workRequest.id,
-                elapsed
+                elapsed,
             )
 
             _state.value = CaptureState.BackgroundProcessingStarted
             processedPhotoUri = null
-
         } catch (e: Exception) {
             Timber.e(e, "Failed to enqueue background processing")
             _state.value = CaptureState.Error("Failed to start processing: ${e.message}")

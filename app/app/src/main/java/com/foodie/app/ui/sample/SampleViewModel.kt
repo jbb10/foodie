@@ -5,12 +5,12 @@ import com.foodie.app.domain.repository.MealRepository
 import com.foodie.app.ui.base.BaseViewModel
 import com.foodie.app.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import javax.inject.Inject
 
 /**
  * ViewModel demonstrating the MVVM pattern for the Foodie app.
@@ -34,12 +34,12 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class SampleViewModel @Inject constructor(
-    private val mealRepository: MealRepository
+    private val mealRepository: MealRepository,
 ) : BaseViewModel() {
 
     // Private mutable state - only ViewModel can modify
     private val _state = MutableStateFlow(SampleState())
-    
+
     // Public immutable state - UI can observe but not modify
     val state: StateFlow<SampleState> = _state.asStateFlow()
 
@@ -56,7 +56,7 @@ class SampleViewModel @Inject constructor(
      */
     fun loadSampleData() {
         logDebug("LoadData", "Starting to load meal history")
-        
+
         mealRepository.getMealHistory()
             .onEach { result ->
                 when (result) {
@@ -69,7 +69,7 @@ class SampleViewModel @Inject constructor(
                         _state.value = SampleState(
                             isLoading = false,
                             meals = result.data,
-                            error = null
+                            error = null,
                         )
                     }
                     is Result.Error -> {
@@ -77,7 +77,7 @@ class SampleViewModel @Inject constructor(
                         _state.value = SampleState(
                             isLoading = false,
                             meals = emptyList(),
-                            error = result.message
+                            error = result.message,
                         )
                     }
                 }

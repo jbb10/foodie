@@ -3,7 +3,6 @@ package com.foodie.app.ui.screens.settings
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -16,11 +15,11 @@ import com.foodie.app.ui.theme.FoodieTheme
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import javax.inject.Inject
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import javax.inject.Inject
 
 /**
  * Instrumentation tests for Settings navigation flow.
@@ -79,7 +78,7 @@ class SettingsNavigationTest {
                 NavGraph(
                     healthConnectManager = healthConnectManager,
                     onboardingPreferences = onboardingPreferences,
-                    navController = navController
+                    navController = navController,
                 )
             }
         }

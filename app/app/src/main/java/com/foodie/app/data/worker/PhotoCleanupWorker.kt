@@ -47,12 +47,12 @@ import timber.log.Timber
 class PhotoCleanupWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val photoManager: PhotoManager
+    private val photoManager: PhotoManager,
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
         private const val TAG = "PhotoCleanupWorker"
-        
+
         /**
          * Photos older than this threshold will be deleted.
          * 24 hours = 86,400,000 milliseconds
@@ -83,14 +83,14 @@ class PhotoCleanupWorker @AssistedInject constructor(
         Timber.tag(TAG).i("Photo cleanup started - checking cache directory")
 
         val cacheDir = photoManager.getCacheDir()
-        
+
         if (!cacheDir.exists()) {
             Timber.tag(TAG).d("Cache directory does not exist, nothing to clean up")
             return Result.success()
         }
 
         val files = cacheDir.listFiles() ?: emptyArray()
-        
+
         if (files.isEmpty()) {
             Timber.tag(TAG).d("Cache directory is empty, nothing to clean up")
             return Result.success()
@@ -105,29 +105,29 @@ class PhotoCleanupWorker @AssistedInject constructor(
             try {
                 val age = startTime - file.lastModified()
                 val ageHours = age / (1000 * 60 * 60)
-                
+
                 if (age > MAX_PHOTO_AGE_MS) {
                     // Photo is older than 24 hours - delete it
                     val fileSize = file.length()
-                    
+
                     if (file.delete()) {
                         deletedCount++
                         deletedSizeBytes += fileSize
                         Timber.tag(TAG).d(
-                            "Deleted photo: ${file.name} (age: ${ageHours}h, size: ${fileSize / 1024}KB)"
+                            "Deleted photo: ${file.name} (age: ${ageHours}h, size: ${fileSize / 1024}KB)",
                         )
                     } else {
                         // Deletion failed but don't abort cleanup
                         errorCount++
                         Timber.tag(TAG).w(
-                            "Failed to delete photo: ${file.name} (age: ${ageHours}h)"
+                            "Failed to delete photo: ${file.name} (age: ${ageHours}h)",
                         )
                     }
                 } else {
                     // Photo is younger than 24 hours - retain for potential retry
                     retainedCount++
                     Timber.tag(TAG).d(
-                        "Retained photo: ${file.name} (age: ${ageHours}h)"
+                        "Retained photo: ${file.name} (age: ${ageHours}h)",
                     )
                 }
             } catch (e: SecurityException) {
@@ -151,14 +151,14 @@ class PhotoCleanupWorker @AssistedInject constructor(
 
         Timber.tag(TAG).i(
             "Photo cleanup complete in ${duration}ms - " +
-            "deleted $deletedCount files (${String.format("%.2f", deletedSizeMB)}MB), " +
-            "retained $retainedCount files, " +
-            "errors: $errorCount"
+                "deleted $deletedCount files (${String.format("%.2f", deletedSizeMB)}MB), " +
+                "retained $retainedCount files, " +
+                "errors: $errorCount",
         )
 
         Timber.tag(TAG).i(
             "Current cache size: ${String.format("%.2f", remainingSizeMB)}MB, " +
-            "${remainingFiles.size} photos"
+                "${remainingFiles.size} photos",
         )
 
         return Result.success()

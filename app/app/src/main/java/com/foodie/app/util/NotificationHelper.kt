@@ -12,10 +12,10 @@ import com.foodie.app.R
 import com.foodie.app.domain.error.ErrorHandler
 import com.foodie.app.domain.error.ErrorType
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import timber.log.Timber
 
 /**
  * Utility for creating persistent error notifications with action buttons.
@@ -40,29 +40,29 @@ import javax.inject.Singleton
 @Singleton
 class NotificationHelper @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val errorHandler: ErrorHandler
+    private val errorHandler: ErrorHandler,
 ) {
-    
+
     companion object {
         private const val TAG = "NotificationHelper"
-        
+
         /**
          * Notification channel for error notifications.
          * Separate from "meal_analysis" channel for foreground service.
          */
         const val ERROR_CHANNEL_ID = "meal_analysis_errors"
-        
+
         /**
          * Base notification ID for error notifications.
          * Different from foreground service IDs to avoid conflicts.
          */
         private const val ERROR_NOTIFICATION_ID = 2001
     }
-    
+
     init {
         createNotificationChannel()
     }
-    
+
     /**
      * Creates notification channel for error notifications.
      *
@@ -75,17 +75,17 @@ class NotificationHelper @Inject constructor(
         val channel = NotificationChannel(
             ERROR_CHANNEL_ID,
             context.getString(R.string.notification_channel_errors_name),
-            NotificationManager.IMPORTANCE_DEFAULT
+            NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
             description = context.getString(R.string.notification_channel_errors_description)
         }
-        
+
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
-        
+
         Timber.tag(TAG).d("Error notification channel created: $ERROR_CHANNEL_ID")
     }
-    
+
     /**
      * Shows error notification with appropriate action button.
      *
@@ -104,11 +104,11 @@ class NotificationHelper @Inject constructor(
         errorType: ErrorType,
         workId: UUID? = null,
         photoUri: String? = null,
-        timestamp: Long? = null
+        timestamp: Long? = null,
     ) {
         val title = getErrorTitle(errorType)
         val message = getErrorMessage(errorType)
-        
+
         val builder = NotificationCompat.Builder(context, ERROR_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
@@ -117,14 +117,14 @@ class NotificationHelper @Inject constructor(
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(createMainActivityIntent())
-        
+
         // Add action button based on error type
         when (errorType) {
             is ErrorType.AuthError -> {
                 builder.addAction(
                     R.drawable.ic_launcher_foreground,
                     context.getString(R.string.notification_action_open_settings),
-                    createSettingsIntent()
+                    createSettingsIntent(),
                 )
                 Timber.tag(TAG).i("Persistent notification shown for AuthError with Settings action")
             }
@@ -134,7 +134,7 @@ class NotificationHelper @Inject constructor(
                     builder.addAction(
                         R.drawable.ic_launcher_foreground,
                         context.getString(R.string.notification_action_retry),
-                        createRetryIntent(workId, photoUri, timestamp)
+                        createRetryIntent(workId, photoUri, timestamp),
                     )
                     Timber.tag(TAG).i("Persistent notification shown for NetworkError with Retry action")
                 } else {
@@ -145,7 +145,7 @@ class NotificationHelper @Inject constructor(
                 builder.addAction(
                     R.drawable.ic_launcher_foreground,
                     context.getString(R.string.notification_action_grant_access),
-                    createPermissionsIntent()
+                    createPermissionsIntent(),
                 )
                 Timber.tag(TAG).i("Persistent notification shown for PermissionDenied with Grant Access action")
             }
@@ -154,7 +154,7 @@ class NotificationHelper @Inject constructor(
                 Timber.tag(TAG).i("Notification shown for ${errorType.javaClass.simpleName} (no action)")
             }
         }
-        
+
         val notificationManager = NotificationManagerCompat.from(context)
         try {
             notificationManager.notify(ERROR_NOTIFICATION_ID, builder.build())
@@ -163,7 +163,7 @@ class NotificationHelper @Inject constructor(
             Timber.tag(TAG).e(e, "Failed to show notification - missing POST_NOTIFICATIONS permission")
         }
     }
-    
+
     /**
      * Creates PendingIntent to launch Settings screen.
      *
@@ -181,10 +181,10 @@ class NotificationHelper @Inject constructor(
             context,
             0,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }
-    
+
     /**
      * Creates PendingIntent to retry meal analysis.
      *
@@ -207,10 +207,10 @@ class NotificationHelper @Inject constructor(
             context,
             workId.hashCode(),
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }
-    
+
     /**
      * Creates PendingIntent to grant Health Connect permissions.
      *
@@ -227,10 +227,10 @@ class NotificationHelper @Inject constructor(
             context,
             1,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }
-    
+
     /**
      * Creates PendingIntent to launch main activity (no specific action).
      *
@@ -246,10 +246,10 @@ class NotificationHelper @Inject constructor(
             context,
             2,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }
-    
+
     /**
      * Gets notification title for error type.
      *
@@ -272,7 +272,7 @@ class NotificationHelper @Inject constructor(
             is ErrorType.UnknownError -> context.getString(R.string.notification_error_title_unknown)
         }
     }
-    
+
     /**
      * Gets notification message for error type.
      *

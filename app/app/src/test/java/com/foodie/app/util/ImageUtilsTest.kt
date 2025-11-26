@@ -3,12 +3,12 @@ package com.foodie.app.util
 import android.content.Context
 import android.net.Uri
 import com.google.common.truth.Truth.assertThat
+import java.io.ByteArrayInputStream
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
-import java.io.ByteArrayInputStream
 
 /**
  * Unit tests for ImageUtils.
@@ -54,11 +54,11 @@ class ImageUtilsTest {
             0x00, 0x14, 0x10, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF.toByte(), 0xDA.toByte(), 0x00, 0x08, 0x01,
             0x01, 0x00, 0x00, 0x3F, 0x00, 0x7F.toByte(), 0xC0.toByte(), 0x00, 0x1F, 0xFF.toByte(),
-            0xD9.toByte()
+            0xD9.toByte(),
         )
 
         ByteArrayInputStream(minimalJpeg)
-        whenever(mockContext.contentResolver).thenReturn(null)  // Simplified - full test in androidTest
+        whenever(mockContext.contentResolver).thenReturn(null) // Simplified - full test in androidTest
 
         // This test is simplified for unit testing without Android framework
         // Full integration test in androidTest with real ContentResolver and images

@@ -6,10 +6,10 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.inject.Inject
+import timber.log.Timber
 
 /**
  * Utility class for encoding images to base64 data URLs for Azure OpenAI Responses API.
@@ -40,7 +40,7 @@ import javax.inject.Inject
  * https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses#multimodal-vision
  */
 class ImageUtils @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) {
 
     companion object {
@@ -104,7 +104,6 @@ class ImageUtils @Inject constructor(
 
             // Return data URL format
             return "$DATA_URL_PREFIX$base64String"
-
         } catch (e: IOException) {
             Timber.tag(TAG).e(e, "IOException while encoding image from URI: $photoUri")
             throw e
@@ -130,7 +129,7 @@ class ImageUtils @Inject constructor(
             val byteArrayOutputStream = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream)
             val byteArray = byteArrayOutputStream.toByteArray()
-            val base64 = Base64.encodeToString(byteArray, Base64.NO_WRAP)  // NO_WRAP for API compatibility
+            val base64 = Base64.encodeToString(byteArray, Base64.NO_WRAP) // NO_WRAP for API compatibility
 
             Timber.tag(TAG).d("Encoded bitmap to base64: ${byteArray.size} bytes → ${base64.length} chars")
             base64

@@ -7,7 +7,6 @@ import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.records.HeightRecord
 import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.WeightRecord
-import androidx.health.connect.client.records.metadata.DataOrigin
 import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.request.ReadRecordsRequest
@@ -16,11 +15,11 @@ import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.Length
 import androidx.health.connect.client.units.Mass
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import java.time.Instant
 import java.time.ZoneOffset
 import javax.inject.Inject
 import javax.inject.Singleton
+import timber.log.Timber
 
 /**
  * Health Connect availability status.
@@ -28,10 +27,12 @@ import javax.inject.Singleton
 enum class HealthConnectStatus {
     /** Health Connect is installed and available */
     AVAILABLE,
+
     /** Health Connect is not installed on the device */
     NOT_INSTALLED,
+
     /** Health Connect needs to be updated to work properly */
-    UPDATE_REQUIRED
+    UPDATE_REQUIRED,
 }
 
 /**
@@ -47,7 +48,7 @@ enum class HealthConnectStatus {
  */
 @Singleton
 class HealthConnectManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) {
     companion object {
         private const val TAG = "HealthConnect"
@@ -61,7 +62,7 @@ class HealthConnectManager @Inject constructor(
             "android.permission.health.READ_WEIGHT",
             "android.permission.health.WRITE_WEIGHT",
             "android.permission.health.READ_HEIGHT",
-            "android.permission.health.WRITE_HEIGHT"
+            "android.permission.health.WRITE_HEIGHT",
         )
     }
 
@@ -151,7 +152,7 @@ class HealthConnectManager @Inject constructor(
     suspend fun insertNutritionRecord(
         calories: Int,
         description: String,
-        timestamp: Instant
+        timestamp: Instant,
     ): String {
         // Validation
         require(calories in 1..5000) { "Calories must be between 1 and 5000, got: $calories" }
@@ -169,8 +170,8 @@ class HealthConnectManager @Inject constructor(
             energy = Energy.kilocalories(calories.toDouble()),
             name = description,
             metadata = Metadata.autoRecorded(
-                device = Device(type = Device.TYPE_PHONE)
-            )
+                device = Device(type = Device.TYPE_PHONE),
+            ),
         )
 
         val response = healthConnectClient.insertRecords(listOf(record))
@@ -191,13 +192,13 @@ class HealthConnectManager @Inject constructor(
      */
     suspend fun queryNutritionRecords(
         startTime: Instant,
-        endTime: Instant
+        endTime: Instant,
     ): List<NutritionRecord> {
         Timber.tag(TAG).d("Querying nutrition records: $startTime to $endTime")
 
         val request = ReadRecordsRequest(
             recordType = NutritionRecord::class,
-            timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+            timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
         )
 
         val response = healthConnectClient.readRecords(request)
@@ -224,7 +225,7 @@ class HealthConnectManager @Inject constructor(
         recordId: String,
         calories: Int,
         description: String,
-        timestamp: Instant
+        timestamp: Instant,
     ) {
         Timber.tag(TAG).d("Updating nutrition record: $recordId")
 
@@ -255,7 +256,7 @@ class HealthConnectManager @Inject constructor(
         healthConnectClient.deleteRecords(
             recordType = NutritionRecord::class,
             recordIdsList = listOf(recordId),
-            clientRecordIdsList = emptyList()
+            clientRecordIdsList = emptyList(),
         )
 
         Timber.tag(TAG).i("Successfully deleted nutrition record: $recordId")
@@ -295,11 +296,11 @@ class HealthConnectManager @Inject constructor(
                     recordType = WeightRecord::class,
                     timeRangeFilter = TimeRangeFilter.between(
                         Instant.EPOCH,
-                        Instant.now().plusSeconds(60)
+                        Instant.now().plusSeconds(60),
                     ),
                     ascendingOrder = false,
-                    pageSize = 1
-                )
+                    pageSize = 1,
+                ),
             )
             val record = response.records.firstOrNull()
 
@@ -350,11 +351,11 @@ class HealthConnectManager @Inject constructor(
                     recordType = HeightRecord::class,
                     timeRangeFilter = TimeRangeFilter.between(
                         Instant.EPOCH,
-                        Instant.now().plusSeconds(60)
+                        Instant.now().plusSeconds(60),
                     ),
                     ascendingOrder = false,
-                    pageSize = 1
-                )
+                    pageSize = 1,
+                ),
             )
             val record = response.records.firstOrNull()
 
@@ -413,8 +414,8 @@ class HealthConnectManager @Inject constructor(
                 time = timestamp,
                 zoneOffset = zoneOffset,
                 metadata = Metadata.autoRecorded(
-                    device = Device(type = Device.TYPE_PHONE)
-                )
+                    device = Device(type = Device.TYPE_PHONE),
+                ),
             )
 
             healthConnectClient.insertRecords(listOf(record))
@@ -475,8 +476,8 @@ class HealthConnectManager @Inject constructor(
                 time = timestamp,
                 zoneOffset = zoneOffset,
                 metadata = Metadata.autoRecorded(
-                    device = Device(type = Device.TYPE_PHONE)
-                )
+                    device = Device(type = Device.TYPE_PHONE),
+                ),
             )
 
             healthConnectClient.insertRecords(listOf(record))

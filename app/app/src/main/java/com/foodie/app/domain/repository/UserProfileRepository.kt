@@ -69,7 +69,7 @@ interface UserProfileRepository {
     suspend fun updateProfile(
         profile: UserProfile,
         writeWeightToHC: Boolean = true,
-        writeHeightToHC: Boolean = true
+        writeHeightToHC: Boolean = true,
     ): Result<Unit>
 
     /**

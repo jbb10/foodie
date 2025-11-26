@@ -77,7 +77,7 @@ class ModelSelectionTest {
         val config = ApiConfiguration(
             apiKey = TEST_API_KEY,
             endpoint = TEST_ENDPOINT,
-            modelName = "gpt-4o-mini"
+            modelName = "gpt-4o-mini",
         )
 
         every { securePreferences.setAzureOpenAiApiKey(any()) } returns Unit
@@ -98,7 +98,7 @@ class ModelSelectionTest {
         val config = ApiConfiguration(
             apiKey = TEST_API_KEY,
             endpoint = TEST_ENDPOINT,
-            modelName = "my-custom-deployment-123"
+            modelName = "my-custom-deployment-123",
         )
 
         every { securePreferences.setAzureOpenAiApiKey(any()) } returns Unit
@@ -119,7 +119,7 @@ class ModelSelectionTest {
         val result = repository.testConnection(
             apiKey = "test-key",
             endpoint = "https://test.openai.azure.com",
-            modelName = ""
+            modelName = "",
         )
 
         // Then: Configuration incomplete error

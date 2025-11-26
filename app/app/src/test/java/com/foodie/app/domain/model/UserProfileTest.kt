@@ -1,8 +1,8 @@
 package com.foodie.app.domain.model
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.time.LocalDate
+import org.junit.Test
 
 /**
  * Unit tests for UserProfile domain model validation.
@@ -27,7 +27,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.MALE,
             birthDate = birthDateForAge(30),
             weightKg = 75.5,
-            heightCm = 178.0
+            heightCm = 178.0,
         )
 
         // When: Validating profile
@@ -44,7 +44,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = birthDateForAge(12),
             weightKg = 50.0,
-            heightCm = 150.0
+            heightCm = 150.0,
         )
 
         // When: Validating profile
@@ -63,7 +63,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.MALE,
             birthDate = birthDateForAge(121),
             weightKg = 80.0,
-            heightCm = 175.0
+            heightCm = 175.0,
         )
 
         // When: Validating profile
@@ -81,7 +81,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = birthDateForAge(13),
             weightKg = 45.0,
-            heightCm = 155.0
+            heightCm = 155.0,
         )
 
         // When: Validating profile
@@ -98,7 +98,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.MALE,
             birthDate = birthDateForAge(120),
             weightKg = 70.0,
-            heightCm = 165.0
+            heightCm = 165.0,
         )
 
         // When: Validating profile
@@ -115,7 +115,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = birthDateForAge(25),
             weightKg = 29.9,
-            heightCm = 160.0
+            heightCm = 160.0,
         )
 
         // When: Validating profile
@@ -133,7 +133,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.MALE,
             birthDate = birthDateForAge(40),
             weightKg = 300.1,
-            heightCm = 180.0
+            heightCm = 180.0,
         )
 
         // When: Validating profile
@@ -151,7 +151,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = birthDateForAge(18),
             weightKg = 30.0,
-            heightCm = 150.0
+            heightCm = 150.0,
         )
 
         // When: Validating profile
@@ -168,7 +168,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.MALE,
             birthDate = birthDateForAge(35),
             weightKg = 300.0,
-            heightCm = 200.0
+            heightCm = 200.0,
         )
 
         // When: Validating profile
@@ -185,7 +185,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = birthDateForAge(20),
             weightKg = 50.0,
-            heightCm = 99.9
+            heightCm = 99.9,
         )
 
         // When: Validating profile
@@ -203,7 +203,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.MALE,
             birthDate = birthDateForAge(28),
             weightKg = 90.0,
-            heightCm = 250.1
+            heightCm = 250.1,
         )
 
         // When: Validating profile
@@ -221,7 +221,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = birthDateForAge(15),
             weightKg = 40.0,
-            heightCm = 100.0
+            heightCm = 100.0,
         )
 
         // When: Validating profile
@@ -238,7 +238,7 @@ class UserProfileTest {
             sex = UserProfile.Sex.MALE,
             birthDate = birthDateForAge(25),
             weightKg = 120.0,
-            heightCm = 250.0
+            heightCm = 250.0,
         )
 
         // When: Validating profile

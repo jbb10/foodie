@@ -17,7 +17,7 @@ class NutritionDataTest {
         // When
         val nutritionData = NutritionData(
             calories = calories,
-            description = description
+            description = description,
         )
 
         // Then
@@ -30,7 +30,7 @@ class NutritionDataTest {
         // When
         val nutritionData = NutritionData(
             calories = 1,
-            description = "Small snack"
+            description = "Small snack",
         )
 
         // Then
@@ -42,7 +42,7 @@ class NutritionDataTest {
         // When
         val nutritionData = NutritionData(
             calories = 5000,
-            description = "Large meal"
+            description = "Large meal",
         )
 
         // Then
@@ -55,7 +55,7 @@ class NutritionDataTest {
         val exception = org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
             NutritionData(
                 calories = 0,
-                description = "Invalid data"
+                description = "Invalid data",
             )
         }
 
@@ -69,7 +69,7 @@ class NutritionDataTest {
         val exception = org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
             NutritionData(
                 calories = 5001,
-                description = "Invalid data"
+                description = "Invalid data",
             )
         }
 
@@ -83,7 +83,7 @@ class NutritionDataTest {
         val exception = org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
             NutritionData(
                 calories = 500,
-                description = ""
+                description = "",
             )
         }
 
@@ -96,7 +96,7 @@ class NutritionDataTest {
         val exception = org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
             NutritionData(
                 calories = 500,
-                description = "   "
+                description = "   ",
             )
         }
 

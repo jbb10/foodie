@@ -8,5 +8,4 @@ package com.foodie.app.ui
  *
  * See: app/src/debug/java/com/foodie/app/ui/ComposeTestActivity.kt
  */
-@Suppress("MatchingDeclarationName")
 internal object ComposeTestActivityPlaceholder

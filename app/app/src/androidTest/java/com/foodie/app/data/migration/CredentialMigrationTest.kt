@@ -7,11 +7,11 @@ import com.foodie.app.data.local.preferences.SecurePreferences
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import javax.inject.Inject
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.inject.Inject
 
 /**
  * Integration tests for BuildConfig credential migration to EncryptedSharedPreferences.
@@ -122,7 +122,7 @@ class CredentialMigrationTest {
 
     @Test
     fun emptyBuildConfig_noMigrationOccurs() {
-        val buildConfigApiKey = ""  // Empty BuildConfig
+        val buildConfigApiKey = "" // Empty BuildConfig
 
         // Simulate FoodieApplication.migrateCredentialsIfNeeded() logic
         val migrated = regularPrefs.getBoolean("credentials_migrated", false)

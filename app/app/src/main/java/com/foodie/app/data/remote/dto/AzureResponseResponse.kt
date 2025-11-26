@@ -53,7 +53,7 @@ data class AzureResponseResponse(
     @SerializedName("output")
     val output: List<AzureResponseOutput>? = null,
     @SerializedName("usage")
-    val usage: TokenUsage? = null
+    val usage: TokenUsage? = null,
 )
 
 /**
@@ -69,7 +69,7 @@ data class AzureResponseOutput(
     @SerializedName("status")
     val status: String? = null,
     @SerializedName("content")
-    val content: List<AzureResponseContent>? = null
+    val content: List<AzureResponseContent>? = null,
 )
 
 /**
@@ -79,7 +79,7 @@ data class AzureResponseContent(
     @SerializedName("type")
     val type: String,
     @SerializedName("text")
-    val text: String? = null
+    val text: String? = null,
 )
 
 /**
@@ -97,5 +97,5 @@ data class TokenUsage(
     @SerializedName("output_tokens")
     val outputTokens: Int,
     @SerializedName("total_tokens")
-    val totalTokens: Int
+    val totalTokens: Int,
 )

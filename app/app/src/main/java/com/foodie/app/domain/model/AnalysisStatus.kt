@@ -34,6 +34,6 @@ sealed class AnalysisStatus {
      */
     data class Error(
         val message: String,
-        val exception: Throwable? = null
+        val exception: Throwable? = null,
     ) : AnalysisStatus()
 }

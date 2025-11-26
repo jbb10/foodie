@@ -19,18 +19,18 @@ import com.foodie.app.data.worker.foreground.MealAnalysisNotificationSpec
 import com.foodie.app.domain.exception.NoFoodDetectedException
 import com.foodie.app.domain.model.NutritionData
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
+import com.foodie.app.util.Result as ApiResult
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.io.IOException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.IOException
-import com.foodie.app.util.Result as ApiResult
 
 @RunWith(AndroidJUnit4::class)
 class AnalyzeMealWorkerForegroundTest {
@@ -85,7 +85,7 @@ class AnalyzeMealWorkerForegroundTest {
     fun doWork_requestsForegroundAndCompletesSuccessfully() = runBlocking {
         val inputData = androidx.work.workDataOf(
             AnalyzeMealWorker.KEY_PHOTO_URI to "content://foodie/photos/123",
-            AnalyzeMealWorker.KEY_TIMESTAMP to java.time.Instant.now().epochSecond
+            AnalyzeMealWorker.KEY_TIMESTAMP to java.time.Instant.now().epochSecond,
         )
 
         val worker = TestListenableWorkerBuilder<AnalyzeMealWorker>(context)
@@ -108,7 +108,7 @@ class AnalyzeMealWorkerForegroundTest {
 
         val inputData = androidx.work.workDataOf(
             AnalyzeMealWorker.KEY_PHOTO_URI to "content://foodie/photos/456",
-            AnalyzeMealWorker.KEY_TIMESTAMP to java.time.Instant.now().epochSecond
+            AnalyzeMealWorker.KEY_TIMESTAMP to java.time.Instant.now().epochSecond,
         )
 
         val worker = TestListenableWorkerBuilder<AnalyzeMealWorker>(context)
@@ -133,7 +133,7 @@ class AnalyzeMealWorkerForegroundTest {
 
         val inputData = androidx.work.workDataOf(
             AnalyzeMealWorker.KEY_PHOTO_URI to "content://foodie/photos/789",
-            AnalyzeMealWorker.KEY_TIMESTAMP to java.time.Instant.now().epochSecond
+            AnalyzeMealWorker.KEY_TIMESTAMP to java.time.Instant.now().epochSecond,
         )
 
         val worker = TestListenableWorkerBuilder<AnalyzeMealWorker>(context)
@@ -155,12 +155,12 @@ class AnalyzeMealWorkerForegroundTest {
         coEvery { nutritionRepository.analyzePhoto(any()) } returns
             ApiResult.Error(
                 exception = NoFoodDetectedException("Image shows a document, not food"),
-                message = "Image shows a document, not food"
+                message = "Image shows a document, not food",
             )
 
         val inputData = androidx.work.workDataOf(
             AnalyzeMealWorker.KEY_PHOTO_URI to "content://foodie/photos/document.jpg",
-            AnalyzeMealWorker.KEY_TIMESTAMP to java.time.Instant.now().epochSecond
+            AnalyzeMealWorker.KEY_TIMESTAMP to java.time.Instant.now().epochSecond,
         )
 
         val worker = TestListenableWorkerBuilder<AnalyzeMealWorker>(context)
@@ -187,7 +187,7 @@ class AnalyzeMealWorkerForegroundTest {
         override fun createWorker(
             appContext: Context,
             workerClassName: String,
-            workerParameters: WorkerParameters
+            workerParameters: WorkerParameters,
         ): ListenableWorker {
             return AnalyzeMealWorker(
                 appContext,
@@ -198,7 +198,7 @@ class AnalyzeMealWorkerForegroundTest {
                 foregroundNotifier,
                 networkMonitor,
                 errorHandler,
-                notificationHelper
+                notificationHelper,
             )
         }
     }

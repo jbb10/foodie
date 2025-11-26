@@ -141,6 +141,7 @@ class SecurePreferencesTest {
         try {
             @Suppress("UNUSED_VARIABLE")
             val endpoint = securePreferences.azureOpenAiEndpoint
+
             @Suppress("UNUSED_VARIABLE")
             val model = securePreferences.azureOpenAiModel
         } catch (e: Exception) {

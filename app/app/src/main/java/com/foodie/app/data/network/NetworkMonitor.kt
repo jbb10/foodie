@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
  * Story: 4.1 - Network & Error Handling Infrastructure
  */
 interface NetworkMonitor {
-    
+
     /**
      * Current network connectivity state.
      *
@@ -35,7 +35,7 @@ interface NetworkMonitor {
      * ```
      */
     val isConnected: StateFlow<Boolean>
-    
+
     /**
      * Current network type.
      *
@@ -43,7 +43,7 @@ interface NetworkMonitor {
      * Updates in real-time when network type changes.
      */
     val networkType: StateFlow<NetworkType>
-    
+
     /**
      * Performs synchronous network connectivity check.
      *
@@ -55,7 +55,7 @@ interface NetworkMonitor {
      * @return true if network is connected (WiFi or cellular), false if offline
      */
     fun checkConnectivity(): Boolean
-    
+
     /**
      * Suspends until network connectivity is available.
      *
@@ -77,10 +77,10 @@ interface NetworkMonitor {
 enum class NetworkType {
     /** Connected via WiFi */
     WIFI,
-    
+
     /** Connected via cellular data (3G/4G/5G) */
     CELLULAR,
-    
+
     /** No network connection */
-    NONE
+    NONE,
 }

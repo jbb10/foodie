@@ -1,9 +1,9 @@
 package com.foodie.app.util
 
 import com.google.common.truth.Truth.assertThat
+import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import java.io.IOException
 
 /**
  * Unit tests for Result extension functions.

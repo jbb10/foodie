@@ -28,5 +28,5 @@ data class InputMessage(
     @SerializedName("role")
     val role: String,
     @SerializedName("content")
-    val content: List<ContentItem>
+    val content: List<ContentItem>,
 )

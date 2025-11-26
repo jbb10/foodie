@@ -87,7 +87,7 @@ class AnalysisStatusTest {
             AnalysisStatus.Idle,
             AnalysisStatus.Analyzing(0.5f),
             AnalysisStatus.Success(NutritionData(450, "Chicken salad")),
-            AnalysisStatus.Error("Error message")
+            AnalysisStatus.Error("Error message"),
         )
 
         // When/Then

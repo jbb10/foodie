@@ -12,12 +12,12 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.foodie.app.ui.theme.FoodieTheme
 import com.google.common.truth.Truth.assertThat
-import org.junit.Rule
-import org.junit.Test
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Instrumentation tests verifying the edit meal screen renders form state correctly and
@@ -36,7 +36,7 @@ class MealDetailScreenTest {
             recordId = "record-123",
             calories = "650",
             description = "Grilled salmon with rice",
-            timestamp = sampleTimestamp
+            timestamp = sampleTimestamp,
         )
 
         composeTestRule.setContent {
@@ -45,7 +45,7 @@ class MealDetailScreenTest {
                 MealDetailScreenContent(
                     state = state,
                     onEvent = {},
-                    snackbarHostState = snackbarHostState
+                    snackbarHostState = snackbarHostState,
                 )
             }
         }
@@ -65,7 +65,7 @@ class MealDetailScreenTest {
             calories = "0",
             description = "Test meal",
             timestamp = sampleTimestamp,
-            caloriesError = "Calories must be between 1 and 5000"
+            caloriesError = "Calories must be between 1 and 5000",
         )
 
         composeTestRule.setContent {
@@ -74,7 +74,7 @@ class MealDetailScreenTest {
                 MealDetailScreenContent(
                     state = state,
                     onEvent = {},
-                    snackbarHostState = snackbarHostState
+                    snackbarHostState = snackbarHostState,
                 )
             }
         }
@@ -90,7 +90,7 @@ class MealDetailScreenTest {
             recordId = "record-456",
             calories = "450",
             description = "Avocado toast",
-            timestamp = sampleTimestamp
+            timestamp = sampleTimestamp,
         )
 
         composeTestRule.setContent {
@@ -99,7 +99,7 @@ class MealDetailScreenTest {
                 MealDetailScreenContent(
                     state = state,
                     onEvent = { events.add(it) },
-                    snackbarHostState = snackbarHostState
+                    snackbarHostState = snackbarHostState,
                 )
             }
         }
@@ -116,7 +116,7 @@ class MealDetailScreenTest {
             recordId = "record-789",
             calories = "320",
             description = "Egg scramble",
-            timestamp = sampleTimestamp
+            timestamp = sampleTimestamp,
         )
 
         composeTestRule.setContent {
@@ -125,7 +125,7 @@ class MealDetailScreenTest {
                 MealDetailScreenContent(
                     state = state,
                     onEvent = { events.add(it) },
-                    snackbarHostState = snackbarHostState
+                    snackbarHostState = snackbarHostState,
                 )
             }
         }
@@ -142,7 +142,7 @@ class MealDetailScreenTest {
             recordId = "record-321",
             calories = "300",
             description = "Smoothie",
-            timestamp = sampleTimestamp
+            timestamp = sampleTimestamp,
         )
 
         composeTestRule.setContent {
@@ -151,7 +151,7 @@ class MealDetailScreenTest {
                 MealDetailScreenContent(
                     state = state,
                     onEvent = { events.add(it) },
-                    snackbarHostState = snackbarHostState
+                    snackbarHostState = snackbarHostState,
                 )
             }
         }

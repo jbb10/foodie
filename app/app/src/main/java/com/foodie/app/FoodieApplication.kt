@@ -12,12 +12,12 @@ import com.foodie.app.data.worker.PhotoCleanupWorker
 import com.foodie.app.data.worker.foreground.MealAnalysisNotificationSpec
 import com.foodie.app.util.ReleaseTree
 import dagger.hilt.android.HiltAndroidApp
-import timber.log.Timber
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import timber.log.Timber
 
 /**
  * Application class for the Foodie app.
@@ -87,7 +87,8 @@ class FoodieApplication : Application(), Configuration.Provider {
         val initialDelaySeconds = calculateDelayUntil3AM()
 
         val cleanupRequest = PeriodicWorkRequestBuilder<PhotoCleanupWorker>(
-            24, TimeUnit.HOURS
+            24,
+            TimeUnit.HOURS,
         )
             .setConstraints(constraints)
             .setInitialDelay(initialDelaySeconds, TimeUnit.SECONDS)
@@ -96,12 +97,12 @@ class FoodieApplication : Application(), Configuration.Provider {
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "photo_cleanup_periodic",
             ExistingPeriodicWorkPolicy.KEEP,
-            cleanupRequest
+            cleanupRequest,
         )
 
         Timber.d(
             "Photo cleanup scheduled: daily at 3am " +
-            "(initial delay: ${initialDelaySeconds / 3600}h ${(initialDelaySeconds % 3600) / 60}m)"
+                "(initial delay: ${initialDelaySeconds / 3600}h ${(initialDelaySeconds % 3600) / 60}m)",
         )
     }
 
@@ -178,4 +179,3 @@ class FoodieApplication : Application(), Configuration.Provider {
         }
     }
 }
-

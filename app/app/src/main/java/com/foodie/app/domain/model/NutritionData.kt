@@ -12,7 +12,7 @@ package com.foodie.app.domain.model
  */
 data class NutritionData(
     val calories: Int,
-    val description: String
+    val description: String,
 ) {
     init {
         require(calories in 1..5000) {

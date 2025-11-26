@@ -31,7 +31,7 @@ class WorkManagerModuleTest {
         // Actual Configuration creation requires application context (instrumentation test)
         val methods = WorkManagerModule::class.java.declaredMethods
         val configMethod = methods.find { it.name == "provideWorkManagerConfiguration" }
-        
+
         assertThat(configMethod).isNotNull()
         assertThat(configMethod?.parameterTypes?.size).isEqualTo(1)
     }
@@ -41,7 +41,7 @@ class WorkManagerModuleTest {
         // This test verifies the module has the required provider method
         val methods = WorkManagerModule::class.java.declaredMethods
         val workManagerMethod = methods.find { it.name == "provideWorkManager" }
-        
+
         assertThat(workManagerMethod).isNotNull()
         assertThat(workManagerMethod?.parameterTypes?.size).isEqualTo(1)
     }

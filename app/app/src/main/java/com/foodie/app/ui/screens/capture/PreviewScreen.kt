@@ -71,7 +71,7 @@ fun PreviewScreen(
     photoUri: Uri,
     onRetake: () -> Unit,
     onUsePhoto: (Context) -> Unit,
-    confirmationEnabled: Boolean = true
+    confirmationEnabled: Boolean = true,
 ) {
     val context = LocalContext.current
     var showCheckmark by remember { mutableStateOf(false) }
@@ -93,14 +93,14 @@ fun PreviewScreen(
     val checkmarkAlpha by animateFloatAsState(
         targetValue = if (showCheckmark) 1f else 0f,
         animationSpec = tween(durationMillis = 200),
-        label = "checkmark_fade"
+        label = "checkmark_fade",
     )
 
     Scaffold { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
         ) {
             // Photo preview (full screen)
             Image(
@@ -108,11 +108,11 @@ fun PreviewScreen(
                     model = ImageRequest.Builder(context)
                         .data(photoUri)
                         .crossfade(true)
-                        .build()
+                        .build(),
                 ),
                 contentDescription = stringResource(R.string.preview_photo_description),
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
             )
 
             // Visual checkmark overlay (AC#9)
@@ -122,13 +122,13 @@ fun PreviewScreen(
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.5f))
                         .alpha(checkmarkAlpha),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "Photo confirmed",
                         tint = Color(0xFF4CAF50), // Material Green 500
-                        modifier = Modifier.size(120.dp)
+                        modifier = Modifier.size(120.dp),
                     )
                 }
             }
@@ -140,7 +140,7 @@ fun PreviewScreen(
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     // Retake button (left side, secondary style)
                     OutlinedButton(
@@ -149,12 +149,12 @@ fun PreviewScreen(
                             .weight(1f)
                             .height(56.dp), // > 48dp for easy thumb access
                         colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                        )
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                        ),
                     ) {
                         Text(
                             text = stringResource(R.string.preview_retake),
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelLarge,
                         )
                     }
 
@@ -168,12 +168,12 @@ fun PreviewScreen(
                             .weight(1f)
                             .height(56.dp), // > 48dp for easy thumb access
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                            containerColor = MaterialTheme.colorScheme.primary,
+                        ),
                     ) {
                         Text(
                             text = stringResource(R.string.preview_use_photo),
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelLarge,
                         )
                     }
                 }

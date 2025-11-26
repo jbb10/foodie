@@ -4,6 +4,7 @@ import com.foodie.app.domain.model.UserProfile
 import com.foodie.app.domain.model.ValidationError
 import com.foodie.app.domain.repository.UserProfileRepository
 import com.google.common.truth.Truth.assertThat
+import java.time.LocalDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -11,7 +12,6 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.time.LocalDate
 
 /**
  * Unit tests for EnergyBalanceRepositoryImpl BMR calculation.
@@ -48,7 +48,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.MALE,
             birthDate = birthDate,
             weightKg = 75.5,
-            heightCm = 178.0
+            heightCm = 178.0,
         )
 
         // When: Calculate BMR
@@ -70,7 +70,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = birthDate,
             weightKg = 60.0,
-            heightCm = 165.0
+            heightCm = 165.0,
         )
 
         // When: Calculate BMR
@@ -95,7 +95,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.MALE,
             birthDate = LocalDate.now().minusYears(25),
             weightKg = 70.0,
-            heightCm = 175.0
+            heightCm = 175.0,
         )
 
         // When: Calculate BMR
@@ -114,7 +114,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = LocalDate.now().minusYears(25),
             weightKg = 70.0,
-            heightCm = 175.0
+            heightCm = 175.0,
         )
 
         // When: Calculate BMR
@@ -137,7 +137,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.MALE,
             birthDate = LocalDate.now().minusYears(13),
             weightKg = 50.0,
-            heightCm = 150.0
+            heightCm = 150.0,
         )
 
         // When: Calculate BMR
@@ -156,7 +156,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = LocalDate.now().minusYears(120),
             weightKg = 50.0,
-            heightCm = 150.0
+            heightCm = 150.0,
         )
 
         // When: Calculate BMR
@@ -175,7 +175,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = LocalDate.now().minusYears(20),
             weightKg = 30.0,
-            heightCm = 150.0
+            heightCm = 150.0,
         )
 
         // When: Calculate BMR
@@ -194,7 +194,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.MALE,
             birthDate = LocalDate.now().minusYears(40),
             weightKg = 300.0,
-            heightCm = 200.0
+            heightCm = 200.0,
         )
 
         // When: Calculate BMR
@@ -213,7 +213,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.MALE,
             birthDate = LocalDate.now().minusYears(25),
             weightKg = 50.0,
-            heightCm = 100.0
+            heightCm = 100.0,
         )
 
         // When: Calculate BMR
@@ -232,7 +232,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = LocalDate.now().minusYears(30),
             weightKg = 100.0,
-            heightCm = 250.0
+            heightCm = 250.0,
         )
 
         // When: Calculate BMR
@@ -255,7 +255,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.MALE,
             birthDate = LocalDate.now().minusYears(12),
             weightKg = 50.0,
-            heightCm = 150.0
+            heightCm = 150.0,
         )
 
         // When: Calculate BMR
@@ -274,7 +274,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = LocalDate.now().minusYears(121),
             weightKg = 50.0,
-            heightCm = 150.0
+            heightCm = 150.0,
         )
 
         // When: Calculate BMR
@@ -293,7 +293,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.MALE,
             birthDate = LocalDate.now().minusYears(20),
             weightKg = 29.9,
-            heightCm = 150.0
+            heightCm = 150.0,
         )
 
         // When: Calculate BMR
@@ -312,7 +312,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = LocalDate.now().minusYears(30),
             weightKg = 300.1,
-            heightCm = 170.0
+            heightCm = 170.0,
         )
 
         // When: Calculate BMR
@@ -331,7 +331,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.MALE,
             birthDate = LocalDate.now().minusYears(25),
             weightKg = 50.0,
-            heightCm = 99.9
+            heightCm = 99.9,
         )
 
         // When: Calculate BMR
@@ -350,7 +350,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.FEMALE,
             birthDate = LocalDate.now().minusYears(30),
             weightKg = 70.0,
-            heightCm = 250.1
+            heightCm = 250.1,
         )
 
         // When: Calculate BMR
@@ -387,7 +387,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.MALE,
             birthDate = LocalDate.now().minusYears(30),
             weightKg = 75.5,
-            heightCm = 178.0
+            heightCm = 178.0,
         )
         whenever(userProfileRepository.getUserProfile()).thenReturn(flowOf(profile))
 
@@ -407,7 +407,7 @@ class EnergyBalanceRepositoryTest {
             sex = UserProfile.Sex.MALE,
             birthDate = LocalDate.now().minusYears(12),
             weightKg = 50.0,
-            heightCm = 150.0
+            heightCm = 150.0,
         )
         whenever(userProfileRepository.getUserProfile()).thenReturn(flowOf(invalidProfile))
 

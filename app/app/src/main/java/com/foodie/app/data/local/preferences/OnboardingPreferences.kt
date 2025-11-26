@@ -44,7 +44,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class OnboardingPreferences @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) {
     companion object {
         private const val PREFS_NAME = "onboarding_prefs"

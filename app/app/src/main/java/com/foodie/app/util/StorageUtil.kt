@@ -3,9 +3,9 @@ package com.foodie.app.util
 import android.content.Context
 import android.os.StatFs
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import timber.log.Timber
 
 /**
  * Utility class for checking device storage availability.
@@ -25,12 +25,12 @@ import javax.inject.Singleton
  */
 @Singleton
 open class StorageUtil @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) {
     companion object {
         private const val TAG = "StorageUtil"
         private const val BYTES_PER_MB = 1024 * 1024
-        
+
         /**
          * Minimum storage threshold in MB.
          *
@@ -41,7 +41,7 @@ open class StorageUtil @Inject constructor(
          */
         const val MINIMUM_STORAGE_MB = 10
     }
-    
+
     /**
      * Checks available storage space in the cache directory.
      *
@@ -58,8 +58,8 @@ open class StorageUtil @Inject constructor(
             val stat = StatFs(cacheDir.path)
             val availableBytes = stat.availableBytes
             val availableMB = availableBytes / BYTES_PER_MB
-            
-            Timber.tag(TAG).d("Available storage: ${availableMB}MB (${availableBytes} bytes)")
+
+            Timber.tag(TAG).d("Available storage: ${availableMB}MB ($availableBytes bytes)")
             availableMB
         } catch (e: Exception) {
             // StatFs can throw exceptions on rare filesystem errors
@@ -68,7 +68,7 @@ open class StorageUtil @Inject constructor(
             0L
         }
     }
-    
+
     /**
      * Checks if sufficient storage space is available for photo operations.
      *
@@ -81,11 +81,11 @@ open class StorageUtil @Inject constructor(
     fun hasEnoughStorage(minimumMB: Int = MINIMUM_STORAGE_MB): Boolean {
         val availableMB = checkAvailableStorageMB()
         val hasEnough = availableMB >= minimumMB
-        
+
         if (!hasEnough) {
             Timber.tag(TAG).w("Insufficient storage: ${availableMB}MB < ${minimumMB}MB required")
         }
-        
+
         return hasEnough
     }
 }

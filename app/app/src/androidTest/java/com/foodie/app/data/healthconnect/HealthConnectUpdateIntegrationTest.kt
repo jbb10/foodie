@@ -8,13 +8,13 @@ import com.foodie.app.data.repository.HealthConnectRepository
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.util.Result
 import com.google.common.truth.Truth.assertThat
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
 
 /**
  * Integration tests validating the Health Connect update flow using the real SDK.
@@ -50,21 +50,21 @@ class HealthConnectUpdateIntegrationTest {
             val originalId = manager.insertNutritionRecord(
                 calories = originalCalories,
                 description = originalDescription,
-                timestamp = timestamp
+                timestamp = timestamp,
             )
 
             val updateResult = repository.updateNutritionRecord(
                 recordId = originalId,
                 calories = updatedCalories,
                 description = updatedDescription,
-                timestamp = timestamp
+                timestamp = timestamp,
             )
 
             assertThat(updateResult).isInstanceOf(Result.Success::class.java)
 
             val records = manager.queryNutritionRecords(
                 startTime = timestamp.minusSeconds(60),
-                endTime = timestamp.plusSeconds(60)
+                endTime = timestamp.plusSeconds(60),
             )
 
             val oldRecordStillExists = records.any { it.metadata.id == originalId }
@@ -111,21 +111,21 @@ class HealthConnectUpdateIntegrationTest {
             val originalId = manager.insertNutritionRecord(
                 calories = calories,
                 description = originalDescription,
-                timestamp = timestamp
+                timestamp = timestamp,
             )
 
             val updateResult = repository.updateNutritionRecord(
                 recordId = originalId,
                 calories = updatedCalories,
                 description = updatedDescription,
-                timestamp = timestamp
+                timestamp = timestamp,
             )
 
             assertThat(updateResult).isInstanceOf(Result.Success::class.java)
 
             val records = manager.queryNutritionRecords(
                 startTime = timestamp.minusSeconds(60),
-                endTime = timestamp.plusSeconds(60)
+                endTime = timestamp.plusSeconds(60),
             )
 
             val updatedRecord = records.find { it.name == updatedDescription }
@@ -169,14 +169,14 @@ class HealthConnectUpdateIntegrationTest {
             val originalId = manager.insertNutritionRecord(
                 calories = originalCalories,
                 description = originalDescription,
-                timestamp = timestamp
+                timestamp = timestamp,
             )
 
             val updateResult = repository.updateNutritionRecord(
                 recordId = originalId,
                 calories = updatedCalories,
                 description = updatedDescription,
-                timestamp = timestamp
+                timestamp = timestamp,
             )
 
             assertThat(updateResult).isInstanceOf(Result.Success::class.java)

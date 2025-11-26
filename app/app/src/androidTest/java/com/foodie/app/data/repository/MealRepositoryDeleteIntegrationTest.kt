@@ -14,14 +14,14 @@ import com.foodie.app.data.local.healthconnect.HealthConnectDataSourceImpl
 import com.foodie.app.domain.repository.MealRepository
 import com.foodie.app.util.Result
 import com.google.common.truth.Truth.assertThat
+import java.time.Instant
+import java.time.ZoneOffset
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.Instant
-import java.time.ZoneOffset
 
 /**
  * Integration test for MealRepository delete operations with Health Connect.
@@ -70,7 +70,7 @@ class MealRepositoryDeleteIntegrationTest {
                 endZoneOffset = ZoneOffset.systemDefault().rules.getOffset(testTimestamp),
                 energy = Energy.kilocalories(1.0),
                 name = "Permission Test",
-                metadata = Metadata.autoRecorded(device = Device(type = Device.TYPE_PHONE))
+                metadata = Metadata.autoRecorded(device = Device(type = Device.TYPE_PHONE)),
             )
 
             // Test permission in blocking call
@@ -80,7 +80,7 @@ class MealRepositoryDeleteIntegrationTest {
                     healthConnectClient.deleteRecords(
                         recordType = NutritionRecord::class,
                         recordIdsList = emptyList(),
-                        clientRecordIdsList = emptyList()
+                        clientRecordIdsList = emptyList(),
                     )
                     hasPermission = true
                 } catch (e: SecurityException) {
@@ -93,8 +93,8 @@ class MealRepositoryDeleteIntegrationTest {
 
         assumeTrue(
             "Health Connect WRITE_NUTRITION permission not granted. " +
-            "Run: adb shell pm grant com.foodie.app android.permission.health.WRITE_NUTRITION",
-            hasPermission
+                "Run: adb shell pm grant com.foodie.app android.permission.health.WRITE_NUTRITION",
+            hasPermission,
         )
     }
 
@@ -106,7 +106,7 @@ class MealRepositoryDeleteIntegrationTest {
                 healthConnectClient.deleteRecords(
                     recordType = NutritionRecord::class,
                     recordIdsList = testRecordIds,
-                    clientRecordIdsList = emptyList()
+                    clientRecordIdsList = emptyList(),
                 )
             } catch (e: Exception) {
                 // Ignore cleanup errors
@@ -129,8 +129,8 @@ class MealRepositoryDeleteIntegrationTest {
             energy = Energy.kilocalories(500.0),
             name = "Test Delete Meal",
             metadata = Metadata.autoRecorded(
-                device = Device(type = Device.TYPE_PHONE)
-            )
+                device = Device(type = Device.TYPE_PHONE),
+            ),
         )
 
         val insertResponse = healthConnectClient.insertRecords(listOf(testRecord))
@@ -142,8 +142,8 @@ class MealRepositoryDeleteIntegrationTest {
             recordType = NutritionRecord::class,
             timeRangeFilter = TimeRangeFilter.between(
                 startTime = timestamp.minusSeconds(10),
-                endTime = timestamp.plusSeconds(10)
-            )
+                endTime = timestamp.plusSeconds(10),
+            ),
         )
         val beforeDelete = healthConnectClient.readRecords(readRequest)
         val recordExists = beforeDelete.records.any { it.metadata.id == recordId }
@@ -192,8 +192,8 @@ class MealRepositoryDeleteIntegrationTest {
             energy = Energy.kilocalories(400.0),
             name = "Test Permanent Delete",
             metadata = Metadata.autoRecorded(
-                device = Device(type = Device.TYPE_PHONE)
-            )
+                device = Device(type = Device.TYPE_PHONE),
+            ),
         )
 
         val insertResponse = healthConnectClient.insertRecords(listOf(testRecord))
@@ -208,8 +208,8 @@ class MealRepositoryDeleteIntegrationTest {
             recordType = NutritionRecord::class,
             timeRangeFilter = TimeRangeFilter.between(
                 startTime = timestamp.minusSeconds(10),
-                endTime = timestamp.plusSeconds(10)
-            )
+                endTime = timestamp.plusSeconds(10),
+            ),
         )
         val afterDelete = healthConnectClient.readRecords(readRequest)
         val recordFound = afterDelete.records.any { it.metadata.id == recordId }
@@ -234,8 +234,8 @@ class MealRepositoryDeleteIntegrationTest {
             energy = Energy.kilocalories(300.0),
             name = "Test Meal 1",
             metadata = Metadata.autoRecorded(
-                device = Device(type = Device.TYPE_PHONE)
-            )
+                device = Device(type = Device.TYPE_PHONE),
+            ),
         )
         val record2 = NutritionRecord(
             startTime = timestamp,
@@ -245,8 +245,8 @@ class MealRepositoryDeleteIntegrationTest {
             energy = Energy.kilocalories(500.0),
             name = "Test Meal 2",
             metadata = Metadata.autoRecorded(
-                device = Device(type = Device.TYPE_PHONE)
-            )
+                device = Device(type = Device.TYPE_PHONE),
+            ),
         )
 
         val insertResponse = healthConnectClient.insertRecords(listOf(record1, record2))
@@ -259,8 +259,8 @@ class MealRepositoryDeleteIntegrationTest {
             recordType = NutritionRecord::class,
             timeRangeFilter = TimeRangeFilter.between(
                 startTime = timestamp.minusSeconds(7200),
-                endTime = timestamp.plusSeconds(10)
-            )
+                endTime = timestamp.plusSeconds(10),
+            ),
         )
         val beforeDelete = healthConnectClient.readRecords(readRequest)
         assertThat(beforeDelete.records.filter { it.metadata.id in listOf(recordId1, recordId2) })

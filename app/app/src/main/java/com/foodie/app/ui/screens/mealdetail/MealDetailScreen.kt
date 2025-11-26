@@ -56,7 +56,7 @@ import java.time.format.FormatStyle
 @Composable
 fun MealDetailScreen(
     viewModel: MealDetailViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -74,7 +74,7 @@ fun MealDetailScreen(
     MealDetailScreenContent(
         state = uiState,
         onEvent = viewModel::onEvent,
-        snackbarHostState = snackbarHostState
+        snackbarHostState = snackbarHostState,
     )
 }
 
@@ -97,7 +97,7 @@ private fun HandleSuccessToast(successMessage: String?, context: android.content
 private fun HandleNavigation(
     shouldNavigateBack: Boolean,
     viewModel: MealDetailViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
 ) {
     LaunchedEffect(shouldNavigateBack) {
         if (shouldNavigateBack) {
@@ -114,7 +114,7 @@ private fun HandleNavigation(
 private fun HandleErrorSnackbar(
     error: String?,
     snackbarHostState: SnackbarHostState,
-    viewModel: MealDetailViewModel
+    viewModel: MealDetailViewModel,
 ) {
     LaunchedEffect(error) {
         error?.let { errorMessage ->
@@ -149,7 +149,7 @@ internal fun MealDetailScreenContent(
     state: MealDetailState,
     onEvent: (MealDetailEvent) -> Unit,
     snackbarHostState: SnackbarHostState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Scaffold(
         topBar = {
@@ -159,19 +159,19 @@ internal fun MealDetailScreenContent(
                     IconButton(onClick = { onEvent(MealDetailEvent.CancelClicked) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Cancel"
+                            contentDescription = "Cancel",
                         )
                     }
-                }
+                },
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        modifier = modifier
+        modifier = modifier,
     ) { paddingValues ->
         MealDetailFormContent(
             state = state,
             onEvent = onEvent,
-            paddingValues = paddingValues
+            paddingValues = paddingValues,
         )
 
         // Delete confirmation dialog
@@ -185,19 +185,19 @@ internal fun MealDetailScreenContent(
 private fun MealDetailFormContent(
     state: MealDetailState,
     onEvent: (MealDetailEvent) -> Unit,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
-            .padding(16.dp)
+            .padding(16.dp),
     ) {
         DescriptionField(
             description = state.description,
             descriptionError = state.descriptionError,
             enabled = !state.isSaving && !state.isDeleting,
-            onDescriptionChange = { onEvent(MealDetailEvent.DescriptionChanged(it)) }
+            onDescriptionChange = { onEvent(MealDetailEvent.DescriptionChanged(it)) },
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -206,7 +206,7 @@ private fun MealDetailFormContent(
             calories = state.calories,
             caloriesError = state.caloriesError,
             enabled = !state.isSaving && !state.isDeleting,
-            onCaloriesChange = { onEvent(MealDetailEvent.CaloriesChanged(it)) }
+            onCaloriesChange = { onEvent(MealDetailEvent.CaloriesChanged(it)) },
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -214,14 +214,14 @@ private fun MealDetailFormContent(
         Text(
             text = "Captured: ${formatTimestamp(state.timestamp)}",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
         ActionButtons(
             state = state,
-            onEvent = onEvent
+            onEvent = onEvent,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -229,7 +229,7 @@ private fun MealDetailFormContent(
         DeleteButton(
             enabled = !state.isSaving && !state.isDeleting,
             isDeleting = state.isDeleting,
-            onClick = { onEvent(MealDetailEvent.DeleteClicked) }
+            onClick = { onEvent(MealDetailEvent.DeleteClicked) },
         )
     }
 }
@@ -239,7 +239,7 @@ private fun DescriptionField(
     description: String,
     descriptionError: String?,
     enabled: Boolean,
-    onDescriptionChange: (String) -> Unit
+    onDescriptionChange: (String) -> Unit,
 ) {
     OutlinedTextField(
         value = description,
@@ -257,7 +257,7 @@ private fun DescriptionField(
             .fillMaxWidth()
             .testTag("descriptionField"),
         maxLines = 3,
-        enabled = enabled
+        enabled = enabled,
     )
 }
 
@@ -266,7 +266,7 @@ private fun CaloriesField(
     calories: String,
     caloriesError: String?,
     enabled: Boolean,
-    onCaloriesChange: (String) -> Unit
+    onCaloriesChange: (String) -> Unit,
 ) {
     OutlinedTextField(
         value = calories,
@@ -280,24 +280,24 @@ private fun CaloriesField(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("caloriesField"),
-        enabled = enabled
+        enabled = enabled,
     )
 }
 
 @Composable
 private fun ActionButtons(
     state: MealDetailState,
-    onEvent: (MealDetailEvent) -> Unit
+    onEvent: (MealDetailEvent) -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         OutlinedButton(
             onClick = { onEvent(MealDetailEvent.CancelClicked) },
             enabled = !state.isSaving && !state.isDeleting,
             modifier = Modifier
                 .weight(1f)
-                .testTag("cancelButton")
+                .testTag("cancelButton"),
         ) {
             Text("Cancel")
         }
@@ -309,7 +309,7 @@ private fun ActionButtons(
             enabled = state.canSave(),
             modifier = Modifier
                 .weight(1f)
-                .testTag("saveButton")
+                .testTag("saveButton"),
         ) {
             Text(if (state.isSaving) "Saving..." else "Save")
         }
@@ -320,14 +320,14 @@ private fun ActionButtons(
 private fun DeleteButton(
     enabled: Boolean,
     isDeleting: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
-            .testTag("deleteButton")
+            .testTag("deleteButton"),
     ) {
         Text(if (isDeleting) "Deleting..." else "Delete Entry")
     }
@@ -335,7 +335,7 @@ private fun DeleteButton(
 
 @Composable
 private fun DeleteConfirmationDialog(
-    onEvent: (MealDetailEvent) -> Unit
+    onEvent: (MealDetailEvent) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = { onEvent(MealDetailEvent.DeleteCancelled) },
@@ -344,7 +344,7 @@ private fun DeleteConfirmationDialog(
         confirmButton = {
             TextButton(
                 onClick = { onEvent(MealDetailEvent.DeleteConfirmed) },
-                modifier = Modifier.testTag("confirmDeleteButton")
+                modifier = Modifier.testTag("confirmDeleteButton"),
             ) {
                 Text("Delete")
             }
@@ -352,11 +352,11 @@ private fun DeleteConfirmationDialog(
         dismissButton = {
             TextButton(
                 onClick = { onEvent(MealDetailEvent.DeleteCancelled) },
-                modifier = Modifier.testTag("cancelDeleteButton")
+                modifier = Modifier.testTag("cancelDeleteButton"),
             ) {
                 Text("Cancel")
             }
         },
-        modifier = Modifier.testTag("deleteConfirmationDialog")
+        modifier = Modifier.testTag("deleteConfirmationDialog"),
     )
 }

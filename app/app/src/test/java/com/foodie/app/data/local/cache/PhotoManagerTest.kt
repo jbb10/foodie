@@ -2,13 +2,13 @@ package com.foodie.app.data.local.cache
 
 import android.content.Context
 import com.google.common.truth.Truth.assertThat
+import java.io.File
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
-import java.io.File
 
 /**
  * Unit tests for [PhotoManager].
@@ -45,7 +45,7 @@ class PhotoManagerTest {
 
         // Extract timestamp portion (between "meal_" and ".jpg")
         val timestamp = filename.substring(5, filename.length - 4)
-        
+
         // Timestamp should be numeric
         val timestampLong = timestamp.toLongOrNull()
         assertThat(timestampLong).isNotNull()

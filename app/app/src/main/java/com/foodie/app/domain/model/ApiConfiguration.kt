@@ -35,7 +35,7 @@ package com.foodie.app.domain.model
 data class ApiConfiguration(
     val apiKey: String = "",
     val endpoint: String = "",
-    val modelName: String = "gpt-4.1"
+    val modelName: String = "gpt-4.1",
 ) {
     /**
      * Indicates whether configuration is complete and valid.

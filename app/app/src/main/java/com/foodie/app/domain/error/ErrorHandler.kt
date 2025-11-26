@@ -2,13 +2,13 @@ package com.foodie.app.domain.error
 
 import com.google.gson.JsonParseException
 import com.google.gson.JsonSyntaxException
-import retrofit2.HttpException
-import timber.log.Timber
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import javax.inject.Inject
 import javax.inject.Singleton
+import retrofit2.HttpException
+import timber.log.Timber
 
 /**
  * Error classification and user messaging utility.
@@ -83,13 +83,13 @@ class ErrorHandler @Inject constructor() {
                         Timber.tag(TAG).d("Classified as ServerError: HTTP ${exception.code()}")
                         ErrorType.ServerError(
                             statusCode = exception.code(),
-                            message = exception.message() ?: "Server error"
+                            message = exception.message() ?: "Server error",
                         )
                     }
                     401, 403 -> {
                         Timber.tag(TAG).d("Classified as AuthError: HTTP ${exception.code()}")
                         ErrorType.AuthError(
-                            message = exception.message() ?: "Authentication failed"
+                            message = exception.message() ?: "Authentication failed",
                         )
                     }
                     429 -> {
@@ -114,7 +114,7 @@ class ErrorHandler @Inject constructor() {
             is SecurityException -> {
                 Timber.tag(TAG).d("Classified as PermissionDenied: Security exception")
                 ErrorType.PermissionDenied(
-                    permissions = extractPermissionsFromException()
+                    permissions = extractPermissionsFromException(),
                 )
             }
 
@@ -260,7 +260,7 @@ class ErrorHandler @Inject constructor() {
                     message = getUserMessage(error),
                     actionText = null,
                     actionIntent = null,
-                    isOngoing = false
+                    isOngoing = false,
                 )
 
             is ErrorType.AuthError ->
@@ -275,7 +275,7 @@ class ErrorHandler @Inject constructor() {
                     message = getUserMessage(error),
                     actionText = null,
                     actionIntent = null,
-                    isOngoing = false
+                    isOngoing = false,
                 )
 
             is ErrorType.ValidationError ->
@@ -284,7 +284,7 @@ class ErrorHandler @Inject constructor() {
                     message = getUserMessage(error),
                     actionText = null,
                     actionIntent = null,
-                    isOngoing = false
+                    isOngoing = false,
                 )
 
             is ErrorType.PermissionDenied ->
@@ -296,7 +296,7 @@ class ErrorHandler @Inject constructor() {
                     message = getUserMessage(error),
                     actionText = "Open Settings",
                     actionIntent = null, // Intent created by caller with context
-                    isOngoing = false
+                    isOngoing = false,
                 )
 
             is ErrorType.ApiKeyMissing ->
@@ -305,7 +305,7 @@ class ErrorHandler @Inject constructor() {
                     message = getUserMessage(error),
                     actionText = "Open Settings",
                     actionIntent = null, // Intent created by caller with context
-                    isOngoing = false
+                    isOngoing = false,
                 )
 
             is ErrorType.StorageFull ->
@@ -314,7 +314,7 @@ class ErrorHandler @Inject constructor() {
                     message = getUserMessage(error),
                     actionText = null,
                     actionIntent = null,
-                    isOngoing = false
+                    isOngoing = false,
                 )
 
             is ErrorType.UnknownError ->
@@ -323,7 +323,7 @@ class ErrorHandler @Inject constructor() {
                     message = getUserMessage(error),
                     actionText = null,
                     actionIntent = null,
-                    isOngoing = false
+                    isOngoing = false,
                 )
         }
     }

@@ -22,7 +22,7 @@ data class MealEntry(
     val timestamp: Instant,
     val description: String,
     val calories: Int,
-    val zoneOffset: ZoneOffset? = null
+    val zoneOffset: ZoneOffset? = null,
 ) {
     init {
         require(calories in 1..5000) {

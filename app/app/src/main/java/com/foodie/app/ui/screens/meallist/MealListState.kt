@@ -25,5 +25,5 @@ data class MealListState(
     val emptyStateVisible: Boolean = false,
     val showDeleteDialog: Boolean = false,
     val deleteTargetId: String? = null,
-    val successMessage: String? = null
+    val successMessage: String? = null,
 )

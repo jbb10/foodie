@@ -7,12 +7,12 @@ import com.foodie.app.data.local.preferences.OnboardingPreferences
 import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.repository.PreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 /**
  * Data class representing the current onboarding state.
@@ -26,7 +26,7 @@ data class OnboardingState(
     val currentPage: Int = 0,
     val totalPages: Int = 4,
     val healthConnectPermissionsGranted: Boolean = false,
-    val apiConfigured: Boolean = false
+    val apiConfigured: Boolean = false,
 )
 
 /**
@@ -60,7 +60,7 @@ class OnboardingViewModel @Inject constructor(
     private val healthConnectManager: HealthConnectManager,
     private val onboardingPreferences: OnboardingPreferences,
     private val securePreferences: SecurePreferences,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
 
     companion object {

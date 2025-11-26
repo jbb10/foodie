@@ -1,9 +1,9 @@
 package com.foodie.app.util
 
-import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import retrofit2.HttpException
 
 /**
  * Maps technical exceptions to user-friendly error messages.
@@ -35,10 +35,10 @@ object ErrorMessages {
     fun toUserMessage(exception: Throwable): String {
         return when (exception) {
             // Network errors
-            is UnknownHostException, is SocketTimeoutException -> 
+            is UnknownHostException, is SocketTimeoutException ->
                 "No internet connection. Please check your network."
-            
-            is IOException -> 
+
+            is IOException ->
                 "Network error. Please check your connection and try again."
 
             // HTTP errors (API calls)
@@ -52,7 +52,7 @@ object ErrorMessages {
             }
 
             // Health Connect specific errors
-            is SecurityException -> 
+            is SecurityException ->
                 "Permission denied. Please grant Health Connect access in settings."
 
             is IllegalStateException -> {
@@ -65,7 +65,7 @@ object ErrorMessages {
             }
 
             // IllegalArgumentException (bad input)
-            is IllegalArgumentException -> 
+            is IllegalArgumentException ->
                 "Invalid input. Please check your data and try again."
 
             // Generic fallback

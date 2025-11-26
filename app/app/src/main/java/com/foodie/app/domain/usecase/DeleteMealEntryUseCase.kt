@@ -13,7 +13,7 @@ import javax.inject.Inject
  * @param mealRepository Repository providing access to meal data operations
  */
 class DeleteMealEntryUseCase @Inject constructor(
-    private val mealRepository: MealRepository
+    private val mealRepository: MealRepository,
 ) {
     /**
      * Deletes a meal entry by ID.

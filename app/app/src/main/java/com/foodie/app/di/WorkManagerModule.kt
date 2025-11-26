@@ -30,7 +30,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object WorkManagerModule {
-    
+
     /**
      * Provides WorkManager Configuration for the application.
      *
@@ -45,14 +45,14 @@ object WorkManagerModule {
     @Provides
     @Singleton
     fun provideWorkManagerConfiguration(
-        workerFactory: HiltWorkerFactory
+        workerFactory: HiltWorkerFactory,
     ): Configuration {
         return Configuration.Builder()
             .setWorkerFactory(workerFactory)
             .setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.DEBUG else Log.INFO)
             .build()
     }
-    
+
     /**
      * Provides WorkManager instance for the application.
      *
@@ -62,7 +62,7 @@ object WorkManagerModule {
     @Provides
     @Singleton
     fun provideWorkManager(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
     ): WorkManager {
         return WorkManager.getInstance(context)
     }

@@ -8,6 +8,10 @@ import com.foodie.app.domain.usecase.DeleteMealEntryUseCase
 import com.foodie.app.domain.usecase.GetMealHistoryUseCase
 import com.foodie.app.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,10 +19,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import javax.inject.Inject
 
 /**
  * ViewModel for the Meal List screen.
@@ -30,23 +30,23 @@ import javax.inject.Inject
 class MealListViewModel @Inject constructor(
     private val getMealHistoryUseCase: GetMealHistoryUseCase,
     private val deleteMealEntryUseCase: DeleteMealEntryUseCase,
-    private val healthConnectManager: HealthConnectManager
+    private val healthConnectManager: HealthConnectManager,
 ) : ViewModel() {
-    
+
     private val _state = MutableStateFlow(MealListState())
     val state: StateFlow<MealListState> = _state.asStateFlow()
-    
+
     /**
      * Creates Health Connect permission request contract.
      * Used by MealListScreen to request permissions when SecurityException detected.
      */
     fun createPermissionRequestContract() = healthConnectManager.createPermissionRequestContract()
-    
+
     /**
      * Checks if Health Connect permissions are granted.
      */
     suspend fun hasHealthConnectPermissions() = healthConnectManager.checkPermissions()
-    
+
     /**
      * Loads meal entries from Health Connect for the last 7 days.
      * Groups meals by date with headers like "Today", "Yesterday", "Nov 7".
@@ -54,14 +54,14 @@ class MealListViewModel @Inject constructor(
     fun loadMeals() {
         fetchMeals(isRefresh = false)
     }
-    
+
     /**
      * Refreshes the meal list (called by pull-to-refresh).
      */
     fun refresh() {
         fetchMeals(isRefresh = true)
     }
-    
+
     private fun fetchMeals(isRefresh: Boolean) {
         viewModelScope.launch {
             val startTimeMs = System.currentTimeMillis()
@@ -81,7 +81,7 @@ class MealListViewModel @Inject constructor(
                                 isLoading = false,
                                 isRefreshing = false,
                                 error = null,
-                                emptyStateVisible = result.data.isEmpty()
+                                emptyStateVisible = result.data.isEmpty(),
                             )
                         }
                         logLoadDuration(isRefresh, startTimeMs, resultCount = result.data.size, isError = false)
@@ -91,7 +91,7 @@ class MealListViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 isRefreshing = false,
-                                error = result.message
+                                error = result.message,
                             )
                         }
                         logLoadDuration(isRefresh, startTimeMs, resultCount = 0, isError = true)
@@ -124,7 +124,7 @@ class MealListViewModel @Inject constructor(
         val today = LocalDate.now()
         val yesterday = today.minusDays(1)
         val dateFormatter = DateTimeFormatter.ofPattern("MMM d")
-        
+
         // First, create a map of header to (date, meals) for proper sorting
         val groupedWithDates = meals
             .groupBy { meal ->
@@ -137,7 +137,7 @@ class MealListViewModel @Inject constructor(
                     mealDate,
                     meal.zoneOffset,
                     today,
-                    yesterday
+                    yesterday,
                 )
                 mealDate
             }
@@ -150,13 +150,13 @@ class MealListViewModel @Inject constructor(
                 Triple(header, mealDate, mealsForDate)
             }
             .sortedByDescending { it.second } // Sort by actual date, newest first
-        
+
         // Convert to map preserving sorted order using LinkedHashMap
         return groupedWithDates.associate { (header, _, mealsForDate) ->
             header to mealsForDate
         }
     }
-    
+
     /**
      * Clears the error state and retries loading meals.
      */
@@ -164,7 +164,7 @@ class MealListViewModel @Inject constructor(
         _state.update { it.copy(error = null) }
         loadMeals()
     }
-    
+
     /**
      * Handles long-press gesture on a meal entry.
      * Shows delete confirmation dialog for the selected entry.
@@ -175,7 +175,7 @@ class MealListViewModel @Inject constructor(
         Timber.d("Long-press detected on meal $mealId, showing delete dialog")
         _state.update { it.copy(showDeleteDialog = true, deleteTargetId = mealId) }
     }
-    
+
     /**
      * Dismisses the delete confirmation dialog without deleting.
      * Clears the selected meal ID.
@@ -184,7 +184,7 @@ class MealListViewModel @Inject constructor(
         Timber.d("Delete dialog dismissed by user")
         _state.update { it.copy(showDeleteDialog = false, deleteTargetId = null) }
     }
-    
+
     /**
      * Confirms deletion of the selected meal entry.
      * Removes the entry from Health Connect and updates the UI state.
@@ -195,40 +195,42 @@ class MealListViewModel @Inject constructor(
             Timber.w("Delete confirmed but no target ID set")
             return
         }
-        
+
         Timber.d("Delete confirmed for meal $targetId")
         viewModelScope.launch {
             val startTimeMs = System.currentTimeMillis()
-            
+
             when (val result = deleteMealEntryUseCase(targetId)) {
                 is Result.Success -> {
                     val elapsed = System.currentTimeMillis() - startTimeMs
                     Timber.i("Meal $targetId deleted successfully in ${elapsed}ms")
-                    
+
                     // Remove entry from state
                     _state.update { state ->
                         val updatedMeals = state.mealsByDate.mapValues { (_, meals) ->
                             meals.filterNot { it.id == targetId }
                         }.filterValues { it.isNotEmpty() }
-                        
+
                         state.copy(
                             mealsByDate = updatedMeals,
                             showDeleteDialog = false,
                             deleteTargetId = null,
                             successMessage = "Entry deleted",
-                            emptyStateVisible = updatedMeals.isEmpty()
+                            emptyStateVisible = updatedMeals.isEmpty(),
                         )
                     }
                 }
                 is Result.Error -> {
                     val elapsed = System.currentTimeMillis() - startTimeMs
                     Timber.e(result.exception, "Failed to delete meal $targetId in ${elapsed}ms: ${result.message}")
-                    
-                    _state.update { it.copy(
-                        showDeleteDialog = false,
-                        deleteTargetId = null,
-                        error = result.message
-                    )}
+
+                    _state.update {
+                        it.copy(
+                            showDeleteDialog = false,
+                            deleteTargetId = null,
+                            error = result.message,
+                        )
+                    }
                 }
                 is Result.Loading -> {
                     // Deletion is a single operation, should never be Loading
@@ -236,7 +238,7 @@ class MealListViewModel @Inject constructor(
             }
         }
     }
-    
+
     /**
      * Clears the success message after it has been displayed.
      */
@@ -251,9 +253,10 @@ class MealListViewModel @Inject constructor(
     fun onDeleteMealConfirmed(meal: MealEntry) {
         Timber.i(
             "Delete requested for meal id=%s (deferred to Story 3.4)",
-            meal.id
+            meal.id,
         )
     }
+
     /**
      * Clears the current error message without reloading.
      */

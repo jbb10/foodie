@@ -15,5 +15,5 @@ import com.foodie.app.domain.model.MealEntry
 data class SampleState(
     val isLoading: Boolean = false,
     val meals: List<MealEntry> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
 )

@@ -5,9 +5,9 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import timber.log.Timber
 
 /**
  * Secure storage for sensitive configuration data using EncryptedSharedPreferences.
@@ -47,7 +47,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class SecurePreferences @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) {
     companion object {
         private const val TAG = "SecurePreferences"
@@ -70,7 +70,7 @@ class SecurePreferences @Inject constructor(
                 ENCRYPTED_PREFS_FILENAME,
                 masterKey,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
             )
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Failed to initialize EncryptedSharedPreferences - using fallback")

@@ -4,13 +4,13 @@ import android.content.SharedPreferences
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.domain.model.UserProfile
 import com.foodie.app.domain.repository.UserProfileRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import timber.log.Timber
 import java.time.Instant
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import timber.log.Timber
 
 /**
  * Implementation of UserProfileRepository.
@@ -33,7 +33,7 @@ import javax.inject.Singleton
 @Singleton
 class UserProfileRepositoryImpl @Inject constructor(
     private val healthConnectManager: HealthConnectManager,
-    private val sharedPreferences: SharedPreferences
+    private val sharedPreferences: SharedPreferences,
 ) : UserProfileRepository {
 
     companion object {
@@ -85,7 +85,7 @@ class UserProfileRepositoryImpl @Inject constructor(
                     sex = sex,
                     birthDate = birthDate,
                     weightKg = weightKg,
-                    heightCm = heightCm
+                    heightCm = heightCm,
                 )
             } else {
                 Timber.tag(TAG).d("Profile incomplete: sex=$sexString, birthDate=$birthDate, weight=${weightRecord != null}, height=${heightRecord != null}")
@@ -124,7 +124,7 @@ class UserProfileRepositoryImpl @Inject constructor(
     override suspend fun updateProfile(
         profile: UserProfile,
         writeWeightToHC: Boolean,
-        writeHeightToHC: Boolean
+        writeHeightToHC: Boolean,
     ): Result<Unit> {
         return try {
             Timber.tag(TAG).d("Updating profile: sex=${profile.sex}, birthDate=${profile.birthDate}, weight=${profile.weightKg}, height=${profile.heightCm}, writeWeight=$writeWeightToHC, writeHeight=$writeHeightToHC")
@@ -147,7 +147,7 @@ class UserProfileRepositoryImpl @Inject constructor(
             if (writeWeightToHC) {
                 val weightResult = healthConnectManager.insertWeight(
                     weightKg = profile.weightKg,
-                    timestamp = Instant.now()
+                    timestamp = Instant.now(),
                 )
                 weightResult.getOrElse { error ->
                     Timber.tag(TAG).e(error, "Failed to insert weight to Health Connect")
@@ -160,7 +160,7 @@ class UserProfileRepositoryImpl @Inject constructor(
             if (writeHeightToHC) {
                 val heightResult = healthConnectManager.insertHeight(
                     heightCm = profile.heightCm,
-                    timestamp = Instant.now()
+                    timestamp = Instant.now(),
                 )
                 heightResult.getOrElse { error ->
                     Timber.tag(TAG).e(error, "Failed to insert height to Health Connect")

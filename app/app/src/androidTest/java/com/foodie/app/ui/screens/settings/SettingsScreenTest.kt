@@ -67,7 +67,7 @@ class SettingsScreenTest {
         composeTestRule.setContent {
             FoodieTheme {
                 SettingsScreen(
-                    onNavigateBack = { backNavigationInvoked = true }
+                    onNavigateBack = { backNavigationInvoked = true },
                 )
             }
         }
@@ -90,7 +90,7 @@ class SettingsScreenTest {
 
         composeTestRule.onNodeWithText(
             "Get your Azure OpenAI credentials at portal.azure.com → Azure OpenAI Service → Keys and Endpoint",
-            substring = true
+            substring = true,
         ).assertIsDisplayed()
     }
 }

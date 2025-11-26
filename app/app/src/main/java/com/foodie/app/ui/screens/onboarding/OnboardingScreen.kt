@@ -73,7 +73,7 @@ fun OnboardingScreen(
     onSkipOnboarding: () -> Unit,
     onNavigateToSettings: () -> Unit,
     healthConnectManager: HealthConnectManager,
-    viewModel: OnboardingViewModel = hiltViewModel()
+    viewModel: OnboardingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val pagerState = rememberPagerState(pageCount = { state.totalPages })
@@ -81,7 +81,7 @@ fun OnboardingScreen(
 
     // Register Health Connect permission launcher
     val requestHealthConnectPermissions = rememberLauncherForActivityResult(
-        healthConnectManager.createPermissionRequestContract()
+        healthConnectManager.createPermissionRequestContract(),
     ) { grantedPermissions ->
         Timber.i("Health Connect permission result: granted=${grantedPermissions.size}, required=${HealthConnectManager.REQUIRED_PERMISSIONS.size}")
         viewModel.onHealthConnectPermissionResult(grantedPermissions)
@@ -94,7 +94,7 @@ fun OnboardingScreen(
 
     HorizontalPager(
         state = pagerState,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) { page ->
         when (page) {
             0 -> WelcomeScreen(
@@ -106,7 +106,7 @@ fun OnboardingScreen(
                 onSkip = {
                     viewModel.markOnboardingCompleted()
                     onSkipOnboarding()
-                }
+                },
             )
             1 -> WidgetSetupScreen(
                 onNext = {
@@ -117,7 +117,7 @@ fun OnboardingScreen(
                 onSkip = {
                     viewModel.markOnboardingCompleted()
                     onSkipOnboarding()
-                }
+                },
             )
             2 -> PermissionsScreen(
                 permissionsGranted = state.healthConnectPermissionsGranted,
@@ -132,7 +132,7 @@ fun OnboardingScreen(
                 onSkip = {
                     viewModel.markOnboardingCompleted()
                     onSkipOnboarding()
-                }
+                },
             )
             3 -> SettingsPromptScreen(
                 apiConfigured = state.apiConfigured,
@@ -144,7 +144,7 @@ fun OnboardingScreen(
                 onSkip = {
                     viewModel.markOnboardingCompleted()
                     onSkipOnboarding()
-                }
+                },
             )
         }
     }
@@ -161,20 +161,20 @@ fun OnboardingScreen(
 @Composable
 fun WelcomeScreen(
     onNext: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         // App icon
         Image(
             painter = painterResource(R.drawable.ic_launcher_foreground),
             contentDescription = "Foodie app icon",
-            modifier = Modifier.size(120.dp)
+            modifier = Modifier.size(120.dp),
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -183,7 +183,7 @@ fun WelcomeScreen(
         Text(
             text = "Welcome to Foodie",
             style = MaterialTheme.typography.headlineLarge,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -193,7 +193,7 @@ fun WelcomeScreen(
             text = "Capture meals in 2 seconds.\nAI analyzes.\nHealth Connect saves.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            lineHeight = 28.sp
+            lineHeight = 28.sp,
         )
 
         Spacer(modifier = Modifier.height(48.dp))
@@ -201,7 +201,7 @@ fun WelcomeScreen(
         // Buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             TextButton(onClick = onSkip) {
                 Text("Skip")
@@ -226,13 +226,13 @@ fun WelcomeScreen(
 @Composable
 fun WidgetSetupScreen(
     onNext: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(48.dp))
 
@@ -240,7 +240,7 @@ fun WidgetSetupScreen(
         Text(
             text = "Add Home Screen Widget",
             style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -250,7 +250,7 @@ fun WidgetSetupScreen(
             text = "Long-press home screen → Widgets → Foodie",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            lineHeight = 28.sp
+            lineHeight = 28.sp,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -259,7 +259,7 @@ fun WidgetSetupScreen(
             text = "The widget launches the camera for fastest meal capture.",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -267,7 +267,7 @@ fun WidgetSetupScreen(
         // Buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             TextButton(onClick = onSkip) {
                 Text("Skip")
@@ -298,13 +298,13 @@ fun PermissionsScreen(
     permissionsGranted: Boolean,
     onRequestPermissions: () -> Unit,
     onNext: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(48.dp))
 
@@ -312,7 +312,7 @@ fun PermissionsScreen(
         Text(
             text = "Grant Health Connect Access",
             style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -322,7 +322,7 @@ fun PermissionsScreen(
             text = "Foodie saves nutrition data to Health Connect for interoperability with other health apps like Google Fit.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            lineHeight = 24.sp
+            lineHeight = 24.sp,
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -333,13 +333,13 @@ fun PermissionsScreen(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = "Permissions granted",
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(48.dp),
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Permissions Granted ✓",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
         } else {
             Button(onClick = onRequestPermissions) {
@@ -352,7 +352,7 @@ fun PermissionsScreen(
         // Buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             TextButton(onClick = onSkip) {
                 Text("Skip")
@@ -385,13 +385,13 @@ fun SettingsPromptScreen(
     apiConfigured: Boolean,
     onOpenSettings: () -> Unit,
     onComplete: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(48.dp))
 
@@ -399,7 +399,7 @@ fun SettingsPromptScreen(
         Text(
             text = "Configure Azure OpenAI",
             style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -409,7 +409,7 @@ fun SettingsPromptScreen(
             text = "Enter your Azure OpenAI API key to enable AI meal analysis.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            lineHeight = 24.sp
+            lineHeight = 24.sp,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -418,7 +418,7 @@ fun SettingsPromptScreen(
             text = "Get your API key at portal.azure.com",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -429,13 +429,13 @@ fun SettingsPromptScreen(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = "API configured",
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(48.dp),
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "API Configured ✓",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
         } else {
             Button(onClick = onOpenSettings) {
@@ -448,7 +448,7 @@ fun SettingsPromptScreen(
         // Buttons (Skip and Done both complete onboarding)
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             TextButton(onClick = onSkip) {
                 Text("Skip")

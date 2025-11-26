@@ -29,7 +29,7 @@ data class UserProfile(
     val sex: Sex,
     val birthDate: LocalDate,
     val weightKg: Double,
-    val heightCm: Double
+    val heightCm: Double,
 ) {
     /**
      * Biological sex for BMR calculation.
@@ -39,7 +39,7 @@ data class UserProfile(
      */
     enum class Sex {
         MALE,
-        FEMALE
+        FEMALE,
     }
 
     /**
@@ -67,13 +67,13 @@ data class UserProfile(
         val age = calculateAge()
         return when {
             age !in 13..120 -> Result.failure(
-                ValidationError("Age must be between 13 and 120")
+                ValidationError("Age must be between 13 and 120"),
             )
             weightKg !in 30.0..300.0 -> Result.failure(
-                ValidationError("Weight must be between 30 and 300 kg")
+                ValidationError("Weight must be between 30 and 300 kg"),
             )
             heightCm !in 100.0..250.0 -> Result.failure(
-                ValidationError("Height must be between 100 and 250 cm")
+                ValidationError("Height must be between 100 and 250 cm"),
             )
             else -> Result.success(Unit)
         }

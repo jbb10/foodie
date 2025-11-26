@@ -55,7 +55,7 @@ import java.time.format.DateTimeFormatter
  */
 @Composable
 fun SampleScreen(
-    viewModel: SampleViewModel = hiltViewModel()
+    viewModel: SampleViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -69,12 +69,12 @@ fun SampleScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
         SampleScreenContent(
             state = state,
             onLoadDataClick = { viewModel.loadSampleData() },
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(paddingValues),
         )
     }
 }
@@ -83,11 +83,11 @@ fun SampleScreen(
 private fun SampleScreenContent(
     state: SampleState,
     onLoadDataClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         when {
             state.isLoading -> {
@@ -99,7 +99,7 @@ private fun SampleScreenContent(
             else -> {
                 MealListContent(
                     meals = state.meals,
-                    onLoadDataClick = onLoadDataClick
+                    onLoadDataClick = onLoadDataClick,
                 )
             }
         }
@@ -110,13 +110,13 @@ private fun SampleScreenContent(
 private fun LoadingContent() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         CircularProgressIndicator()
         Text(
             text = "Loading meal history...",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -126,27 +126,27 @@ private fun EmptyContent(onLoadDataClick: () -> Unit) {
     Column(
         modifier = Modifier.padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             text = "MVVM Pattern Demo",
             style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Text(
             text = "This screen demonstrates the complete MVVM architecture with:\n\n" +
-                    "• Hilt dependency injection\n" +
-                    "• Repository pattern\n" +
-                    "• StateFlow reactive state\n" +
-                    "• Result wrapper error handling\n" +
-                    "• Health Connect integration",
+                "• Hilt dependency injection\n" +
+                "• Repository pattern\n" +
+                "• StateFlow reactive state\n" +
+                "• Result wrapper error handling\n" +
+                "• Health Connect integration",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Button(
             onClick = onLoadDataClick,
-            modifier = Modifier.padding(top = 16.dp)
+            modifier = Modifier.padding(top = 16.dp),
         ) {
             Text("Load Sample Data")
         }
@@ -156,7 +156,7 @@ private fun EmptyContent(onLoadDataClick: () -> Unit) {
 @Composable
 private fun MealListContent(
     meals: List<MealEntry>,
-    onLoadDataClick: () -> Unit
+    onLoadDataClick: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         // Header with reload button
@@ -164,16 +164,16 @@ private fun MealListContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = "Meal History",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
             )
             Text(
                 text = "${meals.size} meals loaded from Health Connect",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             TextButton(onClick = onLoadDataClick) {
                 Text("Reload")
@@ -183,7 +183,7 @@ private fun MealListContent(
         // Meal list
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(meals, key = { it.id }) { meal ->
                 MealCard(meal = meal)
@@ -196,25 +196,25 @@ private fun MealListContent(
 private fun MealCard(meal: MealEntry) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
                 text = meal.description,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
             Text(
                 text = "${meal.calories} kcal",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
             Text(
                 text = formatTimestamp(meal.timestamp),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -232,7 +232,7 @@ private fun EmptyContentPreview() {
     FoodieTheme {
         SampleScreenContent(
             state = SampleState(),
-            onLoadDataClick = {}
+            onLoadDataClick = {},
         )
     }
 }
@@ -243,7 +243,7 @@ private fun LoadingContentPreview() {
     FoodieTheme {
         SampleScreenContent(
             state = SampleState(isLoading = true),
-            onLoadDataClick = {}
+            onLoadDataClick = {},
         )
     }
 }
@@ -257,24 +257,24 @@ private fun MealListPreview() {
                 id = "1",
                 timestamp = Instant.now(),
                 description = "Chicken salad with avocado",
-                calories = 450
+                calories = 450,
             ),
             MealEntry(
                 id = "2",
                 timestamp = Instant.now().minusSeconds(3600),
                 description = "Protein shake",
-                calories = 250
+                calories = 250,
             ),
             MealEntry(
                 id = "3",
                 timestamp = Instant.now().minusSeconds(7200),
                 description = "Oatmeal with berries",
-                calories = 350
-            )
+                calories = 350,
+            ),
         )
         SampleScreenContent(
             state = SampleState(meals = sampleMeals),
-            onLoadDataClick = {}
+            onLoadDataClick = {},
         )
     }
 }

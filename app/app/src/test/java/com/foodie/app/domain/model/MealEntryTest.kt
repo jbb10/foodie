@@ -1,8 +1,8 @@
 package com.foodie.app.domain.model
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.time.Instant
+import org.junit.Test
 
 /**
  * Unit tests for MealEntry domain model validation logic.
@@ -22,7 +22,7 @@ class MealEntryTest {
             id = id,
             timestamp = timestamp,
             description = description,
-            calories = calories
+            calories = calories,
         )
 
         // Then
@@ -42,7 +42,7 @@ class MealEntryTest {
             id = "id",
             timestamp = Instant.now(),
             description = "Small snack",
-            calories = calories
+            calories = calories,
         )
 
         // Then
@@ -59,7 +59,7 @@ class MealEntryTest {
             id = "id",
             timestamp = Instant.now(),
             description = "Large meal",
-            calories = calories
+            calories = calories,
         )
 
         // Then
@@ -74,7 +74,7 @@ class MealEntryTest {
                 id = "id",
                 timestamp = Instant.now(),
                 description = "Invalid meal",
-                calories = 0
+                calories = 0,
             )
         }
 
@@ -90,7 +90,7 @@ class MealEntryTest {
                 id = "id",
                 timestamp = Instant.now(),
                 description = "Invalid meal",
-                calories = 5001
+                calories = 5001,
             )
         }
 
@@ -106,7 +106,7 @@ class MealEntryTest {
                 id = "id",
                 timestamp = Instant.now(),
                 description = "",
-                calories = 500
+                calories = 500,
             )
         }
 
@@ -121,7 +121,7 @@ class MealEntryTest {
                 id = "id",
                 timestamp = Instant.now(),
                 description = "   ",
-                calories = 500
+                calories = 500,
             )
         }
 
@@ -138,7 +138,7 @@ class MealEntryTest {
             id = "id",
             timestamp = Instant.now(),
             description = description,
-            calories = 500
+            calories = 500,
         )
 
         // Then

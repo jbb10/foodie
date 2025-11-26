@@ -57,5 +57,5 @@ data class SettingsState(
     val heightSourcedFromHC: Boolean = false,
     val profileValidationError: String? = null,
     val profileSaveSuccess: Boolean = false,
-    val showProfilePermissionError: Boolean = false
+    val showProfilePermissionError: Boolean = false,
 )

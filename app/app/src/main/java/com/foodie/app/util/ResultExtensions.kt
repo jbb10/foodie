@@ -57,7 +57,7 @@ fun <T> Result<T>.mapError(transform: (String) -> String): Result<T> {
  * Usage:
  * ```
  * repository.saveData()
- *     .onSuccess { data -> 
+ *     .onSuccess { data ->
  *         Timber.i("Data saved: $data")
  *     }
  *     .onError { throwable, message ->

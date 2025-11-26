@@ -42,7 +42,7 @@ class PreferencesRepositoryTest {
         securePreferences = mockk(relaxed = true)
         azureOpenAiApi = mockk(relaxed = true)
         gson = Gson()
-        
+
         every { sharedPreferences.edit() } returns editor
         every { editor.putString(any(), any()) } returns editor
         every { editor.putBoolean(any(), any()) } returns editor
@@ -126,7 +126,7 @@ class PreferencesRepositoryTest {
         // Given: SharedPreferences contains preferences
         val preferences = mapOf(
             "pref_test1" to "value1",
-            "pref_test2" to "value2"
+            "pref_test2" to "value2",
         )
         every { sharedPreferences.all } returns preferences
 
@@ -197,4 +197,3 @@ class PreferencesRepositoryTest {
         assertThat(result.isSuccess).isTrue()
     }
 }
-

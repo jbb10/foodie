@@ -20,6 +20,10 @@ ij_kotlin_packages_to_use_import_on_demand = unset
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
 
+# ktlint rules - allow PascalCase for Composable functions
+ktlint_function-naming = disabled
+ktlint_standard_function-naming = disabled
+
 # Code wrapping
 ij_kotlin_line_break_after_multiline_when_entry = true
 ij_continuation_indent_size = 4

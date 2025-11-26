@@ -63,7 +63,7 @@ import timber.log.Timber
 fun CapturePhotoScreen(
     onPhotoConfirmed: (Uri) -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: CapturePhotoViewModel = hiltViewModel()
+    viewModel: CapturePhotoViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -89,10 +89,10 @@ private fun setupLaunchers(
     viewModel: CapturePhotoViewModel,
     onNavigateBack: () -> Unit,
     hapticFeedback: HapticFeedback,
-    context: Context
+    context: Context,
 ): CaptureLaunchers {
     val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
-        contract = viewModel.createHealthConnectPermissionContract()
+        contract = viewModel.createHealthConnectPermissionContract(),
     ) { granted ->
         Timber.i("Health Connect permission result: granted=${granted.size}, required=${com.foodie.app.data.local.healthconnect.HealthConnectManager.REQUIRED_PERMISSIONS.size}")
         if (granted.containsAll(com.foodie.app.data.local.healthconnect.HealthConnectManager.REQUIRED_PERMISSIONS)) {
@@ -105,7 +105,7 @@ private fun setupLaunchers(
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
+        contract = ActivityResultContracts.RequestPermission(),
     ) { granted ->
         if (granted) {
             viewModel.onPermissionGranted()
@@ -115,7 +115,7 @@ private fun setupLaunchers(
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
+        contract = ActivityResultContracts.TakePicture(),
     ) { success ->
         if (success) {
             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -128,7 +128,7 @@ private fun setupLaunchers(
     }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
+        contract = ActivityResultContracts.RequestPermission(),
     ) { granted ->
         viewModel.onNotificationPermissionResult(granted, context)
     }
@@ -137,7 +137,7 @@ private fun setupLaunchers(
         healthConnect = healthConnectPermissionLauncher,
         camera = cameraLauncher,
         permission = permissionLauncher,
-        notification = notificationPermissionLauncher
+        notification = notificationPermissionLauncher,
     )
 }
 
@@ -146,13 +146,13 @@ private fun HandleStateEffects(
     state: CaptureState,
     launchers: CaptureLaunchers,
     viewModel: CapturePhotoViewModel,
-    context: Context
+    context: Context,
 ) {
     LaunchedEffect(state) {
         when (state) {
             is CaptureState.RequestingHealthConnectPermission -> {
                 launchers.healthConnect.launch(
-                    com.foodie.app.data.local.healthconnect.HealthConnectManager.REQUIRED_PERMISSIONS
+                    com.foodie.app.data.local.healthconnect.HealthConnectManager.REQUIRED_PERMISSIONS,
                 )
             }
             is CaptureState.RequestingPermission -> {
@@ -182,14 +182,15 @@ private fun CaptureScreenContent(
     viewModel: CapturePhotoViewModel,
     onPhotoConfirmed: (Uri) -> Unit,
     onNavigateBack: () -> Unit,
-    context: Context
+    context: Context,
 ) {
     when (state) {
         is CaptureState.Idle,
         is CaptureState.RequestingHealthConnectPermission,
         is CaptureState.RequestingPermission,
         is CaptureState.ReadyToCapture,
-        is CaptureState.Processing -> {
+        is CaptureState.Processing,
+        -> {
             LoadingState(state)
         }
         is CaptureState.BackgroundProcessingStarted -> {
@@ -228,11 +229,11 @@ private fun CaptureScreenContent(
 private fun LoadingState(state: CaptureState) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             CircularProgressIndicator()
             Text(
@@ -242,7 +243,7 @@ private fun LoadingState(state: CaptureState) {
                     is CaptureState.Processing -> stringResource(R.string.capture_processing_photo)
                     else -> stringResource(R.string.capture_preparing_camera)
                 },
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }
@@ -255,7 +256,7 @@ private fun NotificationPermissionRequiredState(viewModel: CapturePhotoViewModel
             photoUri = processedUri,
             onRetake = { viewModel.onRetake() },
             onUsePhoto = { },
-            confirmationEnabled = false
+            confirmationEnabled = false,
         )
     }
 }
@@ -264,7 +265,7 @@ private fun NotificationPermissionRequiredState(viewModel: CapturePhotoViewModel
 private fun NotificationPermissionDeniedState(
     viewModel: CapturePhotoViewModel,
     onNavigateBack: () -> Unit,
-    context: Context
+    context: Context,
 ) {
     NotificationPermissionDeniedScreen(
         onRetry = { viewModel.retryNotificationPermission() },
@@ -274,19 +275,19 @@ private fun NotificationPermissionDeniedState(
             }
             context.startActivity(intent)
         },
-        onCancel = onNavigateBack
+        onCancel = onNavigateBack,
     )
 }
 
 @Composable
 private fun ProcessingCompleteState(
     state: CaptureState.ProcessingComplete,
-    viewModel: CapturePhotoViewModel
+    viewModel: CapturePhotoViewModel,
 ) {
     PreviewScreen(
         photoUri = state.processedPhotoUri,
         onRetake = { viewModel.onRetake() },
-        onUsePhoto = { ctx -> viewModel.onUsePhoto(ctx) }
+        onUsePhoto = { ctx -> viewModel.onUsePhoto(ctx) },
     )
 }
 
@@ -295,12 +296,12 @@ private fun ErrorState(
     state: CaptureState.Error,
     viewModel: CapturePhotoViewModel,
     onNavigateBack: () -> Unit,
-    context: Context
+    context: Context,
 ) {
     CaptureErrorScreen(
         message = state.message,
         onRetry = { viewModel.checkPermissionAndPrepare(context) },
-        onCancel = onNavigateBack
+        onCancel = onNavigateBack,
     )
 }
 
@@ -313,7 +314,7 @@ private fun PermissionDeniedState(onNavigateBack: () -> Unit, context: Context) 
             }
             context.startActivity(intent)
         },
-        onCancel = onNavigateBack
+        onCancel = onNavigateBack,
     )
 }
 
@@ -321,7 +322,7 @@ private data class CaptureLaunchers(
     val healthConnect: androidx.activity.result.ActivityResultLauncher<Set<String>>,
     val camera: androidx.activity.result.ActivityResultLauncher<Uri>,
     val permission: androidx.activity.result.ActivityResultLauncher<String>,
-    val notification: androidx.activity.result.ActivityResultLauncher<String>
+    val notification: androidx.activity.result.ActivityResultLauncher<String>,
 )
 
 /**
@@ -335,31 +336,31 @@ private data class CaptureLaunchers(
 private fun CaptureErrorScreen(
     message: String,
     onRetry: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
                 text = stringResource(R.string.capture_error_title),
                 style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
             )
 
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedButton(onClick = onCancel) {
                     Text(stringResource(R.string.capture_cancel))
@@ -383,29 +384,29 @@ private fun CaptureErrorScreen(
 @Composable
 internal fun PermissionDeniedScreen(
     onOpenSettings: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
                 text = stringResource(R.string.capture_permission_denied_title),
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.headlineSmall,
             )
 
             Text(
                 text = stringResource(R.string.capture_permission_denied_message),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedButton(onClick = onCancel) {
                     Text(stringResource(R.string.capture_cancel))
@@ -422,29 +423,29 @@ internal fun PermissionDeniedScreen(
 private fun NotificationPermissionDeniedScreen(
     onRetry: () -> Unit,
     onOpenSettings: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
                 text = stringResource(R.string.capture_notification_permission_title),
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.headlineSmall,
             )
 
             Text(
                 text = stringResource(R.string.capture_notification_permission_denied),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedButton(onClick = onCancel) {
                     Text(stringResource(R.string.capture_cancel))
@@ -471,30 +472,30 @@ private fun NotificationPermissionDeniedScreen(
 @Composable
 private fun HealthConnectPermissionDeniedScreen(
     onOpenHealthConnect: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
                 text = "Health Connect Required",
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.headlineSmall,
             )
 
             Text(
                 text = "Foodie saves your meal nutrition to Health Connect. " +
-                      "Tap 'Grant Access' to open Health Connect settings.",
-                style = MaterialTheme.typography.bodyMedium
+                    "Tap 'Grant Access' to open Health Connect settings.",
+                style = MaterialTheme.typography.bodyMedium,
             )
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedButton(onClick = onCancel) {
                     Text("Cancel")
@@ -519,27 +520,27 @@ private fun HealthConnectPermissionDeniedScreen(
  */
 @Composable
 internal fun StorageFullScreen(
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
                 text = stringResource(R.string.capture_storage_full_title),
                 style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
             )
 
             Text(
                 text = stringResource(R.string.capture_storage_full_message),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
 
             Button(onClick = onCancel) {

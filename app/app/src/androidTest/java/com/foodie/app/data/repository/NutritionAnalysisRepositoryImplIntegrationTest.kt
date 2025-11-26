@@ -59,11 +59,11 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         gson = Gson()
 
         // Mock dependencies
-    mockSecurePreferences = mockk(relaxed = true)
-    mockImageUtils = mockk()
+        mockSecurePreferences = mockk(relaxed = true)
+        mockImageUtils = mockk()
 
         // Configure mocks
-    every { mockSecurePreferences.azureOpenAiModel } returns "gpt-4.1"
+        every { mockSecurePreferences.azureOpenAiModel } returns "gpt-4.1"
 
         // Create Retrofit with mock server base URL
         val retrofit = Retrofit.Builder()
@@ -79,7 +79,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
             imageUtils = mockImageUtils,
             securePreferences = mockSecurePreferences,
             gson = gson,
-            context = context
+            context = context,
         )
     }
 
@@ -93,8 +93,8 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         // Arrange
         val mockUri = Uri.parse("content://mock/photo.jpg")
         val base64Image = "data:image/jpeg;base64,test123"
-        
-    every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
+
+        every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         val mockResponse = """
             {
@@ -113,7 +113,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
             MockResponse()
                 .setResponseCode(200)
                 .setBody(mockResponse)
-                .addHeader("Content-Type", "application/json")
+                .addHeader("Content-Type", "application/json"),
         )
 
         // Act
@@ -131,8 +131,8 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         // Arrange
         val mockUri = Uri.parse("content://mock/photo.jpg")
         val base64Image = "data:image/jpeg;base64,test123"
-        
-    every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
+
+        every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         // Simulate network error by enqueueing no response (server closes connection)
         mockWebServer.shutdown()
@@ -151,13 +151,13 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         // Arrange
         val mockUri = Uri.parse("content://mock/photo.jpg")
         val base64Image = "data:image/jpeg;base64,test123"
-        
-    every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
+
+        every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(401)
-                .setBody("{\"error\": \"Unauthorized\"}")
+                .setBody("{\"error\": \"Unauthorized\"}"),
         )
 
         // Act
@@ -174,13 +174,13 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         // Arrange
         val mockUri = Uri.parse("content://mock/photo.jpg")
         val base64Image = "data:image/jpeg;base64,test123"
-        
-    every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
+
+        every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(500)
-                .setBody("{\"error\": \"Internal Server Error\"}")
+                .setBody("{\"error\": \"Internal Server Error\"}"),
         )
 
         // Act
@@ -197,8 +197,8 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         // Arrange
         val mockUri = Uri.parse("content://mock/photo.jpg")
         val base64Image = "data:image/jpeg;base64,test123"
-        
-    every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
+
+        every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         val mockResponse = """
             {
@@ -212,7 +212,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setBody(mockResponse)
+                .setBody(mockResponse),
         )
 
         // Act
@@ -229,7 +229,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         // Arrange
         val mockUri = Uri.parse("content://mock/photo.jpg")
         val base64Image = "data:image/jpeg;base64,test123"
-        
+
         every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         val mockResponse = """
@@ -248,7 +248,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setBody(mockResponse)
+                .setBody(mockResponse),
         )
 
         // Act
@@ -266,7 +266,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         // Arrange
         val mockUri = Uri.parse("content://mock/empty_plate.jpg")
         val base64Image = "data:image/jpeg;base64,empty123"
-        
+
         every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         val mockResponse = """
@@ -285,7 +285,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setBody(mockResponse)
+                .setBody(mockResponse),
         )
 
         // Act
@@ -303,7 +303,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         // Arrange
         val mockUri = Uri.parse("content://mock/landscape.jpg")
         val base64Image = "data:image/jpeg;base64,scenery123"
-        
+
         every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
 
         val mockResponse = """
@@ -322,7 +322,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setBody(mockResponse)
+                .setBody(mockResponse),
         )
 
         // Act

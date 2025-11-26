@@ -8,15 +8,15 @@ import android.media.ExifInterface
 import android.net.Uri
 import androidx.core.content.FileProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.sqrt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * Utility class for managing photo files in the app cache directory.
@@ -46,7 +46,7 @@ import kotlin.math.sqrt
  */
 @Singleton
 class PhotoManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) {
     companion object {
         private const val PHOTOS_DIR = "photos"
@@ -102,29 +102,29 @@ class PhotoManager @Inject constructor(
             val options = BitmapFactory.Options().apply {
                 inJustDecodeBounds = true
             }
-            
+
             context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
                 BitmapFactory.decodeStream(inputStream, null, options)
             }
-            
+
             val imageWidth = options.outWidth
             val imageHeight = options.outHeight
-            
+
             if (imageWidth <= 0 || imageHeight <= 0) {
                 Timber.e("Failed to read image dimensions from URI: $sourceUri")
                 return@withContext null
             }
-            
+
             // Calculate inSampleSize for memory-efficient decode
             // If image is 12MP (4000x3000), inSampleSize=2 decodes at 2000x1500 (3MP)
             val inSampleSize = calculateInSampleSize(imageWidth, imageHeight, MAX_PIXELS)
-            
+
             // Second pass: Decode bitmap with inSampleSize optimization
             options.apply {
                 inJustDecodeBounds = false
                 this.inSampleSize = inSampleSize
             }
-            
+
             val originalBitmap = context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
                 BitmapFactory.decodeStream(inputStream, null, options)
             }
@@ -154,12 +154,12 @@ class PhotoManager @Inject constructor(
             val processedUri = FileProvider.getUriForFile(
                 context,
                 FILE_PROVIDER_AUTHORITY,
-                processedFile
+                processedFile,
             )
 
             Timber.d(
                 "Photo processed: ${processedFile.length() / 1024}KB " +
-                        "(${resizedBitmap.width}x${resizedBitmap.height})"
+                    "(${resizedBitmap.width}x${resizedBitmap.height})",
             )
 
             processedUri
@@ -236,7 +236,7 @@ class PhotoManager @Inject constructor(
 
             val orientation = exif.getAttributeInt(
                 ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_NORMAL
+                ExifInterface.ORIENTATION_NORMAL,
             )
 
             val matrix = Matrix()
@@ -295,10 +295,10 @@ class PhotoManager @Inject constructor(
         }
 
         Timber.d(
-            "Image ${width}x${height} (${currentPixels / 1_000_000.0}MP) " +
-                    "→ inSampleSize=$inSampleSize " +
-                    "→ decoded as ${width / inSampleSize}x${height / inSampleSize} " +
-                    "(${(width / inSampleSize * height / inSampleSize) / 1_000_000.0}MP)"
+            "Image ${width}x$height (${currentPixels / 1_000_000.0}MP) " +
+                "→ inSampleSize=$inSampleSize " +
+                "→ decoded as ${width / inSampleSize}x${height / inSampleSize} " +
+                "(${(width / inSampleSize * height / inSampleSize) / 1_000_000.0}MP)",
         )
 
         return inSampleSize
@@ -333,7 +333,7 @@ class PhotoManager @Inject constructor(
 
         Timber.d(
             "Resizing photo from ${bitmap.width}x${bitmap.height} " +
-                    "to ${newWidth}x${newHeight}"
+                "to ${newWidth}x$newHeight",
         )
 
         return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
@@ -356,7 +356,7 @@ class PhotoManager @Inject constructor(
             null
         }
     }
-    
+
     /**
      * Gets current cache statistics for monitoring storage usage.
      *
@@ -376,37 +376,37 @@ class PhotoManager @Inject constructor(
      */
     suspend fun getCacheStats(): CacheStats = withContext(Dispatchers.IO) {
         val cacheDir = getCacheDir()
-        
+
         if (!cacheDir.exists()) {
             return@withContext CacheStats(
                 totalSizeBytes = 0L,
                 photoCount = 0,
-                oldestPhotoAgeHours = null
+                oldestPhotoAgeHours = null,
             )
         }
-        
+
         val files = cacheDir.listFiles() ?: emptyArray()
-        
+
         if (files.isEmpty()) {
             return@withContext CacheStats(
                 totalSizeBytes = 0L,
                 photoCount = 0,
-                oldestPhotoAgeHours = null
+                oldestPhotoAgeHours = null,
             )
         }
-        
+
         val totalSize = files.sumOf { it.length() }
         val currentTime = System.currentTimeMillis()
-        
+
         val oldestFile = files.minByOrNull { it.lastModified() }
         val oldestAgeHours = oldestFile?.let {
             ((currentTime - it.lastModified()) / (1000 * 60 * 60)).toInt()
         }
-        
+
         CacheStats(
             totalSizeBytes = totalSize,
             photoCount = files.size,
-            oldestPhotoAgeHours = oldestAgeHours
+            oldestPhotoAgeHours = oldestAgeHours,
         )
     }
 }
@@ -423,5 +423,5 @@ class PhotoManager @Inject constructor(
 data class CacheStats(
     val totalSizeBytes: Long,
     val photoCount: Int,
-    val oldestPhotoAgeHours: Int?
+    val oldestPhotoAgeHours: Int?,
 )

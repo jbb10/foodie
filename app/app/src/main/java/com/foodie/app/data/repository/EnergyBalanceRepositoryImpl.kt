@@ -3,11 +3,11 @@ package com.foodie.app.data.repository
 import com.foodie.app.domain.model.UserProfile
 import com.foodie.app.domain.repository.EnergyBalanceRepository
 import com.foodie.app.domain.repository.UserProfileRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Implementation of EnergyBalanceRepository.
@@ -28,7 +28,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class EnergyBalanceRepositoryImpl @Inject constructor(
-    private val userProfileRepository: UserProfileRepository
+    private val userProfileRepository: UserProfileRepository,
 ) : EnergyBalanceRepository {
 
     companion object {

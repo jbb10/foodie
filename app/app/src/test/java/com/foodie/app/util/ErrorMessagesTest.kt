@@ -1,13 +1,13 @@
 package com.foodie.app.util
 
 import com.google.common.truth.Truth.assertThat
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Test
 import retrofit2.HttpException
 import retrofit2.Response
-import java.io.IOException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 
 /**
  * Unit tests for ErrorMessages utility.
@@ -168,7 +168,7 @@ class ErrorMessagesTest {
             IllegalStateException("Health Connect unavailable"),
             IllegalStateException("Generic error"),
             IllegalArgumentException(),
-            RuntimeException()
+            RuntimeException(),
         )
 
         exceptions.forEach { exception ->
@@ -184,7 +184,7 @@ class ErrorMessagesTest {
             UnknownHostException(),
             SecurityException(),
             IllegalStateException("Health Connect unavailable"),
-            HttpException(Response.error<Any>(401, "".toResponseBody(null)))
+            HttpException(Response.error<Any>(401, "".toResponseBody(null))),
         )
 
         exceptions.forEach { exception ->

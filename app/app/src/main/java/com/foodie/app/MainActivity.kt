@@ -24,9 +24,9 @@ import com.foodie.app.ui.components.HealthConnectUnavailableDialog
 import com.foodie.app.ui.navigation.NavGraph
 import com.foodie.app.ui.theme.FoodieTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 /**
  * Main activity for the Foodie application.
@@ -85,27 +85,26 @@ class MainActivity : ComponentActivity() {
                 isFirstLaunch = isFirstLaunch,
                 prefs = prefs,
                 onShowDialog = { showHealthConnectDialog = it },
-                requestHealthConnect = requestHealthConnectPermissions
+                requestHealthConnect = requestHealthConnectPermissions,
             )
 
             NavGraph(
                 healthConnectManager = healthConnectManager,
                 onboardingPreferences = onboardingPreferences,
-                initialRoute = navigateToRoute
+                initialRoute = navigateToRoute,
             )
 
             if (showHealthConnectDialog) {
                 HealthConnectUnavailableDialog(
-                    onDismiss = { showHealthConnectDialog = false }
+                    onDismiss = { showHealthConnectDialog = false },
                 )
             }
         }
     }
 
     @Composable
-    private fun createHealthConnectPermissionLauncher(
-    ) = rememberLauncherForActivityResult(
-        healthConnectManager.createPermissionRequestContract()
+    private fun createHealthConnectPermissionLauncher() = rememberLauncherForActivityResult(
+        healthConnectManager.createPermissionRequestContract(),
     ) { granted ->
         Timber.i("Health Connect permission result: granted=${granted.size}, required=${HealthConnectManager.REQUIRED_PERMISSIONS.size}")
 
@@ -147,7 +146,7 @@ class MainActivity : ComponentActivity() {
         isFirstLaunch: Boolean,
         prefs: SharedPreferences,
         onShowDialog: (Boolean) -> Unit,
-        requestHealthConnect: ActivityResultLauncher<Set<String>>
+        requestHealthConnect: ActivityResultLauncher<Set<String>>,
     ) {
         LaunchedEffect(Unit) {
             Timber.i("🎯 Checking permissions on launch (first_launch=$isFirstLaunch)")

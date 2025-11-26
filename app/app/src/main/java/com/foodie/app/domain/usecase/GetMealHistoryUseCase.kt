@@ -3,8 +3,8 @@ package com.foodie.app.domain.usecase
 import com.foodie.app.data.repository.HealthConnectRepository
 import com.foodie.app.domain.model.MealEntry
 import com.foodie.app.util.Result
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Use case to get the meal history from the last 7 days.
@@ -16,7 +16,7 @@ import javax.inject.Inject
  * @param healthConnectRepository Repository for Health Connect operations
  */
 class GetMealHistoryUseCase @Inject constructor(
-    private val healthConnectRepository: HealthConnectRepository
+    private val healthConnectRepository: HealthConnectRepository,
 ) {
     /**
      * Invokes the use case to get meal history.

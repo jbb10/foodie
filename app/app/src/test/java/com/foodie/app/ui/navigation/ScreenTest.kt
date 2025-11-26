@@ -28,7 +28,7 @@ class ScreenTest {
             recordId = "test-meal-123",
             calories = 450,
             description = "Grilled chicken",
-            timestamp = 1731421800000L
+            timestamp = 1731421800000L,
         )
 
         assertThat(route)
@@ -41,7 +41,7 @@ class ScreenTest {
             recordId = "abc-123-xyz",
             calories = 620,
             description = "Yogurt & berries",
-            timestamp = 1731421800000L
+            timestamp = 1731421800000L,
         )
 
         assertThat(route)
@@ -58,9 +58,9 @@ class ScreenTest {
         val routes = listOf(
             Screen.MealList.route,
             Screen.MealDetail.route,
-            Screen.Settings.route
+            Screen.Settings.route,
         )
-        
+
         assertThat(routes).containsNoDuplicates()
     }
 }

@@ -66,7 +66,7 @@ object MealCaptureWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             GlanceTheme {
-                WidgetContent(context)
+                widgetContent(context)
             }
         }
     }
@@ -80,7 +80,7 @@ object MealCaptureWidget : GlanceAppWidget() {
      * @param context Android context for creating navigation intent
      */
     @Composable
-    private fun WidgetContent(context: Context) {
+    private fun widgetContent(context: Context) {
         // Simple 1x1 icon widget - uses dedicated widget icon
         Image(
             provider = ImageProvider(R.mipmap.ic_widget_foreground),
@@ -88,7 +88,7 @@ object MealCaptureWidget : GlanceAppWidget() {
             modifier = GlanceModifier
                 .fillMaxSize()
                 .clickable(onClick = actionStartActivity(createDeepLinkIntent(context))),
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.Fit,
         )
     }
 

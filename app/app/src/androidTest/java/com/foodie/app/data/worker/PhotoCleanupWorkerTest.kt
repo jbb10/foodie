@@ -7,6 +7,8 @@ import androidx.work.testing.TestListenableWorkerBuilder
 import com.foodie.app.data.local.cache.PhotoManager
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import java.io.File
+import javax.inject.Inject
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -14,8 +16,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import javax.inject.Inject
 
 /**
  * Unit tests for PhotoCleanupWorker.
@@ -125,8 +125,10 @@ class PhotoCleanupWorkerTest {
         recentFile2.createNewFile()
         // Fresh file (just created)
 
-        assertTrue("Setup: All files should exist",
-            oldFile1.exists() && oldFile2.exists() && recentFile1.exists() && recentFile2.exists())
+        assertTrue(
+            "Setup: All files should exist",
+            oldFile1.exists() && oldFile2.exists() && recentFile1.exists() && recentFile2.exists(),
+        )
 
         // Act: Run the cleanup worker
         val worker = TestListenableWorkerBuilder<PhotoCleanupWorker>(context)
@@ -199,8 +201,11 @@ class PhotoCleanupWorkerTest {
         val result = worker.doWork()
 
         // Assert: Worker succeeds even if file deletion fails
-        assertEquals("Worker should succeed despite deletion failure",
-            ListenableWorker.Result.success(), result)
+        assertEquals(
+            "Worker should succeed despite deletion failure",
+            ListenableWorker.Result.success(),
+            result,
+        )
 
         // Cleanup: Reset permissions for tearDown
         readOnlyFile.setWritable(true)

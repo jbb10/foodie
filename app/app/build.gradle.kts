@@ -34,17 +34,17 @@ android {
         buildConfigField(
             "String",
             "AZURE_OPENAI_API_KEY",
-            properties.getProperty("azure.openai.api.key", "\"\"")
+            properties.getProperty("azure.openai.api.key", "\"\""),
         )
         buildConfigField(
             "String",
             "AZURE_OPENAI_ENDPOINT",
-            properties.getProperty("azure.openai.endpoint", "\"https://your-resource.openai.azure.com\"")
+            properties.getProperty("azure.openai.endpoint", "\"https://your-resource.openai.azure.com\""),
         )
         buildConfigField(
             "String",
             "AZURE_OPENAI_MODEL",
-            properties.getProperty("azure.openai.model", "\"gpt-4.1\"")
+            properties.getProperty("azure.openai.model", "\"gpt-4.1\""),
         )
     }
 
@@ -54,7 +54,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
         debug {
@@ -77,9 +77,9 @@ android {
 
         // Enable additional warnings
         freeCompilerArgs += listOf(
-            "-Xjsr305=strict",                    // Strict null-safety for Java interop
-            "-opt-in=kotlin.RequiresOptIn",       // Opt-in APIs
-            "-Xcontext-receivers"                 // Context receivers (experimental)
+            "-Xjsr305=strict", // Strict null-safety for Java interop
+            "-opt-in=kotlin.RequiresOptIn", // Opt-in APIs
+            "-Xcontext-receivers", // Context receivers (experimental)
         )
     }
 
@@ -118,35 +118,35 @@ android {
 
         // Disable specific checks that may be too noisy or not applicable
         disable += listOf(
-            "ObsoleteLintCustomCheck",  // For migration periods
-            "GradleDependency"          // Managed separately
+            "ObsoleteLintCustomCheck", // For migration periods
+            "GradleDependency", // Managed separately
         )
 
         // Enable specific important checks
         enable += listOf(
-            "Interoperability",         // Kotlin/Java interop issues
-            "UnusedResources",          // Dead code detection
+            "Interoperability", // Kotlin/Java interop issues
+            "UnusedResources", // Dead code detection
             "IconMissingDensityFolder", // Missing icon variants
-            "InvalidPackage"            // Invalid dependencies
+            "InvalidPackage", // Invalid dependencies
         )
 
         // Treat specific checks as errors
         error += listOf(
-            "StopShip",                 // TODOs marked for removal
-            "NewApi",                   // API version issues
-            "InlinedApi",               // Inlined constants
-            "ObsoleteSdkInt"            // Outdated SDK checks
+            "StopShip", // TODOs marked for removal
+            "NewApi", // API version issues
+            "InlinedApi", // Inlined constants
+            "ObsoleteSdkInt", // Outdated SDK checks
         )
 
         // Treat specific checks as warnings
         warning += listOf(
             "UnusedResources",
-            "IconDensities"
+            "IconDensities",
         )
 
         // Informational only
         informational += listOf(
-            "LogConditional"
+            "LogConditional",
         )
     }
 
@@ -282,7 +282,7 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         "**/*Component$*.class",
         "**/*ComposableSingletons$*.class",
         "**/*_Impl.class",
-        "**/*_Impl$*.class"
+        "**/*_Impl$*.class",
     )
 
     val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
@@ -293,11 +293,13 @@ tasks.register<JacocoReport>("jacocoTestReport") {
 
     sourceDirectories.setFrom(files(mainSrc))
     classDirectories.setFrom(files(debugTree))
-    executionData.setFrom(fileTree(project.buildDir) {
-        include(
-            "jacoco/testDebugUnitTest.exec",
-            "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
-            "outputs/code_coverage/debugAndroidTest/connected/**/*.ec"
-        )
-    })
+    executionData.setFrom(
+        fileTree(project.buildDir) {
+            include(
+                "jacoco/testDebugUnitTest.exec",
+                "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
+                "outputs/code_coverage/debugAndroidTest/connected/**/*.ec",
+            )
+        },
+    )
 }

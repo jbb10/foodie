@@ -6,12 +6,12 @@ import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import javax.inject.Inject
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import javax.inject.Inject
 
 /**
  * Instrumentation test for Health Connect permission request flow.
@@ -69,7 +69,7 @@ class HealthConnectPermissionFlowTest {
             "android.permission.health.READ_WEIGHT",
             "android.permission.health.WRITE_WEIGHT",
             "android.permission.health.READ_HEIGHT",
-            "android.permission.health.WRITE_HEIGHT"
+            "android.permission.health.WRITE_HEIGHT",
         )
     }
 }

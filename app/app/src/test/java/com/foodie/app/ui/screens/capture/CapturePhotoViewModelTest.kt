@@ -44,7 +44,7 @@ class CapturePhotoViewModelTest {
 
     @Mock
     private lateinit var mockPhotoManager: PhotoManager
-    
+
     @Mock
     private lateinit var mockWorkManager: WorkManager
 
@@ -61,16 +61,16 @@ class CapturePhotoViewModelTest {
     fun setup() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        
+
         // Default mock behavior: sufficient storage available
         whenever(mockStorageUtil.hasEnoughStorage(any())).thenReturn(true)
         whenever(mockStorageUtil.checkAvailableStorageMB()).thenReturn(50L)
-        
+
         viewModel = CapturePhotoViewModel(
             mockPhotoManager,
             mockWorkManager,
             mockHealthConnectManager,
-            mockStorageUtil
+            mockStorageUtil,
         )
     }
 
