@@ -197,7 +197,134 @@ Expected ready-for-dev or in-progress. Continuing anyway...
     <action>Save the story file</action>
     <action>Determine if more incomplete tasks remain</action>
     <action if="more tasks remain"><goto step="2">Next task</goto></action>
-    <action if="no tasks remain"><goto step="6">Completion</goto></action>
+    <action if="no tasks remain"><goto step="5.5">Quality Gate</goto></action>
+  </step>
+
+  <step n="5.5" goal="Execute Quality Gate - Lint and SonarQube Loop" tag="quality-gate">
+    <critical>This is a MANDATORY quality gate that MUST complete successfully before story can be marked for review</critical>
+    <critical>This loop ensures code quality standards are met and prevents technical debt accumulation</critical>
+
+    <output>🎯 **Quality Gate Initiated**
+
+Running automated quality checks to ensure delivery standards...
+    </output>
+
+    <anchor id="quality_loop_start" />
+
+    <!-- Step 1: Lint and Auto-fix -->
+    <action>Run terminal command: make lint-fix</action>
+    <action>Wait for command to complete</action>
+    <action>Check exit code of lint-fix command</action>
+
+    <check if="lint-fix fails with non-zero exit code">
+      <output>⚠️ **Linting Issues Detected**
+
+Attempting to apply automatic fixes...
+      </output>
+      <action>Review linting errors from command output</action>
+      <action>Check if errors are auto-fixable or require manual intervention</action>
+
+      <check if="errors require manual intervention">
+        <output>🛑 **Manual Intervention Required**
+
+Linting issues cannot be auto-fixed. Please review the errors above.
+
+**HALT:** Story cannot proceed to review until linting issues are resolved.
+        </output>
+        <action>HALT: "Linting issues require manual fixes before story completion"</action>
+      </check>
+    </check>
+
+    <action>Add to Dev Agent Record → Debug Log: "✅ Lint check passed (Date: {{date}})"</action>
+
+    <!-- Step 2: SonarQube Scan -->
+    <output>📊 Running SonarQube analysis...
+    </output>
+
+    <action>Run terminal command: make sonar</action>
+    <action>Wait for SonarQube scan to complete (this runs tests + coverage + analysis)</action>
+    <action>Check exit code of sonar command</action>
+
+    <check if="sonar scan fails">
+      <output>⚠️ **SonarQube Scan Failed**
+
+Please check SonarQube server status (http://localhost:9000)
+
+**Troubleshooting:**
+- Ensure SonarQube server is running
+- Check sonar-scanner is installed and configured
+- Review project configuration in sonar-project.properties
+      </output>
+      <action>HALT: "SonarQube scan failed - verify server and configuration"</action>
+    </check>
+
+    <output>📊 **SonarQube Analysis Complete**
+
+Review dashboard: http://localhost:9000/dashboard?id=Foodie
+
+Checking for quality gate violations...
+    </output>
+
+    <!-- Step 3: Review SonarQube Results -->
+    <action>Instruct user to review SonarQube dashboard at http://localhost:9000/dashboard?id=Foodie</action>
+    <action>Ask user: "Does the SonarQube dashboard show any BLOCKER, CRITICAL, or excessive MAJOR issues that need to be fixed?"</action>
+
+    <check if="user reports quality violations exist">
+      <output>🔧 **Quality Violations Detected**
+
+Please address the issues reported in SonarQube:
+- **BLOCKER:** Must fix immediately (0 tolerance)
+- **CRITICAL:** Must fix or document as known issue (0 tolerance)
+- **MAJOR:** Fix if < 5 new issues, or document deferral justification
+
+**Next Steps:**
+1. Fix the reported issues
+2. Re-run tests to prevent regressions
+3. Quality gate will automatically re-run lint-fix and sonar scan
+
+Proceeding to fix issues...
+      </output>
+
+      <action>Work with user to identify and fix SonarQube violations</action>
+      <action>Apply fixes to codebase</action>
+      <action>Run tests to verify no regressions: {{run_tests_command}}</action>
+
+      <check if="tests fail after fixes">
+        <output>⚠️ **Regression Detected**
+
+Fixes introduced test failures. Reverting or adjusting approach...
+        </output>
+        <action>Review test failures and adjust fixes accordingly</action>
+        <action>Re-run tests until all pass</action>
+      </check>
+
+      <action>Add to Dev Agent Record → Debug Log: "Fixed SonarQube violations: [brief description] (Date: {{date}})"</action>
+
+      <output>🔄 **Re-running Quality Gate**
+
+Changes applied. Re-executing lint-fix and SonarQube scan...
+      </output>
+
+      <action><goto>quality_loop_start</goto></action>
+    </check>
+
+    <check if="user reports no quality violations OR violations are acceptable">
+      <output>✅ **Quality Gate Passed**
+
+All quality checks successful:
+- ✅ Lint-fix completed
+- ✅ SonarQube scan passed
+- ✅ No blocking quality violations
+
+Proceeding to story completion...
+      </output>
+
+      <action>Add to Dev Agent Record → Completion Notes: "Quality Gate passed - lint-fix and SonarQube scan clean (Date: {{date}})"</action>
+      <action>Add to Change Log: "Quality Gate executed - all checks passed (Date: {{date}})"</action>
+      <action>Save the story file</action>
+    </check>
+
+    <action><goto step="6">Story completion and mark for review</goto></action>
   </step>
 
   <step n="6" goal="Story completion and mark for review" tag="sprint-status">

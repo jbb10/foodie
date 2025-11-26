@@ -23,7 +23,10 @@ validation-rules:
 - [ ] Integration tests added/updated when component interactions are affected
 - [ ] End-to-end tests created for critical user flows, if applicable
 - [ ] All tests pass locally (no regressions introduced)
-- [ ] Linting and static checks (if configured) pass
+- [ ] **Automated Quality Gate executed (Step 5.5):**
+  - [ ] `make lint-fix` executed and passed
+  - [ ] All linting issues auto-fixed or manually resolved
+  - [ ] Linting results documented in Dev Agent Record
 
 ## SonarQube Quality Gate
 

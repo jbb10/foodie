@@ -39,6 +39,35 @@ This document defines the quality standards and completion criteria that **MUST*
 
 **Critical Requirement:** Run SonarQube scan **after implementation** and **before marking story complete**
 
+**AUTOMATED QUALITY GATE PROCESS (Workflow Step 5.5):**
+
+The dev-story workflow now includes a **mandatory automated quality gate** (Step 5.5) that executes BEFORE story completion:
+
+```bash
+# Step 1: Lint and Auto-fix (MANDATORY)
+make lint-fix
+
+# Step 2: SonarQube Scan (MANDATORY)
+make sonar
+
+# Step 3: If violations detected → Fix → Loop back to Step 1
+```
+
+**Quality Gate Loop Logic:**
+1. **Lint-fix executes** - All code formatting and static analysis auto-fixes applied
+2. **SonarQube scan runs** - Full test suite + coverage + quality analysis
+3. **Dashboard reviewed** - Agent checks for BLOCKER/CRITICAL/MAJOR violations
+4. **If violations found:**
+   - Agent works with user to fix issues
+   - Tests re-run to prevent regressions
+   - Loop restarts from Step 1 (lint-fix → sonar)
+5. **If clean or acceptable:** Proceed to story completion
+
+**Why This Matters (From Epic 5 Retrospective):**
+> "I have worked on projects like this where I let the quality slide too far and the project ended up in a situation where the AI was unable to continue. It was stuck in a loop of trying to fix its own errors, while creating others at the same time."
+
+**Key Insight:** Technical debt creates "error-fixing loops" that AI agents cannot escape. The automated quality gate prevents this by catching issues immediately, not after accumulation.
+
 #### Required Process:
 1. **After all implementation and tests complete, run SonarQube scan:**
    ```bash

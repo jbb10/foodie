@@ -21,25 +21,29 @@ import org.junit.Test
  * - SecurityException handling
  */
 class HealthConnectManagerTest {
-    
+
     @Test
     fun `REQUIRED_PERMISSIONS contains READ_NUTRITION and WRITE_NUTRITION`() {
         // When
         val permissions = HealthConnectManager.REQUIRED_PERMISSIONS
-        
+
         // Then
-        assertThat(permissions).hasSize(2)
+        assertThat(permissions).hasSize(6)
         assertThat(permissions).contains("android.permission.health.READ_NUTRITION")
         assertThat(permissions).contains("android.permission.health.WRITE_NUTRITION")
+        assertThat(permissions).contains("android.permission.health.READ_WEIGHT")
+        assertThat(permissions).contains("android.permission.health.WRITE_WEIGHT")
+        assertThat(permissions).contains("android.permission.health.READ_HEIGHT")
+        assertThat(permissions).contains("android.permission.health.WRITE_HEIGHT")
     }
-    
+
     @Test
     fun `REQUIRED_PERMISSIONS contains correct number of permissions`() {
         // Then
         assertThat(HealthConnectManager.REQUIRED_PERMISSIONS).isNotEmpty()
-        assertThat(HealthConnectManager.REQUIRED_PERMISSIONS.size).isEqualTo(2)
+        assertThat(HealthConnectManager.REQUIRED_PERMISSIONS.size).isEqualTo(6)
     }
-    
+
     @Test
     fun `REQUIRED_PERMISSIONS format is correct`() {
         // Then - All permissions start with android.permission.health

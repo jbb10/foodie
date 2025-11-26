@@ -4,12 +4,17 @@ import android.content.Context
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
+import androidx.health.connect.client.records.HeightRecord
 import androidx.health.connect.client.records.NutritionRecord
+import androidx.health.connect.client.records.WeightRecord
+import androidx.health.connect.client.records.metadata.DataOrigin
 import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.health.connect.client.units.Energy
+import androidx.health.connect.client.units.Length
+import androidx.health.connect.client.units.Mass
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.time.Instant
@@ -46,13 +51,17 @@ class HealthConnectManager @Inject constructor(
 ) {
     companion object {
         private const val TAG = "HealthConnect"
-        
+
         /**
          * Required permissions for nutrition data access.
          */
         val REQUIRED_PERMISSIONS: Set<String> = setOf(
             "android.permission.health.READ_NUTRITION",
-            "android.permission.health.WRITE_NUTRITION"
+            "android.permission.health.WRITE_NUTRITION",
+            "android.permission.health.READ_WEIGHT",
+            "android.permission.health.WRITE_WEIGHT",
+            "android.permission.health.READ_HEIGHT",
+            "android.permission.health.WRITE_HEIGHT"
         )
     }
 
@@ -103,7 +112,7 @@ class HealthConnectManager @Inject constructor(
     suspend fun checkPermissions(): Boolean {
         val grantedPermissions = healthConnectClient.permissionController.getGrantedPermissions()
         val allGranted = grantedPermissions.containsAll(REQUIRED_PERMISSIONS)
-        
+
         Timber.tag(TAG).i("Permissions check: $allGranted (granted: ${grantedPermissions.size}/${REQUIRED_PERMISSIONS.size})")
         return allGranted
     }
@@ -147,11 +156,11 @@ class HealthConnectManager @Inject constructor(
         // Validation
         require(calories in 1..5000) { "Calories must be between 1 and 5000, got: $calories" }
         require(description.isNotBlank()) { "Description cannot be blank" }
-        
+
         Timber.tag(TAG).d("Inserting nutrition record: $calories kcal, '$description', at $timestamp")
-        
+
         val zoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)
-        
+
         val record = NutritionRecord(
             startTime = timestamp,
             startZoneOffset = zoneOffset,
@@ -163,10 +172,10 @@ class HealthConnectManager @Inject constructor(
                 device = Device(type = Device.TYPE_PHONE)
             )
         )
-        
+
         val response = healthConnectClient.insertRecords(listOf(record))
         val recordId = response.recordIdsList.first()
-        
+
         Timber.tag(TAG).i("Successfully inserted nutrition record: $recordId")
         return recordId
     }
@@ -185,15 +194,15 @@ class HealthConnectManager @Inject constructor(
         endTime: Instant
     ): List<NutritionRecord> {
         Timber.tag(TAG).d("Querying nutrition records: $startTime to $endTime")
-        
+
         val request = ReadRecordsRequest(
             recordType = NutritionRecord::class,
             timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
         )
-        
+
         val response = healthConnectClient.readRecords(request)
         val records = response.records
-        
+
         Timber.tag(TAG).i("Retrieved ${records.size} nutrition records")
         return records
     }
@@ -218,7 +227,7 @@ class HealthConnectManager @Inject constructor(
         timestamp: Instant
     ) {
         Timber.tag(TAG).d("Updating nutrition record: $recordId")
-        
+
         try {
             // Delete old record
             deleteNutritionRecord(recordId)
@@ -242,13 +251,241 @@ class HealthConnectManager @Inject constructor(
      */
     suspend fun deleteNutritionRecord(recordId: String) {
         Timber.tag(TAG).d("Deleting nutrition record: $recordId")
-        
+
         healthConnectClient.deleteRecords(
             recordType = NutritionRecord::class,
             recordIdsList = listOf(recordId),
             clientRecordIdsList = emptyList()
         )
-        
+
         Timber.tag(TAG).i("Successfully deleted nutrition record: $recordId")
+    }
+
+    /**
+     * Queries the most recent weight record from Health Connect.
+     *
+     * Returns the latest WeightRecord by querying with descending order and pageSize=1.
+     * This provides the most current weight measurement for BMR calculation pre-population.
+     *
+     * **Permission Check:**
+     * - Returns null if READ_WEIGHT permission not granted (graceful degradation)
+     * - Caller must handle null and prompt user for manual entry or permission grant
+     *
+     * **Use Cases:**
+     * - UserProfileRepository pre-populating weight field in Settings
+     * - BMR calculator retrieving latest weight for calculations
+     *
+     * @return Latest WeightRecord or null if none exist or permissions denied
+     */
+    suspend fun queryLatestWeight(): WeightRecord? {
+        Timber.tag(TAG).d("Querying latest weight record")
+
+        // Check permissions before query (avoid crash)
+        val hasPermission = healthConnectClient.permissionController.getGrantedPermissions()
+            .contains("android.permission.health.READ_WEIGHT")
+
+        if (!hasPermission) {
+            Timber.tag(TAG).w("READ_WEIGHT permission not granted, returning null")
+            return null
+        }
+
+        return try {
+            val response = healthConnectClient.readRecords(
+                ReadRecordsRequest(
+                    recordType = WeightRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(
+                        Instant.EPOCH,
+                        Instant.now().plusSeconds(60)
+                    ),
+                    ascendingOrder = false,
+                    pageSize = 1
+                )
+            )
+            val record = response.records.firstOrNull()
+
+            if (record != null) {
+                Timber.tag(TAG).i("Latest weight: ${record.weight.inKilograms} kg at ${record.time}")
+            } else {
+                Timber.tag(TAG).d("No weight records found")
+            }
+
+            record
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to query weight records")
+            null
+        }
+    }
+
+    /**
+     * Queries the most recent height record from Health Connect.
+     *
+     * Returns the latest HeightRecord by querying with descending order and pageSize=1.
+     * This provides the most current height measurement for BMR calculation pre-population.
+     *
+     * **Permission Check:**
+     * - Returns null if READ_HEIGHT permission not granted (graceful degradation)
+     * - Caller must handle null and prompt user for manual entry or permission grant
+     *
+     * **Use Cases:**
+     * - UserProfileRepository pre-populating height field in Settings
+     * - BMR calculator retrieving latest height for calculations
+     *
+     * @return Latest HeightRecord or null if none exist or permissions denied
+     */
+    suspend fun queryLatestHeight(): HeightRecord? {
+        Timber.tag(TAG).d("Querying latest height record")
+
+        // Check permissions before query (avoid crash)
+        val hasPermission = healthConnectClient.permissionController.getGrantedPermissions()
+            .contains("android.permission.health.READ_HEIGHT")
+
+        if (!hasPermission) {
+            Timber.tag(TAG).w("READ_HEIGHT permission not granted, returning null")
+            return null
+        }
+
+        return try {
+            val response = healthConnectClient.readRecords(
+                ReadRecordsRequest(
+                    recordType = HeightRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(
+                        Instant.EPOCH,
+                        Instant.now().plusSeconds(60)
+                    ),
+                    ascendingOrder = false,
+                    pageSize = 1
+                )
+            )
+            val record = response.records.firstOrNull()
+
+            if (record != null) {
+                Timber.tag(TAG).i("Latest height: ${record.height.inMeters} m at ${record.time}")
+            } else {
+                Timber.tag(TAG).d("No height records found")
+            }
+
+            record
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to query height records")
+            null
+        }
+    }
+
+    /**
+     * Inserts a new weight measurement to Health Connect.
+     *
+     * Creates a timestamped WeightRecord with Foodie as the data source.
+     * This allows the app to contribute weight data when user manually enters it in Settings.
+     *
+     * **Permissions:**
+     * - Requires WRITE_WEIGHT permission
+     * - Returns Result.failure(SecurityException) if permission denied
+     *
+     * **Timestamp:**
+     * - Uses provided timestamp (typically Instant.now() for new entries)
+     * - ZoneOffset uses system default
+     *
+     * **Metadata:**
+     * - DataOrigin: "com.foodie.app" (identifies Foodie as source in Health Connect)
+     * - Allows other apps (Google Fit, Garmin) to distinguish Foodie entries
+     *
+     * @param weightKg Weight in kilograms (caller validates range 30-300)
+     * @param timestamp When the measurement was taken
+     * @return Result.success or Result.failure with SecurityException/Exception
+     */
+    suspend fun insertWeight(weightKg: Double, timestamp: Instant): Result<Unit> {
+        Timber.tag(TAG).d("Inserting weight: $weightKg kg at $timestamp")
+
+        // Check permissions before insert (avoid crash)
+        val hasPermission = healthConnectClient.permissionController.getGrantedPermissions()
+            .contains("android.permission.health.WRITE_WEIGHT")
+
+        if (!hasPermission) {
+            Timber.tag(TAG).e("WRITE_WEIGHT permission denied")
+            return Result.failure(SecurityException("WRITE_WEIGHT permission denied"))
+        }
+
+        return try {
+            val zoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)
+
+            val record = WeightRecord(
+                weight = Mass.kilograms(weightKg),
+                time = timestamp,
+                zoneOffset = zoneOffset,
+                metadata = Metadata.autoRecorded(
+                    device = Device(type = Device.TYPE_PHONE)
+                )
+            )
+
+            healthConnectClient.insertRecords(listOf(record))
+
+            Timber.tag(TAG).i("Successfully inserted weight record: $weightKg kg")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to insert weight record")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Inserts a new height measurement to Health Connect.
+     *
+     * Creates a timestamped HeightRecord with Foodie as the data source.
+     * This allows the app to contribute height data when user manually enters it in Settings.
+     *
+     * **Unit Conversion:**
+     * - Input: heightCm in centimeters (domain model)
+     * - Storage: Length.meters(heightCm / 100.0) for Health Connect API
+     * - Conversion factor: 1 meter = 100 centimeters
+     *
+     * **Permissions:**
+     * - Requires WRITE_HEIGHT permission
+     * - Returns Result.failure(SecurityException) if permission denied
+     *
+     * **Timestamp:**
+     * - Uses provided timestamp (typically Instant.now() for new entries)
+     * - ZoneOffset uses system default
+     *
+     * **Metadata:**
+     * - DataOrigin: "com.foodie.app" (identifies Foodie as source in Health Connect)
+     * - Allows other apps (Google Fit, Garmin) to distinguish Foodie entries
+     *
+     * @param heightCm Height in centimeters (caller validates range 100-250)
+     * @param timestamp When the measurement was taken
+     * @return Result.success or Result.failure with SecurityException/Exception
+     */
+    suspend fun insertHeight(heightCm: Double, timestamp: Instant): Result<Unit> {
+        Timber.tag(TAG).d("Inserting height: $heightCm cm at $timestamp")
+
+        // Check permissions before insert (avoid crash)
+        val hasPermission = healthConnectClient.permissionController.getGrantedPermissions()
+            .contains("android.permission.health.WRITE_HEIGHT")
+
+        if (!hasPermission) {
+            Timber.tag(TAG).e("WRITE_HEIGHT permission denied")
+            return Result.failure(SecurityException("WRITE_HEIGHT permission denied"))
+        }
+
+        return try {
+            val zoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)
+            val heightMeters = heightCm / 100.0 // Convert cm to meters
+
+            val record = HeightRecord(
+                height = Length.meters(heightMeters),
+                time = timestamp,
+                zoneOffset = zoneOffset,
+                metadata = Metadata.autoRecorded(
+                    device = Device(type = Device.TYPE_PHONE)
+                )
+            )
+
+            healthConnectClient.insertRecords(listOf(record))
+
+            Timber.tag(TAG).i("Successfully inserted height record: $heightCm cm ($heightMeters m)")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to insert height record")
+            Result.failure(e)
+        }
     }
 }

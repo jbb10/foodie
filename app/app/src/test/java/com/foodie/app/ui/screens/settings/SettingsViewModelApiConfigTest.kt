@@ -5,6 +5,7 @@ import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.repository.PreferencesRepository
 import com.foodie.app.domain.model.ApiConfiguration
 import com.foodie.app.domain.model.TestConnectionResult
+import com.foodie.app.domain.repository.UserProfileRepository
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -49,6 +50,7 @@ class SettingsViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: PreferencesRepository
     private lateinit var securePreferences: SecurePreferences
+    private lateinit var userProfileRepository: UserProfileRepository
     private lateinit var viewModel: SettingsViewModel
 
     @Before
@@ -56,14 +58,16 @@ class SettingsViewModelTest {
         Dispatchers.setMain(testDispatcher)
         repository = mockk(relaxed = true)
         securePreferences = mockk(relaxed = true)
+        userProfileRepository = mockk(relaxed = true)
 
         // Setup default mock behavior
         every { repository.observePreferences() } returns flowOf(emptyMap())
         every { securePreferences.azureOpenAiApiKey } returns null
         every { securePreferences.azureOpenAiEndpoint } returns null
         every { securePreferences.azureOpenAiModel } returns null
+        every { userProfileRepository.getUserProfile() } returns flowOf(null)
 
-        viewModel = SettingsViewModel(repository, securePreferences)
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
     }
 
     @After
@@ -152,7 +156,7 @@ class SettingsViewModelTest {
         every { securePreferences.azureOpenAiModel } returns "gpt-4.1"
 
         // When ViewModel is initialized
-        val newViewModel = SettingsViewModel(repository, securePreferences)
+        val newViewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
 
         // Then state is populated from preferences
         assertThat(newViewModel.state.value.apiKey).isEqualTo("sk-test123")

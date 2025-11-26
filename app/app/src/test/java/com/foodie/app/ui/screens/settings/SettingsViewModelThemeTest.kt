@@ -3,6 +3,7 @@ package com.foodie.app.ui.screens.settings
 import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.repository.PreferencesRepository
 import com.foodie.app.domain.model.ThemeMode
+import com.foodie.app.domain.repository.UserProfileRepository
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -31,6 +32,7 @@ class SettingsViewModelThemeTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var repository: PreferencesRepository
     private lateinit var securePreferences: SecurePreferences
+    private lateinit var userProfileRepository: UserProfileRepository
     private lateinit var viewModel: SettingsViewModel
 
     @Before
@@ -39,14 +41,16 @@ class SettingsViewModelThemeTest {
 
         repository = mockk(relaxed = true)
         securePreferences = mockk(relaxed = true)
+        userProfileRepository = mockk(relaxed = true)
 
         // Mock initial preferences
         every { securePreferences.azureOpenAiApiKey } returns ""
         every { securePreferences.azureOpenAiEndpoint } returns ""
         every { securePreferences.azureOpenAiModel } returns "gpt-4.1"
         every { repository.observePreferences() } returns flowOf(emptyMap())
+        every { userProfileRepository.getUserProfile() } returns flowOf(null)
 
-        viewModel = SettingsViewModel(repository, securePreferences)
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
     }
 
     @After

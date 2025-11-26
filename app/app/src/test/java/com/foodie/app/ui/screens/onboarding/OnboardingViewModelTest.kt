@@ -176,7 +176,11 @@ class OnboardingViewModelTest {
         // Given: All required permissions granted
         val grantedPermissions = setOf(
             "android.permission.health.READ_NUTRITION",
-            "android.permission.health.WRITE_NUTRITION"
+            "android.permission.health.WRITE_NUTRITION",
+            "android.permission.health.READ_WEIGHT",
+            "android.permission.health.WRITE_WEIGHT",
+            "android.permission.health.READ_HEIGHT",
+            "android.permission.health.WRITE_HEIGHT"
         )
 
         // When: Handle permission result

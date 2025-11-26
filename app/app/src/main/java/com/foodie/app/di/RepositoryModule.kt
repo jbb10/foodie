@@ -2,8 +2,10 @@ package com.foodie.app.di
 
 import com.foodie.app.data.repository.MealRepositoryImpl
 import com.foodie.app.data.repository.NutritionAnalysisRepositoryImpl
+import com.foodie.app.data.repository.UserProfileRepositoryImpl
 import com.foodie.app.domain.repository.MealRepository
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
+import com.foodie.app.domain.repository.UserProfileRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -19,7 +21,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
-    
+
     /**
      * Binds MealRepository interface to its Health Connect implementation.
      *
@@ -37,5 +39,17 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindNutritionAnalysisRepository(impl: NutritionAnalysisRepositoryImpl): NutritionAnalysisRepository
+
+    /**
+     * Binds UserProfileRepository interface to its implementation.
+     *
+     * Manages user demographic profile for BMR calculation across Health Connect
+     * (weight/height) and SharedPreferences (sex/age).
+     *
+     * @Singleton ensures only one instance exists throughout the app lifecycle.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindUserProfileRepository(impl: UserProfileRepositoryImpl): UserProfileRepository
 }
 

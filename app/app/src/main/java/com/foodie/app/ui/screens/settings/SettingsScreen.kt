@@ -15,10 +15,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -27,7 +30,9 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,7 +54,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.foodie.app.R
 import com.foodie.app.domain.model.TestConnectionResult
+import com.foodie.app.domain.model.UserProfile
 import com.foodie.app.ui.theme.FoodieTheme
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * Settings screen for app configuration and preferences.
@@ -130,6 +140,11 @@ fun SettingsScreen(
                 )
             },
             onThemeChange = { viewModel.updateThemeMode(it) },
+            onSexChanged = { viewModel.onSexChanged(it) },
+            onBirthDateChanged = { viewModel.onBirthDateChanged(it) },
+            onWeightChanged = { viewModel.onWeightChanged(it) },
+            onHeightChanged = { viewModel.onHeightChanged(it) },
+            onSaveProfile = { viewModel.saveUserProfile() },
             paddingValues = paddingValues
         )
     }
@@ -199,6 +214,39 @@ private fun HandleSnackbarMessages(
             viewModel.clearError()
         }
     }
+
+    // Story 6.1: Show profile validation errors
+    state.profileValidationError?.let { error ->
+        LaunchedEffect(error) {
+            snackbarHostState.showSnackbar(
+                message = error,
+                duration = SnackbarDuration.Long
+            )
+        }
+    }
+
+    // Story 6.1: Show profile save success
+    LaunchedEffect(state.profileSaveSuccess) {
+        if (state.profileSaveSuccess) {
+            snackbarHostState.showSnackbar(
+                message = "Profile updated",
+                duration = SnackbarDuration.Short
+            )
+            viewModel.clearProfileSaveSuccess()
+        }
+    }
+
+    // Story 6.1: Show Health Connect permission error
+    LaunchedEffect(state.showProfilePermissionError) {
+        if (state.showProfilePermissionError) {
+            snackbarHostState.showSnackbar(
+                message = "Grant Health Connect permissions to save weight and height",
+                actionLabel = "OK",
+                duration = SnackbarDuration.Long
+            )
+            viewModel.clearProfilePermissionError()
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -236,6 +284,11 @@ private fun SettingsContent(
     onSaveClick: () -> Unit,
     onTestClick: () -> Unit,
     onThemeChange: (com.foodie.app.domain.model.ThemeMode) -> Unit,
+    onSexChanged: (UserProfile.Sex) -> Unit,
+    onBirthDateChanged: (LocalDate) -> Unit,
+    onWeightChanged: (String) -> Unit,
+    onHeightChanged: (String) -> Unit,
+    onSaveProfile: () -> Unit,
     paddingValues: androidx.compose.foundation.layout.PaddingValues
 ) {
     LazyColumn(
@@ -326,6 +379,97 @@ private fun SettingsContent(
             }
         }
         item(key = "api_divider") {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        }
+
+        // User Profile category (Story 6.1)
+        item(key = "user_profile_header") {
+            PreferenceCategoryHeader(title = "User Profile")
+        }
+        item(key = "user_profile_help_text") {
+            Text(
+                text = "Configure your demographic profile for accurate BMR calculation",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+        item(key = "user_profile_sex") {
+            SexPreference(
+                value = state.editableSex,
+                onValueChange = onSexChanged
+            )
+        }
+        item(key = "user_profile_birthdate") {
+            BirthDatePreference(
+                value = state.editableBirthDate,
+                onValueChange = onBirthDateChanged
+            )
+        }
+        item(key = "user_profile_weight") {
+            OutlinedTextField(
+                value = state.editableWeight,
+                onValueChange = onWeightChanged,
+                label = { Text("Weight (kg)") },
+                placeholder = { Text("e.g., 75.5") },
+                supportingText = {
+                    Text(
+                        if (state.weightSourcedFromHC && !state.isEditingProfile)
+                            "Synced from Health Connect"
+                        else if (state.isEditingProfile && !state.weightSourcedFromHC)
+                            "Will sync to Health Connect"
+                        else
+                            "Used for BMR calculation"
+                    )
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Next
+                ),
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
+        item(key = "user_profile_height") {
+            OutlinedTextField(
+                value = state.editableHeight,
+                onValueChange = onHeightChanged,
+                label = { Text("Height (cm)") },
+                placeholder = { Text("e.g., 178") },
+                supportingText = {
+                    Text(
+                        if (state.heightSourcedFromHC && !state.isEditingProfile)
+                            "Synced from Health Connect"
+                        else if (state.isEditingProfile && !state.heightSourcedFromHC)
+                            "Will sync to Health Connect"
+                        else
+                            "Used for BMR calculation"
+                    )
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Done
+                ),
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
+        item(key = "user_profile_save_button") {
+            Button(
+                onClick = onSaveProfile,
+                enabled = state.isEditingProfile && !state.isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text("Save Profile")
+            }
+        }
+        item(key = "user_profile_divider") {
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         }
 
@@ -563,6 +707,158 @@ private fun ThemePreference(
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
+        }
+    }
+}
+
+/**
+ * Sex preference with dialog for selection.
+ *
+ * Displays current selection or "Not set" if null.
+ * Tapping opens AlertDialog with Male/Female radio buttons.
+ *
+ * Story 6.1: User Profile Settings (AC-4)
+ *
+ * @param value Currently selected sex (MALE/FEMALE) or null
+ * @param onValueChange Callback when sex is selected
+ * @param modifier Optional modifier
+ */
+@Composable
+private fun SexPreference(
+    value: UserProfile.Sex?,
+    onValueChange: (UserProfile.Sex) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    ListItem(
+        headlineContent = { Text("Sex") },
+        supportingContent = { Text("Used for BMR calculation") },
+        trailingContent = {
+            Text(
+                text = value?.name?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "Not set",
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        modifier = modifier.clickable { showDialog = true }
+    )
+
+    if (showDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Select Sex") },
+            text = {
+                Column {
+                    UserProfile.Sex.values().forEach { sex ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onValueChange(sex)
+                                    showDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = value == sex,
+                                onClick = {
+                                    onValueChange(sex)
+                                    showDialog = false
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = sex.name.lowercase().replaceFirstChar { it.uppercase() },
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+/**
+ * Story 6.1: User Profile Settings - Birthday Preference
+ *
+ * @param value Currently selected birth date or null
+ * @param onValueChange Callback when birth date is selected
+ * @param modifier Optional modifier
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BirthDatePreference(
+    value: LocalDate?,
+    onValueChange: (LocalDate) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = value?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+    )
+
+    // Calculate age from birth date
+    val age = value?.let {
+        val now = LocalDate.now()
+        var years = now.year - it.year
+        if (now.monthValue < it.monthValue || (now.monthValue == it.monthValue && now.dayOfMonth < it.dayOfMonth)) {
+            years--
+        }
+        years
+    }
+
+    ListItem(
+        headlineContent = { Text("Birthday") },
+        supportingContent = {
+            Text(
+                if (value != null && age != null) {
+                    "Age: $age years"
+                } else {
+                    "Required for BMR calculation"
+                }
+            )
+        },
+        trailingContent = {
+            Text(
+                text = value?.format(DateTimeFormatter.ofPattern("MMM d, yyyy")) ?: "Not set",
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        modifier = modifier.clickable { showDialog = true }
+    )
+
+    if (showDialog) {
+        DatePickerDialog(
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val localDate = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            onValueChange(localDate)
+                        }
+                        showDialog = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 }

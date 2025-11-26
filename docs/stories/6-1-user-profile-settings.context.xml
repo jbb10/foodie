@@ -1,0 +1,304 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>1</storyId>
+    <title>User Profile Settings</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-1-user-profile-settings.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to configure my demographic profile (sex, age, weight, height) in the Settings screen</iWant>
+    <soThat>the app can accurately calculate my Basal Metabolic Rate (BMR) for energy balance tracking</soThat>
+    <tasks>
+      - Task 1: Documentation Research and Technical Validation (Health Connect WeightRecord/HeightRecord APIs, SecurePreferences vs SharedPreferences, SettingsScreen Material 3 patterns, MVVM architecture)
+      - Task 2: Create UserProfile Domain Model and Validation (data class with Sex enum, age/weight/height validation logic, unit tests)
+      - Task 3: Create UserProfileRepository Interface and Implementation (getUserProfile Flow, updateProfile with HC+SharedPreferences, error handling)
+      - Task 4: Extend HealthConnectManager with Weight/Height Operations (queryLatestWeight/Height, insertWeight/Height with timestamp, permission checks)
+      - Task 5: Update SettingsViewModel with User Profile State (profile state fields, init{} pre-population, save validation, error handling)
+      - Task 6: Extend SettingsScreen UI with User Profile Section (Sex ListPreference dialog, Age/Weight/Height OutlinedTextField, validation errors, save button)
+      - Task 7: Request Health Connect Permissions for Weight and Height (READ_WEIGHT, WRITE_WEIGHT, READ_HEIGHT, WRITE_HEIGHT in MainActivity)
+      - Task 8: Manual Testing on Physical Device (6 scenarios: first-time user, HC pre-population, validation errors, permission denied, HC sync, update profile)
+      - Task 9: Unit Test Coverage Validation (387+ baseline tests, 10+ new tests for UserProfile/Repository/HC/ViewModel)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">User Profile section visible in Settings with input fields for sex, age, weight, height</criterion>
+    <criterion id="2">Weight and height pre-populated from Health Connect WeightRecord/HeightRecord if available</criterion>
+    <criterion id="3">Manual entry and editing supported for all profile values</criterion>
+    <criterion id="4">Sex field offers Male/Female selection via ListPreference dialog with radio buttons</criterion>
+    <criterion id="5">Age field accepts numeric input with validation: 13-120 years</criterion>
+    <criterion id="6">Weight field accepts numeric input with validation: 30-300 kg</criterion>
+    <criterion id="7">Height field accepts numeric input with validation: 100-250 cm</criterion>
+    <criterion id="8">Each field displays helper text: "Used for BMR calculation"</criterion>
+    <criterion id="9">Sex and age stored in SharedPreferences on save</criterion>
+    <criterion id="10">Weight and height create new timestamped WeightRecord/HeightRecord in Health Connect ONLY when user explicitly enters/edits those values</criterion>
+    <criterion id="11a">Weight and height fields show "Synced from Health Connect" when pre-populated from HC, or "Will sync to Health Connect" when user-edited</criterion>
+    <criterion id="11">Toast confirmation "Profile updated" after successful save</criterion>
+    <criterion id="12">Validation errors display inline with specific messages for out-of-range values</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-6.md" title="Epic 6 Technical Specification" section="Overview">
+        <snippet>Epic 6 delivers comprehensive caloric deficit tracking by implementing scientifically grounded Total Daily Energy Expenditure (TDEE) calculations. Story 6.1 establishes demographic foundation (sex, age, weight, height) required for Basal Metabolic Rate (BMR) calculation using Mifflin-St Jeor equation: Males BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age_years) + 5, Females BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age_years) - 161. Health Connect integration for weight/height with two-way sync.</snippet>
+      </doc>
+      <doc path="docs/tech-spec-epic-6.md" title="Epic 6 Technical Specification" section="System Architecture - UserProfileRepository">
+        <snippet>UserProfileRepository manages user demographic data for BMR calculation. Reads/writes weight and height to Health Connect, stores sex and age in SharedPreferences (not available in Health Connect). Pre-populates weight/height from Health Connect on first access. Methods: getUserProfile(): Flow&lt;UserProfile&gt;, updateProfile(sex, age, weight, height): Result&lt;Unit&gt;, saveWeightToHealthConnect(weight): Result&lt;Unit&gt;, saveHeightToHealthConnect(height): Result&lt;Unit&gt;.</snippet>
+      </doc>
+      <doc path="docs/tech-spec-epic-6.md" title="Epic 6 Technical Specification" section="Domain Models - UserProfile">
+        <snippet>data class UserProfile with sex: Sex (enum MALE/FEMALE), age: Int, weightKg: Double, heightCm: Double. validate() method returns Result with age validation 13-120, weight validation 30-300 kg, height validation 100-250 cm. ValidationError sealed class for specific error messages.</snippet>
+      </doc>
+      <doc path="docs/architecture.md" title="Foodie Architecture" section="MVVM Architecture Foundation">
+        <snippet>MVVM pattern: Screen (Composable) → ViewModel (StateFlow) → Repository (abstraction) → DataSource (Android framework). ViewModels must be lifecycle-aware, use Hilt @HiltViewModel, expose StateFlow for reactive UI. Repository pattern requires interface with implementation, bind in Hilt RepositoryModule.</snippet>
+      </doc>
+      <doc path="docs/architecture.md" title="Foodie Architecture" section="Health Connect Integration">
+        <snippet>Health Connect is single source of truth for health data. HealthConnectManager wraps SDK for testability. Pattern: query latest records with TimeRangeFilter, insert with timestamped records and DataOrigin metadata. Permission checks before operations, graceful degradation if denied. WeightRecord uses Mass.kilograms(), HeightRecord uses Length.meters().</snippet>
+      </doc>
+      <doc path="docs/stories/5-1-settings-screen-foundation.md" title="Story 5.1 - Settings Screen Foundation" section="Dev Notes">
+        <snippet>SettingsScreen foundation implemented with LazyColumn layout, Material 3 components (ListItem, OutlinedTextField), SettingsViewModel with StateFlow reactive state, PreferencesRepository abstraction over SharedPreferences. Pattern: EditState management with isEditing flag, editable* fields, SnackbarHostState for validation messages.</snippet>
+      </doc>
+      <doc path="docs/stories/5-2-azure-openai-api-key-and-endpoint-configuration.md" title="Story 5.2 - API Configuration" section="Implementation">
+        <snippet>SecurePreferences implementation for API key storage using EncryptedSharedPreferences with AES256_GCM encryption. Pattern: separate secure storage for sensitive data (API keys) vs standard SharedPreferences for non-sensitive settings. OutlinedTextField with PasswordVisualTransformation for masked input, save button enabled only when editing.</snippet>
+      </doc>
+      <doc path="docs/stories/5-3-model-selection-and-configuration.md" title="Story 5.3 - Model Selection" section="Implementation">
+        <snippet>ListPreference-style dropdown pattern using AlertDialog with RadioButton for model selection. Material 3 dialog with verticalArrangement.spacedBy(8.dp), clickable Row items, RadioButton selected state, dialog dismiss on selection.</snippet>
+      </doc>
+      <doc path="docs/stories/5-9-sonarqube-technical-debt-resolution.md" title="Story 5.9 - SonarQube Cleanup" section="Learnings">
+        <snippet>SonarQube quality gates: Security A, Reliability A, Maintainability A. Cognitive complexity &lt; 15 per method (extract helpers). All 387 unit tests baseline. Run ./gradlew test after changes for immediate feedback. Material 3 OutlinedTextField patterns: label, placeholder, supportingText, validation via SnackbarHostState.</snippet>
+      </doc>
+      <doc path="docs/development/definition-of-done.md" title="Definition of Done" section="Testing Requirements">
+        <snippet>Unit tests required for all new domain logic, repositories, ViewModels. Test naming: methodName_whenCondition_thenExpectedResult. Truth library for assertions. Mockito for mocking. All tests must pass before story completion. Target coverage for new code: validation logic 100%, repositories 80%, ViewModels 80%.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>healthconnect-manager</kind>
+        <symbol>HealthConnectManager</symbol>
+        <lines>1-150</lines>
+        <reason>Existing Health Connect wrapper to extend with queryLatestWeight/Height and insertWeight/Height methods. Established patterns for permission checks, SDK operations, error handling, metadata creation.</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt</path>
+        <kind>composable-screen</kind>
+        <symbol>SettingsScreen</symbol>
+        <lines>80-217</lines>
+        <reason>Existing Settings UI to extend with User Profile section. Material 3 patterns: LazyColumn with item{} blocks, PreferenceCategoryHeader, OutlinedTextField with validation, AlertDialog for ListPreference, SnackbarHostState for messages.</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>SettingsViewModel</symbol>
+        <lines>1-150</lines>
+        <reason>Existing ViewModel to extend with user profile state management. Patterns: StateFlow exposure, init{} loading, viewModelScope.launch for async operations, _state.update for reactive changes, error handling.</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsState.kt</path>
+        <kind>state-model</kind>
+        <symbol>SettingsState</symbol>
+        <lines>1-100</lines>
+        <reason>State data class to extend with user profile fields: isEditingProfile, editableSex, editableAge, editableWeight, editableHeight, profileValidationError, profileSaveSuccess, showProfilePermissionError.</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt</path>
+        <kind>secure-storage</kind>
+        <symbol>SecurePreferences</symbol>
+        <lines>1-100</lines>
+        <reason>Reference for encryption pattern (NOT used for sex/age). Story decision: use standard SharedPreferences for non-sensitive demographic data to avoid encryption overhead.</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/MainActivity.kt</path>
+        <kind>activity</kind>
+        <symbol>MainActivity</symbol>
+        <lines>1-100</lines>
+        <reason>MainActivity to update with READ_WEIGHT, WRITE_WEIGHT, READ_HEIGHT, WRITE_HEIGHT permissions in healthConnectPermissions set. Existing permission flow from Epic 1 handles request on first launch.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <android>
+        <dependency name="androidx.health.connect:connect-client" version="1.1.0" reason="Health Connect SDK for WeightRecord and HeightRecord operations"/>
+        <dependency name="androidx.lifecycle:lifecycle-viewmodel-ktx" version="2.8.7" reason="ViewModel lifecycle and viewModelScope coroutines"/>
+        <dependency name="androidx.compose.material3:material3" version="BOM 2024.10.01" reason="Material 3 OutlinedTextField, AlertDialog, RadioButton, Scaffold"/>
+        <dependency name="androidx.hilt:hilt-navigation-compose" version="1.2.0" reason="hiltViewModel() injection in Composable"/>
+        <dependency name="org.jetbrains.kotlinx:kotlinx-coroutines-android" version="1.9.0" reason="Kotlin Flow for reactive streams"/>
+      </android>
+      <testing>
+        <dependency name="junit:junit" version="4.13.2" reason="Unit test framework"/>
+        <dependency name="org.mockito:mockito-core" version="5.14.2" reason="Mocking for repository and Health Connect manager"/>
+        <dependency name="org.mockito.kotlin:mockito-kotlin" version="5.4.0" reason="Kotlin extensions for Mockito"/>
+        <dependency name="com.google.truth:truth" version="1.4.4" reason="Fluent assertions library"/>
+        <dependency name="org.jetbrains.kotlinx:kotlinx-coroutines-test" version="1.9.0" reason="Test coroutines with runTest{}"/>
+        <dependency name="androidx.arch.core:core-testing" version="2.2.0" reason="InstantTaskExecutorRule for LiveData/StateFlow testing"/>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <architectural>
+      <pattern>MVVM architecture required: SettingsScreen → SettingsViewModel → UserProfileRepository → HealthConnectManager + SharedPreferences</pattern>
+      <pattern>Health Connect as READ source for weight/height pre-population - WRITE only when user explicitly edits (avoid polluting HC with redundant data)</pattern>
+      <pattern>SharedPreferences for non-health demographic data (sex, age) - NOT encrypted (non-sensitive)</pattern>
+      <pattern>Track data source in state: weightSourcedFromHC/heightSourcedFromHC flags control whether save writes to HC</pattern>
+      <pattern>Repository pattern: Create UserProfileRepository interface with UserProfileRepositoryImpl, bind in Hilt RepositoryModule</pattern>
+      <pattern>Material Design 3 consistency: OutlinedTextField patterns from Epic 5, ListPreference AlertDialog pattern from Story 5.3</pattern>
+      <pattern>Reactive state management: StateFlow exposure, Flow-based repository queries, _state.update for UI changes</pattern>
+      <pattern>Permission-aware operations: Check HC permissions before query/insert, graceful degradation if denied</pattern>
+    </architectural>
+    <coding>
+      <standard>KDoc comments required for all public APIs (UserProfile, UserProfileRepository methods, HealthConnectManager extensions)</standard>
+      <standard>Input validation at domain layer: UserProfile.validate() returns Result with specific error messages</standard>
+      <standard>Unit conversion correctness: Height stored as cm in domain model, converted to meters for Health Connect (Length.meters(heightCm / 100.0))</standard>
+      <standard>Timestamp preservation: Use Instant.now() for new records, ZoneOffset.systemDefault() for zoned timestamps</standard>
+      <standard>Error handling: Result&lt;T&gt; pattern for repository operations, SecurityException for permission errors, ValidationError for domain validation</standard>
+      <standard>Cognitive complexity &lt; 15 per method (SonarQube requirement from Story 5.9)</standard>
+    </coding>
+    <testing>
+      <standard>Unit tests required for: UserProfile.validate(), UserProfileRepository (4+ tests), HealthConnectManager extensions (5+ tests), SettingsViewModel profile methods (5+ tests)</standard>
+      <standard>Test naming: methodName_whenCondition_thenExpectedResult or feature_should_behavior_when_condition</standard>
+      <standard>Truth library assertions: assertThat(result).isEqualTo(expected), assertThat(result).isInstanceOf(ValidationError::class.java)</standard>
+      <standard>Mockito mocking: mock HealthConnectManager and SharedPreferences in repository tests, mock repository in ViewModel tests</standard>
+      <standard>Baseline: 387 unit tests passing (from Story 5.9), zero regressions tolerated</standard>
+    </testing>
+    <healthconnect>
+      <requirement>READ_WEIGHT, WRITE_WEIGHT, READ_HEIGHT, WRITE_HEIGHT permissions required in MainActivity</requirement>
+      <requirement>WeightRecord query: ReadRecordsRequest with WeightRecord::class, TimeRangeFilter.none(), ascendingOrder=false, pageSize=1</requirement>
+      <requirement>HeightRecord query: ReadRecordsRequest with HeightRecord::class, TimeRangeFilter.none(), ascendingOrder=false, pageSize=1</requirement>
+      <requirement>Weight insert: WeightRecord(weight = Mass.kilograms(weightKg), time = timestamp, zoneOffset = ZoneOffset.systemDefault(), metadata = Metadata(dataOrigin = DataOrigin("com.foodie.app")))</requirement>
+      <requirement>Height insert: HeightRecord(height = Length.meters(heightCm / 100.0), time = timestamp, zoneOffset = ZoneOffset.systemDefault(), metadata = Metadata(dataOrigin = DataOrigin("com.foodie.app")))</requirement>
+      <requirement>Permission checks: hasPermission() before query, return null if denied. SecurityException if write permission denied during insert.</requirement>
+    </healthconnect>
+  </constraints>
+
+  <interfaces>
+    <interface name="UserProfileRepository" kind="repository_interface" signature="
+interface UserProfileRepository {
+    fun getUserProfile(): Flow&lt;UserProfile?&gt;
+    suspend fun updateProfile(profile: UserProfile): Result&lt;Unit&gt;
+}
+" path="app/app/src/main/java/com/foodie/app/data/repository/UserProfileRepository.kt"/>
+
+    <interface name="UserProfile Domain Model" kind="data_class" signature="
+data class UserProfile(
+    val sex: Sex,
+    val age: Int,
+    val weightKg: Double,
+    val heightCm: Double
+) {
+    enum class Sex { MALE, FEMALE }
+    fun validate(): Result&lt;Unit&gt;
+}
+" path="app/app/src/main/java/com/foodie/app/domain/model/UserProfile.kt"/>
+
+    <interface name="HealthConnectManager Weight/Height Extensions" kind="extension_methods" signature="
+suspend fun queryLatestWeight(): WeightRecord?
+suspend fun queryLatestHeight(): HeightRecord?
+suspend fun insertWeight(weightKg: Double, timestamp: Instant): Result&lt;Unit&gt;
+suspend fun insertHeight(heightCm: Double, timestamp: Instant): Result&lt;Unit&gt;
+" path="app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt"/>
+
+    <interface name="SettingsState Profile Fields" kind="state_extension" signature="
+data class SettingsState(
+    // Existing fields...
+    val isEditingProfile: Boolean = false,
+    val editableSex: UserProfile.Sex? = null,
+    val editableAge: String = &quot;&quot;,
+    val editableWeight: String = &quot;&quot;,
+    val editableHeight: String = &quot;&quot;,
+    val profileValidationError: String? = null,
+    val profileSaveSuccess: Boolean = false,
+    val showProfilePermissionError: Boolean = false
+)
+" path="app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsState.kt"/>
+
+    <interface name="SettingsViewModel Profile Methods" kind="viewmodel_methods" signature="
+fun onSexChanged(sex: UserProfile.Sex)
+fun onAgeChanged(age: String)
+fun onWeightChanged(weight: String)
+fun onHeightChanged(height: String)
+fun saveUserProfile()
+" path="app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsViewModel.kt"/>
+
+    <interface name="Material 3 ListPreference Pattern" kind="composable_pattern" signature="
+var showSexDialog by remember { mutableStateOf(false) }
+OutlinedCard(modifier = Modifier.clickable { showSexDialog = true }) {
+    // Display current selection
+}
+if (showSexDialog) {
+    AlertDialog(
+        text = {
+            Column {
+                UserProfile.Sex.values().forEach { sex -&gt;
+                    Row(modifier = Modifier.clickable { onSexChanged(sex); showSexDialog = false }) {
+                        RadioButton(selected = state.editableSex == sex, onClick = {})
+                        Text(sex.name)
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { showSexDialog = false }) { Text(&quot;Cancel&quot;) } }
+    )
+}
+" path="app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt"/>
+  </interfaces>
+
+  <tests>
+    <standards>
+Epic 6 Story 6.1 follows established testing patterns from Epic 5 with emphasis on unit test coverage for domain validation logic, repository operations, and ViewModel state management.
+
+**Unit Testing Requirements:**
+- UserProfile.validate() tests: 7+ tests covering valid profile, age &lt; 13, age &gt; 120, weight &lt; 30, weight &gt; 300, height &lt; 100, height &gt; 250
+- UserProfileRepository tests: 4+ tests for getUserProfile (null state, HC pre-population), updateProfile (validation, HC permission errors)
+- HealthConnectManager extensions: 5+ tests for queryLatestWeight/Height (query patterns, permission checks), insertWeight/Height (unit conversion, metadata, permission errors)
+- SettingsViewModel profile state: 5+ tests for profile pre-population, field changes, saveUserProfile validation, error handling
+
+**Instrumentation Tests:**
+NOT required for Story 6.1 - SettingsScreen UI already covered by SettingsScreenTest from Story 5.1. Manual testing scenarios sufficient for UI validation.
+
+**Test Naming Convention:**
+- methodName_whenCondition_thenExpectedResult (preferred for unit tests)
+- feature should behavior when condition (alternative for readability)
+
+**Assertion Library:**
+Truth library for fluent assertions: assertThat(result).isEqualTo(expected), assertThat(result).isInstanceOf(ValidationError::class.java), assertThat(weight).isWithin(0.001).of(75.5)
+
+**Mocking:**
+Mockito/Mockito-Kotlin for dependency mocking. Mock HealthConnectManager in repository tests, mock repository in ViewModel tests. Use whenever() for stubbing, verify() for interaction checks.
+
+**Test Execution:**
+Run ./gradlew test after each task completion. Zero test regressions tolerated - all 387 baseline tests must pass. Target: 10+ new tests for Story 6.1, fast execution (16s typical from Story 5.9).
+
+**Coverage Targets:**
+- Validation logic: 100% (all UserProfile.validate() branches)
+- Repository: 80%+ (happy path + error scenarios)
+- ViewModel: 80%+ (state management + error handling)
+- HealthConnectManager extensions: 80%+ (query/insert + permission checks)
+    </standards>
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/domain/model/UserProfileTest.kt</location>
+      <location>app/app/src/test/java/com/foodie/app/data/repository/UserProfileRepositoryTest.kt</location>
+      <location>app/app/src/test/java/com/foodie/app/data/local/healthconnect/HealthConnectManagerTest.kt</location>
+      <location>app/app/src/test/java/com/foodie/app/ui/screens/settings/SettingsViewModelTest.kt</location>
+    </locations>
+    <ideas>
+      <idea criterion="5,6,7">UserProfile validation tests: age &lt; 13 fails, age &gt; 120 fails, weight &lt; 30 fails, weight &gt; 300 fails, height &lt; 100 fails, height &gt; 250 fails, valid profile passes</idea>
+      <idea criterion="2,10">UserProfileRepository.getUserProfile test: returns null when no HC data, pre-populates weight/height from Health Connect WeightRecord/HeightRecord</idea>
+      <idea criterion="9,10">UserProfileRepository.updateProfile test: validates profile, saves sex/age to SharedPreferences, inserts WeightRecord/HeightRecord to HC with timestamp</idea>
+      <idea criterion="10">UserProfileRepository.updateProfile permission error test: returns Result.Failure with SecurityException when HC write permissions denied</idea>
+      <idea criterion="2">HealthConnectManager.queryLatestWeight test: returns most recent WeightRecord with descending order query, returns null if no records</idea>
+      <idea criterion="2">HealthConnectManager.queryLatestHeight test: returns most recent HeightRecord with descending order query, returns null if no records</idea>
+      <idea criterion="10">HealthConnectManager.insertWeight test: creates WeightRecord with Mass.kilograms(weightKg), correct timestamp, DataOrigin metadata</idea>
+      <idea criterion="10">HealthConnectManager.insertHeight test: converts cm to meters correctly (heightCm / 100.0), creates HeightRecord with Length.meters(), metadata</idea>
+      <idea criterion="10">HealthConnectManager permission check test: insertWeight/Height return SecurityException Result.Failure when WRITE permissions denied</idea>
+      <idea criterion="1,2,3,4">SettingsViewModel init test: loads profile from repository, pre-populates editableSex/Age/Weight/Height in state</idea>
+      <idea criterion="3">SettingsViewModel field change tests: onSexChanged updates editableSex and isEditingProfile=true, same for onAgeChanged/onWeightChanged/onHeightChanged</idea>
+      <idea criterion="5,6,7,11,12">SettingsViewModel.saveUserProfile test: validates input, calls repository.updateProfile, updates state with profileSaveSuccess=true on success</idea>
+      <idea criterion="12">SettingsViewModel.saveUserProfile validation error test: invalid age triggers profileValidationError state with specific message</idea>
+      <idea criterion="10,12">SettingsViewModel.saveUserProfile permission error test: HC permission denied sets showProfilePermissionError=true</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -252,7 +252,7 @@ Will update existing story file rather than creating new one.
     **Objective:** Validate technical approach and identify platform limitations before implementation
     
     **Required Research:**
-    1. Review official documentation (using the tool call Fetch web page) for [primary SDK/API/framework used in this story]
+    1. Review official documentation (YOU MUST USE the fetch web page tool to download the web page from the folloing URLs) for [primary SDK/API/framework used in this story]
        - Starting point: [Official docs URL from architecture.md]
        - Focus: [Specific features/patterns needed for this story]
     

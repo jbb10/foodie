@@ -2,6 +2,7 @@ package com.foodie.app.ui.screens.settings
 
 import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.repository.PreferencesRepository
+import com.foodie.app.domain.repository.UserProfileRepository
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -40,6 +41,7 @@ class SettingsViewModelPreferencesTest {
     private lateinit var viewModel: SettingsViewModel
     private lateinit var repository: PreferencesRepository
     private lateinit var securePreferences: SecurePreferences
+    private lateinit var userProfileRepository: UserProfileRepository
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
@@ -47,12 +49,14 @@ class SettingsViewModelPreferencesTest {
         Dispatchers.setMain(testDispatcher)
         repository = mockk(relaxed = true)
         securePreferences = mockk(relaxed = true)
-        
+        userProfileRepository = mockk(relaxed = true)
+
         // Default mock behavior
         every { repository.observePreferences() } returns flowOf(emptyMap())
         every { securePreferences.azureOpenAiApiKey } returns null
         every { securePreferences.azureOpenAiEndpoint } returns null
         every { securePreferences.azureOpenAiModel } returns null
+        every { userProfileRepository.getUserProfile() } returns flowOf(null)
     }
 
     @After
@@ -69,7 +73,7 @@ class SettingsViewModelPreferencesTest {
         every { repository.observePreferences() } returns flowOf(emptyMap())
 
         // When: ViewModel initialized
-        viewModel = SettingsViewModel(repository, securePreferences)
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
 
         // Then: State updated with preference values from SecurePreferences
         val state = viewModel.state.first()
@@ -85,7 +89,7 @@ class SettingsViewModelPreferencesTest {
         every { repository.observePreferences() } returns flowOf(emptyMap())
 
         // When: ViewModel initialized
-        viewModel = SettingsViewModel(repository, securePreferences)
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
 
         // Then: State has default values
         val state = viewModel.state.first()
@@ -97,7 +101,7 @@ class SettingsViewModelPreferencesTest {
     fun `saveString persists to repository successfully`() = runTest {
         // Given: ViewModel initialized
         coEvery { repository.setString(any(), any()) } returns Result.success(Unit)
-        viewModel = SettingsViewModel(repository, securePreferences)
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
 
         // When: Saving a string preference
         viewModel.saveString("pref_test", "test_value")
@@ -111,7 +115,7 @@ class SettingsViewModelPreferencesTest {
         // Given: Repository fails to save
         val exception = Exception("Save failed")
         coEvery { repository.setString(any(), any()) } returns Result.failure(exception)
-        viewModel = SettingsViewModel(repository, securePreferences)
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
 
         // When: Attempting to save
         viewModel.saveString("pref_test", "test_value")
@@ -126,7 +130,7 @@ class SettingsViewModelPreferencesTest {
     fun `saveBoolean persists to repository successfully`() = runTest {
         // Given: ViewModel initialized
         coEvery { repository.setBoolean(any(), any()) } returns Result.success(Unit)
-        viewModel = SettingsViewModel(repository, securePreferences)
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
 
         // When: Saving a boolean preference
         viewModel.saveBoolean("pref_test", true)
@@ -140,7 +144,7 @@ class SettingsViewModelPreferencesTest {
         // Given: ViewModel with error state
         val exception = Exception("Save failed")
         coEvery { repository.setString(any(), any()) } returns Result.failure(exception)
-        viewModel = SettingsViewModel(repository, securePreferences)
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
 
         viewModel.saveString("pref_test", "test_value")
 
@@ -160,7 +164,7 @@ class SettingsViewModelPreferencesTest {
         // Given: Repository fails to save
         val exception = Exception("Boolean save failed")
         coEvery { repository.setBoolean(any(), any()) } returns Result.failure(exception)
-        viewModel = SettingsViewModel(repository, securePreferences)
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
 
         // When: Attempting to save boolean
         viewModel.saveBoolean("pref_test_bool", false)
@@ -177,7 +181,7 @@ class SettingsViewModelPreferencesTest {
         every { repository.observePreferences() } throws RuntimeException("Observation failed")
 
         // When: ViewModel initializes (triggers observation)
-        viewModel = SettingsViewModel(repository, securePreferences)
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
 
         // Then: Error is set in state
         val state = viewModel.state.value
@@ -198,7 +202,7 @@ class SettingsViewModelPreferencesTest {
         )
 
         // When: ViewModel initializes
-        viewModel = SettingsViewModel(repository, securePreferences)
+        viewModel = SettingsViewModel(repository, securePreferences, userProfileRepository)
 
         // Then: Initial values from SecurePreferences are preserved
         val state = viewModel.state.value
