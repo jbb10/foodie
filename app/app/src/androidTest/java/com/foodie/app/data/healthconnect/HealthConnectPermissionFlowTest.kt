@@ -70,6 +70,8 @@ class HealthConnectPermissionFlowTest {
             "android.permission.health.WRITE_WEIGHT",
             "android.permission.health.READ_HEIGHT",
             "android.permission.health.WRITE_HEIGHT",
+            "android.permission.health.READ_STEPS",
+            "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
         )
     }
 }

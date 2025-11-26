@@ -1,6 +1,7 @@
 package com.foodie.app.data.repository
 
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
+import com.foodie.app.domain.model.EnergyBalance
 import com.foodie.app.domain.model.UserProfile
 import com.foodie.app.domain.repository.EnergyBalanceRepository
 import com.foodie.app.domain.repository.UserProfileRepository
@@ -9,7 +10,11 @@ import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
@@ -281,6 +286,199 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
                 Timber.tag(TAG).e(e, "Error calculating Active Energy from flow")
                 Result.failure(e)
             }
+        }
+    }
+
+    /**
+     * Calculates TDEE using Flow combine() operator.
+     *
+     * **Reactive Strategy:**
+     * - Combines getBMR(), getNEAT(), getActiveCalories() using combine()
+     * - Emits new TDEE whenever ANY component Flow emits
+     * - Waits for all three Flows to emit at least once before first emission
+     *
+     * **Error Handling:**
+     * - Unwraps Result<Double> from each component Flow
+     * - Defaults to 0.0 for failed Results (permission denied, profile not configured)
+     * - Never fails - always returns Double (graceful degradation)
+     *
+     * **Formula:**
+     * TDEE = BMR + NEAT + Active
+     *
+     * @return Flow emitting TDEE in kcal/day (sum of available components)
+     */
+    override fun getTDEE(): Flow<Double> {
+        return combine(
+            getBMR(),
+            getNEAT(),
+            getActiveCalories(),
+        ) { bmrResult, neatResult, activeResult ->
+            // Unwrap Results, defaulting to 0.0 for errors (graceful degradation)
+            val bmr = bmrResult.getOrElse { error ->
+                Timber.tag(TAG).w("TDEE calculation - BMR unavailable: ${error.message}")
+                0.0
+            }
+            val neat = neatResult.getOrElse { error ->
+                Timber.tag(TAG).w("TDEE calculation - NEAT unavailable: ${error.message}")
+                0.0
+            }
+            val active = activeResult.getOrElse { error ->
+                Timber.tag(TAG).w("TDEE calculation - Active unavailable: ${error.message}")
+                0.0
+            }
+
+            // Calculate TDEE: BMR + NEAT + Active
+            val tdee = bmr + neat + active
+            Timber.tag(TAG).d("TDEE calculated: $tdee kcal/day (BMR: $bmr, NEAT: $neat, Active: $active)")
+            tdee
+        }
+    }
+
+    /**
+     * Calculates Calories In from today's nutrition records.
+     *
+     * **Data Flow:**
+     * 1. Calculate time range: midnight to now (local timezone)
+     * 2. Query all nutrition records (throws SecurityException if permission denied)
+     * 3. Sum energy.inKilocalories from all records
+     * 4. Return total as Result.success or Result.failure
+     *
+     * **Zero Meals:**
+     * - Returns Result.success(0.0) if no meal data (valid fasting day)
+     * - Not an error condition
+     *
+     * **Permission Errors:**
+     * - Catches SecurityException from HealthConnectManager.queryNutritionRecords()
+     * - Returns Result.failure(SecurityException) for caller to handle
+     *
+     * @return Result.success(caloriesIn) in kcal, or Result.failure if permission denied
+     */
+    override suspend fun calculateCaloriesIn(): Result<Double> {
+        return try {
+            // Calculate time range: midnight to now (local timezone)
+            val startOfDay = LocalDate.now()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+            val now = Instant.now()
+
+            // Query all nutrition records (throws SecurityException if permission denied)
+            val nutritionRecords = healthConnectManager.queryNutritionRecords(startOfDay, now)
+
+            // Sum total calories from all records
+            val caloriesIn = nutritionRecords.sumOf { record ->
+                record.energy?.inKilocalories ?: 0.0
+            }
+
+            Timber.tag(TAG).d("Calories In calculated: $caloriesIn kcal (from ${nutritionRecords.size} meals)")
+            Result.success(caloriesIn)
+        } catch (e: SecurityException) {
+            // READ_NUTRITION permission denied
+            Timber.tag(TAG).w("Calories In calculation failed - READ_NUTRITION permission denied")
+            Result.failure(e)
+        } catch (e: Exception) {
+            // Unexpected error (should not happen - HealthConnectManager handles most errors)
+            Timber.tag(TAG).e(e, "Unexpected error calculating Calories In")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Observes Calories In with reactive updates.
+     *
+     * **Data Flow:**
+     * 1. Poll Health Connect every 5 minutes
+     * 2. Calculate Calories In from nutrition records
+     * 3. Emit Result.success(caloriesIn) or Result.failure on permission error
+     *
+     * **Update Interval:**
+     * - 5 minutes (Health Connect does not support real-time change listeners)
+     * - Detects new meals added via Foodie app, MyFitnessPal, etc.
+     *
+     * **Permission Errors:**
+     * - If READ_NUTRITION permission denied, emits Result.failure(SecurityException)
+     * - Caller should prompt for permission or gracefully degrade
+     *
+     * @return Flow emitting Result<Double> with Calories In every 5 minutes
+     */
+    override fun getCaloriesIn(): Flow<Result<Double>> {
+        return flow {
+            while (true) {
+                emit(calculateCaloriesIn())
+                delay(5.minutes)
+            }
+        }
+    }
+
+    /**
+     * Observes complete energy balance with reactive updates.
+     *
+     * **Reactive Strategy:**
+     * - Combines getBMR(), getNEAT(), getActiveCalories(), getCaloriesIn() using combine()
+     * - Emits new EnergyBalance whenever ANY component Flow emits
+     * - Waits for all four Flows to emit at least once before first emission
+     *
+     * **Error Handling:**
+     * - If BMR unavailable (profile not configured), returns Result.failure
+     * - If NEAT/Active/CaloriesIn unavailable (permissions denied), defaults to 0.0 for those components
+     * - Graceful degradation: partial data acceptable (e.g., BMR + NEAT only)
+     *
+     * **Domain Model Construction:**
+     * - bmr: From getBMR() Result
+     * - neat: From getNEAT() Result (default 0.0 if error)
+     * - activeCalories: From getActiveCalories() Result (default 0.0 if error)
+     * - caloriesIn: From getCaloriesIn() Result (default 0.0 if error)
+     * - tdee: Computed as bmr + neat + activeCalories
+     * - deficitSurplus: Computed as tdee - caloriesIn
+     *
+     * @return Flow emitting Result<EnergyBalance> with complete energy data
+     */
+    override fun getEnergyBalance(): Flow<Result<EnergyBalance>> {
+        return combine(
+            getBMR(),
+            getNEAT(),
+            getActiveCalories(),
+            getCaloriesIn(),
+        ) { bmrResult, neatResult, activeResult, caloriesInResult ->
+            // Check if BMR is available (required - cannot calculate energy balance without it)
+            val bmr = bmrResult.getOrElse { error ->
+                Timber.tag(TAG).w("EnergyBalance unavailable - BMR error: ${error.message}")
+                return@combine Result.failure<EnergyBalance>(error)
+            }
+
+            // Unwrap other Results, defaulting to 0.0 for errors (graceful degradation)
+            val neat = neatResult.getOrElse { error ->
+                Timber.tag(TAG).w("EnergyBalance - NEAT unavailable, defaulting to 0.0: ${error.message}")
+                0.0
+            }
+            val active = activeResult.getOrElse { error ->
+                Timber.tag(TAG).w("EnergyBalance - Active unavailable, defaulting to 0.0: ${error.message}")
+                0.0
+            }
+            val caloriesIn = caloriesInResult.getOrElse { error ->
+                Timber.tag(TAG).w("EnergyBalance - CaloriesIn unavailable, defaulting to 0.0: ${error.message}")
+                0.0
+            }
+
+            // Calculate derived fields
+            val tdee = bmr + neat + active
+            val deficitSurplus = tdee - caloriesIn
+
+            // Construct EnergyBalance domain model
+            val energyBalance = EnergyBalance(
+                bmr = bmr,
+                neat = neat,
+                activeCalories = active,
+                tdee = tdee,
+                caloriesIn = caloriesIn,
+                deficitSurplus = deficitSurplus,
+            )
+
+            Timber.tag(TAG).d(
+                "EnergyBalance calculated: TDEE=$tdee kcal (BMR=$bmr + NEAT=$neat + Active=$active), " +
+                    "CaloriesIn=$caloriesIn, Deficit/Surplus=$deficitSurplus"
+            )
+
+            Result.success(energyBalance)
         }
     }
 }

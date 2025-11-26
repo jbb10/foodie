@@ -1,0 +1,231 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>5</storyId>
+    <title>Total Daily Energy Expenditure (TDEE)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-5-total-daily-energy-expenditure-tdee.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>my total daily energy expenditure calculated automatically</iWant>
+    <soThat>I know my total "Calories Out" for the day</soThat>
+    <tasks>
+      1. Documentation Research &amp; Technical Validation (MANDATORY CHECKPOINT) - Validate Kotlin Flow combine() operator patterns, reactive TDEE calculation strategy, performance characteristics, and lifecycle management before implementation
+      2. Create EnergyBalance Domain Model - data class with bmr, neat, activeCalories, tdee, caloriesIn, deficitSurplus fields plus computed properties
+      3. Implement TDEE Calculation in EnergyBalanceRepository - getTDEE(): Flow&lt;Double&gt; using Flow combine() to merge BMR, NEAT, Active
+      4. Create getEnergyBalance() Aggregate Flow - combine BMR, NEAT, Active, CaloriesIn into Flow&lt;Result&lt;EnergyBalance&gt;&gt;
+      5. Add Calories In Calculation - query NutritionRecords from Health Connect, sum energy.inKilocalories
+      6. Error Handling for Missing Components - profile not configured, permissions denied, graceful degradation
+      7. Unit Tests for TDEE Calculation - 9 test cases covering formula, updates, performance
+      8. Unit Tests for EnergyBalance Domain Model - 5 test cases for computed properties
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. TDEE calculated using formula: TDEE = BMR + NEAT + Active
+    2. TDEE updates automatically when any component (BMR, NEAT, Active) changes
+    3. TDEE displayed prominently in energy balance dashboard
+    4. Calculation completes in real-time with no perceptible lag (&lt; 100ms total)
+    5. TDEE shows breakdown: "BMR: X + Passive: Y + Active: Z = Total: TDEE"
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-6.md</path>
+        <title>Epic Technical Specification: Energy Balance &amp; Caloric Deficit Tracking</title>
+        <section>Overview - TDEE Formula</section>
+        <snippet>Epic 6 calculates TDEE as sum of Basal Metabolic Rate (BMR using Mifflin-St Jeor), NEAT (0.04 kcal/step), and Active Energy (Health Connect ActiveEnergyBurned records). Provides real-time updates as activity syncs.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-6.md</path>
+        <title>Epic Technical Specification: Energy Balance &amp; Caloric Deficit Tracking</title>
+        <section>Data Models - EnergyBalance Aggregate</section>
+        <snippet>EnergyBalance domain model contains bmr, neat, activeCalories, tdee, caloriesIn, deficitSurplus, and breakdown fields. TDEE = BMR + NEAT + Active. DeficitSurplus = TDEE - CaloriesIn.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-6.md</path>
+        <title>Epic Technical Specification: Energy Balance &amp; Caloric Deficit Tracking</title>
+        <section>System Architecture - EnergyBalanceRepository</section>
+        <snippet>Repository exposes getTDEE(): Flow&lt;Double&gt; combining BMR, NEAT, Active using Kotlin Flow combine(). Reactive streams update when any component changes (profile, steps, workouts).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Epic 6 - Story 6.5: Total Daily Energy Expenditure (TDEE)</section>
+        <snippet>Story 6.5 aggregates BMR, NEAT, and Active into TDEE calculation using Kotlin Flow reactive pattern. Prerequisites: Stories 6.2, 6.3, 6.4 completed (all energy components available).</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Energy Balance &amp; Caloric Deficit Tracking (V2.0)</section>
+        <snippet>Total Daily Energy Expenditure (TDEE) = BMR + NEAT + Active. Enables complete energy balance visualization: Calories In vs Calories Out. Eliminates reliance on third-party tools.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-2-bmr-calculation.md</path>
+        <title>Story 6.2: BMR Calculation - Previous Story Learnings</title>
+        <section>Completion Notes</section>
+        <snippet>EnergyBalanceRepository established with calculateBMR() and getBMR() methods. Repository pattern, Hilt DI, Result&lt;T&gt; error handling, Flow reactivity all working. Mifflin-St Jeor formula validated: BMR range 1200-2500 kcal typical.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-3-passive-energy-neat-calculation.md</path>
+        <title>Story 6.3: NEAT Calculation - Previous Story Learnings</title>
+        <section>Completion Notes</section>
+        <snippet>getNEAT(): Flow&lt;Result&lt;Double&gt;&gt; pattern established with 5-minute polling. HealthConnectManager.querySteps() uses TimeRangeFilter.between(startOfDay, now). Zero steps returns 0.0 kcal (valid sedentary day). READ_STEPS permission added.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-4-active-energy-expenditure.md</path>
+        <title>Story 6.4: Active Energy Expenditure - Previous Story Learnings</title>
+        <section>Completion Notes</section>
+        <snippet>getActiveCalories(): Flow&lt;Result&lt;Double&gt;&gt; with 5-minute polling. ActiveCaloriesBurnedRecord queried from Health Connect. Garmin sync delays handled via periodic polling. Zero workouts returns 0.0 kcal (valid rest day). READ_ACTIVE_CALORIES_BURNED permission added.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Repository Pattern &amp; Flow Reactivity</section>
+        <snippet>MVVM with Repository pattern isolates business logic. Kotlin Flow provides reactive streams for real-time data updates. combine() operator merges multiple Flow sources.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+        <kind>interface</kind>
+        <symbol>EnergyBalanceRepository</symbol>
+        <lines>27-158</lines>
+        <reason>Existing repository interface where getTDEE() and getEnergyBalance() methods must be added. Already contains calculateBMR(), getNEAT(), getActiveCalories() from Stories 6-2, 6-3, 6-4.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/EnergyBalanceRepositoryImpl.kt</path>
+        <kind>implementation</kind>
+        <symbol>EnergyBalanceRepositoryImpl</symbol>
+        <lines>40-294</lines>
+        <reason>Implementation class where TDEE calculation logic will be added using Flow combine() operator. Existing patterns: calculateBMR(), getNEAT(), getActiveCalories() implementations provide templates.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/test/java/com/foodie/app/data/repository/EnergyBalanceRepositoryNeatTest.kt</path>
+        <kind>test</kind>
+        <symbol>EnergyBalanceRepositoryNeatTest</symbol>
+        <lines>27-150</lines>
+        <reason>Test pattern reference for Flow-based reactive calculations. Shows Flow testing utilities (first(), take(), collect()), mocking strategies, and Result&lt;T&gt; assertion patterns to follow for TDEE tests.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>manager</kind>
+        <symbol>HealthConnectManager</symbol>
+        <lines>1-700</lines>
+        <reason>Health Connect data source for querying NutritionRecords (Task 5: Calories In calculation). Contains querySteps() and queryActiveCalories() patterns to follow for queryNutrition().</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/di/RepositoryModule.kt</path>
+        <kind>module</kind>
+        <symbol>RepositoryModule</symbol>
+        <lines>58-67</lines>
+        <reason>Hilt DI binding for EnergyBalanceRepository. No changes needed - new methods added to existing repository use same binding.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <kotlin>
+        <kotlinx-coroutines-core>1.9.0</kotlinx-coroutines-core>
+        <kotlinx-coroutines-android>1.9.0</kotlinx-coroutines-android>
+      </kotlin>
+      <android>
+        <androidx-health-connect-client>1.1.0-alpha10</androidx-health-connect-client>
+        <hilt-android>2.51.1</hilt-android>
+      </android>
+      <testing>
+        <junit>4.13.2</junit>
+        <androidx-test-core-ktx>1.6.1</androidx-test-core-ktx>
+        <kotlinx-coroutines-test>1.9.0</kotlinx-coroutines-test>
+        <mockito-kotlin>5.4.0</mockito-kotlin>
+        <truth>1.4.4</truth>
+      </testing>
+      <logging>
+        <timber>5.0.1</timber>
+      </logging>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - MANDATORY: Complete Task 1 documentation research checkpoint BEFORE proceeding to implementation tasks. Validate Flow combine() operator patterns, reactive calculation strategy, performance characteristics, and lifecycle management. Document findings in Dev Notes.
+    - Repository Pattern: Extend existing EnergyBalanceRepository interface and implementation - do NOT create new repository files
+    - Flow Reactivity: Use Kotlin Flow combine() operator to merge BMR, NEAT, Active streams into single TDEE Flow
+    - Error Handling: Return Result&lt;T&gt; for all calculation methods. Use Result.success() for valid calculations, Result.failure() for errors
+    - TDEE Formula: TDEE = BMR + NEAT + Active (simple addition, no multipliers or PAL factors)
+    - Performance Target: TDEE calculation must complete in &lt; 100ms total (Flow combine() adds &lt; 10ms overhead)
+    - Graceful Degradation: Missing components (BMR unavailable, permissions denied) should NOT crash - return 0.0 or error Result
+    - Testing Standards: 100% acceptance criteria coverage via unit tests. Use Flow testing utilities (first(), take(), toList()). Mock all dependencies (UserProfileRepository, HealthConnectManager)
+    - KDoc Documentation: Add comprehensive KDoc comments for getTDEE() and getEnergyBalance() methods explaining formula, data flow, update triggers
+    - No UI Changes: Story 6.5 focuses on calculation logic only - Dashboard UI implementation deferred to Story 6.6
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>EnergyBalanceRepository.getTDEE()</name>
+      <kind>Kotlin Flow function</kind>
+      <signature>fun getTDEE(): Flow&lt;Double&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+    </interface>
+    <interface>
+      <name>EnergyBalanceRepository.getEnergyBalance()</name>
+      <kind>Kotlin Flow function</kind>
+      <signature>fun getEnergyBalance(): Flow&lt;Result&lt;EnergyBalance&gt;&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+    </interface>
+    <interface>
+      <name>EnergyBalanceRepository.calculateCaloriesIn()</name>
+      <kind>Kotlin suspend function</kind>
+      <signature>suspend fun calculateCaloriesIn(): Result&lt;Double&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+    </interface>
+    <interface>
+      <name>EnergyBalanceRepository.getCaloriesIn()</name>
+      <kind>Kotlin Flow function</kind>
+      <signature>fun getCaloriesIn(): Flow&lt;Double&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+    </interface>
+    <interface>
+      <name>EnergyBalance Domain Model</name>
+      <kind>Kotlin data class</kind>
+      <signature>data class EnergyBalance(val bmr: Double, val neat: Double, val activeCalories: Double, val tdee: Double, val caloriesIn: Double, val deficitSurplus: Double) { val isDeficit: Boolean; val formattedDeficitSurplus: String }</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/model/EnergyBalance.kt</path>
+    </interface>
+    <interface>
+      <name>Flow.combine() Operator</name>
+      <kind>Kotlin Flow API</kind>
+      <signature>fun &lt;T1, T2, T3, R&gt; combine(flow1: Flow&lt;T1&gt;, flow2: Flow&lt;T2&gt;, flow3: Flow&lt;T3&gt;, transform: (T1, T2, T3) -&gt; R): Flow&lt;R&gt;</signature>
+      <path>External API - kotlinx.coroutines.flow.combine</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit tests required for TDEE calculation logic and EnergyBalance domain model. Use JUnit 4.13.2, Kotlin Coroutines Test (runTest), Mockito-Kotlin for repository mocks, and Truth library for assertions. Test file naming: ComponentNameTest.kt (e.g., EnergyBalanceRepositoryTDEETest.kt). Test method naming: methodName_whenCondition_thenExpectedResult. Flow testing utilities: first() for single emission, take(n) for multiple emissions, toList() for collecting all values. Mock all external dependencies (UserProfileRepository, HealthConnectManager) using Mockito-Kotlin. Verify 100% acceptance criteria coverage. No instrumentation tests required - Flow combination logic tested via unit tests.
+    </standards>
+    <locations>
+      app/app/src/test/java/com/foodie/app/data/repository/
+      app/app/src/test/java/com/foodie/app/domain/model/
+    </locations>
+    <ideas>
+      - AC #1 (Formula): Test getTDEE() returns sum of BMR + NEAT + Active (e.g., 1500 + 400 + 300 = 2200 kcal)
+      - AC #1 (Breakdown): Test EnergyBalance model breakdown calculation matches formula components
+      - AC #2 (Auto-updates NEAT): Test TDEE Flow emits updated value when NEAT changes (new steps logged)
+      - AC #2 (Auto-updates Active): Test TDEE Flow emits updated value when Active changes (workout synced)
+      - AC #2 (Auto-updates BMR): Test TDEE Flow emits updated value when BMR changes (profile updated)
+      - AC #4 (Performance): Test TDEE calculation completes within 100ms using test timing
+      - AC #4 (Flow latency): Test combine() operator emits new TDEE within acceptable timeframe after component change
+      - AC #5 (Deficit): Test EnergyBalance.isDeficit returns true when deficitSurplus &gt; 0
+      - AC #5 (Surplus): Test EnergyBalance.isDeficit returns false when deficitSurplus &lt;= 0
+      - AC #5 (Formatted deficit): Test formattedDeficitSurplus shows "-500 kcal deficit" format
+      - AC #5 (Formatted surplus): Test formattedDeficitSurplus shows "+200 kcal surplus" format
+      - Error Handling: Test profile not configured returns error Result with setup message
+      - Error Handling: Test missing NEAT/Active components default to 0.0 (graceful degradation)
+      - Edge Case: Test zero values for all components (BMR=0, NEAT=0, Active=0) returns TDEE=0.0
+    </ideas>
+  </tests>
+</story-context>

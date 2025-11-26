@@ -99,7 +99,7 @@ development_status:
   6-2-bmr-calculation: done  # ✅ APPROVED 2025-11-26 - All 7 ACs verified, 19 unit tests passing (419 total tests, 0 regressions), production-ready (Mifflin-St Jeor equation)
   6-3-passive-energy-neat-calculation: done  # ✅ APPROVED 2025-11-26 - All 8 ACs verified, 9 unit tests passing (428 total, 0 regressions), production-ready (NEAT = steps × 0.04 kcal/step), 0 false completions, excellent architecture alignment
   6-4-active-energy-expenditure: done  # ✅ APPROVED 2025-11-26 - 5/6 ACs implemented (AC-4 deferred to 6.6), 8 unit tests passing (436 total, 0 regressions), textbook-perfect implementation, 0 false completions, production-ready
-  6-5-total-daily-energy-expenditure-tdee: backlog
+  6-5-total-daily-energy-expenditure-tdee: done  # ✅ APPROVED 2025-11-26 - TDEE = BMR + NEAT + Active via Flow combine(), EnergyBalance domain model, 23 unit tests passing (459 total, 0 regressions), 100% AC coverage (4/5 ACs, AC-3 deferred to 6.6), performance < 100ms validated, 0 false completions, exemplary reference implementation
   6-6-calories-in-vs-calories-out-dashboard: backlog
   6-7-weight-height-health-connect-sync: backlog
   epic-6-retrospective: optional

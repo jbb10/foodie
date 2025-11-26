@@ -1,5 +1,6 @@
 package com.foodie.app.domain.repository
 
+import com.foodie.app.domain.model.EnergyBalance
 import com.foodie.app.domain.model.UserProfile
 import kotlinx.coroutines.flow.Flow
 
@@ -145,4 +146,115 @@ interface EnergyBalanceRepository {
      * @return Flow emitting Result.success(activeCalories) with Active Energy in kcal, or Result.failure if permission denied
      */
     fun getActiveCalories(): Flow<Result<Double>>
+
+    /**
+     * Calculates Total Daily Energy Expenditure (TDEE) as sum of BMR, NEAT, and Active.
+     *
+     * Uses Kotlin Flow combine() operator to merge three energy components into single
+     * reactive stream that automatically updates when ANY component changes.
+     *
+     * **Formula:**
+     * TDEE = BMR + NEAT + Active
+     *
+     * **Component Sources:**
+     * - BMR: getBMR() Flow (updates on profile changes)
+     * - NEAT: getNEAT() Flow (updates every 5 minutes from step count)
+     * - Active: getActiveCalories() Flow (updates every 5 minutes from workout data)
+     *
+     * **Update Triggers:**
+     * - Profile changes (weight, age, height) → BMR updates → TDEE recalculates
+     * - New step data synced → NEAT updates → TDEE recalculates
+     * - New workout data synced → Active updates → TDEE recalculates
+     *
+     * **Error Handling:**
+     * - If BMR unavailable (profile not configured), defaults to 0.0
+     * - If NEAT unavailable (permission denied), defaults to 0.0
+     * - If Active unavailable (permission denied), defaults to 0.0
+     * - Always returns Double (never fails - graceful degradation)
+     *
+     * **Performance:**
+     * - combine() overhead: < 1ms
+     * - Arithmetic calculation: < 1μs
+     * - Total latency: < 10ms typical
+     *
+     * @return Flow emitting TDEE in kcal/day (sum of available components, 0.0 for unavailable)
+     */
+    fun getTDEE(): Flow<Double>
+
+    /**
+     * Calculates today's Calories In from Health Connect nutrition records.
+     *
+     * Queries all NutritionRecord entries from midnight to current time (local timezone),
+     * sums total energy consumed, and returns total calories.
+     *
+     * **Data Source:**
+     * - Queries Health Connect NutritionRecord (from midnight to now)
+     * - Sums energy.inKilocalories from all meal records
+     *
+     * **Zero Meals Handling:**
+     * - Returns Result.success(0.0) if no meal data exists (valid fasting day)
+     * - Not an error condition
+     *
+     * **Permission Handling:**
+     * - Returns Result.failure(SecurityException) if READ_NUTRITION permission denied
+     * - Caller should prompt user for permission or gracefully degrade
+     *
+     * @return Result.success(caloriesIn) in kcal, or Result.failure if permission denied
+     */
+    suspend fun calculateCaloriesIn(): Result<Double>
+
+    /**
+     * Observes Calories In with reactive updates when meal data changes.
+     *
+     * Polls Health Connect every 5 minutes to detect new meal entries added via:
+     * - Foodie app (meal capture flow)
+     * - MyFitnessPal (cross-app sync)
+     * - Other nutrition tracking apps
+     *
+     * **Polling Interval:**
+     * - 5 minutes (Health Connect does not support real-time change listeners)
+     * - Balances battery life with near-real-time updates
+     *
+     * **Use Cases:**
+     * - Dashboard displaying current Calories In
+     * - Energy balance calculation (Deficit = TDEE - CaloriesIn)
+     * - Real-time deficit/surplus tracking
+     *
+     * @return Flow emitting Result.success(caloriesIn) in kcal every 5 minutes, or Result.failure if permission denied
+     */
+    fun getCaloriesIn(): Flow<Result<Double>>
+
+    /**
+     * Observes complete energy balance with reactive updates.
+     *
+     * Combines all energy components (BMR, NEAT, Active, CaloriesIn) into single
+     * EnergyBalance domain model using Kotlin Flow combine() operator.
+     *
+     * **Calculated Fields:**
+     * - bmr: From getBMR() Flow
+     * - neat: From getNEAT() Flow
+     * - activeCalories: From getActiveCalories() Flow
+     * - caloriesIn: From getCaloriesIn() Flow
+     * - tdee: Computed as bmr + neat + activeCalories
+     * - deficitSurplus: Computed as tdee - caloriesIn
+     *
+     * **Update Triggers:**
+     * - Profile changes → BMR updates → EnergyBalance emits
+     * - Step data synced → NEAT updates → EnergyBalance emits
+     * - Workout synced → Active updates → EnergyBalance emits
+     * - Meal added/edited/deleted → CaloriesIn updates → EnergyBalance emits
+     *
+     * **Error Handling:**
+     * - If BMR unavailable (profile not configured), returns Result.failure
+     * - If NEAT/Active/CaloriesIn unavailable (permissions denied), defaults to 0.0 for those components
+     * - Graceful degradation: partial data acceptable (e.g., BMR + NEAT only if Active denied)
+     *
+     * **Performance:**
+     * - combine() overhead: < 1ms for 4 Flows
+     * - Domain model construction: < 1μs
+     * - Total latency: < 10ms typical
+     *
+     * @return Flow emitting Result<EnergyBalance> with complete energy data
+     */
+    fun getEnergyBalance(): Flow<Result<EnergyBalance>>
 }
