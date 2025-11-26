@@ -96,8 +96,8 @@ development_status:
   # Epic 6: Energy Balance & Caloric Deficit Tracking
   epic-6: contexted  # Tech spec created 2025-11-26 - TDEE = BMR + NEAT + Active, scientifically grounded formulas, Health Connect integration for weight/height/steps/active calories
   6-1-user-profile-settings: done  # ✅ APPROVED 2025-11-26 - All ACs verified, 400 tests passing (+13 new), manual testing complete (6/6 scenarios PASSED), production-ready
-  6-2-bmr-calculation: done  # ✅ APPROVED 2025-11-26 - All 7 ACs verified, 19 unit tests passing (419 total), zero regressions, production-ready (Mifflin-St Jeor equation)
-  6-3-passive-energy-neat-calculation: backlog
+  6-2-bmr-calculation: done  # ✅ APPROVED 2025-11-26 - All 7 ACs verified, 19 unit tests passing (419 total tests, 0 regressions), production-ready (Mifflin-St Jeor equation)
+  6-3-passive-energy-neat-calculation: done  # ✅ APPROVED 2025-11-26 - All 8 ACs verified, 9 unit tests passing (428 total, 0 regressions), production-ready (NEAT = steps × 0.04 kcal/step), 0 false completions, excellent architecture alignment
   6-4-active-energy-expenditure: backlog
   6-5-total-daily-energy-expenditure-tdee: backlog
   6-6-calories-in-vs-calories-out-dashboard: backlog

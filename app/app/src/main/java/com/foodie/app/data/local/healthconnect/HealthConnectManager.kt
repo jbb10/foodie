@@ -6,6 +6,7 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.records.HeightRecord
 import androidx.health.connect.client.records.NutritionRecord
+import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
@@ -19,6 +20,10 @@ import java.time.Instant
 import java.time.ZoneOffset
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import timber.log.Timber
 
 /**
@@ -54,7 +59,7 @@ class HealthConnectManager @Inject constructor(
         private const val TAG = "HealthConnect"
 
         /**
-         * Required permissions for nutrition data access.
+         * Required permissions for nutrition data access and energy balance tracking.
          */
         val REQUIRED_PERMISSIONS: Set<String> = setOf(
             "android.permission.health.READ_NUTRITION",
@@ -63,6 +68,7 @@ class HealthConnectManager @Inject constructor(
             "android.permission.health.WRITE_WEIGHT",
             "android.permission.health.READ_HEIGHT",
             "android.permission.health.WRITE_HEIGHT",
+            "android.permission.health.READ_STEPS",
         )
     }
 
@@ -487,6 +493,93 @@ class HealthConnectManager @Inject constructor(
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Failed to insert height record")
             Result.failure(e)
+        }
+    }
+
+    /**
+     * Queries total step count from Health Connect within a time range.
+     *
+     * **Multi-Record Summation:**
+     * Health Connect may store multiple StepsRecord entries per day (e.g., Garmin writes
+     * separate records from Google Fit). This method sums all StepsRecord.count values
+     * to get the total daily step count.
+     *
+     * **Permission Check:**
+     * - Throws SecurityException if READ_STEPS permission not granted
+     * - Caller should catch SecurityException and return appropriate error type
+     *
+     * **Use Cases:**
+     * - NEAT calculation: querySteps(startOfDay, now) for today's passive energy
+     * - Historical queries: querySteps(yesterday, yesterday + 1 day) for past days
+     *
+     * @param startTime Start of the query time range (inclusive)
+     * @param endTime End of the query time range (inclusive)
+     * @return Total step count summed across all records, or 0 if no records exist
+     * @throws SecurityException if READ_STEPS permission not granted
+     */
+    suspend fun querySteps(startTime: Instant, endTime: Instant): Int {
+        Timber.tag(TAG).d("Querying steps: $startTime to $endTime")
+
+        // Check permissions before query (throw SecurityException to be caught by caller)
+        val hasPermission = healthConnectClient.permissionController.getGrantedPermissions()
+            .contains("android.permission.health.READ_STEPS")
+
+        if (!hasPermission) {
+            Timber.tag(TAG).e("READ_STEPS permission denied")
+            throw SecurityException("READ_STEPS permission denied")
+        }
+
+        return try {
+            val response = healthConnectClient.readRecords(
+                ReadRecordsRequest(
+                    recordType = StepsRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
+                ),
+            )
+
+            // Sum all StepsRecord.count values (multiple apps may write separate records)
+            val totalSteps = response.records.sumOf { it.count.toInt() }
+
+            Timber.tag(TAG).i("Total steps: $totalSteps (from ${response.records.size} records)")
+            totalSteps
+        } catch (e: SecurityException) {
+            // Re-throw SecurityException for caller to handle
+            Timber.tag(TAG).e(e, "Permission denied querying steps")
+            throw e
+        } catch (e: Exception) {
+            // Other errors return 0 (graceful degradation)
+            Timber.tag(TAG).e(e, "Failed to query steps, returning 0")
+            0
+        }
+    }
+
+    /**
+     * Observes step count changes over time using polling.
+     *
+     * **Polling Strategy:**
+     * Health Connect does not support real-time change listeners. This method polls
+     * querySteps() every 5 minutes to detect new step data synced from Garmin, Google Fit, etc.
+     *
+     * **Flow Lifecycle:**
+     * - Emits immediately with current step count
+     * - Polls every 5 minutes while Flow is active (collector is listening)
+     * - Cancels polling when Flow collector is cancelled
+     *
+     * **Use Cases:**
+     * - EnergyBalanceRepository.getNEAT() reactive stream
+     * - Dashboard real-time NEAT updates when step data syncs
+     *
+     * @return Flow emitting total step count every 5 minutes (from midnight to now)
+     */
+    fun observeSteps(): Flow<Int> = flow {
+        while (true) {
+            val startOfDay = java.time.LocalDate.now()
+                .atStartOfDay(java.time.ZoneId.systemDefault())
+                .toInstant()
+            val now = Instant.now()
+            val steps = querySteps(startOfDay, now)
+            emit(steps)
+            delay(5.minutes)
         }
     }
 }

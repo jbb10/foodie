@@ -1,8 +1,12 @@
 package com.foodie.app.data.repository
 
+import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.domain.model.UserProfile
 import com.foodie.app.domain.repository.EnergyBalanceRepository
 import com.foodie.app.domain.repository.UserProfileRepository
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -13,26 +17,47 @@ import timber.log.Timber
  * Implementation of EnergyBalanceRepository.
  *
  * Calculates Basal Metabolic Rate (BMR) using the Mifflin-St Jeor equation,
- * the gold standard for estimating resting energy expenditure.
+ * and Non-Exercise Activity Thermogenesis (NEAT) from daily step count.
  *
- * **Formula:**
+ * **BMR Formula (Mifflin-St Jeor):**
  * - Male: BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age_years) + 5
  * - Female: BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age_years) - 161
  *
+ * **NEAT Formula:**
+ * - Passive Calories = steps × 0.04 kcal/step
+ * - Peer-reviewed source: Levine, J. A. (2002). "Non-exercise activity thermogenesis (NEAT)"
+ *
  * **Architecture:**
  * - Depends on UserProfileRepository for profile data
+ * - Depends on HealthConnectManager for step data
  * - Pure calculation logic (no storage)
  * - Returns Result<Double> for error handling
  *
  * @param userProfileRepository Source of user demographic data
+ * @param healthConnectManager Source of Health Connect step data
  */
 @Singleton
 class EnergyBalanceRepositoryImpl @Inject constructor(
     private val userProfileRepository: UserProfileRepository,
+    private val healthConnectManager: HealthConnectManager,
 ) : EnergyBalanceRepository {
 
     companion object {
         private const val TAG = "EnergyBalanceRepository"
+
+        /**
+         * NEAT calculation constant: calories per step.
+         *
+         * **Peer-Reviewed Source:**
+         * Levine, J. A. (2002). "Non-exercise activity thermogenesis (NEAT)".
+         * Best Practice & Research Clinical Endocrinology & Metabolism, 16(4), 679-702.
+         *
+         * **Scientific Basis:**
+         * 0.04 kcal/step is the accepted constant for average adult step energy expenditure.
+         * NEAT includes all energy expended for activities that are not sleeping, eating,
+         * or sports-like exercise (walking, fidgeting, occupational activities).
+         */
+        private const val KCAL_PER_STEP = 0.04
     }
 
     /**
@@ -102,6 +127,88 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
                 Result.failure(ProfileNotConfiguredError("User profile must be configured to calculate BMR"))
             } else {
                 calculateBMR(profile)
+            }
+        }
+    }
+
+    /**
+     * Calculates NEAT from current day step count.
+     *
+     * **Formula:**
+     * Passive Calories = steps × 0.04 kcal/step
+     *
+     * **Time Range:**
+     * - Queries from midnight (local timezone) to current time
+     * - Represents "today's NEAT" in progress
+     *
+     * **Multi-Record Handling:**
+     * - Sums all StepsRecord entries (Garmin, Google Fit write separate records)
+     * - HealthConnectManager.querySteps() handles summation
+     *
+     * **Zero Steps:**
+     * - Returns Result.success(0.0) if no step data (valid sedentary day start)
+     * - Not an error condition
+     *
+     * **Permission Errors:**
+     * - Catches SecurityException from HealthConnectManager.querySteps()
+     * - Returns Result.failure(SecurityException) for caller to handle
+     *
+     * @return Result.success(neat) in kcal, or Result.failure if permission denied
+     */
+    override suspend fun calculateNEAT(): Result<Double> {
+        return try {
+            // Calculate time range: midnight to now (local timezone)
+            val startOfDay = LocalDate.now()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+            val now = Instant.now()
+
+            // Query total steps (throws SecurityException if permission denied)
+            val steps = healthConnectManager.querySteps(startOfDay, now)
+
+            // Calculate NEAT: steps × 0.04 kcal/step
+            val neat = steps * KCAL_PER_STEP
+
+            Timber.tag(TAG).d("NEAT calculated: $neat kcal (from $steps steps)")
+            Result.success(neat)
+        } catch (e: SecurityException) {
+            // READ_STEPS permission denied
+            Timber.tag(TAG).w("NEAT calculation failed - READ_STEPS permission denied")
+            Result.failure(e)
+        } catch (e: Exception) {
+            // Unexpected error (should not happen - HealthConnectManager handles most errors)
+            Timber.tag(TAG).e(e, "Unexpected error calculating NEAT")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Observes NEAT with reactive updates.
+     *
+     * **Data Flow:**
+     * 1. Collect step count from HealthConnectManager.observeSteps()
+     * 2. Calculate NEAT: steps × 0.04 kcal/step
+     * 3. Emit Result.success(neat) or Result.failure on permission error
+     *
+     * **Update Interval:**
+     * - Polls Health Connect every 5 minutes
+     * - Detects new step data synced from Garmin, Google Fit, etc.
+     *
+     * **Permission Errors:**
+     * - If READ_STEPS permission denied, emits Result.failure(SecurityException)
+     * - Caller should prompt for permission or gracefully degrade
+     *
+     * @return Flow emitting Result<Double> with NEAT in kcal every 5 minutes
+     */
+    override fun getNEAT(): Flow<Result<Double>> {
+        return healthConnectManager.observeSteps().map { steps ->
+            try {
+                val neat = steps * KCAL_PER_STEP
+                Timber.tag(TAG).d("NEAT updated: $neat kcal (from $steps steps)")
+                Result.success(neat)
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error calculating NEAT from step flow")
+                Result.failure(e)
             }
         }
     }

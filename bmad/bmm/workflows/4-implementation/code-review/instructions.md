@@ -6,6 +6,8 @@
 <critical>Communicate all responses in {communication_language} and language MUST be tailored to {user_skill_level}</critical>
 <critical>Generate all documents in {document_output_language}</critical>
 <critical>This workflow performs a SYSTEMATIC Senior Developer Review on a story with status "review", validates EVERY acceptance criterion and EVERY completed task, appends structured review notes with evidence, and updates the story status based on outcome.</critical>
+<critical>⚠️ WORKFLOW HAS 10 STEPS - YOU MUST COMPLETE ALL 10 STEPS ⚠️</critical>
+<critical>⚠️ COMMON FAILURE MODE: Stopping at Step 7 after appending review to story. This is WRONG. Steps 8 (sprint-status update), 9 (persist action items), and 10 (validation checklist + completion report) are MANDATORY. ⚠️</critical>
 <critical>If story_path is provided, use it. Otherwise, find the first story in sprint-status.yaml with status "review". If none found, offer ad-hoc review option.</critical>
 <critical>Ad-hoc review mode: User can specify any files to review and what to review for (quality, security, requirements, etc.). Creates standalone review report.</critical>
 <critical>SYSTEMATIC VALIDATION REQUIREMENT: For EVERY acceptance criterion, verify implementation with evidence (file:line). For EVERY task marked complete, verify it was actually done. Tasks marked complete but not done = HIGH SEVERITY finding.</critical>
@@ -312,6 +314,7 @@ Your input:</ask>
       <action>Save the story file.</action>
 
       <critical>MUST include the complete validation checklists - this is the evidence that systematic review was performed</critical>
+      <critical>⚠️ DO NOT STOP HERE - Step 7 is NOT the final step. You MUST continue to Step 8 (update sprint status), Step 9 (persist action items), and Step 10 (validation and completion report). Stopping at Step 7 without completing Steps 8-10 is a CRITICAL FAILURE of the workflow.</critical>
     </check>
   </step>
 

@@ -1,5 +1,6 @@
 package com.foodie.app.data.repository
 
+import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.domain.model.UserProfile
 import com.foodie.app.domain.model.ValidationError
 import com.foodie.app.domain.repository.UserProfileRepository
@@ -28,12 +29,14 @@ import org.mockito.kotlin.whenever
 class EnergyBalanceRepositoryTest {
 
     private lateinit var userProfileRepository: UserProfileRepository
+    private lateinit var healthConnectManager: HealthConnectManager
     private lateinit var energyBalanceRepository: EnergyBalanceRepositoryImpl
 
     @Before
     fun setup() {
         userProfileRepository = mock()
-        energyBalanceRepository = EnergyBalanceRepositoryImpl(userProfileRepository)
+        healthConnectManager = mock()
+        energyBalanceRepository = EnergyBalanceRepositoryImpl(userProfileRepository, healthConnectManager)
     }
 
     // ========================================

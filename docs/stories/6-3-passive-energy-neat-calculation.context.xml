@@ -1,0 +1,293 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/6-3" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>6.3</storyId>
+    <title>Passive Energy (NEAT) Calculation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-3-passive-energy-neat-calculation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>my daily passive activity energy expenditure (NEAT) calculated from my step count</iWant>
+    <soThat>I have an accurate measure of calories burned through non-exercise movement</soThat>
+    <tasks>
+      <task id="1" critical="true">
+        <title>Documentation Research &amp; Technical Validation</title>
+        <objective>Validate Health Connect StepsRecord API patterns and NEAT formula before implementation</objective>
+        <deliverables>
+          <deliverable>Confirm StepsRecord API patterns (count field, query methods, time filtering)</deliverable>
+          <deliverable>Validate multi-record summation approach</deliverable>
+          <deliverable>Document time range filtering strategy for "today"</deliverable>
+          <deliverable>Cite peer-reviewed source for 0.04 kcal/step formula</deliverable>
+        </deliverables>
+        <warning>Do NOT proceed to implementation tasks until research checkpoint is complete</warning>
+      </task>
+      <task id="2" acs="2,3">
+        <title>Extend HealthConnectManager for Step Queries</title>
+        <subtasks>
+          <subtask>Add suspend fun querySteps(startTime: Instant, endTime: Instant): Int</subtask>
+          <subtask>Use HealthConnectClient.readRecords&lt;StepsRecord&gt;() with TimeRangeFilter</subtask>
+          <subtask>Sum all StepsRecord.count values from returned records</subtask>
+          <subtask>Return total step count as Int, handle empty results (return 0)</subtask>
+          <subtask>Add fun observeSteps(): Flow&lt;Int&gt; for reactive updates (5-minute polling)</subtask>
+        </subtasks>
+      </task>
+      <task id="3" acs="7">
+        <title>Update HealthConnectManager Permissions</title>
+        <subtasks>
+          <subtask>Add HealthPermission.READ_STEPS to REQUIRED_PERMISSIONS constant</subtask>
+          <subtask>Update HealthConnectManagerTest to assert 7 permissions (was 6)</subtask>
+        </subtasks>
+      </task>
+      <task id="4" acs="1,4,5">
+        <title>Implement NEAT Calculation in EnergyBalanceRepository</title>
+        <subtasks>
+          <subtask>Add suspend fun calculateNEAT(): Result&lt;Double&gt; to interface</subtask>
+          <subtask>Implement in EnergyBalanceRepositoryImpl using steps × 0.04 formula</subtask>
+          <subtask>Add fun getNEAT(): Flow&lt;Result&lt;Double&gt;&gt; reactive stream</subtask>
+          <subtask>Define KCAL_PER_STEP = 0.04 constant with peer-reviewed citation</subtask>
+        </subtasks>
+      </task>
+      <task id="5" acs="7">
+        <title>Error Handling for Permission Denied</title>
+        <subtasks>
+          <subtask>Catch SecurityException in querySteps() when READ_STEPS denied</subtask>
+          <subtask>Return Result.Error(HealthConnectPermissionDenied(listOf("READ_STEPS")))</subtask>
+          <subtask>Test permission denied scenario in unit tests</subtask>
+        </subtasks>
+      </task>
+      <task id="6" acs="8">
+        <title>Unit Tests for NEAT Calculation</title>
+        <subtasks>
+          <subtask>Create EnergyBalanceRepositoryNeatTest.kt</subtask>
+          <subtask>Test: 10,000 steps → 400 kcal NEAT</subtask>
+          <subtask>Test: 0 steps → 0 kcal NEAT (valid sedentary start)</subtask>
+          <subtask>Test: Multiple StepsRecord entries sum correctly</subtask>
+          <subtask>Test: Permission denied returns specific error</subtask>
+          <subtask>Test: Reactive Flow emits updated NEAT when steps change</subtask>
+          <subtask>Mock HealthConnectManager.querySteps() and observeSteps()</subtask>
+        </subtasks>
+      </task>
+      <task id="7" acs="4">
+        <title>Update EnergyBalance Domain Model</title>
+        <subtasks>
+          <subtask>Confirm EnergyBalance data class has neat: Double field</subtask>
+          <subtask>Verify TDEE calculation includes NEAT: tdee = bmr + neat + activeCalories</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">
+      <given>Health Connect contains step data for the current day</given>
+      <when>NEAT is calculated</when>
+      <then>the formula uses: PassiveCalories = steps × 0.04 kcal/step</then>
+    </criterion>
+    <criterion id="2">
+      <then>step count is queried from Health Connect StepsRecord for today (midnight to current time)</then>
+    </criterion>
+    <criterion id="3">
+      <then>multiple StepsRecord entries are summed to get total daily steps</then>
+    </criterion>
+    <criterion id="4">
+      <then>NEAT updates reactively when new step data syncs to Health Connect (e.g., from Garmin)</then>
+    </criterion>
+    <criterion id="5">
+      <then>the calculation returns a Result&lt;Double&gt; with NEAT value in kcal</then>
+    </criterion>
+    <criterion id="6">
+      <then>if no step data exists, NEAT returns 0.0 (not an error - valid for sedentary day start)</then>
+    </criterion>
+    <criterion id="7">
+      <then>Health Connect permission errors are handled gracefully (return specific error type)</then>
+    </criterion>
+    <criterion id="8">
+      <then>unit tests verify the 0.04 kcal/step formula against known test cases</then>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-6.md</path>
+        <title>Epic 6 Technical Specification - Energy Balance &amp; Caloric Deficit Tracking</title>
+        <section>NEAT calculation from Health Connect StepsRecord data</section>
+        <snippet>NEAT calculation from Health Connect StepsRecord data: PassiveCalories = steps × 0.04 kcal/step peer-reviewed formula. Query using TimeRangeFilter.between(midnight, now) and sum all StepsRecord.count values.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-6.md</path>
+        <title>Epic 6 Technical Specification</title>
+        <section>HealthConnectDataSource Extensions</section>
+        <snippet>suspend fun querySteps(startTime: Instant, endTime: Instant): Int - Queries all step records for specified time range, returns summed step count or 0 if no data.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-6.md</path>
+        <title>Epic 6 Technical Specification</title>
+        <section>EnergyBalanceRepository Interface</section>
+        <snippet>suspend fun calculateNEAT(): Result&lt;Double&gt; - Calculates Non-Exercise Activity Thermogenesis from current day step count using 0.04 kcal/step formula.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Foodie Epic Breakdown</title>
+        <section>Story 6.3: Passive Energy (NEAT) Calculation</section>
+        <snippet>As a user, I want my daily passive activity energy expenditure (NEAT) calculated from my step count, so that I have an accurate measure of calories burned through non-exercise movement.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Foodie Architecture Document</title>
+        <section>Health Connect Integration</section>
+        <snippet>HealthConnectManager wrapper class provides: queryNutritionRecords(), insertNutritionRecord(), queryLatestWeight(), queryLatestHeight(). Use TimeRangeFilter for date-bounded queries. Handle SecurityException for permission errors.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Energy Balance &amp; Caloric Deficit Tracking (V2.0)</section>
+        <snippet>Passive energy expenditure (NEAT) from step data using 0.04 kcal/step formula. Total Daily Energy Expenditure (TDEE) = BMR + NEAT + Active.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-2-bmr-calculation.md</path>
+        <title>Story 6.2: BMR Calculation - Previous Story Learnings</title>
+        <section>Completion Notes</section>
+        <snippet>EnergyBalanceRepository interface and implementation established. Repository pattern, Hilt DI, Result&lt;T&gt; error handling, Flow reactivity patterns all working. 19 unit tests created (100% AC coverage). KDoc documentation complete.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+        <kind>interface</kind>
+        <symbol>EnergyBalanceRepository</symbol>
+        <lines>22-57</lines>
+        <reason>Existing repository interface where calculateNEAT() and getNEAT() methods must be added</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/EnergyBalanceRepositoryImpl.kt</path>
+        <kind>implementation</kind>
+        <symbol>EnergyBalanceRepositoryImpl</symbol>
+        <lines>30-110</lines>
+        <reason>Implementation class where NEAT calculation logic will be added, following BMR patterns</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>manager</kind>
+        <symbol>HealthConnectManager</symbol>
+        <lines>1-200</lines>
+        <reason>Health Connect wrapper where querySteps() and observeSteps() methods must be added</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>constant</kind>
+        <symbol>REQUIRED_PERMISSIONS</symbol>
+        <lines>56-63</lines>
+        <reason>Permission set must be updated to include READ_STEPS (currently has 6 permissions)</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/test/java/com/foodie/app/data/repository/EnergyBalanceRepositoryTest.kt</path>
+        <kind>test</kind>
+        <symbol>EnergyBalanceRepositoryTest</symbol>
+        <lines>28-50</lines>
+        <reason>Existing BMR test file - may add NEAT tests here or create separate EnergyBalanceRepositoryNeatTest.kt</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/di/RepositoryModule.kt</path>
+        <kind>di-module</kind>
+        <symbol>RepositoryModule.bindEnergyBalanceRepository</symbol>
+        <lines>61-67</lines>
+        <reason>Hilt binding already configured for EnergyBalanceRepository - no changes needed</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <android>
+        <dependency name="androidx.health.connect:connect-client" version="1.1.0" />
+        <dependency name="org.jetbrains.kotlinx:kotlinx-coroutines-android" version="1.9.0" />
+        <dependency name="com.google.dagger:hilt-android" version="2.51.1" />
+      </android>
+      <testing>
+        <dependency name="junit:junit" version="4.13.2" />
+        <dependency name="org.mockito:mockito-core" version="5.14.2" />
+        <dependency name="org.mockito.kotlin:mockito-kotlin" version="5.4.0" />
+        <dependency name="com.google.truth:truth" version="1.4.4" />
+        <dependency name="org.jetbrains.kotlinx:kotlinx-coroutines-test" version="1.9.0" />
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Follow Repository pattern established in Story 6-2: interface in domain/repository, implementation in data/repository</constraint>
+    <constraint>Use Result&lt;T&gt; error handling pattern throughout (Result.success, Result.failure)</constraint>
+    <constraint>Use Kotlin Flow for reactive updates (Flow&lt;Result&lt;Double&gt;&gt;)</constraint>
+    <constraint>Follow Health Connect query patterns from Story 6-1: TimeRangeFilter.between(startOfDay, now)</constraint>
+    <constraint>Use Hilt dependency injection - EnergyBalanceRepository already bound in RepositoryModule</constraint>
+    <constraint>Add complete KDoc documentation for all new methods (follow BMR KDoc standards)</constraint>
+    <constraint>NEAT formula constant must be documented with peer-reviewed source citation</constraint>
+    <constraint>Zero steps must return 0.0 kcal (not error) - valid for sedentary day start</constraint>
+    <constraint>Permission errors must return specific HealthConnectPermissionDenied error type</constraint>
+    <constraint>Multiple StepsRecord entries must be summed (Garmin, Google Fit write separate records)</constraint>
+    <constraint>Reactive Flow must use 5-minute polling (Health Connect has no real-time observers)</constraint>
+    <constraint>All paths in code must be project-relative (strip /Users/jbjornsson/source/foodie prefix)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>EnergyBalanceRepository.calculateNEAT</name>
+      <kind>suspend function</kind>
+      <signature>suspend fun calculateNEAT(): Result&lt;Double&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+      <description>Calculates NEAT from current day step count using 0.04 kcal/step formula</description>
+    </interface>
+    <interface>
+      <name>EnergyBalanceRepository.getNEAT</name>
+      <kind>reactive flow</kind>
+      <signature>fun getNEAT(): Flow&lt;Result&lt;Double&gt;&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+      <description>Reactive stream emitting NEAT when step data changes (5-minute polling)</description>
+    </interface>
+    <interface>
+      <name>HealthConnectManager.querySteps</name>
+      <kind>suspend function</kind>
+      <signature>suspend fun querySteps(startTime: Instant, endTime: Instant): Int</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+      <description>Queries and sums all StepsRecord entries in time range, returns total count or 0</description>
+    </interface>
+    <interface>
+      <name>HealthConnectManager.observeSteps</name>
+      <kind>reactive flow</kind>
+      <signature>fun observeSteps(): Flow&lt;Int&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+      <description>Polls querySteps() every 5 minutes and emits step count updates</description>
+    </interface>
+    <interface>
+      <name>HealthConnectClient.readRecords&lt;StepsRecord&gt;</name>
+      <kind>Health Connect SDK method</kind>
+      <signature>suspend fun readRecords(request: ReadRecordsRequest&lt;StepsRecord&gt;): ReadRecordsResponse&lt;StepsRecord&gt;</signature>
+      <path>External SDK (androidx.health.connect.client)</path>
+      <description>Queries StepsRecord from Health Connect with TimeRangeFilter, returns list of records</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit tests required for NEAT calculation logic using JUnit 4 + Mockito-Kotlin + Truth assertions. Test naming convention: methodName_whenCondition_thenExpectedResult. Mock HealthConnectManager dependency using Mockito. Test all acceptance criteria: formula correctness (AC1, AC8), multiple record summation (AC3), zero steps handling (AC6), permission errors (AC7), reactive flow updates (AC4). Instrumentation tests NOT required - Health Connect queries tested via unit tests with mocking. All tests must pass before story completion (./gradlew test).
+    </standards>
+
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/data/repository/</location>
+      <location>app/app/src/test/java/com/foodie/app/data/local/healthconnect/</location>
+    </locations>
+
+    <ideas>
+      <idea ac="1,8">Test: calculateNEAT with 10,000 steps returns 400.0 kcal (10000 × 0.04)</idea>
+      <idea ac="6">Test: calculateNEAT with 0 steps returns Result.success(0.0) not error</idea>
+      <idea ac="3">Test: querySteps sums multiple StepsRecord entries (e.g., 3 records: 2000+5000+3000 = 10000 steps)</idea>
+      <idea ac="7">Test: querySteps with READ_STEPS permission denied throws SecurityException, calculateNEAT returns Result.failure(HealthConnectPermissionDenied)</idea>
+      <idea ac="4,5">Test: getNEAT reactive flow emits updated NEAT when mocked step data changes</idea>
+      <idea ac="2">Test: querySteps uses TimeRangeFilter.between(startOfDay, now) for "today" filtering</idea>
+      <idea>Test: observeSteps flow emits every 5 minutes with updated step counts (use virtual time in test)</idea>
+    </ideas>
+  </tests>
+</story-context>

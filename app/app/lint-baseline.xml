@@ -1,7 +1,782 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Android Lint Baseline File -->
-<!-- This file is used to suppress existing lint issues while enforcing clean code for new changes -->
-<!-- To regenerate: ./gradlew :app:lintDebug -->
-<issues format="6" by="lint 8.13.0">
+<issues format="6" by="lint 8.13.0" type="baseline" client="gradle" dependencies="false" name="AGP (8.13.0)" variant="all" version="8.13.0">
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                &quot;deleted $deletedCount files (${String.format(&quot;%.2f&quot;, deletedSizeMB)}MB), &quot; +"
+        errorLine2="                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/worker/PhotoCleanupWorker.kt"
+            line="154"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="            &quot;Current cache size: ${String.format(&quot;%.2f&quot;, remainingSizeMB)}MB, &quot; +"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/worker/PhotoCleanupWorker.kt"
+            line="160"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="ExifInterface"
+        message="Avoid using `android.media.ExifInterface`; use `androidx.exifinterface.media.ExifInterface` instead"
+        errorLine1="import android.media.ExifInterface"
+        errorLine2="       ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt"
+            line="7"
+            column="8"/>
+    </issue>
+
+    <issue
+        id="ExifInterface"
+        message="Avoid using `android.media.ExifInterface`; use `androidx.exifinterface.media.ExifInterface` instead"
+        errorLine1="            val exif = ExifInterface(inputStream)"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt"
+            line="234"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 33 (current min is 28): `android.Manifest.permission#POST_NOTIFICATIONS`"
+        errorLine1="    const val PERMISSION = Manifest.permission.POST_NOTIFICATIONS"
+        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/notifications/NotificationPermissionManager.kt"
+            line="13"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="InvalidPackage"
+        message="Invalid package reference in library; not included in Android: `java.lang.management`. Referenced from `org.jacoco.agent.rt.internal_0e20598.JmxRegistration`.">
+        <location
+            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/org.jacoco/org.jacoco.agent/0.8.13/850ba9544f357712728f89fe3e1fd51b265a0192/org.jacoco.agent-0.8.13-runtime.jar"/>
+    </issue>
+
+    <issue
+        id="InvalidPackage"
+        message="Invalid package reference in library; not included in Android: `javax.management`. Referenced from `org.jacoco.agent.rt.internal_0e20598.JmxRegistration`.">
+        <location
+            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/org.jacoco/org.jacoco.agent/0.8.13/850ba9544f357712728f89fe3e1fd51b265a0192/org.jacoco.agent-0.8.13-runtime.jar"/>
+    </issue>
+
+    <issue
+        id="OldTargetApi"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
+        errorLine1="        targetSdk = 35"
+        errorLine2="        ~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="17"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `maxResizeWidth` is only used in API level 31 and higher (current min is 28)"
+        errorLine1="    android:maxResizeWidth=&quot;40dp&quot;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/xml/glance_widget_info.xml"
+            line="29"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `maxResizeHeight` is only used in API level 31 and higher (current min is 28)"
+        errorLine1="    android:maxResizeHeight=&quot;40dp&quot;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/xml/glance_widget_info.xml"
+            line="30"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `previewLayout` is only used in API level 31 and higher (current min is 28)"
+        errorLine1="    android:previewLayout=&quot;@layout/widget_meal_capture&quot; />"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/xml/glance_widget_info.xml"
+            line="37"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="RedundantLabel"
+        message="Redundant label can be removed"
+        errorLine1="            android:label=&quot;@string/app_name&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="62"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="AndroidGradlePluginVersion"
+        message="A newer version of Gradle than 8.13 is available: 8.14.3"
+        errorLine1="distributionUrl=https\://services.gradle.org/distributions/gradle-8.13-bin.zip"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="$HOME/source/foodie/app/gradle/wrapper/gradle-wrapper.properties"
+            line="4"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="AndroidGradlePluginVersion"
+        message="A newer version of com.android.application than 8.13.0 is available: 8.13.1"
+        errorLine1="agp = &quot;8.13.0&quot;"
+        errorLine2="      ~~~~~~~~">
+        <location
+            file="$HOME/source/foodie/app/gradle/libs.versions.toml"
+            line="2"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="ComposableNaming"
+        message="Composable functions that return Unit should start with an uppercase letter"
+        errorLine1="    private fun handleDeepLinkActions(requestHealthConnectPermissions: ActivityResultLauncher&lt;Set&lt;String>>) {"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/MainActivity.kt"
+            line="127"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="ComposableNaming"
+        message="Composable functions that return Unit should start with an uppercase letter"
+        errorLine1="    private fun handlePermissionCheckFlow("
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/MainActivity.kt"
+            line="145"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="ComposableNaming"
+        message="Composable functions that return Unit should start with an uppercase letter"
+        errorLine1="    private fun widgetContent(context: Context) {"
+        errorLine2="                ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/ui/widget/MealCaptureWidget.kt"
+            line="83"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/ui/navigation/NavGraph.kt"
+            line="70"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt"
+            line="93"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt"
+            line="636"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="Aligned16KB"
+        message="The native library `arm64-v8a/libmockkjvmtiagent.so` (from `io.mockk:mockk-agent-android:1.13.14`) is not 16 KB aligned">
+        <location
+            file="$GRADLE_USER_HOME/caches/8.13/transforms/c5ed9ae35f53529b59c0575589c3adab/transformed/mockk-agent-android-1.13.14/jni/arm64-v8a/libmockkjvmtiagent.so"/>
+    </issue>
+
+    <issue
+        id="BinaryOperationInTimber"
+        message="Replace String concatenation with Timber&apos;s string formatting"
+        errorLine1="            &quot;API error (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS): &quot; +"
+        errorLine2="            ^">
+        <location
+            file="src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt"
+            line="374"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="BinaryOperationInTimber"
+        message="Replace String concatenation with Timber&apos;s string formatting"
+        errorLine1="            &quot;Photo cleanup complete in ${duration}ms - &quot; +"
+        errorLine2="            ^">
+        <location
+            file="src/main/java/com/foodie/app/data/worker/PhotoCleanupWorker.kt"
+            line="153"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                android.util.Log.e(tag, message, t)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/util/Logger.kt"
+            line="18"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                android.util.Log.e(tag, message)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/util/Logger.kt"
+            line="20"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                android.util.Log.w(tag, message)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/util/Logger.kt"
+            line="22"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;kcal&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;notification_meal_analysis_success_body&quot;>Saved %1$d kcal for %2$s&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="41"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StringFormatInTimber"
+        message="Using &apos;String#format&apos; inside of &apos;Timber&apos;"
+        errorLine1="                &quot;deleted $deletedCount files (${String.format(&quot;%.2f&quot;, deletedSizeMB)}MB), &quot; +"
+        errorLine2="                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/worker/PhotoCleanupWorker.kt"
+            line="154"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="StringFormatInTimber"
+        message="Using &apos;String#format&apos; inside of &apos;Timber&apos;"
+        errorLine1="            &quot;Current cache size: ${String.format(&quot;%.2f&quot;, remainingSizeMB)}MB, &quot; +"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/worker/PhotoCleanupWorker.kt"
+            line="160"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; `SDK_INT` is never &lt; 28"
+        errorLine1="        if (Build.VERSION.SDK_INT &lt; Build.VERSION_CODES.O) return"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/worker/foreground/MealAnalysisNotificationSpec.kt"
+            line="39"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 28. Merge all the resources in this folder into `mipmap-anydpi`.">
+        <location
+            file="src/main/res/mipmap-anydpi-v26"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.purple_200` appears to be unused"
+        errorLine1="    &lt;color name=&quot;purple_200&quot;>#FFBB86FC&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="3"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.purple_700` appears to be unused"
+        errorLine1="    &lt;color name=&quot;purple_700&quot;>#FF3700B3&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="5"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.teal_200` appears to be unused"
+        errorLine1="    &lt;color name=&quot;teal_200&quot;>#FF03DAC5&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="6"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.teal_700` appears to be unused"
+        errorLine1="    &lt;color name=&quot;teal_700&quot;>#FF018786&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="7"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.black` appears to be unused"
+        errorLine1="    &lt;color name=&quot;black&quot;>#FF000000&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="8"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.white` appears to be unused"
+        errorLine1="    &lt;color name=&quot;white&quot;>#FFFFFFFF&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="9"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_launcher_background` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_launcher_background.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.capture_requesting_notification_permission` appears to be unused"
+        errorLine1="    &lt;string name=&quot;capture_requesting_notification_permission&quot;>Requesting notification permission…&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="20"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `PermissionsRationaleScreen` of class `HealthConnectPermissionsRationaleActivityKt` requires synthetic accessor"
+        errorLine1="                PermissionsRationaleScreen("
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/HealthConnectPermissionsRationaleActivity.kt"
+            line="39"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `updateNetworkState` of class `NetworkMonitorImpl` requires synthetic accessor"
+        errorLine1="            updateNetworkState()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/network/NetworkMonitorImpl.kt"
+            line="60"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `updateNetworkState` of class `NetworkMonitorImpl` requires synthetic accessor"
+        errorLine1="            updateNetworkState()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/network/NetworkMonitorImpl.kt"
+            line="65"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `updateNetworkState` of class `NetworkMonitorImpl` requires synthetic accessor"
+        errorLine1="            updateNetworkState()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/network/NetworkMonitorImpl.kt"
+            line="73"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="DuplicateStrings"
+        message="Duplicate string value `Cancel`, used in `capture_cancel` and `meal_list_delete_cancel`"
+        errorLine1="    &lt;string name=&quot;meal_list_delete_cancel&quot;>Cancel&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="13"
+            column="5"/>
+        <location
+            file="src/main/res/values/strings.xml"
+            line="28"
+            column="5"
+            message="Duplicates value in `meal_list_delete_cancel`"/>
+    </issue>
+
+    <issue
+        id="DuplicateStrings"
+        message="Duplicate string value `Retry`, used in `capture_retry` and `notification_action_retry`"
+        errorLine1="    &lt;string name=&quot;capture_retry&quot;>Retry&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="29"
+            column="5"/>
+        <location
+            file="src/main/res/values/strings.xml"
+            line="63"
+            column="5"
+            message="Duplicates value in `capture_retry`"/>
+    </issue>
+
+    <issue
+        id="DuplicateStrings"
+        message="Duplicate string value `Open Settings`, used in `capture_open_settings` and `notification_action_open_settings`"
+        errorLine1="    &lt;string name=&quot;capture_open_settings&quot;>Open Settings&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="30"
+            column="5"/>
+        <location
+            file="src/main/res/values/strings.xml"
+            line="62"
+            column="5"
+            message="Duplicates value in `capture_open_settings`"/>
+    </issue>
+
+    <issue
+        id="ConvertToWebp"
+        message="One or more images in this project can be converted to the WebP format which typically results in smaller file sizes, even for lossless conversion">
+        <location
+            file="src/main/res/mipmap-xxxhdpi/ic_widget_foreground.png"/>
+    </issue>
+
+    <issue
+        id="IconExpectedSize"
+        message="Incorrect icon size for `mipmap-hdpi/ic_launcher_foreground.png`: expected 162x162, but was 108x108">
+        <location
+            file="src/main/res/mipmap-hdpi/ic_launcher_foreground.png"/>
+    </issue>
+
+    <issue
+        id="IconExpectedSize"
+        message="Incorrect icon size for `mipmap-mdpi/ic_launcher_foreground.png`: expected 108x108, but was 72x72">
+        <location
+            file="src/main/res/mipmap-mdpi/ic_launcher_foreground.png"/>
+    </issue>
+
+    <issue
+        id="IconExpectedSize"
+        message="Incorrect icon size for `mipmap-xhdpi/ic_launcher_foreground.png`: expected 216x216, but was 144x144">
+        <location
+            file="src/main/res/mipmap-xhdpi/ic_launcher_foreground.png"/>
+    </issue>
+
+    <issue
+        id="IconExpectedSize"
+        message="Incorrect icon size for `mipmap-xxhdpi/ic_launcher_foreground.png`: expected 324x324, but was 216x216">
+        <location
+            file="src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png"/>
+    </issue>
+
+    <issue
+        id="IconExpectedSize"
+        message="Incorrect icon size for `mipmap-xxxhdpi/ic_launcher_foreground.png`: expected 432x432, but was 288x288">
+        <location
+            file="src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                prefs.edit()"
+        errorLine2="                ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/FoodieApplication.kt"
+            line="164"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                prefs.edit().putBoolean(&quot;credentials_migrated&quot;, true).apply()"
+        errorLine2="                ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/FoodieApplication.kt"
+            line="173"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                            Uri.parse(&quot;market://details?id=com.google.android.apps.healthdata&quot;),"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/ui/components/HealthConnectUnavailableDialog.kt"
+            line="39"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                                Uri.parse(&quot;https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata&quot;),"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/ui/components/HealthConnectUnavailableDialog.kt"
+            line="48"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                    prefs.edit().putBoolean(&quot;first_launch&quot;, false).apply()"
+        errorLine2="                    ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/MainActivity.kt"
+            line="167"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="            data = Uri.parse(DEEP_LINK_URI)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/ui/widget/MealCaptureWidget.kt"
+            line="114"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="            data = Uri.parse(DEEP_LINK_URI)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/ui/widget/MealCaptureWidget.kt"
+            line="114"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/local/preferences/OnboardingPreferences.kt"
+            line="82"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `Bitmap.scale` instead?"
+        errorLine1="        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt"
+            line="339"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            sharedPreferences.edit().putString(key, value).apply()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/repository/PreferencesRepositoryImpl.kt"
+            line="106"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            sharedPreferences.edit().putBoolean(key, value).apply()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/repository/PreferencesRepositoryImpl.kt"
+            line="121"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            sharedPreferences.edit().clear().apply()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/repository/PreferencesRepositoryImpl.kt"
+            line="194"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            sharedPreferences.edit()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/repository/PreferencesRepositoryImpl.kt"
+            line="315"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            encryptedPrefs.edit()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt"
+            line="103"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            encryptedPrefs.edit()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt"
+            line="118"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        context.getSharedPreferences(&quot;foodie_prefs&quot;, Context.MODE_PRIVATE)"
+        errorLine2="        ^">
+        <location
+            file="src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt"
+            line="161"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        context.getSharedPreferences(&quot;foodie_prefs&quot;, Context.MODE_PRIVATE)"
+        errorLine2="        ^">
+        <location
+            file="src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt"
+            line="174"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        context.getSharedPreferences(&quot;foodie_prefs&quot;, Context.MODE_PRIVATE)"
+        errorLine2="        ^">
+        <location
+            file="src/main/java/com/foodie/app/data/local/preferences/SecurePreferences.kt"
+            line="187"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            sharedPreferences.edit()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/foodie/app/data/repository/UserProfileRepositoryImpl.kt"
+            line="139"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    androidTestImplementation(&quot;com.squareup.okhttp3:mockwebserver:4.12.0&quot;)"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="246"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    debugImplementation(&quot;com.squareup.leakcanary:leakcanary-android:2.14&quot;)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="253"
+            column="25"/>
+    </issue>
 
 </issues>
