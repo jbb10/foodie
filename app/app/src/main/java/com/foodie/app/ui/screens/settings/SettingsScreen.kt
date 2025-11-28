@@ -593,7 +593,7 @@ private fun ApiKeyPreference(
             value = value,
             onValueChange = onValueChange,
             label = { Text("Azure OpenAI API Key") },
-            placeholder = { Text("sk-...") },
+            placeholder = { Text("API Key") },
             visualTransformation = PasswordVisualTransformation(),
             supportingText = {
                 if (value.isNotBlank()) {

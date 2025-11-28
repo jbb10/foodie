@@ -67,4 +67,11 @@ sealed class Screen(val route: String) {
      * Shows only once per install via OnboardingPreferences flag.
      */
     data object Onboarding : Screen("onboarding")
+
+    /**
+     * Energy Balance Dashboard screen (Story 6.6).
+     * Displays daily calories in vs calories out with TDEE breakdown.
+     * Shows deficit/surplus with color coding and real-time updates.
+     */
+    data object EnergyBalance : Screen("energy_balance")
 }

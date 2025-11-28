@@ -374,7 +374,7 @@ interface ThemeManager {
 2. User enters/updates API credentials:
    - Endpoint URL: https://my-resource.openai.azure.com
    - Model Name: gpt-4.1
-   - API Key: sk-... (masked as •••••)
+   - API Key: API Key (masked as •••••)
    
 3. User taps "Test Connection" button:
    → SettingsViewModel validates inputs locally

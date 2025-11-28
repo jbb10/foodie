@@ -342,7 +342,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
    - "Model Selection" (default "gpt-4.1" or migrated value)
 3. **Enter API Key:**
    - Tap "API Key" field
-   - Enter your Azure OpenAI API key (e.g., `sk-...`)
+   - Enter your Azure OpenAI API key (e.g., `API Key`)
    - Observe input is masked during typing (shows dots: •••••)
    - After entry, field displays last 4 characters only (e.g., "••••abcd")
 4. **Enter Endpoint URL:**

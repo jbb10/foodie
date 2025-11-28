@@ -35,7 +35,7 @@ adb shell run-as com.foodie.app ls -la /data/data/com.foodie.app/shared_prefs/
 
 ### 2. Prepare Test Credentials
 Have ready:
-- **Valid Azure OpenAI API Key:** `sk-...` (from Azure Portal)
+- **Valid Azure OpenAI API Key:** `API Key` (from Azure Portal)
 - **Valid Endpoint:** `https://your-resource.openai.azure.com`
 - **Valid Model:** `gpt-4o`, `gpt-4-turbo`, or `gpt-4.1`
 - **Invalid Credentials:** For error testing

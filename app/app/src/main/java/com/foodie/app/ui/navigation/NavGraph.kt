@@ -6,13 +6,24 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
@@ -20,6 +31,7 @@ import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.data.local.preferences.OnboardingPreferences
 import com.foodie.app.ui.components.HealthConnectPermissionGate
 import com.foodie.app.ui.screens.capture.CapturePhotoScreen
+import com.foodie.app.ui.screens.energybalance.EnergyBalanceDashboardScreen
 import com.foodie.app.ui.screens.mealdetail.MealDetailScreen
 import com.foodie.app.ui.screens.meallist.MealListScreen
 import com.foodie.app.ui.screens.onboarding.OnboardingScreen
@@ -51,9 +63,15 @@ import com.foodie.app.ui.screens.settings.SettingsScreen
  * Navigation flow:
  * ```
  * Onboarding (first launch) → MealList (start) ←→ MealDetail
- *    ↓
- * Settings
+ *    ↓                             ↓
+ * Settings                   EnergyBalance
  * ```
+ *
+ * Bottom Navigation (Story 6.6):
+ * - Meals: MealList screen with meal list icon
+ * - Energy: EnergyBalance screen with scale icon
+ * - Visible on: MealList, EnergyBalance screens only
+ * - Hidden on: Onboarding, Settings, MealDetail, CameraCapture
  *
  * @param healthConnectManager HealthConnectManager for permission checking
  * @param onboardingPreferences OnboardingPreferences for first-launch detection (Story 5.7)
@@ -89,11 +107,35 @@ fun NavGraph(
         }
     }
 
-    NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        modifier = modifier,
-    ) {
+    // Determine which screens should show bottom navigation (Story 6.6)
+    val currentRoute by navController.currentBackStackEntryAsState()
+    val currentDestination = currentRoute?.destination?.route
+    val showBottomNav = currentDestination in listOf(Screen.MealList.route, Screen.EnergyBalance.route)
+
+    Scaffold(
+        bottomBar = {
+            if (showBottomNav) {
+                BottomNavigationBar(
+                    currentRoute = currentDestination ?: Screen.MealList.route,
+                    onNavigate = { route ->
+                        navController.navigate(route) {
+                            // Pop up to start destination to avoid large back stack
+                            popUpTo(Screen.MealList.route) { saveState = true }
+                            // Avoid multiple copies of same screen
+                            launchSingleTop = true
+                            // Restore state when navigating back
+                            restoreState = true
+                        }
+                    },
+                )
+            }
+        },
+    ) { paddingValues ->
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = modifier.padding(paddingValues),
+        ) {
         // Onboarding screen (Story 5.7 - first launch only)
         composable(
             route = Screen.Onboarding.route,
@@ -275,5 +317,76 @@ fun NavGraph(
                 },
             )
         }
+
+        // Energy Balance Dashboard screen (Story 6.6)
+        composable(
+            route = Screen.EnergyBalance.route,
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "foodie://energy-balance" },
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = FastOutSlowInEasing),
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(250, easing = FastOutSlowInEasing),
+                )
+            },
+        ) {
+            EnergyBalanceDashboardScreen(
+                healthConnectManager = healthConnectManager,
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
+                },
+            )
+        }
+        }
+    }
+}
+
+/**
+ * Bottom navigation bar for primary app navigation (Story 6.6).
+ *
+ * Displays two primary destinations:
+ * - Meals: Meal list screen with meal entry list
+ * - Energy: Energy balance dashboard with caloric tracking
+ *
+ * Only shown on MealList and EnergyBalance screens, hidden on detail/settings/capture screens.
+ *
+ * @param currentRoute Current active route from NavController
+ * @param onNavigate Callback when navigation item tapped, receives route string
+ */
+@Composable
+private fun BottomNavigationBar(
+    currentRoute: String,
+    onNavigate: (String) -> Unit,
+) {
+    NavigationBar {
+        NavigationBarItem(
+            selected = currentRoute == Screen.MealList.route,
+            onClick = { onNavigate(Screen.MealList.route) },
+            icon = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.List,
+                    contentDescription = null,
+                )
+            },
+            label = { Text("Meals") },
+        )
+        NavigationBarItem(
+            selected = currentRoute == Screen.EnergyBalance.route,
+            onClick = { onNavigate(Screen.EnergyBalance.route) },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = null,
+                )
+            },
+            label = { Text("Energy") },
+        )
     }
 }

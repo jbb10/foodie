@@ -1,0 +1,225 @@
+<story-context id="6-6-calories-in-vs-calories-out-dashboard" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>6.6</storyId>
+    <title>Calories In vs Calories Out Dashboard</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-27</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-6-calories-in-vs-calories-out-dashboard.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to see my daily calories consumed vs calories burned</iWant>
+    <soThat>I can track my caloric deficit or surplus</soThat>
+    <tasks>
+      <task id="1" status="pending">Documentation Research &amp; Technical Validation - Compose dashboard patterns, Material 3 cards, collectAsStateWithLifecycle, PullRefreshIndicator</task>
+      <task id="2" status="pending">Create EnergyBalanceDashboardScreen Composable - Scaffold, TopAppBar, pull-to-refresh, state collection</task>
+      <task id="3" status="pending">Implement EnergyBalanceContent Composable - Column layout, last updated timestamp, card components</task>
+      <task id="4" status="pending">Create DeficitSurplusCard Composable - Green/red color coding, deficit/surplus display</task>
+      <task id="5" status="pending">Create CaloriesSummaryCard Composable - Calories In/Out rows with icons</task>
+      <task id="6" status="pending">Create TDEEBreakdownCard Composable - BMR + NEAT + Active breakdown with formula</task>
+      <task id="7" status="pending">Create EmptyState and ErrorState Composables - Icon + message patterns</task>
+      <task id="8" status="pending">Create EnergyBalanceDashboardViewModel - StateFlow management, repository Flow collection</task>
+      <task id="9" status="pending">Create EnergyBalanceState Data Class - UI state with loading/error/data fields</task>
+      <task id="10" status="pending">Add Energy Balance Route to NavGraph - Slide transitions, deep link support</task>
+      <task id="11" status="pending">Add Bottom Navigation Item for Dashboard - Energy icon in nav bar</task>
+      <task id="12" status="pending">Unit Tests for EnergyBalanceDashboardViewModel - State management, refresh, error handling</task>
+      <task id="13" status="pending">UI Tests for Energy Balance Dashboard - Screen rendering, pull-to-refresh, real-time updates</task>
+      <task id="14" status="pending">Manual Testing on Physical Device - Deficit/surplus scenarios, real-time updates, empty/error states</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Dashboard displays "Calories In: X kcal" from today's NutritionRecords</criterion>
+    <criterion id="2">Dashboard displays "Calories Out: Y kcal" (TDEE value)</criterion>
+    <criterion id="3">Dashboard displays "Deficit/Surplus: Z kcal" calculated as (Calories Out - Calories In)</criterion>
+    <criterion id="4">Deficit shows in green card with negative number format: "-500 kcal deficit"</criterion>
+    <criterion id="5">Surplus shows in red card with positive number format: "+200 kcal surplus"</criterion>
+    <criterion id="6">Dashboard accessible from main app navigation (bottom nav or drawer)</criterion>
+    <criterion id="7">Data updates in real-time as meals logged or activity data syncs</criterion>
+    <criterion id="8">Empty state displays: "Log your first meal to start tracking"</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-6.md</path>
+        <title>Epic 6 Technical Specification</title>
+        <section>Dashboard UI Implementation (Compose)</section>
+        <snippet>Complete Compose implementation examples for EnergyBalanceDashboardScreen, DeficitSurplusCard, CaloriesSummaryCard, TDEEBreakdownCard with Material 3 theming, pull-to-refresh pattern, and error/empty state patterns. Includes color coding (green deficit, red surplus) using MaterialTheme.colorScheme.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 6.6: Calories In vs Calories Out Dashboard</section>
+        <snippet>User story definition, acceptance criteria (8 ACs), prerequisites (Story 6.5 TDEE calculation), and technical notes on dashboard accessibility, real-time updates, pull-to-refresh, empty state, deficit/surplus color coding.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Implementation Patterns - MVVM Pattern</section>
+        <snippet>Stateful Screen + Stateless Content pattern: Screen collects StateFlow via collectAsStateWithLifecycle(), Content renders data. ViewModel exposes StateFlow, updates state from repository Flow. Example: MealListScreen pattern reused for dashboard.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Material 3 Compose Implementation Gaps</section>
+        <snippet>Navigation motion transitions require manual implementation using slideIntoContainer/slideOutOfContainer with FastOutSlowInEasing (300ms enter, 250ms exit). Material 3 motion specs must be applied manually as Compose Navigation lacks built-in Material Motion.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-5-total-daily-energy-expenditure-tdee.md</path>
+        <title>Story 6.5: TDEE Calculation</title>
+        <section>Implementation Summary</section>
+        <snippet>EnergyBalance domain model created with fields: bmr, neat, activeCalories, tdee, caloriesIn, deficitSurplus. Computed properties: isDeficit (boolean), formattedDeficitSurplus (string). Flow combine() pattern for reactive TDEE updates. getEnergyBalance() Flow emits on ANY component change.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3-1-meal-entry-list-view.md</path>
+        <title>Story 3.1: Meal Entry List View</title>
+        <section>Implementation Details</section>
+        <snippet>Pull-to-refresh pattern using PullRefreshIndicator with rememberPullRefreshState. Empty state pattern: Icon + message composable. StateFlow collection for real-time updates when meals logged. Card-based list layout with LazyColumn.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-1-settings-screen-foundation.md</path>
+        <title>Story 5.1: Settings Screen</title>
+        <section>Implementation Details</section>
+        <snippet>Scaffold + LazyColumn layout for structured screen. collectAsStateWithLifecycle() for reactive state collection. Error state with retry button pattern. NavGraph composable() integration with slide transitions. Hilt ViewModel injection.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/domain/model/EnergyBalance.kt</path>
+        <kind>domain model</kind>
+        <symbol>EnergyBalance</symbol>
+        <lines>36-72</lines>
+        <reason>Domain model with all required fields (bmr, neat, activeCalories, tdee, caloriesIn, deficitSurplus) and computed properties (isDeficit, formattedDeficitSurplus) that dashboard UI will display</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+        <kind>repository interface</kind>
+        <symbol>getEnergyBalance</symbol>
+        <lines>186-215</lines>
+        <reason>Repository method returning Flow&lt;Result&lt;EnergyBalance&gt;&gt; that ViewModel will collect for real-time dashboard updates</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt</path>
+        <kind>screen composable</kind>
+        <symbol>MealListScreen</symbol>
+        <lines>1-100</lines>
+        <reason>Reference pattern for pull-to-refresh implementation, empty state handling, StateFlow collection via collectAsStateWithLifecycle(), Scaffold + LazyColumn layout</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>MealListViewModel</symbol>
+        <lines>1-150</lines>
+        <reason>Reference pattern for StateFlow management, repository Flow collection in init block, refresh() method for pull-to-refresh</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt</path>
+        <kind>screen composable</kind>
+        <symbol>SettingsScreen</symbol>
+        <lines>1-100</lines>
+        <reason>Reference pattern for Scaffold + TopAppBar layout, error state with retry button, navigation parameter (onNavigateToSettings equivalent)</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+        <kind>navigation</kind>
+        <symbol>NavGraph</symbol>
+        <reason>Add new Energy Balance route with slide transitions, deep link support (foodie://energy-balance), and navigation from bottom nav</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/theme/Theme.kt</path>
+        <kind>theme</kind>
+        <symbol>MaterialTheme.colorScheme</symbol>
+        <reason>Material 3 color scheme for deficit/surplus color coding: primary/primaryContainer (green deficit), error/errorContainer (red surplus)</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <ecosystem name="Android Jetpack Compose">
+        <package name="androidx.compose.ui">UI components, Column, Box, Modifier</package>
+        <package name="androidx.compose.material3">Card, Scaffold, TopAppBar, MaterialTheme, Icons</package>
+        <package name="androidx.compose.foundation">verticalScroll, rememberScrollState, pullRefresh</package>
+        <package name="androidx.lifecycle:lifecycle-runtime-compose">collectAsStateWithLifecycle()</package>
+        <package name="androidx.navigation:navigation-compose">NavGraph, composable(), deepLinks</package>
+        <package name="androidx.hilt:hilt-navigation-compose">hiltViewModel()</package>
+      </ecosystem>
+      <ecosystem name="Kotlin Coroutines">
+        <package name="kotlinx.coroutines.flow">StateFlow, Flow, collect</package>
+      </ecosystem>
+      <ecosystem name="Testing">
+        <package name="junit:junit">Unit test framework</package>
+        <package name="org.mockito:mockito-core">Mocking for ViewModel tests</package>
+        <package name="com.google.truth:truth">Assertion library</package>
+        <package name="androidx.compose.ui:ui-test-junit4">Compose UI testing</package>
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>EnergyBalanceRepository.getEnergyBalance()</name>
+      <kind>Reactive Flow</kind>
+      <signature>fun getEnergyBalance(): Flow&lt;Result&lt;EnergyBalance&gt;&gt;</signature>
+      <path>app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+      <description>Returns reactive Flow emitting EnergyBalance updates when ANY component changes (BMR, NEAT, Active, Calories In). ViewModel collects this Flow in init block.</description>
+    </interface>
+    <interface>
+      <name>EnergyBalanceRepository.refresh()</name>
+      <kind>Suspend function</kind>
+      <signature>suspend fun refresh()</signature>
+      <path>app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+      <description>Manual refresh trigger for pull-to-refresh. Re-queries Health Connect for latest steps, active calories, and meals.</description>
+    </interface>
+    <interface>
+      <name>EnergyBalance (domain model)</name>
+      <kind>Data class</kind>
+      <signature>data class EnergyBalance(bmr: Double, neat: Double, activeCalories: Double, tdee: Double, caloriesIn: Double, deficitSurplus: Double)</signature>
+      <path>app/src/main/java/com/foodie/app/domain/model/EnergyBalance.kt</path>
+      <description>Complete energy balance data with computed properties isDeficit (boolean) and formattedDeficitSurplus (string for UI display)</description>
+    </interface>
+    <interface>
+      <name>NavGraph Composable Pattern</name>
+      <kind>Navigation</kind>
+      <signature>composable(route, enterTransition, exitTransition, deepLinks) { /* Screen */ }</signature>
+      <path>app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt</path>
+      <description>Add EnergyBalance route with Material 3 slide transitions (slideIntoContainer Left 300ms, slideOutOfContainer Right 250ms, FastOutSlowInEasing)</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>MVVM Architecture: Screen (stateful) + Content (stateless) separation. Screen collects StateFlow, Content renders data only.</constraint>
+    <constraint>Material 3 Theming: Use MaterialTheme.colorScheme.primary/primaryContainer for deficit (green), error/errorContainer for surplus (red). No hardcoded colors.</constraint>
+    <constraint>Real-Time Updates: ViewModel must collect repository.getEnergyBalance() Flow in init block. UI automatically recomposes via collectAsStateWithLifecycle().</constraint>
+    <constraint>Pull-to-Refresh: Use PullRefreshIndicator with rememberPullRefreshState. Refresh triggers viewModel.refresh() which calls repository.refresh().</constraint>
+    <constraint>Error Handling: ProfileNotConfiguredError sets showSettingsButton=true. All other errors show generic error message with retry button.</constraint>
+    <constraint>Empty State: Display when energyBalance is null and no error. Show "Log your first meal to start tracking" with SsidChart icon.</constraint>
+    <constraint>Navigation: Add bottom navigation item with DirectionsRun or Scale icon. Route: "energy_balance". Deep link: "foodie://energy-balance".</constraint>
+    <constraint>Testing Requirements: Unit tests for ViewModel (state management, refresh, error handling). Instrumentation tests for UI (rendering, pull-to-refresh, navigation).</constraint>
+    <constraint>File Naming: EnergyBalanceDashboardScreen.kt, EnergyBalanceDashboardViewModel.kt, EnergyBalanceState.kt in ui/screens/energybalance/ package.</constraint>
+    <constraint>Material 3 Slide Transitions: Apply to EnergyBalance route using slideIntoContainer/slideOutOfContainer with FastOutSlowInEasing, 300ms enter, 250ms exit (per architecture.md).</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Unit tests required for EnergyBalanceDashboardViewModel covering state management, repository Flow collection, refresh() method, error handling (ProfileNotConfiguredError vs generic errors), and real-time state updates. Instrumentation tests required for UI workflows: dashboard rendering in various states (loading, empty, success, error), pull-to-refresh interaction, navigation from bottom nav, and real-time updates when meals logged. Use JUnit, Mockito-Kotlin for mocking repository, Truth for assertions, Compose UI testing utilities (composeTestRule, onNodeWithText, performClick). Test naming convention: methodName_whenCondition_thenExpectedResult. Target: 80%+ ViewModel coverage, comprehensive UI test coverage for all state branches.
+    </standards>
+    <locations>
+      <location>app/src/test/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardViewModelTest.kt</location>
+      <location>app/src/androidTest/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardScreenTest.kt</location>
+    </locations>
+    <ideas>
+      <idea ac="7" desc="ViewModel init block collects repository.getEnergyBalance() Flow and updates state - test that state updates when Flow emits new EnergyBalance"/>
+      <idea ac="7" desc="Pull-to-refresh triggers viewModel.refresh() which sets isLoading=true and calls repository.refresh() - verify state transitions"/>
+      <idea ac="3,4,5" desc="Deficit/surplus calculation and color coding - test green card for deficit (TDEE &gt; Calories In), red card for surplus (TDEE &lt; Calories In)"/>
+      <idea ac="8" desc="Empty state when energyBalance is null - test UI displays 'Log your first meal to start tracking' message"/>
+      <idea ac="7" desc="Error state when repository returns failure - test retry button calls onRetryAfterError(), Open Settings button shown for ProfileNotConfiguredError"/>
+      <idea ac="6" desc="Bottom navigation integration - test tapping Energy nav item navigates to dashboard screen"/>
+      <idea ac="1,2" desc="Dashboard displays Calories In and Calories Out - test UI renders values from EnergyBalance domain model"/>
+      <idea ac="7" desc="Real-time updates - test that when repository emits new EnergyBalance (e.g., meal logged), state updates and UI recomposes automatically"/>
+    </ideas>
+  </tests>
+</story-context>

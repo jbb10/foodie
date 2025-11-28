@@ -64,7 +64,7 @@
         Previous story (4.7) fully implemented during Story 4.3 bug fixes. Created util/NotificationHelper.kt for centralized notification management - consider similar pattern for Settings utilities. BroadcastReceiver registered in AndroidManifest with exported=false security pattern. Manual testing critical for UX validation on physical devices.
       </doc>
     </docs>
-    
+
     <code>
       <artifact path="app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt" kind="composable" symbol="SettingsScreen" lines="39-89" reason="Existing placeholder Settings screen from Story 1.3. Currently displays placeholder text. Needs enhancement with preference categories, list items, and Material Design 3 components for Epic 5 requirements."/>
       <artifact path="app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt" kind="navigation" symbol="NavGraph" lines="210-228" reason="Navigation graph with Settings route already defined. Settings route uses slide transitions. Pattern to follow for any additional navigation requirements."/>
@@ -76,7 +76,7 @@
       <artifact path="app/src/androidTest/java/com/foodie/app/ui/screens/meallist/MealListScreenTest.kt" kind="test" symbol="MealListScreenTest" lines="27,44,49" reason="Example instrumentation test using composeTestRule.setContent, onNodeWithText, assertIsDisplayed. Follow same pattern for Settings navigation tests."/>
       <artifact path="app/src/test/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModelTest.kt" kind="test" symbol="MealDetailViewModelTest" reason="Example ViewModel unit test pattern using MockK, runTest, StateFlow assertions. Follow for SettingsViewModel tests."/>
     </code>
-    
+
     <dependencies>
       <kotlin version="2.2.21">
         <kotlinx-coroutines-android version="1.9.0"/>
@@ -131,7 +131,7 @@
     </testing>
     <security>
       <rule>Standard SharedPreferences for non-sensitive preferences (endpoint URL, model name, theme). EncryptedSharedPreferences for API key (Story 5.2).</rule>
-      <rule>Never log sensitive data (API keys). Use masked display in UI (e.g., "sk-...•••••" for API key preview).</rule>
+      <rule>Never log sensitive data (API keys). Use masked display in UI (e.g., "API Key•••••" for API key preview).</rule>
     </security>
   </constraints>
 
@@ -143,12 +143,12 @@ interface PreferencesRepository {
     suspend fun setString(key: String, value: String): Result&lt;Unit&gt;
     suspend fun getBoolean(key: String, defaultValue: Boolean = false): Boolean
     suspend fun setBoolean(key: String, value: Boolean): Result&lt;Unit&gt;
-    
+
     // Reactive updates
     fun observePreferences(): Flow&lt;Map&lt;String, Any?&gt;&gt;
     fun observeString(key: String): Flow&lt;String?&gt;
     fun observeBoolean(key: String): Flow&lt;Boolean?&gt;
-    
+
     // Clear all preferences (for testing/reset)
     suspend fun clearAll(): Result&lt;Unit&gt;
 }
@@ -194,13 +194,13 @@ object AppModule {
     <standards>
       Testing framework: JUnit 4.13.2 for unit tests, Compose UI Test for instrumentation tests. Use MockK for mocking dependencies. Truth library for assertions (assertThat syntax). Coroutine testing with kotlinx-coroutines-test (runTest, TestDispatcher). ViewModel tests: Mock repository, verify StateFlow emissions. Repository tests: Use fake SharedPreferences or in-memory implementation. UI tests: Use composeTestRule.setContent, onNodeWithText, assertIsDisplayed, performClick.
     </standards>
-    
+
     <locations>
       <location>app/src/test/java/com/foodie/app/ui/screens/settings/SettingsViewModelTest.kt</location>
       <location>app/src/test/java/com/foodie/app/data/repository/PreferencesRepositoryTest.kt</location>
       <location>app/src/androidTest/java/com/foodie/app/ui/screens/settings/SettingsNavigationTest.kt</location>
     </locations>
-    
+
     <ideas>
       <test ac="1,3,9" desc="SettingsScreen displays preference categories with correct Material Design 3 styling">
         Unit test: Verify SettingsScreen composable renders LazyColumn with three category headers ("API Configuration", "Appearance", "About"). Assert Material Typography styles applied. Use composeTestRule.onNodeWithText to find category headers.
