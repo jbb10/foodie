@@ -15,58 +15,14 @@ appId: com.foodie.app
 - launchApp:
     clearState: true
 
-# Skip onboarding if present
-- tapOn:
-    text: "Skip"
-    optional: true
-
-# Wait for main screen to load
-- assertVisible: "Foodie"
+# Dismiss onboarding if present
+- runFlow: flows/dismiss-onboarding.yaml
 
 # Configure user profile (required for Energy Balance BMR calculation)
-# Tap Settings cog icon in top right corner
-- tapOn:
-    text: "Open Settings"
+- runFlow: flows/open-settings.yaml
 
 # Fill required profile fields for BMR calculation
-- tapOn:
-    text: "Sex"
-
-- tapOn:
-    text: "Male"
-
-- tapOn:
-    text: "Birthday"
-
-# 1. Tap the pencil icon to switch to text entry
-# The standard Android content description for this button is usually:
-- tapOn: "Switch to text input mode"
-
-- tapOn: "Date"
-
-# 2. Enter the date (Format depends on your locale)
-- inputText: "01/01/1989"
-
-# 3. Save
-- tapOn: "OK"
-
-- scroll
-
-# 1. Fill Weight
-- tapOn: "Weight (kg)"
-- eraseText
-- inputText: "75"
-
-# 2. Fill Height
-- tapOn: "Height (cm)"
-- eraseText
-- inputText: "182"
-
-# 3. Hide keyboard to ensure the Save button is visible
-- hideKeyboard
-
-# 4. Save
-- tapOn: "Save Profile"
+- runFlow: flows/setup-user-profile.yaml
 
 # Navigate back to main screen
 - pressKey: BACK

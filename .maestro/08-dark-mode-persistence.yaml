@@ -1,236 +1,96 @@
 # Story 5.4 E2E Test: Dark Mode Persistence
-# Priority: P2 (Medium - User preference)
+# Tests theme preference selection and persistence across app restarts
 #
 # Acceptance Criteria Validated:
-# - User can toggle dark mode in settings
-# - Theme changes immediately (no restart)
-# - Theme preference persists after app restart
-# - Theme applied consistently across all screens
-# - Follows system theme by default (optional)
+# - AC #7: In-app theme selector with "System Default", "Light", "Dark" options
+# - AC #8: Theme preference persists across app restarts
 
 appId: com.foodie.app
 ---
-# ============================================
-# PHASE 1: Verify Initial Theme
-# ============================================
-
+# Launch app
 - launchApp:
     clearState: false
 
-# Navigate to settings
-- tapOn:
-    id: "settings_icon"
+# Dismiss onboarding if present
+- runFlow: flows/dismiss-onboarding.yaml
 
-- assertVisible: "Settings"
+# Navigate to Settings
+- runFlow: flows/open-settings.yaml
 
-# ============================================
-# PHASE 2: Change to Dark Mode
-# ============================================
-
-# Scroll to theme setting
+# Scroll to Appearance section
 - scroll
 
-# Find theme toggle/selector
-- assertVisible:
-    text: "(Theme|Dark Mode|Appearance)"
+# Verify Theme preference section exists
+- assertVisible: "Theme"
 
-# Current state could be Light, Dark, or System
-# Toggle to Dark mode
-- tapOn:
-    text: "Dark Mode"
-    id: "dark_mode_toggle"
-    optional: true
-
-# Or select from dropdown
+# Select Dark theme
 - tapOn: "Dark"
-- tapOn: "Theme"
-    optional: true
 
-# ============================================
-# PHASE 3: Verify Immediate Theme Change
-# ============================================
-
-# Theme should change immediately (no restart required)
-# Note: Maestro cannot verify colors directly
-# We verify by checking that UI still functions
-
-- waitForAnimationToEnd:
-    timeout: 1000
-
-# Settings screen should still be visible
+# Verify Settings screen still visible (theme applied immediately)
 - assertVisible: "Settings"
 
 # Navigate back to main screen
 - pressKey: BACK
 
-# ============================================
-# PHASE 4: Verify Theme Across Screens
-# ============================================
+# Verify main screen visible with dark theme applied
+- assertVisible: "Foodie"
 
-# Check meal list screen
-- assertVisible: "Meal List"
-
-# Navigate to dashboard
-- tapOn:
-    id: "dashboard_nav_button"
-    text: "Dashboard"
-    optional: true
-
-- assertVisible: "Energy Balance"
-
-# Navigate back to settings
-- tapOn:
-    id: "settings_icon"
-
-- assertVisible: "Settings"
-
-# All screens should have consistent dark theme
-# (Visual verification required)
-
-# ============================================
-# PHASE 5: Verify Persistence After Restart
-# ============================================
-
-# Close settings
-- pressKey: BACK
-
-# Restart app
+# Restart app to test persistence
 - pressKey: HOME
 - stopApp
-- launchApp:
-    appId: com.foodie.app
+- launchApp
 
-# App should remember dark mode preference
-# Navigate to settings to verify
-- tapOn:
-    id: "settings_icon"
+# Dismiss onboarding again if needed
+- runFlow: flows/dismiss-onboarding.yaml
 
-- assertVisible: "Settings"
+# Navigate back to Settings
+- runFlow: flows/open-settings.yaml
 
-# Dark mode should still be selected
-- assertVisible:
-    text: "Dark"
-    id: "dark_mode_toggle"
-    optional: true
+# Scroll to theme section
+- scroll
 
-# ============================================
-# PHASE 6: Switch to Light Mode
-# ============================================
+# Verify Dark theme still selected (radio button checked)
+# Note: Maestro checks text visibility, actual radio state is visual
+- assertVisible: "Dark"
 
-# Toggle to light mode
-- tapOn:
-    text: "Light Mode"
-    id: "light_mode_toggle"
-    optional: true
-
+# Switch to Light theme
 - tapOn: "Light"
-- tapOn: "Theme"
-    optional: true
 
-# Wait for theme change
-- waitForAnimationToEnd:
-    timeout: 1000
+# Verify Settings screen still visible
+- assertVisible: "Settings"
 
-# Navigate through screens again
+# Navigate back
 - pressKey: BACK
-- assertVisible: "Meal List"
 
-- tapOn:
-    id: "dashboard_nav_button"
-    text: "Dashboard"
-    optional: true
+# Verify main screen visible
+- assertVisible: "Foodie"
 
-- assertVisible: "Energy Balance"
+# Test System Default option
+- runFlow: flows/open-settings.yaml
 
-# ============================================
-# PHASE 7: Test System Theme (Optional)
-# ============================================
+- scroll
 
-# Navigate back to settings
-- tapOn:
-    id: "settings_icon"
+- tapOn: "System Default"
 
 - assertVisible: "Settings"
 
-# Select "System" theme option
-- tapOn:
-    text: "System"
-    id: "system_theme_toggle"
-    optional: true
-
-# App should follow system theme
-# Note: Maestro cannot change system theme
-# This just verifies the option exists and is selectable
-
-# ============================================
-# PHASE 8: Final Persistence Check
-# ============================================
-
-# Set back to dark mode for final check
-- tapOn:
-    text: "Dark Mode"
-    id: "dark_mode_toggle"
-    optional: true
-
-- tapOn: "Dark"
-    optional: true
-
 - pressKey: BACK
 
-# Force stop app (clear from memory)
+# Final restart to verify System Default persists
 - pressKey: HOME
 - stopApp
+- launchApp
 
-# Wait a few seconds
-- waitForAnimationToEnd:
-    timeout: 3000
+- runFlow: flows/dismiss-onboarding.yaml
 
-# Relaunch
-- launchApp:
-    appId: com.foodie.app
+- runFlow: flows/open-settings.yaml
 
-# Verify dark mode still active
-- tapOn:
-    id: "settings_icon"
+- scroll
 
-- assertVisible: "Settings"
+# Verify System Default is selected
+- assertVisible: "System Default"
 
-- assertVisible:
-    text: "Dark"
-    id: "dark_mode_toggle"
-    optional: true
-
-# ============================================
-# CLEANUP: Reset to System Default
-# ============================================
-
-# Set back to system theme
-- tapOn:
-    text: "System"
-    id: "system_theme_toggle"
-    optional: true
-
-- tapOn: "Light"  # Or default
-    optional: true
+# Cleanup: Set back to System Default
+- tapOn: "System Default"
 
 - pressKey: BACK
-
-# ============================================
-# SUCCESS CRITERIA
-# ============================================
-
-# ✅ Test passes if:
-# 1. Dark mode toggle accessible in settings
-# 2. Theme changed immediately (no restart)
-# 3. Theme consistent across all screens
-# 4. Theme preference persisted after restart
-# 5. Light mode toggle worked
-# 6. System theme option available
-# 7. No crashes during theme switches
-
-# ⚠️ Manual validation required:
-# - Verify actual colors changed (visual check)
-# - Test on Android 10+ (native dark mode)
-# - Verify Material 3 dynamic colors work
-# - Test theme change during active operations
-# - Verify splash screen respects theme

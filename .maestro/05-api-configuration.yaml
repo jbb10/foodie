@@ -1,100 +1,73 @@
 # Story 5.2/5.3 E2E Test: API Configuration
-# Priority: P1 (High - Setup critical path)
+# Tests API settings configuration and persistence
 #
 # Acceptance Criteria Validated:
-# - User can enter API key and endpoint
-# - API key is encrypted (SecurePreferences)
-# - Test connection validates configuration
+# - User can enter API key, endpoint, and model
 # - Settings persist after app restart
-# - Photo capture uses configured API
+# - Test connection validates configuration
 
 appId: com.foodie.app
 ---
-# ============================================
-# PHASE 1: Navigate to Settings
-# ============================================
-
+# Launch app
 - launchApp:
     clearState: false
 
-# Tap settings icon (assuming it's in top bar)
-- tapOn:
-    id: "settings_icon"
+# Dismiss onboarding if present
+- runFlow: flows/dismiss-onboarding.yaml
 
-# Verify settings screen opened
-- assertVisible: "Settings"
+# Navigate to Settings
+- runFlow: flows/open-settings.yaml
 
 # ============================================
-# PHASE 2: Configure API Settings
+# Configure API Settings
 # ============================================
 
-# Scroll to API configuration section
-- scroll
-
-# Tap on API Key field
+# Tap API Key field
 - tapOn: "API Key"
 
-# Enter test API key (not a real key)
-- inputText: "test-api-key-e2e-12345"
+# Enter test API key
+- inputText: "test-api-key-e2e"
 
-# Tap on Endpoint field
+# Tap Endpoint field
 - tapOn: "Endpoint"
 
 # Enter test endpoint
 - inputText: "https://test.openai.azure.com"
 
-# Tap on Model field (Story 5.3)
+# Tap Model field
 - tapOn: "Model"
 
-# Select a model (or enter custom)
+# Enter model name
 - inputText: "gpt-4o"
 
 # ============================================
-# PHASE 3: Test Connection
+# Test Connection
 # ============================================
 
 # Scroll to test button
 - scroll
 
-# Tap Test Connection button
+# Tap Test Connection
 - tapOn: "Test Connection"
 
-# Wait for API call to complete
-- waitForAnimationToEnd:
-    timeout: 10000
-
-# Verify result (success or error message)
-# Note: With fake credentials, this will likely fail
-# But we're testing the UI flow, not actual API
+# Wait for result
+# NOTE: With fake credentials this will fail
 - assertVisible:
-    text: "(Connection|Error|Success|Invalid)"
-    timeout: 5000
+    text: "(Connection|Error|Success|Invalid|Failed)"
 
 # ============================================
-# PHASE 4: Save Configuration
+# Save Configuration
 # ============================================
 
-# If test connection showed error, that's expected
-# Save anyway to test persistence
-
-- scroll
-
-# Tap Save or Back button
-- tapOn: "Save"
-- tapOn: "Back"
-    optional: true
+# Navigate back (auto-saves)
+- pressKey: BACK
 
 # ============================================
-# PHASE 5: Verify Persistence
+# Verify Persistence
 # ============================================
 
 # Return to settings
-- tapOn:
-    id: "settings_icon"
-
-# Verify API key is saved (should show masked)
-- assertVisible: "API Key"
-# Note: Actual key should be masked (e.g., "****...5678")
+- runFlow: flows/open-settings.yaml
 
 # Verify endpoint is saved
 - assertVisible: "test.openai.azure.com"
@@ -103,7 +76,7 @@ appId: com.foodie.app
 - assertVisible: "gpt-4o"
 
 # ============================================
-# PHASE 6: Verify After Restart
+# Verify After Restart
 # ============================================
 
 # Close settings
@@ -112,15 +85,15 @@ appId: com.foodie.app
 # Restart app
 - pressKey: HOME
 - stopApp
-- launchApp:
-    appId: com.foodie.app
+- launchApp
 
-# Navigate back to settings
-- tapOn:
-    id: "settings_icon"
+# Dismiss onboarding if present
+- runFlow: flows/dismiss-onboarding.yaml
+
+# Navigate to settings
+- runFlow: flows/open-settings.yaml
 
 # Settings should still be present
-- assertVisible: "API Key"
 - assertVisible: "test.openai.azure.com"
 - assertVisible: "gpt-4o"
 
@@ -130,16 +103,18 @@ appId: com.foodie.app
 
 # Clear API key
 - tapOn: "API Key"
-- inputText: ""
+- eraseText
 
 # Clear endpoint
 - tapOn: "Endpoint"
-- inputText: ""
+- eraseText
 
-# Save cleared state
-- tapOn: "Save"
-- tapOn: "Back"
-    optional: true
+# Clear model (optional)
+- tapOn: "Model"
+- eraseText
+
+# Navigate back (auto-saves)
+- pressKey: BACK
 
 # ============================================
 # SUCCESS CRITERIA

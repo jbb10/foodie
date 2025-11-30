@@ -1,0 +1,16 @@
+# Reusable Flow: Dismiss Onboarding
+# Usage: - runFlow: flows/dismiss-onboarding.yaml
+#
+# Dismisses the onboarding screen if it's present.
+# Safe to call on every test - uses optional tap.
+
+appId: com.foodie.app
+---
+# Skip onboarding if present
+- tapOn:
+    text: "Skip"
+    optional: true
+    label: "Dismiss onboarding screen if present"
+
+# Wait for main screen to load
+- assertVisible: "Foodie"

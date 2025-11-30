@@ -1,0 +1,17 @@
+# Reusable Flow: Open Settings
+# Usage: - runFlow: flows/open-settings.yaml
+#
+# Navigates to the Settings screen from any main screen.
+# Assumes onboarding has already been dismissed.
+
+appId: com.foodie.app
+---
+# Wait for main screen to be fully loaded
+- assertVisible: "Foodie"
+
+# Tap Settings cog icon in top right corner
+- tapOn:
+    id: "settings_button"
+
+# Verify settings screen opened
+- assertVisible: "Settings"

@@ -1,9 +1,11 @@
 package com.foodie.app.ui.screens.energybalance
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -200,7 +202,10 @@ class EnergyBalanceDashboardDateNavigationTest {
         }
 
         // Then: "Today" button is not displayed (already on today)
-        composeTestRule.onNodeWithText("Today", useUnmergedTree = true).assertDoesNotExist()
+        // Note: Date label shows "Today" text, but the TextButton should not exist
+        // We verify by counting - should only find 1 "Today" node (the label), not 2
+        composeTestRule.onAllNodesWithText("Today", useUnmergedTree = true)
+            .assertCountEquals(1) // Only the date label, not the button
     }
 
     @Test

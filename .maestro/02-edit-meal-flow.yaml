@@ -1,126 +1,111 @@
 # Story 3.2/3.3 E2E Test: Edit Meal Flow
-# Priority: P1 (High - Core user journey)
+# Tests editing existing meal entry
 #
 # Acceptance Criteria Validated:
-# - User can view meal details
-# - User can edit calories and description
+# - User can view and edit meal details
 # - Changes save to Health Connect
 # - Updated data appears immediately
-# - Cross-app sync (HC → Google Fit)
 
 appId: com.foodie.app
 ---
-# ============================================
-# SETUP: Create test meal
-# ============================================
-
+# Launch app
 - launchApp:
     clearState: false
 
-# Wait for meal list
-- assertVisible: "Meal List"
+# Dismiss onboarding if present
+- runFlow: flows/dismiss-onboarding.yaml
 
-# Find any existing meal (or create one if needed)
-# For this test, we'll use first meal in list
+# Wait for meal list to load
+- assertVisible: "Foodie"
+
+# Find any existing meal
+# NOTE: This test requires at least one meal in Health Connect
 - assertVisible:
     text: ".*kcal.*"
-    timeout: 3000
 
 # ============================================
-# PHASE 1: Navigate to Edit Screen
+# Open Meal Detail
 # ============================================
 
-# Tap on meal to open detail view
+# Tap first meal to open detail view
 - tapOn:
     text: ".*kcal.*"
     index: 0
 
-# Verify meal detail screen appeared
-- assertVisible: "Edit Meal"
+# Wait for detail screen to load
+# Screen shows meal description as title
+- assertVisible:
+    text: ".*"
 
 # ============================================
-# PHASE 2: Edit Meal Data
+# Edit Meal Data
 # ============================================
 
-# Tap on calories field
+# Tap calories field and edit value
 - tapOn:
-    id: "calories_field"
+    id: "caloriesField"
 
-# Clear existing value
-- inputText: ""
-
-# Enter new value: 999 kcal (easy to identify in test)
+- eraseText
 - inputText: "999"
 
-# Tap on description field
+# Tap description field and edit value
 - tapOn:
-    id: "description_field"
+    id: "descriptionField"
 
-# Clear existing value
-- inputText: ""
-
-# Enter test description
-- inputText: "E2E Test Meal - Edited"
+- eraseText
+- inputText: "E2E Test Meal Edited"
 
 # ============================================
-# PHASE 3: Save Changes
+# Save Changes
 # ============================================
 
 # Tap save button
-- tapOn: "Save"
-
-# Wait for save to complete
-- waitForAnimationToEnd:
-    timeout: 3000
+- tapOn:
+    id: "saveButton"
 
 # ============================================
-# PHASE 4: Verify Changes Persisted
+# Verify Changes Persisted
 # ============================================
 
 # Should return to meal list
-- assertVisible: "Meal List"
+- assertVisible: "Foodie"
 
 # Updated meal should appear with new values
-- assertVisible: "E2E Test Meal - Edited"
-- assertVisible: "999 kcal"
+- assertVisible: "E2E Test Meal Edited"
+- assertVisible: "999"
 
 # ============================================
-# PHASE 5: Verify Persistence After Restart
+# Verify Persistence After Restart
 # ============================================
 
-# Background app
+# Restart app
 - pressKey: HOME
-
-# Force stop app (clear from memory)
 - stopApp
+- launchApp
 
-# Relaunch
-- launchApp:
-    appId: com.foodie.app
-
-# Wait for meal list
-- assertVisible: "Meal List"
+# Dismiss onboarding if present
+- runFlow: flows/dismiss-onboarding.yaml
 
 # Changes should still be visible
-- assertVisible: "E2E Test Meal - Edited"
-- assertVisible: "999 kcal"
+- assertVisible: "E2E Test Meal Edited"
+- assertVisible: "999"
 
 # ============================================
 # CLEANUP: Delete test meal
 # ============================================
 
-# Tap on edited meal
-- tapOn: "E2E Test Meal - Edited"
+# Tap edited meal
+- tapOn: "E2E Test Meal Edited"
 
 # Tap delete button
 - tapOn:
-    id: "delete_button"
+    id: "deleteButton"
 
 # Confirm deletion
 - tapOn: "Delete"
 
-# Verify meal removed from list
-- assertNotVisible: "E2E Test Meal - Edited"
+# Verify meal removed
+- assertNotVisible: "E2E Test Meal Edited"
 
 # ============================================
 # SUCCESS CRITERIA

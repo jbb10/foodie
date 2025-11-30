@@ -1,0 +1,47 @@
+# Reusable Flow: Setup User Profile
+# Usage: - runFlow: flows/setup-user-profile.yaml
+#
+# Configures required user profile fields for BMR calculation.
+# Assumes Settings screen is already open.
+# Sets: Sex=Male, Birthday=01/01/1989, Weight=75kg, Height=182cm
+
+appId: com.foodie.app
+---
+# Fill required profile fields for BMR calculation
+- tapOn:
+    text: "Sex"
+
+- tapOn:
+    text: "Male"
+
+- tapOn:
+    text: "Birthday"
+
+# Tap the pencil icon to switch to text entry
+- tapOn: "Switch to text input mode"
+
+- tapOn: "Date"
+
+# Enter the date (Format: MM/DD/YYYY)
+- inputText: "01/01/1989"
+
+# Save date
+- tapOn: "OK"
+
+- scroll
+
+# Fill Weight
+- tapOn: "Weight (kg)"
+- eraseText
+- inputText: "75"
+
+# Fill Height
+- tapOn: "Height (cm)"
+- eraseText
+- inputText: "182"
+
+# Hide keyboard to ensure the Save button is visible
+- hideKeyboard
+
+# Save profile
+- tapOn: "Save Profile"

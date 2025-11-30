@@ -102,7 +102,7 @@ development_status:
   6-5-total-daily-energy-expenditure-tdee: done  # ✅ APPROVED 2025-11-26 - TDEE = BMR + NEAT + Active via Flow combine(), EnergyBalance domain model, 23 unit tests passing (459 total, 0 regressions), 100% AC coverage (4/5 ACs, AC-3 deferred to 6.6), performance < 100ms validated, 0 false completions, exemplary reference implementation
   6-6-calories-in-vs-calories-out-dashboard: done  # ✅ APPROVED 2025-11-28 - All 8 ACs verified, 13/14 tasks complete (Task 14 deferred to device), 465 total tests passing (+6 new), 0 false completions, Material 3 dashboard with bottom nav, real-time updates, production-ready
   6-7-historical-day-navigation: done  # ✅ DONE 2025-11-30 - All 10 ACs verified, all 10 tasks complete, 486 unit tests passing (+21 new), 12 UI tests passing, 6 manual scenarios PASSED, historical weight tracking, SavedStateHandle persistence, production-ready
-  6-8-e2e-test-suite-validation: drafted  # 🎯 NEXT - Validate 23 instrumentation tests, ensure Epic 6 flow coverage, integrate with SonarQube, create regression test guide
+  6-8-e2e-test-suite-validation: done  # ✅ COMPLETED 2025-11-30 - Android instrumentation: 23 files, 125 tests passing, 0 flaky tests, SonarQube integrated. Maestro E2E: 7/10 validated, 3 automated tests passing, 3 reusable flows created. All hallucinated UI removed. Test suite stable and production-ready. Coverage: Domain 90%+, overall 18%. Future improvements deferred (widget/HC data automation).
   epic-6-retrospective: optional
 
   # Epic 7: Enhanced Nutrition Tracking
