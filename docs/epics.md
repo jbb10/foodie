@@ -1600,9 +1600,81 @@ So that I can optimize prompt engineering for better accuracy.
 
 ---
 
+## Epic 9: Testing Infrastructure & Tools
+
+**Goal:** Provide developer tools that enable deterministic, automated E2E testing by guaranteeing clean Health Connect state and reliable test data setup/teardown.
+
+**Value:** Removes the critical blocker preventing fully automated E2E test runs. Enables regression testing, CI/CD integration, and confident refactoring by ensuring every test starts with a known, clean state.
+
+**Context:** Epic 6 Story 6.8 identified that Maestro E2E tests cannot guarantee deterministic results because Health Connect lacks a CLI for data manipulation. Manual UI interaction for setup/teardown is slow, brittle, and error-prone. This epic solves that foundational testing infrastructure gap.
+
+---
+
+### Story 9.1: FoodieSeeder - Health Connect Test Data Broadcast Tool
+
+As a developer running automated E2E tests,
+I want a sidecar tool that seeds and cleans Health Connect test data via ADB broadcast commands,
+So that I can guarantee deterministic test scenarios with clean state setup and teardown.
+
+**Acceptance Criteria:**
+
+**Given** the FoodieSeeder tool must be separate from the main app
+**When** the tool is built and deployed
+**Then** it exists as a standalone Android module with applicationId `com.foodie.seeder`
+
+**And** it provides two BroadcastReceivers:
+- `WRITE_NUTRITION`: Seeds nutrition data with calories, description, optional timestamp
+- `DELETE_ALL_NUTRITION`: Wipes all nutrition records from last 7 days
+
+**And** both broadcasts work via ADB shell commands without UI interaction
+
+**And** a verification script validates end-to-end: seed → verify in app → clean → verify empty
+
+**And** an E2E orchestration script runs all Maestro tests with automatic setup/teardown
+
+**And** comprehensive documentation enables any developer to use the tool immediately
+
+**Prerequisites:** Epic 6 complete (Health Connect integration mature)
+
+**Technical Notes:** BroadcastReceiver pattern for ADB IPC. Separate module with own permissions. Shares Health Connect data store with main app. Emulator-only deployment. Minimal UI (just permission request activity).
+
+---
+
+### Story 9.2: E2E Test Orchestration & CI Integration
+
+As a developer,
+I want automated scripts that run the full E2E test suite with clean state guarantees,
+So that I can integrate E2E tests into CI/CD pipeline and catch regressions early.
+
+**Acceptance Criteria:**
+
+**Given** the FoodieSeeder tool is operational
+**When** the orchestration scripts are created
+**Then** `scripts/run-e2e-tests.sh` orchestrates all Maestro tests with data isolation
+
+**And** `scripts/ci-e2e-tests.sh` provides CI-optimized version with failure reporting
+
+**And** each test gets clean Health Connect state via DELETE_ALL_NUTRITION
+
+**And** test-specific data is seeded before each test execution
+
+**And** failures are logged with test name, timestamp, and error details
+
+**And** summary report shows pass/fail counts and total execution time
+
+**And** scripts exit with non-zero code on any test failure
+
+**And** GitHub Actions workflow (or equivalent) demonstrates CI integration
+
+**Prerequisites:** Story 9.1 (FoodieSeeder tool complete)
+
+**Technical Notes:** Script iterates through `.maestro/*.yaml` files. Parses test requirements from YAML comments. Executes Maestro with timeout. Captures output. Aggregates results. GitHub Actions workflow uses Android emulator action.
+
+---
+
 ## Epic Breakdown Summary (Updated)
 
-### Total Story Count: 46 Stories
+### Total Story Count: 48 Stories
 
 **Epic 1: Foundation & Infrastructure** - 5 stories
 - Project setup, architecture, navigation, Health Connect, error handling
@@ -1619,8 +1691,8 @@ So that I can optimize prompt engineering for better accuracy.
 **Epic 5: Configuration & Polish** - 8 stories (MVP COMPLETE)
 - Settings foundation, API configuration, dark mode, accessibility, performance, onboarding, final testing
 
-**Epic 6: Energy Balance & Caloric Deficit Tracking** - 7 stories (V2.0)
-- User profile, BMR calculation, NEAT from steps, active calories, TDEE, dashboard, HC sync
+**Epic 6: Energy Balance & Caloric Deficit Tracking** - 8 stories (V2.0 COMPLETE)
+- User profile, BMR calculation, NEAT from steps, active calories, TDEE, dashboard, historical navigation, E2E test validation
 
 **Epic 7: Enhanced Nutrition Tracking** - 3 stories (V2.0)
 - Macros tracking, barcode scanning, offline queuing
@@ -1628,13 +1700,24 @@ So that I can optimize prompt engineering for better accuracy.
 **Epic 8: Model & Prompt Optimization** - 3 stories (V2.0)
 - Test dataset management, model comparison, prompt testing
 
+**Epic 9: Testing Infrastructure & Tools** - 2 stories (Cross-cutting)
+- FoodieSeeder broadcast tool, E2E test orchestration
+
+**Epic 9: Testing Infrastructure & Tools** - 2 stories (Cross-cutting)
+- FoodieSeeder broadcast tool, E2E test orchestration
+
 ### Implementation Sequence
 
 **V1.0 (MVP) - COMPLETE:**
 - Epics 1-5 delivered
 
-**V2.0 (Post-MVP) - Planned:**
-- Epic 6: Energy Balance (Priority 1 - core body recomposition goal)
+**V2.0 (Post-MVP) - COMPLETE:**
+- Epic 6: Energy Balance (Priority 1 - core body recomposition goal) ✅
+
+**Testing Infrastructure - HIGH PRIORITY:**
+- Epic 9: Testing Tools (enables deterministic E2E testing across all features)
+
+**V2.0+ (Future) - Planned:**
 - Epic 7: Enhanced Nutrition (Priority 2 - macros, barcode, offline)
 - Epic 8: Model Optimization (Priority 3 - cost/accuracy tuning)
 
