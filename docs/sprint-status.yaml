@@ -1,4 +1,4 @@
-# generated: 2025-11-12
+# generated: 2025-11-30
 # project: foodie
 # project_key: foodie
 # tracking_system: file-system
@@ -29,7 +29,7 @@
 # - SM typically drafts next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
 
-generated: 2025-11-12
+generated: 2025-11-30
 project: foodie
 project_key: foodie
 tracking_system: file-system
@@ -48,7 +48,7 @@ development_status:
   # Epic 2: AI-Powered Meal Capture
   # ⚠️ BEFORE CREATING EPIC 2 STORIES: Read docs/epic-2-story-notes.md for required guidance
   # Contains: WorkManager setup for 2.4, Playwright docs research for 2.3 & 2.4
-  epic-2: done
+  epic-2: contexted
   2-0-deep-linking-validation: done
   2-1-fix-hilt-compose-test-infrastructure: done  # ✅ All 56 tests passing - unblocked Epic 2
   2-2-home-screen-widget-implementation: done  # Pivoted from lock screen to home screen (Android platform limitation discovered)
@@ -106,7 +106,7 @@ development_status:
   epic-6-retrospective: done  # ✅ COMPLETED 2025-11-30 - All 8 stories reviewed, real-world validation success, research-first approach validated, zero regressions celebrated, manual testing bottleneck identified (deferred to Epic 9), Maestro E2E gaps documented, Epic 7 scope confirmed (Enhanced Nutrition Tracking)
 
   # Epic 7: Enhanced Nutrition Tracking
-  epic-7: backlog
+  epic-7: contexted  # Tech spec created 2025-11-30 - Macros tracking (protein/carbs/fat), barcode scanning via ML Kit + OpenFoodFacts, offline photo queuing with encryption
   7-1-macros-tracking-protein-carbs-fat: backlog
   7-2-barcode-scanning-integration: backlog
   7-3-offline-photo-queuing: backlog
