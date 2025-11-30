@@ -1,7 +1,7 @@
 # Foodie App - Makefile
 # Convenient commands for building, deploying, and testing the Android app
 
-.PHONY: help install-debug install-release test-unit test-instrumentation test-all clean sonar coverage lint lint-fix format format-check detekt android-lint
+.PHONY: help install-debug install-release test-unit test-instrumentation test-all clean sonar coverage lint lint-fix format format-check detekt android-lint run-emulator
 
 # Default target - show available commands
 help:
@@ -14,6 +14,7 @@ help:
 	@echo "Testing:"
 	@echo "  make test-unit            - Run all unit tests"
 	@echo "  make test-instrumentation - Run all instrumentation tests (requires device/emulator)"
+	@echo "  make test-e2e             - Run Maestro E2E tests (emulator only)"
 	@echo "  make test-all             - Run all tests (unit + instrumentation)"
 	@echo "  make coverage             - Generate coverage reports for all tests"
 	@echo ""
@@ -30,52 +31,58 @@ help:
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean                - Clean build artifacts"
+	@echo "  make run-emulator         - Start the Android emulator"
 	@echo ""
 
 # Build and install debug version
 install-debug:
-	@echo "Building and installing debug version..."
 	cd app && ./gradlew installDebug
 
 # Build and install release version
 install-release:
-	@echo "Building and installing release version..."
 	cd app && ./gradlew installRelease
 
 # Run all unit tests
 test-unit:
-	@echo "Running all unit tests..."
 	cd app && ./gradlew :app:testDebugUnitTest
 
-# Run all instrumentation tests (requires connected device or emulator)
+# Run all instrumentation tests (emulator only)
 test-instrumentation:
-	@echo "Running all instrumentation tests..."
-	@echo "Make sure a device or emulator is connected (run 'adb devices' to check)"
-	cd app && ./gradlew :app:connectedDebugAndroidTest
+	@EMULATOR_ID=$$(adb devices | grep "emulator-" | head -1 | awk '{print $$1}'); \
+	cd app && ANDROID_SERIAL=$$EMULATOR_ID ./gradlew :app:connectedDebugAndroidTest
+
+# Run Maestro E2E tests (emulator only)
+test-e2e:
+	@EMULATOR_ID=$$(adb devices | grep "emulator-" | head -1 | awk '{print $$1}'); \
+	maestro test --device $$EMULATOR_ID .maestro/
 
 # Run all tests (unit + instrumentation)
 test-all: test-unit test-instrumentation
 
 # Clean build artifacts
 clean:
-	@echo "Cleaning build artifacts..."
 	cd app && ./gradlew clean
+
+# Start the Android emulator
+run-emulator:
+	@AVD_NAME=$$(emulator -list-avds | head -1); \
+	if [ -z "$$AVD_NAME" ]; then \
+		echo "Error: No Android Virtual Device (AVD) found."; \
+		echo "Please create an AVD using Android Studio or avdmanager."; \
+		exit 1; \
+	fi; \
+	echo "Starting emulator: $$AVD_NAME"; \
+	emulator -avd $$AVD_NAME &
 
 # Generate code coverage report
 coverage: test-unit test-instrumentation
-	@echo "Generating unit test coverage report..."
 	cd app && ./gradlew jacocoTestReport
-	@echo "Generating instrumentation test coverage report..."
-	cd app && ./gradlew createDebugAndroidTestCoverageReport
-	@echo "Coverage reports generated:"
-	@echo "  - Unit tests: app/app/build/reports/jacoco/jacocoTestReport/html/index.html"
-	@echo "  - Instrumentation tests: app/app/build/reports/coverage/androidTest/debug/connected/index.html"
+	@EMULATOR_ID=$$(adb devices | grep "emulator-" | head -1 | awk '{print $$1}'); \
+	cd app && ANDROID_SERIAL=$$EMULATOR_ID ./gradlew createDebugAndroidTestCoverageReport
 
 # Run SonarQube analysis with code coverage
 sonar: coverage
-	@echo "Running SonarQube analysis..."
 	sonar-scanner
-	@echo "SonarQube analysis complete. View results at: http://localhost:9000/dashboard?id=Foodie"
 
 # === Code Quality & Linting Targets ===
 

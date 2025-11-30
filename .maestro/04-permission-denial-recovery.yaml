@@ -1,0 +1,153 @@
+# Story 4.5 E2E Test: Permission Denial Recovery
+# Priority: P1 (High - Error handling)
+#
+# Acceptance Criteria Validated:
+# - User denied Health Connect permission
+# - App shows actionable error dialog
+# - "Settings" button opens app settings
+# - User can grant permission and retry
+# - App recovers gracefully without restart
+
+appId: com.foodie.app
+---
+# ============================================
+# SETUP: Revoke Health Connect permissions
+# ============================================
+
+# First, ensure permissions are revoked
+- runFlow:
+    commands:
+      - shell: adb shell pm revoke com.foodie.app android.permission.health.READ_NUTRITION
+      - shell: adb shell pm revoke com.foodie.app android.permission.health.WRITE_NUTRITION
+
+- launchApp:
+    clearState: false
+
+# ============================================
+# PHASE 1: Trigger Permission Check
+# ============================================
+
+# Navigate to dashboard (triggers HC read)
+- tapOn:
+    id: "dashboard_nav_button"
+    text: "Dashboard"
+    optional: true
+
+# Wait for permission error to appear
+- assertVisible:
+    text: "Permission Required"
+    timeout: 3000
+
+# ============================================
+# PHASE 2: Verify Error Dialog Content
+# ============================================
+
+# Dialog should explain the issue clearly
+- assertVisible:
+    text: "(Health Connect|Permission|Nutrition data)"
+
+# Should have actionable buttons
+- assertVisible: "Settings"
+- assertVisible: "Cancel"
+
+# ============================================
+# PHASE 3: Test Cancel (Negative Path)
+# ============================================
+
+# Cancel should dismiss dialog and return to safe state
+- tapOn: "Cancel"
+
+# Dialog should disappear
+- assertNotVisible: "Permission Required"
+
+# App should still be functional (degraded mode)
+- assertVisible: "Foodie"
+
+# ============================================
+# PHASE 4: Trigger Error Again and Open Settings
+# ============================================
+
+# Try to access HC feature again
+- tapOn:
+    id: "dashboard_nav_button"
+    text: "Dashboard"
+    optional: true
+
+# Error dialog appears again
+- assertVisible: "Permission Required"
+
+# Tap Settings button
+- tapOn: "Settings"
+
+# ============================================
+# PHASE 5: Grant Permissions in Settings
+# ============================================
+
+# This opens Android's app settings screen
+# Note: Maestro cannot directly interact with system settings
+# We'll simulate the user granting permissions via ADB
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Grant permissions via ADB (simulates user action)
+- runFlow:
+    commands:
+      - shell: adb shell pm grant com.foodie.app android.permission.health.READ_NUTRITION
+      - shell: adb shell pm grant com.foodie.app android.permission.health.WRITE_NUTRITION
+
+# Return to app (user presses back from settings)
+- pressKey: BACK
+
+# ============================================
+# PHASE 6: Verify Recovery
+# ============================================
+
+# App should detect new permissions and retry automatically
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Dashboard should now load successfully
+- assertVisible: "Energy Balance"
+
+# Data should appear (no permission error)
+- assertNotVisible: "Permission Required"
+
+# ============================================
+# PHASE 7: Verify Persistent State
+# ============================================
+
+# Restart app to ensure permissions persist
+- pressKey: HOME
+- stopApp
+- launchApp:
+    appId: com.foodie.app
+
+# Navigate to dashboard
+- tapOn:
+    id: "dashboard_nav_button"
+    text: "Dashboard"
+    optional: true
+
+# Should load without permission error
+- assertVisible: "Energy Balance"
+- assertNotVisible: "Permission Required"
+
+# ============================================
+# SUCCESS CRITERIA
+# ============================================
+
+# ✅ Test passes if:
+# 1. Permission denial triggered error dialog
+# 2. Error message was clear and actionable
+# 3. Cancel button worked (negative test)
+# 4. Settings button opened app settings
+# 5. App recovered after permissions granted
+# 6. No restart required for recovery
+# 7. Permissions persisted after app restart
+
+# ⚠️ Manual validation required:
+# - Test on physical device (permission flow differs)
+# - Verify error message clarity with real users
+# - Test camera permission denial flow
+# - Test notification permission denial flow

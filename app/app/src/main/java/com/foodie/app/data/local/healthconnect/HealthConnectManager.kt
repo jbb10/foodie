@@ -326,6 +326,65 @@ class HealthConnectManager @Inject constructor(
     }
 
     /**
+     * Queries the most recent weight record up to a specific date from Health Connect.
+     *
+     * Returns the latest weight measurement recorded on or before the specified date.
+     * Used for historical BMR calculations to improve TDEE accuracy for past dates.
+     *
+     * **Query Pattern:**
+     * - TimeRangeFilter: EPOCH to endOfDay (midnight of next day)
+     * - Descending order (most recent first)
+     * - Page size 1 (only need latest record)
+     *
+     * **Fallback Strategy:**
+     * - Returns null if no weight records found up to that date
+     * - Caller should fallback to current user profile weight
+     *
+     * @param date The date to query weight for (inclusive)
+     * @return Most recent WeightRecord on or before date, or null if none found
+     */
+    suspend fun queryWeightForDate(date: java.time.LocalDate): WeightRecord? {
+        Timber.tag(TAG).d("Querying weight for date: $date")
+
+        // Check permissions before query (avoid crash)
+        val hasPermission = healthConnectClient.permissionController.getGrantedPermissions()
+            .contains("android.permission.health.READ_WEIGHT")
+
+        if (!hasPermission) {
+            Timber.tag(TAG).w("READ_WEIGHT permission not granted, returning null")
+            return null
+        }
+
+        return try {
+            val endOfDay = date.plusDays(1).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()
+
+            val response = healthConnectClient.readRecords(
+                ReadRecordsRequest(
+                    recordType = WeightRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(
+                        Instant.EPOCH,
+                        endOfDay,
+                    ),
+                    ascendingOrder = false,
+                    pageSize = 1,
+                ),
+            )
+            val record = response.records.firstOrNull()
+
+            if (record != null) {
+                Timber.tag(TAG).i("Historical weight for $date: ${record.weight.inKilograms} kg at ${record.time}")
+            } else {
+                Timber.tag(TAG).d("No weight records found for date $date")
+            }
+
+            record
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to query weight records for date $date")
+            null
+        }
+    }
+
+    /**
      * Queries the most recent height record from Health Connect.
      *
      * Returns the latest HeightRecord by querying with descending order and pageSize=1.
@@ -499,27 +558,46 @@ class HealthConnectManager @Inject constructor(
     }
 
     /**
-     * Queries total step count from Health Connect within a time range.
+     * Queries total step count from Health Connect within a time range,
+     * optionally excluding steps taken during active exercise periods.
      *
      * **Multi-Record Summation:**
      * Health Connect may store multiple StepsRecord entries per day (e.g., Garmin writes
      * separate records from Google Fit). This method sums all StepsRecord.count values
      * to get the total daily step count.
      *
+     * **Exercise Step Exclusion:**
+     * When excludeExerciseTimeRanges is provided, steps that overlap with active exercise
+     * periods are excluded from the total. This prevents double-counting since active
+     * exercise calories (from Garmin workouts) already account for steps taken during
+     * the workout. A StepsRecord is excluded if its time range overlaps with any exercise
+     * time range.
+     *
+     * **Scientific Rationale:**
+     * - NEAT (Non-Exercise Activity Thermogenesis) should only include passive movement
+     * - Active calories from structured exercise already include the energy from steps
+     * - Including exercise steps in both NEAT and Active would overestimate TDEE by ~10-15%
+     *
      * **Permission Check:**
      * - Throws SecurityException if READ_STEPS permission not granted
      * - Caller should catch SecurityException and return appropriate error type
      *
      * **Use Cases:**
-     * - NEAT calculation: querySteps(startOfDay, now) for today's passive energy
+     * - NEAT calculation: querySteps(startOfDay, now, exerciseRanges) for today's passive energy
      * - Historical queries: querySteps(yesterday, yesterday + 1 day) for past days
      *
      * @param startTime Start of the query time range (inclusive)
      * @param endTime End of the query time range (inclusive)
-     * @return Total step count summed across all records, or 0 if no records exist
+     * @param excludeExerciseTimeRanges Optional list of time ranges representing active exercise
+     *        periods. Steps overlapping with these ranges will be excluded from the total.
+     * @return Total step count summed across non-exercise records, or 0 if no records exist
      * @throws SecurityException if READ_STEPS permission not granted
      */
-    suspend fun querySteps(startTime: Instant, endTime: Instant): Int {
+    suspend fun querySteps(
+        startTime: Instant,
+        endTime: Instant,
+        excludeExerciseTimeRanges: List<Pair<Instant, Instant>> = emptyList(),
+    ): Int {
         Timber.tag(TAG).d("Querying steps: $startTime to $endTime")
 
         // Check permissions before query (throw SecurityException to be caught by caller)
@@ -539,10 +617,32 @@ class HealthConnectManager @Inject constructor(
                 ),
             )
 
-            // Sum all StepsRecord.count values (multiple apps may write separate records)
-            val totalSteps = response.records.sumOf { it.count.toInt() }
+            // Filter out steps that occurred during active exercise periods
+            val nonExerciseSteps = if (excludeExerciseTimeRanges.isEmpty()) {
+                response.records
+            } else {
+                response.records.filter { stepRecord ->
+                    // Check if this step record overlaps with any exercise period
+                    val overlapsWithExercise = excludeExerciseTimeRanges.any { (exerciseStart, exerciseEnd) ->
+                        // Records overlap if: stepStart < exerciseEnd AND stepEnd > exerciseStart
+                        stepRecord.startTime < exerciseEnd && stepRecord.endTime > exerciseStart
+                    }
+                    !overlapsWithExercise // Keep only non-overlapping records
+                }
+            }
 
-            Timber.tag(TAG).i("Total steps: $totalSteps (from ${response.records.size} records)")
+            // Sum all StepsRecord.count values from non-exercise records
+            val totalSteps = nonExerciseSteps.sumOf { it.count.toInt() }
+            val excludedRecords = response.records.size - nonExerciseSteps.size
+
+            if (excludedRecords > 0) {
+                Timber.tag(TAG).i(
+                    "Total steps: $totalSteps (from ${nonExerciseSteps.size} records, " +
+                        "excluded $excludedRecords exercise records)"
+                )
+            } else {
+                Timber.tag(TAG).i("Total steps: $totalSteps (from ${response.records.size} records)")
+            }
             totalSteps
         } catch (e: SecurityException) {
             // Re-throw SecurityException for caller to handle
@@ -556,14 +656,19 @@ class HealthConnectManager @Inject constructor(
     }
 
     /**
-     * Observes step count changes over time using polling.
+     * Observes step count changes over time using polling, excluding exercise steps.
      *
      * **Polling Strategy:**
      * Health Connect does not support real-time change listeners. This method polls
      * querySteps() every 5 minutes to detect new step data synced from Garmin, Google Fit, etc.
      *
+     * **Exercise Step Exclusion:**
+     * Steps taken during active exercise periods (from ActiveCaloriesBurnedRecord) are
+     * automatically excluded. This prevents double-counting in NEAT calculations since
+     * active exercise calories already account for steps during workouts.
+     *
      * **Flow Lifecycle:**
-     * - Emits immediately with current step count
+     * - Emits immediately with current non-exercise step count
      * - Polls every 5 minutes while Flow is active (collector is listening)
      * - Cancels polling when Flow collector is cancelled
      *
@@ -571,7 +676,7 @@ class HealthConnectManager @Inject constructor(
      * - EnergyBalanceRepository.getNEAT() reactive stream
      * - Dashboard real-time NEAT updates when step data syncs
      *
-     * @return Flow emitting total step count every 5 minutes (from midnight to now)
+     * @return Flow emitting total non-exercise step count every 5 minutes (from midnight to now)
      */
     fun observeSteps(): Flow<Int> = flow {
         while (true) {
@@ -579,9 +684,76 @@ class HealthConnectManager @Inject constructor(
                 .atStartOfDay(java.time.ZoneId.systemDefault())
                 .toInstant()
             val now = Instant.now()
-            val steps = querySteps(startOfDay, now)
+
+            // Query active exercise time ranges for exclusion
+            val exerciseTimeRanges = try {
+                val activeRecords = queryActiveCaloriesRecords(startOfDay, now)
+                activeRecords.map { record -> record.startTime to record.endTime }
+            } catch (e: SecurityException) {
+                // READ_ACTIVE_CALORIES_BURNED permission denied - proceed without exclusion
+                emptyList()
+            }
+
+            val steps = querySteps(startOfDay, now, exerciseTimeRanges)
             emit(steps)
             delay(5.minutes)
+        }
+    }
+
+    /**
+     * Queries ActiveCaloriesBurnedRecord objects from Health Connect within a time range.
+     *
+     * Returns the actual record objects (not just summed calories) to allow extraction
+     * of time ranges for NEAT calculation (to exclude exercise steps from passive calories).
+     *
+     * **Multi-Record Support:**
+     * Health Connect may store multiple ActiveCaloriesBurnedRecord entries per day
+     * (e.g., Garmin writes one record per workout session).
+     *
+     * **Permission Check:**
+     * - Throws SecurityException if READ_ACTIVE_CALORIES_BURNED permission not granted
+     * - Caller should catch SecurityException and return appropriate error type
+     *
+     * **Use Cases:**
+     * - NEAT calculation: Extract time ranges to exclude exercise steps
+     * - Active Energy calculation: Sum energy.inKilocalories from all records
+     * - Historical queries: Get workout details for specific dates
+     *
+     * @param startTime Start of the query time range (inclusive)
+     * @param endTime End of the query time range (inclusive)
+     * @return List of ActiveCaloriesBurnedRecord objects, or empty list if none exist
+     * @throws SecurityException if READ_ACTIVE_CALORIES_BURNED permission not granted
+     */
+    suspend fun queryActiveCaloriesRecords(startTime: Instant, endTime: Instant): List<ActiveCaloriesBurnedRecord> {
+        Timber.tag(TAG).d("Querying active calories records: $startTime to $endTime")
+
+        // Check permissions before query (throw SecurityException to be caught by caller)
+        val hasPermission = healthConnectClient.permissionController.getGrantedPermissions()
+            .contains("android.permission.health.READ_ACTIVE_CALORIES_BURNED")
+
+        if (!hasPermission) {
+            Timber.tag(TAG).e("READ_ACTIVE_CALORIES_BURNED permission denied")
+            throw SecurityException("READ_ACTIVE_CALORIES_BURNED permission denied")
+        }
+
+        return try {
+            val response = healthConnectClient.readRecords(
+                ReadRecordsRequest(
+                    recordType = ActiveCaloriesBurnedRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
+                ),
+            )
+
+            Timber.tag(TAG).i("Retrieved ${response.records.size} active calories records")
+            response.records
+        } catch (e: SecurityException) {
+            // Re-throw SecurityException for caller to handle
+            Timber.tag(TAG).e(e, "Permission denied querying active calories records")
+            throw e
+        } catch (e: Exception) {
+            // Other errors return empty list (graceful degradation)
+            Timber.tag(TAG).e(e, "Failed to query active calories records, returning empty list")
+            emptyList()
         }
     }
 
@@ -609,28 +781,14 @@ class HealthConnectManager @Inject constructor(
     suspend fun queryActiveCalories(startTime: Instant, endTime: Instant): Double {
         Timber.tag(TAG).d("Querying active calories: $startTime to $endTime")
 
-        // Check permissions before query (throw SecurityException to be caught by caller)
-        val hasPermission = healthConnectClient.permissionController.getGrantedPermissions()
-            .contains("android.permission.health.READ_ACTIVE_CALORIES_BURNED")
-
-        if (!hasPermission) {
-            Timber.tag(TAG).e("READ_ACTIVE_CALORIES_BURNED permission denied")
-            throw SecurityException("READ_ACTIVE_CALORIES_BURNED permission denied")
-        }
-
         return try {
-            val response = healthConnectClient.readRecords(
-                ReadRecordsRequest(
-                    recordType = ActiveCaloriesBurnedRecord::class,
-                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
-                ),
-            )
+            val records = queryActiveCaloriesRecords(startTime, endTime)
 
             // Sum all ActiveCaloriesBurnedRecord.energy.inKilocalories values
             // (Garmin may write multiple records - one per workout session)
-            val totalActiveCalories = response.records.sumOf { it.energy.inKilocalories }
+            val totalActiveCalories = records.sumOf { it.energy.inKilocalories }
 
-            Timber.tag(TAG).i("Total active calories: $totalActiveCalories kcal (from ${response.records.size} records)")
+            Timber.tag(TAG).i("Total active calories: $totalActiveCalories kcal (from ${records.size} records)")
             totalActiveCalories
         } catch (e: SecurityException) {
             // Re-throw SecurityException for caller to handle

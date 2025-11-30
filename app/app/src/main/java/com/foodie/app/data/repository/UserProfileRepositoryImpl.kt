@@ -9,6 +9,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import timber.log.Timber
 
@@ -61,42 +62,41 @@ class UserProfileRepositoryImpl @Inject constructor(
      * @return Flow emitting current UserProfile or null
      */
     override fun getUserProfile(): Flow<UserProfile?> = flow {
-        try {
-            Timber.tag(TAG).d("Loading user profile")
+        Timber.tag(TAG).d("Loading user profile")
 
-            // Read sex and birth date from SharedPreferences
-            val sexString = sharedPreferences.getString(KEY_USER_SEX, null)
-            val birthDateString = sharedPreferences.getString(KEY_USER_BIRTH_DATE, null)
-            val birthDate = birthDateString?.let { LocalDate.parse(it) }
+        // Read sex and birth date from SharedPreferences
+        val sexString = sharedPreferences.getString(KEY_USER_SEX, null)
+        val birthDateString = sharedPreferences.getString(KEY_USER_BIRTH_DATE, null)
+        val birthDate = birthDateString?.let { LocalDate.parse(it) }
 
-            // Query latest weight and height from Health Connect
-            val weightRecord = healthConnectManager.queryLatestWeight()
-            val heightRecord = healthConnectManager.queryLatestHeight()
+        // Query latest weight and height from Health Connect
+        val weightRecord = healthConnectManager.queryLatestWeight()
+        val heightRecord = healthConnectManager.queryLatestHeight()
 
-            // Combine if all fields present
-            val profile = if (sexString != null && birthDate != null && weightRecord != null && heightRecord != null) {
-                val sex = UserProfile.Sex.valueOf(sexString)
-                val weightKg = weightRecord.weight.inKilograms
-                val heightCm = heightRecord.height.inMeters * 100.0 // Convert meters to cm
+        // Combine if all fields present
+        val profile = if (sexString != null && birthDate != null && weightRecord != null && heightRecord != null) {
+            val sex = UserProfile.Sex.valueOf(sexString)
+            val weightKg = weightRecord.weight.inKilograms
+            val heightCm = heightRecord.height.inMeters * 100.0 // Convert meters to cm
 
-                Timber.tag(TAG).i("Profile loaded: sex=$sex, birthDate=$birthDate, weight=$weightKg kg, height=$heightCm cm")
+            Timber.tag(TAG).i("Profile loaded: sex=$sex, birthDate=$birthDate, weight=$weightKg kg, height=$heightCm cm")
 
-                UserProfile(
-                    sex = sex,
-                    birthDate = birthDate,
-                    weightKg = weightKg,
-                    heightCm = heightCm,
-                )
-            } else {
-                Timber.tag(TAG).d("Profile incomplete: sex=$sexString, birthDate=$birthDate, weight=${weightRecord != null}, height=${heightRecord != null}")
-                null
-            }
-
-            emit(profile)
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Failed to load user profile")
-            emit(null)
+            UserProfile(
+                sex = sex,
+                birthDate = birthDate,
+                weightKg = weightKg,
+                heightCm = heightCm,
+            )
+        } else {
+            Timber.tag(TAG).d("Profile incomplete: sex=$sexString, birthDate=$birthDate, weight=${weightRecord != null}, height=${heightRecord != null}")
+            null
         }
+
+        emit(profile)
+    }.catch { e ->
+        // Handle exceptions outside the flow builder to maintain Flow exception transparency
+        Timber.tag(TAG).e(e, "Failed to load user profile")
+        emit(null)
     }
 
     /**

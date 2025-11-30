@@ -245,6 +245,47 @@ class AzureResponseDtoTest {
         // Assert - Exception thrown
     }
 
+    @Test
+    fun apiNutritionResponse_whenDeserializedWithNewFields_thenIgnoresExtraFields() {
+        // Arrange - Enhanced prompt with new fields (caloriesRange, confidence, items, assumptions, flags)
+        val jsonWithNewFields = """
+            {
+                "hasFood": true,
+                "calories": 720,
+                "caloriesRange": {"low": 650, "high": 800},
+                "confidence": 0.85,
+                "description": "Grilled salmon with roasted vegetables and quinoa",
+                "items": [
+                    {"name": "grilled salmon", "quantity": "1 fillet", "estWeightG": 180, "kcal": 360},
+                    {"name": "roasted vegetables", "quantity": "1.5 cups", "estWeightG": 200, "kcal": 150},
+                    {"name": "quinoa", "quantity": "0.5 cup cooked", "estWeightG": 90, "kcal": 110},
+                    {"name": "olive oil drizzle", "quantity": "1 tsp", "estWeightG": 5, "kcal": 40}
+                ],
+                "assumptions": [
+                    "Salmon portion estimated from typical dinner plate scale",
+                    "Vegetables appear lightly oiled",
+                    "Quinoa serving typical for side dish"
+                ],
+                "flags": {
+                    "occluded": false,
+                    "multiPlate": false,
+                    "scaleCues": ["plate", "utensil"]
+                }
+            }
+        """.trimIndent()
+
+        // Act
+        val nutrition = gson.fromJson(jsonWithNewFields, ApiNutritionResponse::class.java)
+
+        // Assert - Only the fields defined in ApiNutritionResponse should be parsed
+        assertThat(nutrition.hasFood).isTrue()
+        assertThat(nutrition.calories).isEqualTo(720)
+        assertThat(nutrition.description).isEqualTo("Grilled salmon with roasted vegetables and quinoa")
+        assertThat(nutrition.reason).isNull()
+        // New fields (caloriesRange, confidence, items, assumptions, flags) should be silently ignored
+        // This test verifies backward compatibility: the app can safely ignore enhanced data
+    }
+
     // ========================================
     // ContentItem Serialization Tests
     // ========================================

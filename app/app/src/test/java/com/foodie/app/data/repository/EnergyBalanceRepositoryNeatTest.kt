@@ -35,13 +35,20 @@ class EnergyBalanceRepositoryNeatTest {
         userProfileRepository = mock()
         healthConnectManager = mock()
         repository = EnergyBalanceRepositoryImpl(userProfileRepository, healthConnectManager)
+
+        // Default mock: no active exercise records (empty list)
+        // Tests can override this to simulate exercise periods
+        runTest {
+            whenever(healthConnectManager.queryActiveCaloriesRecords(any(), any()))
+                .thenReturn(emptyList())
+        }
     }
 
     // AC1, AC8: Formula correctness - 10,000 steps → 400 kcal
     @Test
     fun calculateNEAT_when10000Steps_thenReturns400Kcal() = runTest {
         // Given: Health Connect returns 10,000 steps
-        whenever(healthConnectManager.querySteps(any(), any())).thenReturn(10_000)
+        whenever(healthConnectManager.querySteps(any(), any(), any())).thenReturn(10_000)
 
         // When: Calculate NEAT
         val result = repository.calculateNEAT()
@@ -55,7 +62,7 @@ class EnergyBalanceRepositoryNeatTest {
     @Test
     fun calculateNEAT_when0Steps_thenReturnsZeroKcal() = runTest {
         // Given: Health Connect returns 0 steps (no step data yet today)
-        whenever(healthConnectManager.querySteps(any(), any())).thenReturn(0)
+        whenever(healthConnectManager.querySteps(any(), any(), any())).thenReturn(0)
 
         // When: Calculate NEAT
         val result = repository.calculateNEAT()
@@ -70,7 +77,7 @@ class EnergyBalanceRepositoryNeatTest {
     fun calculateNEAT_whenMultipleRecords_thenSumsTotalSteps() = runTest {
         // Given: Health Connect returns summed steps from 3 records (2000 + 5000 + 3000 = 10,000)
         // Note: HealthConnectManager.querySteps() already handles summation
-        whenever(healthConnectManager.querySteps(any(), any())).thenReturn(10_000)
+        whenever(healthConnectManager.querySteps(any(), any(), any())).thenReturn(10_000)
 
         // When: Calculate NEAT
         val result = repository.calculateNEAT()
@@ -84,7 +91,7 @@ class EnergyBalanceRepositoryNeatTest {
     @Test
     fun calculateNEAT_whenPermissionDenied_thenReturnsSecurityException() = runTest {
         // Given: Health Connect throws SecurityException (READ_STEPS permission denied)
-        whenever(healthConnectManager.querySteps(any(), any()))
+        whenever(healthConnectManager.querySteps(any(), any(), any()))
             .thenThrow(SecurityException("READ_STEPS permission denied"))
 
         // When: Calculate NEAT
@@ -133,20 +140,20 @@ class EnergyBalanceRepositoryNeatTest {
     @Test
     fun calculateNEAT_always_thenQueriesFromMidnightToNow() = runTest {
         // Given: Mock returns 0 steps
-        whenever(healthConnectManager.querySteps(any(), any())).thenReturn(0)
+        whenever(healthConnectManager.querySteps(any(), any(), any())).thenReturn(0)
 
         // When: Calculate NEAT
         repository.calculateNEAT()
 
         // Then: Verify querySteps called with time range
-        verify(healthConnectManager).querySteps(any<Instant>(), any<Instant>())
+        verify(healthConnectManager).querySteps(any<Instant>(), any<Instant>(), any())
     }
 
     // AC8: Edge case - Very large step count
     @Test
     fun calculateNEAT_when50000Steps_thenReturns2000Kcal() = runTest {
         // Given: Health Connect returns 50,000 steps (very active day)
-        whenever(healthConnectManager.querySteps(any(), any())).thenReturn(50_000)
+        whenever(healthConnectManager.querySteps(any(), any(), any())).thenReturn(50_000)
 
         // When: Calculate NEAT
         val result = repository.calculateNEAT()
@@ -160,7 +167,7 @@ class EnergyBalanceRepositoryNeatTest {
     @Test
     fun calculateNEAT_when100Steps_thenReturns4Kcal() = runTest {
         // Given: Health Connect returns 100 steps (minimal activity)
-        whenever(healthConnectManager.querySteps(any(), any())).thenReturn(100)
+        whenever(healthConnectManager.querySteps(any(), any(), any())).thenReturn(100)
 
         // When: Calculate NEAT
         val result = repository.calculateNEAT()

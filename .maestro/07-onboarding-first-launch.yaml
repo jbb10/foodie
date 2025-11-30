@@ -1,0 +1,230 @@
+# Story 5.7 E2E Test: Onboarding First Launch
+# Priority: P2 (Medium - New user experience)
+#
+# Acceptance Criteria Validated:
+# - Fresh install shows onboarding flow
+# - User can complete profile setup
+# - Permission requests appear in context
+# - User can skip onboarding (optional)
+# - App is ready to use after onboarding
+
+appId: com.foodie.app
+---
+# ============================================
+# SETUP: Simulate fresh install
+# ============================================
+
+# Uninstall app completely
+- runFlow:
+    commands:
+      - shell: adb uninstall com.foodie.app
+
+# Reinstall from latest build
+- runFlow:
+    commands:
+      - shell: adb install -r /Users/jbjornsson/source/foodie/app/app/build/outputs/apk/debug/app-debug.apk
+
+# ============================================
+# PHASE 1: First Launch
+# ============================================
+
+- launchApp:
+    appId: com.foodie.app
+
+# Wait for onboarding screen to appear
+- assertVisible:
+    text: "(Welcome|Get Started|Foodie)"
+    timeout: 3000
+
+# ============================================
+# PHASE 2: Navigate Onboarding Screens
+# ============================================
+
+# Screen 1: Welcome
+- assertVisible: "Welcome to Foodie"
+- assertVisible: "Track your nutrition effortlessly"
+
+# Swipe to next screen or tap Next
+- tapOn: "Next"
+- swipe:
+    direction: LEFT
+    optional: true
+
+# Screen 2: Features overview
+- assertVisible:
+    text: "(Photo|Camera|AI|Automatic)"
+    timeout: 2000
+
+- tapOn: "Next"
+- swipe:
+    direction: LEFT
+    optional: true
+
+# Screen 3: Health Connect integration
+- assertVisible:
+    text: "(Health Connect|Nutrition data|Sync)"
+    timeout: 2000
+
+- tapOn: "Next"
+- swipe:
+    direction: LEFT
+    optional: true
+
+# ============================================
+# PHASE 3: Profile Setup
+# ============================================
+
+# Should prompt for profile information
+- assertVisible:
+    text: "(Profile|Your Info|Tell us about yourself)"
+
+# Enter age
+- tapOn:
+    id: "age_field"
+    text: "Age"
+    optional: true
+
+- inputText: "30"
+
+# Select gender
+- tapOn:
+    id: "gender_field"
+    text: "Gender"
+    optional: true
+
+- tapOn: "Male"
+- tapOn: "Female"  # Change to female
+
+# Enter height (cm)
+- tapOn:
+    id: "height_field"
+    text: "Height"
+    optional: true
+
+- inputText: "170"
+
+# Enter weight (kg)
+- tapOn:
+    id: "weight_field"
+    text: "Weight"
+    optional: true
+
+- inputText: "70"
+
+# Select activity level
+- tapOn:
+    id: "activity_field"
+    text: "Activity Level"
+    optional: true
+
+- tapOn: "Moderate"
+
+# Continue to permissions
+- tapOn: "Continue"
+
+# ============================================
+# PHASE 4: Permission Requests
+# ============================================
+
+# Health Connect permission request
+- assertVisible:
+    text: "(Permission|Health Connect|Allow)"
+    timeout: 3000
+
+- tapOn: "Allow"
+
+# Camera permission request (may appear)
+- assertVisible:
+    text: "(Camera|Take photos)"
+    optional: true
+    timeout: 2000
+
+- tapOn: "Allow"
+- tapOn: "While using the app"
+    optional: true
+
+# Notification permission (Android 13+)
+- assertVisible:
+    text: "(Notification|Stay updated)"
+    optional: true
+    timeout: 2000
+
+- tapOn: "Allow"
+- tapOn: "Don't allow"
+    optional: true
+
+# ============================================
+# PHASE 5: Complete Onboarding
+# ============================================
+
+# Final screen: Ready to use
+- assertVisible:
+    text: "(Ready|Get Started|Start Tracking)"
+    timeout: 3000
+
+- tapOn: "Get Started"
+- tapOn: "Start Tracking"
+    optional: true
+
+# ============================================
+# PHASE 6: Verify App Ready
+# ============================================
+
+# Should land on main screen (meal list or dashboard)
+- assertVisible:
+    text: "(Meal List|Dashboard|Foodie)"
+    timeout: 3000
+
+# Onboarding should not appear again
+- assertNotVisible: "Welcome to Foodie"
+
+# FAB should be accessible (can log meals)
+- assertVisible:
+    id: "camera_fab"
+    optional: true
+
+# ============================================
+# PHASE 7: Verify Onboarding Doesn't Repeat
+# ============================================
+
+# Restart app
+- pressKey: HOME
+- stopApp
+- launchApp:
+    appId: com.foodie.app
+
+# Should NOT show onboarding again
+- assertNotVisible: "Welcome to Foodie"
+
+# Should land directly on main screen
+- assertVisible: "Foodie"
+
+# ============================================
+# ALTERNATIVE FLOW: Skip Onboarding
+# ============================================
+
+# Note: To test skip functionality, re-run with modifications:
+#
+# - Uninstall and reinstall app
+# - On first onboarding screen, tap "Skip"
+# - Verify app still functional with defaults
+# - User should be able to enter profile later
+
+# ============================================
+# SUCCESS CRITERIA
+# ============================================
+
+# ✅ Test passes if:
+# 1. Onboarding appeared on first launch
+# 2. User navigated through all screens
+# 3. Profile setup completed successfully
+# 4. Permissions requested in context
+# 5. App landed on main screen after completion
+# 6. Onboarding didn't repeat on second launch
+# 7. App is fully functional after onboarding
+
+# ⚠️ Manual validation required:
+# - Verify BMR calculation with entered profile
+# - Test skip functionality (alternative flow)
+# - Verify accessibility (screen reader, TalkBack)
+# - Test on different screen sizes (tablet, foldable)

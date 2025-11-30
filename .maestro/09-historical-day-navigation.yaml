@@ -1,0 +1,201 @@
+# Story 6.7 E2E Test: Historical Day Navigation
+# Tests navigation between historical dates on Energy Balance dashboard
+#
+# AC Validated:
+# - AC #1-3: Previous/Next day navigation with arrow buttons
+# - AC #2: Date label shows "Today", "Yesterday", or formatted date
+# - AC #4-5: Next button disabled when viewing today
+# - AC #6: "Today" quick navigation button
+# - AC #9: Empty state messaging for historical dates
+# - AC #10: Date persistence (tested via navigation continuity)
+
+appId: com.foodie.app
+---
+# Launch app with clean slate for deterministic test behavior
+- launchApp:
+    clearState: true
+
+# Skip onboarding if present
+- tapOn:
+    text: "Skip"
+    optional: true
+
+# Wait for main screen to load
+- assertVisible: "Foodie"
+
+# Configure user profile (required for Energy Balance BMR calculation)
+# Tap Settings cog icon in top right corner
+- tapOn:
+    text: "Open Settings"
+
+# Fill required profile fields for BMR calculation
+- tapOn:
+    text: "Sex"
+
+- tapOn:
+    text: "Male"
+
+- tapOn:
+    text: "Birthday"
+
+# 1. Tap the pencil icon to switch to text entry
+# The standard Android content description for this button is usually:
+- tapOn: "Switch to text input mode"
+
+- tapOn: "Date"
+
+# 2. Enter the date (Format depends on your locale)
+- inputText: "01/01/1989"
+
+# 3. Save
+- tapOn: "OK"
+
+- scroll
+
+# 1. Fill Weight
+- tapOn: "Weight (kg)"
+- eraseText
+- inputText: "75"
+
+# 2. Fill Height
+- tapOn: "Height (cm)"
+- eraseText
+- inputText: "182"
+
+# 3. Hide keyboard to ensure the Save button is visible
+- hideKeyboard
+
+# 4. Save
+- tapOn: "Save Profile"
+
+# Navigate back to main screen
+- pressKey: BACK
+
+# Navigate to Energy Balance dashboard via bottom navigation
+- tapOn:
+    text: "Energy"
+    label: "Tap Energy tab in bottom navigation"
+
+# Verify dashboard loaded
+- assertVisible: "Energy Balance"
+
+# PHASE 1: Verify today's default state
+# Should show "Today" date label by default
+- assertVisible: "Today"
+
+# Previous Day button should be enabled (can always go back)
+- assertVisible:
+    id: "previous_day_button"
+    enabled: true
+
+# Next Day button should be disabled (can't go to future)
+- assertVisible:
+    id: "next_day_button"
+    enabled: false
+
+# PHASE 2: Navigate to yesterday using Previous Day button
+- tapOn:
+    id: "previous_day_button"
+    optional: true
+    label: "Tap Previous Day button"
+
+# Wait for date label to update
+- assertVisible: "Energy Balance"
+
+# Should now show "Yesterday" label
+- assertVisible:
+    text: "Yesterday"
+    label: "Verify Yesterday label appears"
+
+# Verify Next Day button is now enabled (can go forward)
+- assertVisible:
+    id: "next_day_button"
+    enabled: true
+    optional: true
+
+# PHASE 3: Navigate one more day back to see formatted date
+- tapOn:
+    id: "previous_day_button"
+    optional: true
+    label: "Tap Previous Day again"
+
+# Wait for state update
+- assertVisible: "Energy Balance"
+
+# Should no longer show "Yesterday" or "Today" special labels
+- assertNotVisible:
+    text: "Yesterday"
+    optional: true
+
+- assertNotVisible:
+    text: "Today"
+    optional: true
+
+# Should show formatted date - check for common date patterns
+# Nov/November or day number like "27" or "28"
+- assertVisible:
+    text: ".*\\d{1,2}.*"
+    label: "Verify formatted date appears (contains day number)"
+
+# PHASE 4: Navigate forward using Next Day button
+- tapOn:
+    id: "next_day_button"
+    optional: true
+    label: "Tap Next Day button"
+
+# Should return to "Yesterday"
+- assertVisible: "Yesterday"
+
+# PHASE 5: Use "Today" quick navigation button
+# The button should be visible since we're on Yesterday (not today)
+- assertVisible:
+    text: "Today"
+    label: "Verify Today quick nav button is visible"
+
+- tapOn:
+    text: "Today"
+    label: "Tap Today quick navigation button"
+
+# Should be back on today - verify the "Today" date label
+- assertVisible:
+    text: "Today"
+    label: "Verify returned to Today (date label)"
+
+# Next Day button should be disabled again (back on today)
+- assertVisible:
+    id: "next_day_button"
+    enabled: false
+
+# Previous Day button should still be enabled
+- assertVisible:
+    id: "previous_day_button"
+    enabled: true
+
+# PHASE 6: Test empty state messaging
+# Navigate to a historical date that likely has no meals
+- tapOn:
+    id: "previous_day_button"
+
+# Wait for state update
+- assertVisible: "Energy Balance"
+
+# Should see "Yesterday" label
+- assertVisible: "Yesterday"
+
+# Should show empty state message for historical date with no data
+- assertVisible:
+    text: "No meals logged on this day"
+    label: "Verify empty state message for historical date"
+
+# Return to today for cleanup
+- tapOn:
+    text: "Today"
+
+# ✅ SUCCESS CRITERIA MET IF:
+# 1. Previous Day button navigates backward
+# 2. Next Day button navigates forward
+# 3. Date labels update correctly (Today/Yesterday/formatted)
+# 4. Next button disabled when on today
+# 5. "Today" quick button returns to current date
+# 6. No crashes during navigation
+# 7. Data loads for each date change

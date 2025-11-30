@@ -1,0 +1,139 @@
+# Story 3.2/3.3 E2E Test: Edit Meal Flow
+# Priority: P1 (High - Core user journey)
+#
+# Acceptance Criteria Validated:
+# - User can view meal details
+# - User can edit calories and description
+# - Changes save to Health Connect
+# - Updated data appears immediately
+# - Cross-app sync (HC → Google Fit)
+
+appId: com.foodie.app
+---
+# ============================================
+# SETUP: Create test meal
+# ============================================
+
+- launchApp:
+    clearState: false
+
+# Wait for meal list
+- assertVisible: "Meal List"
+
+# Find any existing meal (or create one if needed)
+# For this test, we'll use first meal in list
+- assertVisible:
+    text: ".*kcal.*"
+    timeout: 3000
+
+# ============================================
+# PHASE 1: Navigate to Edit Screen
+# ============================================
+
+# Tap on meal to open detail view
+- tapOn:
+    text: ".*kcal.*"
+    index: 0
+
+# Verify meal detail screen appeared
+- assertVisible: "Edit Meal"
+
+# ============================================
+# PHASE 2: Edit Meal Data
+# ============================================
+
+# Tap on calories field
+- tapOn:
+    id: "calories_field"
+
+# Clear existing value
+- inputText: ""
+
+# Enter new value: 999 kcal (easy to identify in test)
+- inputText: "999"
+
+# Tap on description field
+- tapOn:
+    id: "description_field"
+
+# Clear existing value
+- inputText: ""
+
+# Enter test description
+- inputText: "E2E Test Meal - Edited"
+
+# ============================================
+# PHASE 3: Save Changes
+# ============================================
+
+# Tap save button
+- tapOn: "Save"
+
+# Wait for save to complete
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# ============================================
+# PHASE 4: Verify Changes Persisted
+# ============================================
+
+# Should return to meal list
+- assertVisible: "Meal List"
+
+# Updated meal should appear with new values
+- assertVisible: "E2E Test Meal - Edited"
+- assertVisible: "999 kcal"
+
+# ============================================
+# PHASE 5: Verify Persistence After Restart
+# ============================================
+
+# Background app
+- pressKey: HOME
+
+# Force stop app (clear from memory)
+- stopApp
+
+# Relaunch
+- launchApp:
+    appId: com.foodie.app
+
+# Wait for meal list
+- assertVisible: "Meal List"
+
+# Changes should still be visible
+- assertVisible: "E2E Test Meal - Edited"
+- assertVisible: "999 kcal"
+
+# ============================================
+# CLEANUP: Delete test meal
+# ============================================
+
+# Tap on edited meal
+- tapOn: "E2E Test Meal - Edited"
+
+# Tap delete button
+- tapOn:
+    id: "delete_button"
+
+# Confirm deletion
+- tapOn: "Delete"
+
+# Verify meal removed from list
+- assertNotVisible: "E2E Test Meal - Edited"
+
+# ============================================
+# SUCCESS CRITERIA
+# ============================================
+
+# ✅ Test passes if:
+# 1. Meal detail screen opened
+# 2. Calories and description edited
+# 3. Changes saved without errors
+# 4. Updated values appeared in list
+# 5. Changes persisted after app restart
+# 6. Cleanup successful
+
+# ⚠️ Manual validation required:
+# - Check Google Fit app shows updated calories
+# - Verify HC data integrity with WRITE_NUTRITION permission

@@ -14,8 +14,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -24,9 +25,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -34,7 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,7 +49,9 @@ import com.foodie.app.ui.theme.FoodieTheme
 import timber.log.Timber
 import java.time.Duration
 import java.time.Instant
-import kotlin.math.abs
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 /**
  * Energy Balance Dashboard screen showing daily calories in vs calories out.
@@ -132,14 +137,32 @@ fun EnergyBalanceDashboardScreen(
                 }
                 state.energyBalance == null && !state.isLoading -> {
                     // Empty state (AC #8)
-                    EmptyState()
+                    Column {
+                        DateNavigationRow(
+                            selectedDate = state.selectedDate,
+                            onPreviousDay = viewModel::onPreviousDay,
+                            onNextDay = viewModel::onNextDay,
+                            onTodayClicked = viewModel::onTodayClicked,
+                        )
+                        EmptyState(
+                            isHistoricalDate = state.selectedDate < LocalDate.now(),
+                        )
+                    }
                 }
                 state.energyBalance != null -> {
                     // Success state - show dashboard
-                    EnergyBalanceContent(
-                        energyBalance = state.energyBalance!!,
-                        lastUpdated = state.lastUpdated,
-                    )
+                    Column {
+                        DateNavigationRow(
+                            selectedDate = state.selectedDate,
+                            onPreviousDay = viewModel::onPreviousDay,
+                            onNextDay = viewModel::onNextDay,
+                            onTodayClicked = viewModel::onTodayClicked,
+                        )
+                        EnergyBalanceContent(
+                            energyBalance = state.energyBalance!!,
+                            lastUpdated = state.lastUpdated,
+                        )
+                    }
                 }
                 else -> {
                     // Initial loading state
@@ -451,8 +474,106 @@ private fun BreakdownRow(
  *
  * Shows SsidChart icon with "Log your first meal to start tracking" message.
  */
+/**
+ * Date navigation row with previous/next day buttons and date label.
+ *
+ * **Layout:**
+ * - Left: Previous Day button (arrow left)
+ * - Center: Date label ("Today", "Yesterday", or formatted date)
+ * - Right: Next Day button (arrow right, disabled if viewing today) + "Today" button (visible if not today)
+ *
+ * **Date Formatting:**
+ * - Today: "Today"
+ * - Yesterday: "Yesterday"
+ * - Other dates: "Wednesday, Nov 27, 2025" (medium format)
+ *
+ * @param selectedDate Currently selected date
+ * @param onPreviousDay Callback when Previous Day button tapped
+ * @param onNextDay Callback when Next Day button tapped
+ * @param onTodayClicked Callback when "Today" button tapped
+ */
 @Composable
-internal fun EmptyState() {
+internal fun DateNavigationRow(
+    selectedDate: LocalDate,
+    onPreviousDay: () -> Unit,
+    onNextDay: () -> Unit,
+    onTodayClicked: () -> Unit,
+) {
+    val today = LocalDate.now()
+    val yesterday = today.minusDays(1)
+
+    // Format date label
+    val dateLabel = when (selectedDate) {
+        today -> "Today"
+        yesterday -> "Yesterday"
+        else -> selectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Previous Day button (always enabled)
+        IconButton(
+            onClick = onPreviousDay,
+            modifier = Modifier.testTag("previous_day_button"),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Previous Day",
+            )
+        }
+
+        // Date label
+        Text(
+            text = dateLabel,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium,
+        )
+
+        // Right side: Next Day + Today buttons
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Next Day button (disabled if viewing today)
+            IconButton(
+                onClick = onNextDay,
+                enabled = selectedDate < today,
+                modifier = Modifier.testTag("next_day_button"),
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "Next Day",
+                )
+            }
+
+            // "Today" button (visible only if not viewing today)
+            if (selectedDate != today) {
+                TextButton(onClick = onTodayClicked) {
+                    Text("Today")
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Empty state displayed when no meals are logged.
+ *
+ * Shows different message based on whether viewing historical date or today:
+ * - Historical date: "No meals logged on this day"
+ * - Today: "Log your first meal to start tracking"
+ *
+ * @param isHistoricalDate True if viewing a historical date (not today)
+ */
+@Composable
+internal fun EmptyState(
+    isHistoricalDate: Boolean = false,
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -470,7 +591,11 @@ internal fun EmptyState() {
                 modifier = Modifier.size(64.dp),
             )
             Text(
-                text = "Log your first meal to start tracking",
+                text = if (isHistoricalDate) {
+                    "No meals logged on this day"
+                } else {
+                    "Log your first meal to start tracking"
+                },
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

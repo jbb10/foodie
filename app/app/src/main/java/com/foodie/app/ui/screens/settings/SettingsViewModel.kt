@@ -446,7 +446,7 @@ class SettingsViewModel @Inject constructor(
     fun onWeightChanged(weight: String) {
         _state.update {
             it.copy(
-                editableWeight = weight,
+                editableWeight = weight.replace(',', '.'),
                 weightSourcedFromHC = false, // User edited, no longer HC-sourced
                 isEditingProfile = true,
             )
@@ -464,7 +464,7 @@ class SettingsViewModel @Inject constructor(
     fun onHeightChanged(height: String) {
         _state.update {
             it.copy(
-                editableHeight = height,
+                editableHeight = height.replace(',', '.'),
                 heightSourcedFromHC = false, // User edited, no longer HC-sourced
                 isEditingProfile = true,
             )
@@ -512,13 +512,13 @@ class SettingsViewModel @Inject constructor(
                 return@launch
             }
 
-            val weight = _state.value.editableWeight.toDoubleOrNull()
+            val weight = _state.value.editableWeight.replace(',', '.').toDoubleOrNull()
             if (weight == null) {
                 _state.update { it.copy(profileValidationError = "Please enter a valid weight") }
                 return@launch
             }
 
-            val height = _state.value.editableHeight.toDoubleOrNull()
+            val height = _state.value.editableHeight.replace(',', '.').toDoubleOrNull()
             if (height == null) {
                 _state.update { it.copy(profileValidationError = "Please enter a valid height") }
                 return@launch

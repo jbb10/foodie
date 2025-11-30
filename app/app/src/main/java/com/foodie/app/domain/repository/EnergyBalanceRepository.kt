@@ -230,15 +230,20 @@ interface EnergyBalanceRepository {
      * Combines all energy components (BMR, NEAT, Active, CaloriesIn) into single
      * EnergyBalance domain model using Kotlin Flow combine() operator.
      *
+     * **Date Support:**
+     * - date parameter defaults to LocalDate.now() for current day
+     * - Historical dates query Health Connect data for that specific day (midnight to midnight)
+     * - Historical weight tracking: Uses queryWeightForDate() for accurate BMR, falls back to current profile weight
+     *
      * **Calculated Fields:**
-     * - bmr: From getBMR() Flow
-     * - neat: From getNEAT() Flow
-     * - activeCalories: From getActiveCalories() Flow
-     * - caloriesIn: From getCaloriesIn() Flow
+     * - bmr: From getBMR() Flow (using historical weight if available)
+     * - neat: From getNEAT() Flow (historical step count for that date)
+     * - activeCalories: From getActiveCalories() Flow (historical active calories for that date)
+     * - caloriesIn: From getCaloriesIn() Flow (historical meal data for that date)
      * - tdee: Computed as bmr + neat + activeCalories
      * - deficitSurplus: Computed as tdee - caloriesIn
      *
-     * **Update Triggers:**
+     * **Update Triggers (for current date):**
      * - Profile changes → BMR updates → EnergyBalance emits
      * - Step data synced → NEAT updates → EnergyBalance emits
      * - Workout synced → Active updates → EnergyBalance emits
@@ -252,9 +257,11 @@ interface EnergyBalanceRepository {
      * **Performance:**
      * - combine() overhead: < 1ms for 4 Flows
      * - Domain model construction: < 1μs
-     * - Total latency: < 10ms typical
+     * - Historical queries complete in < 500ms
+     * - Total latency: < 10ms typical for current date, < 500ms for historical
      *
-     * @return Flow emitting Result<EnergyBalance> with complete energy data
+     * @param date The date to query energy balance for (defaults to today)
+     * @return Flow emitting Result<EnergyBalance> with complete energy data for the specified date
      */
-    fun getEnergyBalance(): Flow<Result<EnergyBalance>>
+    fun getEnergyBalance(date: java.time.LocalDate = java.time.LocalDate.now()): Flow<Result<EnergyBalance>>
 }

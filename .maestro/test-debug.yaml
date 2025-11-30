@@ -1,0 +1,6 @@
+appId: com.foodie.app
+---
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible: ".*"

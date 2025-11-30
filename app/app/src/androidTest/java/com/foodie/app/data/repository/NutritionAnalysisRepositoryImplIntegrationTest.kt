@@ -334,4 +334,47 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
         assertThat(error.exception).isInstanceOf(com.foodie.app.domain.exception.NoFoodDetectedException::class.java)
         assertThat(error.message).contains("scenery")
     }
+
+    @Test
+    fun analyzePhoto_whenEnhancedResponseWithNewFields_thenIgnoresExtraFieldsAndReturnsNutritionData() = runTest {
+        // Arrange
+        val mockUri = Uri.parse("content://mock/salmon_meal.jpg")
+        val base64Image = "data:image/jpeg;base64,salmon123"
+
+        every { mockImageUtils.encodeImageToBase64DataUrl(mockUri) } returns base64Image
+
+        // Enhanced response from improved Azure OpenAI prompt with new fields:
+        // caloriesRange, confidence, items, assumptions, flags
+        val mockResponse = """
+            {
+                "id": "resp_enhanced123",
+                "status": "completed",
+                "output_text": "{\"hasFood\": true, \"calories\": 720, \"caloriesRange\": {\"low\": 650, \"high\": 800}, \"confidence\": 0.85, \"description\": \"Grilled salmon with roasted vegetables and quinoa\", \"items\": [{\"name\": \"grilled salmon\", \"quantity\": \"1 fillet\", \"estWeightG\": 180, \"kcal\": 360}, {\"name\": \"roasted vegetables\", \"quantity\": \"1.5 cups\", \"estWeightG\": 200, \"kcal\": 150}, {\"name\": \"quinoa\", \"quantity\": \"0.5 cup cooked\", \"estWeightG\": 90, \"kcal\": 110}, {\"name\": \"olive oil drizzle\", \"quantity\": \"1 tsp\", \"estWeightG\": 5, \"kcal\": 40}], \"assumptions\": [\"Salmon portion estimated from typical dinner plate scale\", \"Vegetables appear lightly oiled\", \"Quinoa serving typical for side dish\"], \"flags\": {\"occluded\": false, \"multiPlate\": false, \"scaleCues\": [\"plate\", \"utensil\"]}}",
+                "usage": {
+                    "input_tokens": 1450,
+                    "output_tokens": 180,
+                    "total_tokens": 1630
+                }
+            }
+        """.trimIndent()
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setBody(mockResponse)
+                .addHeader("Content-Type", "application/json"),
+        )
+
+        // Act
+        val result = repository.analyzePhoto(mockUri)
+
+        // Assert - App should extract only calories and description, ignoring new fields
+        assertThat(result).isInstanceOf(Result.Success::class.java)
+        val nutritionData = (result as Result.Success).data
+        assertThat(nutritionData.calories).isEqualTo(720)
+        assertThat(nutritionData.description).isEqualTo("Grilled salmon with roasted vegetables and quinoa")
+        // New fields (caloriesRange, confidence, items, assumptions, flags) are ignored
+        // This test verifies backward compatibility: the current app version safely
+        // ignores enhanced nutrition data until we're ready to use it
+    }
 }

@@ -1297,33 +1297,80 @@ So that I can track my caloric deficit or surplus.
 
 ---
 
-### Story 6.7: Weight/Height Health Connect Sync
+### Story 6.7: Historical Day Navigation
 
 As a user,
-I want my manually entered weight and height saved to Health Connect,
-So that other health apps can use my latest measurements.
+I want to view my energy balance dashboard for previous days,
+So that I can track my deficit/surplus trends over time and understand my progress.
 
 **Acceptance Criteria:**
 
-**Given** I manually enter weight or height in Settings
-**When** I save the changes
-**Then** a WeightRecord is written to Health Connect with current timestamp
+**Given** I am viewing the Energy Balance Dashboard
+**When** I tap the "Previous Day" button
+**Then** the dashboard displays data for the day before the currently selected date
 
-**And** a HeightRecord is written to Health Connect with current timestamp
+**And** the selected date is prominently displayed at the top (e.g., "Wednesday, Nov 27, 2025" or "Today" or "Yesterday")
 
-**And** records are visible in other Health Connect apps (Google Fit)
+**And** all metrics update to show that day's data: Calories In, TDEE components (BMR, NEAT, Active), Deficit/Surplus
 
-**And** if I update weight daily, each entry creates a new timestamped record
+**And** I can tap "Next Day" to move forward in time
 
-**And** BMR automatically recalculates with new values
+**And** "Next Day" button is disabled when viewing today (cannot view future dates)
 
-**Prerequisites:** Story 6.1 (user profile settings), Story 6.2 (BMR calculation)
+**And** I can navigate back to today instantly with a "Today" button
+
+**And** historical TDEE calculations use that day's user profile (weight, height, age) if available
+
+**And** deficit/surplus color coding applies correctly to historical data (green deficit, red surplus)
+
+**And** empty state shows "No meals logged on this day" when historical Calories In = 0
+
+**Prerequisites:** Story 6.6 (dashboard implementation complete)
 
 **Technical Notes:**
-- Use HealthConnectClient.insertRecords() for WeightRecord and HeightRecord
-- Set metadata with current timestamp and source as "Foodie"
-- Handle Health Connect permission errors gracefully
-- Trigger BMR recalculation after successful save
+- Extend EnergyBalanceRepository.getEnergyBalance() to accept LocalDate parameter
+- Use Health Connect TimeRangeFilter.between() for date-specific queries
+- Add selectedDate state to DashboardViewModel with prev/next/today methods
+- Persist selectedDate in SavedStateHandle for app lifecycle survival
+- Use current user profile for BMR calculation (defer historical weight tracking)
+
+---
+
+### Story 6.8: E2E Test Suite Validation and Regression Coverage
+
+As a developer,
+I want all E2E instrumentation tests running successfully with comprehensive coverage,
+So that we have a reliable regression test suite and accurate test coverage metrics in SonarQube.
+
+**Acceptance Criteria:**
+
+**Given** all 23 instrumentation test files exist
+**When** I run the full test suite
+**Then** all tests execute successfully with 0 failures
+
+**And** test execution completes in under 5 minutes
+
+**And** no flaky tests (tests pass consistently on multiple runs)
+
+**And** Epic 6 user flows have complete test coverage
+
+**And** SonarQube includes instrumentation test coverage in the report
+
+**And** regression test guide is documented
+
+**And** coverage metrics are visible in SonarQube dashboard
+
+**And** test organization follows consistent patterns
+
+**Prerequisites:** Stories 6.1 through 6.7 complete, existing instrumentation test infrastructure
+
+**Technical Notes:**
+- Validate all 23 existing instrumentation test files
+- Configure JaCoCo to include connectedDebugAndroidTest coverage
+- Create test coverage matrix mapping tests to user flows
+- Document regression testing strategy in docs/testing/
+- Run test suite 3 times consecutively to verify reliability
+- Optimize any slow tests (> 10 seconds individual execution)
 
 ---
 

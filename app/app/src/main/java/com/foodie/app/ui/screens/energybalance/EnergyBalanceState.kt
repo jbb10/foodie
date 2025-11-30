@@ -25,11 +25,17 @@ import java.time.Instant
  * - Steps sync → NEAT updates → TDEE increases → deficitSurplus increases
  * - Workout sync → activeCalories updates → TDEE increases
  *
+ * **Date Navigation:**
+ * - selectedDate defaults to LocalDate.now() (today)
+ * - Users can navigate to previous/next days to view historical data
+ * - Date persists across app lifecycle via SavedStateHandle
+ *
  * @property energyBalance Complete energy balance data (null if loading, empty, or error)
  * @property isLoading True during initial load or pull-to-refresh
  * @property error Error message to display (null if no error)
  * @property lastUpdated Timestamp of last successful data fetch (for "Last updated: X minutes ago")
  * @property showSettingsButton True if error is ProfileNotConfiguredError (show "Open Settings" action)
+ * @property selectedDate Date currently being viewed (defaults to today, persisted across lifecycle)
  */
 data class EnergyBalanceState(
     val energyBalance: EnergyBalance? = null,
@@ -37,4 +43,5 @@ data class EnergyBalanceState(
     val error: String? = null,
     val lastUpdated: Instant? = null,
     val showSettingsButton: Boolean = false,
+    val selectedDate: java.time.LocalDate = java.time.LocalDate.now(),
 )

@@ -14,6 +14,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
@@ -137,10 +138,25 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Calculates NEAT from current day step count.
+     * Calculates NEAT from current day step count, excluding steps during active exercise.
      *
      * **Formula:**
      * Passive Calories = steps × 0.04 kcal/step
+     *
+     * **Exercise Step Exclusion:**
+     * Steps taken during active exercise periods (from ActiveCaloriesBurnedRecord) are
+     * excluded from the NEAT calculation. This prevents double-counting since active
+     * exercise calories already account for steps taken during the workout.
+     *
+     * **Scientific Rationale:**
+     * - NEAT = Non-Exercise Activity Thermogenesis (passive movement only)
+     * - Active calories from Garmin already include energy from steps during exercise
+     * - Including exercise steps in both NEAT and Active would overestimate TDEE
+     *
+     * **Implementation:**
+     * 1. Query ActiveCaloriesBurnedRecord to get exercise time ranges
+     * 2. Query StepsRecord excluding steps that overlap with exercise periods
+     * 3. Calculate NEAT using only non-exercise steps
      *
      * **Time Range:**
      * - Queries from midnight (local timezone) to current time
@@ -148,7 +164,8 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
      *
      * **Multi-Record Handling:**
      * - Sums all StepsRecord entries (Garmin, Google Fit write separate records)
-     * - HealthConnectManager.querySteps() handles summation
+     * - Filters out StepsRecord that overlap with ActiveCaloriesBurnedRecord time ranges
+     * - HealthConnectManager.querySteps() handles summation and filtering
      *
      * **Zero Steps:**
      * - Returns Result.success(0.0) if no step data (valid sedentary day start)
@@ -157,6 +174,7 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
      * **Permission Errors:**
      * - Catches SecurityException from HealthConnectManager.querySteps()
      * - Returns Result.failure(SecurityException) for caller to handle
+     * - Active calories permission errors are gracefully handled (assumes no exercise)
      *
      * @return Result.success(neat) in kcal, or Result.failure if permission denied
      */
@@ -168,13 +186,23 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
                 .toInstant()
             val now = Instant.now()
 
-            // Query total steps (throws SecurityException if permission denied)
-            val steps = healthConnectManager.querySteps(startOfDay, now)
+            // Query active exercise records to get time ranges for exclusion
+            val exerciseTimeRanges = try {
+                val activeRecords = healthConnectManager.queryActiveCaloriesRecords(startOfDay, now)
+                activeRecords.map { record -> record.startTime to record.endTime }
+            } catch (e: SecurityException) {
+                // READ_ACTIVE_CALORIES_BURNED permission denied - proceed without exclusion
+                Timber.tag(TAG).w("Cannot exclude exercise steps - READ_ACTIVE_CALORIES_BURNED permission denied")
+                emptyList()
+            }
+
+            // Query total steps, excluding steps during exercise periods
+            val steps = healthConnectManager.querySteps(startOfDay, now, exerciseTimeRanges)
 
             // Calculate NEAT: steps × 0.04 kcal/step
             val neat = steps * KCAL_PER_STEP
 
-            Timber.tag(TAG).d("NEAT calculated: $neat kcal (from $steps steps)")
+            Timber.tag(TAG).d("NEAT calculated: $neat kcal (from $steps non-exercise steps)")
             Result.success(neat)
         } catch (e: SecurityException) {
             // READ_STEPS permission denied
@@ -417,46 +445,161 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
      * - Emits new EnergyBalance whenever ANY component Flow emits
      * - Waits for all four Flows to emit at least once before first emission
      *
+     * **Date Support:**
+     * - For historical dates: Queries Health Connect data for that specific day (midnight to midnight)
+     * - For historical dates: Uses queryWeightForDate() for accurate BMR, falls back to current profile weight
+     * - For today: Polls Health Connect every 5 minutes for real-time updates
+     *
      * **Error Handling:**
      * - If BMR unavailable (profile not configured), returns Result.failure
      * - If NEAT/Active/CaloriesIn unavailable (permissions denied), defaults to 0.0 for those components
      * - Graceful degradation: partial data acceptable (e.g., BMR + NEAT only)
      *
      * **Domain Model Construction:**
-     * - bmr: From getBMR() Result
+     * - bmr: From getBMR() Result (using historical weight if date != today)
      * - neat: From getNEAT() Result (default 0.0 if error)
      * - activeCalories: From getActiveCalories() Result (default 0.0 if error)
      * - caloriesIn: From getCaloriesIn() Result (default 0.0 if error)
      * - tdee: Computed as bmr + neat + activeCalories
      * - deficitSurplus: Computed as tdee - caloriesIn
      *
+     * @param date The date to query energy balance for (defaults to today)
      * @return Flow emitting Result<EnergyBalance> with complete energy data
      */
-    override fun getEnergyBalance(): Flow<Result<EnergyBalance>> {
-        return combine(
-            getBMR(),
-            getNEAT(),
-            getActiveCalories(),
-            getCaloriesIn(),
-        ) { bmrResult, neatResult, activeResult, caloriesInResult ->
-            // Check if BMR is available (required - cannot calculate energy balance without it)
+    override fun getEnergyBalance(date: LocalDate): Flow<Result<EnergyBalance>> {
+        // For historical dates, use one-shot calculation (no polling)
+        // For today, use polling Flows for real-time updates
+        return if (date < LocalDate.now()) {
+            // Historical date - single emission
+            flow {
+                emit(calculateEnergyBalanceForDate(date))
+            }
+        } else {
+            // Today - reactive polling
+            combine(
+                getBMR(),
+                getNEAT(),
+                getActiveCalories(),
+                getCaloriesIn(),
+            ) { bmrResult, neatResult, activeResult, caloriesInResult ->
+                // Check if BMR is available (required - cannot calculate energy balance without it)
+                val bmr = bmrResult.getOrElse { error ->
+                    Timber.tag(TAG).w("EnergyBalance unavailable - BMR error: ${error.message}")
+                    return@combine Result.failure<EnergyBalance>(error)
+                }
+
+                // Unwrap other Results, defaulting to 0.0 for errors (graceful degradation)
+                val neat = neatResult.getOrElse { error ->
+                    Timber.tag(TAG).w("EnergyBalance - NEAT unavailable, defaulting to 0.0: ${error.message}")
+                    0.0
+                }
+                val active = activeResult.getOrElse { error ->
+                    Timber.tag(TAG).w("EnergyBalance - Active unavailable, defaulting to 0.0: ${error.message}")
+                    0.0
+                }
+                val caloriesIn = caloriesInResult.getOrElse { error ->
+                    Timber.tag(TAG).w("EnergyBalance - CaloriesIn unavailable, defaulting to 0.0: ${error.message}")
+                    0.0
+                }
+
+                // Calculate derived fields
+                val tdee = bmr + neat + active
+                val deficitSurplus = tdee - caloriesIn
+
+                // Construct EnergyBalance domain model
+                val energyBalance = EnergyBalance(
+                    bmr = bmr,
+                    neat = neat,
+                    activeCalories = active,
+                    tdee = tdee,
+                    caloriesIn = caloriesIn,
+                    deficitSurplus = deficitSurplus,
+                )
+
+                Timber.tag(TAG).d(
+                    "EnergyBalance calculated: TDEE=$tdee kcal (BMR=$bmr + NEAT=$neat + Active=$active), " +
+                        "CaloriesIn=$caloriesIn, Deficit/Surplus=$deficitSurplus"
+                )
+
+                Result.success(energyBalance)
+            }
+        }
+    }
+
+    /**
+     * Calculates energy balance for a specific historical date.
+     *
+     * **One-Shot Calculation:**
+     * - Queries Health Connect once for that day's data (no polling)
+     * - Uses TimeRangeFilter.between(startOfDay, endOfDay)
+     * - Queries historical weight for accurate BMR
+     *
+     * **Historical Weight:**
+     * - Calls healthConnectManager.queryWeightForDate(date)
+     * - Falls back to current user profile weight if no historical weight found
+     *
+     * @param date The historical date to calculate energy balance for
+     * @return Result<EnergyBalance> for that date
+     */
+    private suspend fun calculateEnergyBalanceForDate(date: LocalDate): Result<EnergyBalance> {
+        return try {
+            // Get user profile for BMR calculation - get first emission from Flow
+            val profile = userProfileRepository.getUserProfile().firstOrNull()
+                ?: return Result.failure(ProfileNotConfiguredError("User profile must be configured to calculate BMR"))
+
+            // Query historical weight for more accurate BMR
+            val historicalWeight = healthConnectManager.queryWeightForDate(date)
+            val weightKg = historicalWeight?.weight?.inKilograms ?: profile.weightKg
+
+            // Create profile with historical weight for BMR calculation
+            val profileWithHistoricalWeight = profile.copy(weightKg = weightKg)
+
+            // Calculate BMR with historical weight
+            val bmrResult = calculateBMR(profileWithHistoricalWeight)
             val bmr = bmrResult.getOrElse { error ->
-                Timber.tag(TAG).w("EnergyBalance unavailable - BMR error: ${error.message}")
-                return@combine Result.failure<EnergyBalance>(error)
+                Timber.tag(TAG).w("BMR calculation failed: ${error.message}")
+                return Result.failure(error)
             }
 
-            // Unwrap other Results, defaulting to 0.0 for errors (graceful degradation)
-            val neat = neatResult.getOrElse { error ->
-                Timber.tag(TAG).w("EnergyBalance - NEAT unavailable, defaulting to 0.0: ${error.message}")
-                0.0
+            // Calculate time range for this date
+            val startOfDay = date.atStartOfDay(ZoneId.systemDefault()).toInstant()
+            val endOfDay = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
+
+            // Query historical active exercise records to get time ranges for step exclusion
+            val exerciseTimeRanges = try {
+                val activeRecords = healthConnectManager.queryActiveCaloriesRecords(startOfDay, endOfDay)
+                activeRecords.map { record -> record.startTime to record.endTime }
+            } catch (e: SecurityException) {
+                Timber.tag(TAG).w("Cannot exclude exercise steps - READ_ACTIVE_CALORIES_BURNED permission denied")
+                emptyList()
             }
-            val active = activeResult.getOrElse { error ->
-                Timber.tag(TAG).w("EnergyBalance - Active unavailable, defaulting to 0.0: ${error.message}")
-                0.0
+
+            // Query historical step count for NEAT, excluding exercise steps
+            val steps = try {
+                healthConnectManager.querySteps(startOfDay, endOfDay, exerciseTimeRanges)
+            } catch (e: SecurityException) {
+                Timber.tag(TAG).w("NEAT unavailable - READ_STEPS permission denied")
+                0 // Default to 0 steps if permission denied
             }
-            val caloriesIn = caloriesInResult.getOrElse { error ->
-                Timber.tag(TAG).w("EnergyBalance - CaloriesIn unavailable, defaulting to 0.0: ${error.message}")
-                0.0
+            val neat = steps.toDouble() * KCAL_PER_STEP
+
+            // Query historical active calories
+            val active = try {
+                healthConnectManager.queryActiveCalories(startOfDay, endOfDay)
+            } catch (e: SecurityException) {
+                Timber.tag(TAG).w("Active unavailable - READ_ACTIVE_CALORIES_BURNED permission denied")
+                0.0 // Default to 0 if permission denied
+            }
+
+            // Query historical nutrition records for Calories In
+            val caloriesIn = try {
+                val nutritionRecords = healthConnectManager.queryNutritionRecords(startOfDay, endOfDay)
+                nutritionRecords.sumOf { record ->
+                    record.energy?.inKilocalories ?: 0.0
+                }
+            } catch (e: SecurityException) {
+                Timber.tag(TAG).w("CaloriesIn unavailable - READ_NUTRITION permission denied")
+                0.0 // Default to 0 if permission denied
             }
 
             // Calculate derived fields
@@ -474,11 +617,14 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
             )
 
             Timber.tag(TAG).d(
-                "EnergyBalance calculated: TDEE=$tdee kcal (BMR=$bmr + NEAT=$neat + Active=$active), " +
+                "Historical EnergyBalance for $date: TDEE=$tdee kcal (BMR=$bmr + NEAT=$neat + Active=$active), " +
                     "CaloriesIn=$caloriesIn, Deficit/Surplus=$deficitSurplus"
             )
 
             Result.success(energyBalance)
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to calculate historical energy balance for $date")
+            Result.failure(e)
         }
     }
 }

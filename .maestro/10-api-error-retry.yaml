@@ -1,0 +1,296 @@
+# Story 4.3 E2E Test: API Error Retry
+# Priority: P1 (High - Error handling)
+#
+# Acceptance Criteria Validated:
+# - API failure shows user-friendly notification
+# - Failed job saved to WorkManager queue
+# - User can retry from notification
+# - Retry succeeds with correct API config
+# - User informed of success after retry
+
+appId: com.foodie.app
+---
+# ============================================
+# SETUP: Force API failure scenario
+# ============================================
+
+# First, configure invalid API credentials
+- launchApp:
+    clearState: false
+
+- tapOn:
+    id: "settings_icon"
+
+- assertVisible: "Settings"
+
+# Set invalid API key to force failure
+- tapOn: "API Key"
+- inputText: "invalid-key-for-testing"
+
+- tapOn: "Endpoint"
+- inputText: "https://invalid.endpoint.test"
+
+- tapOn: "Save"
+- tapOn: "Back"
+    optional: true
+
+# ============================================
+# PHASE 1: Trigger API Call (Photo Capture)
+# ============================================
+
+# Navigate to camera
+- tapOn:
+    id: "camera_fab"
+
+# Wait for camera screen
+- assertVisible:
+    text: "Tap to capture"
+    timeout: 2000
+
+# Capture photo
+- tapOn:
+    id: "capture_button"
+    optional: true
+
+# Confirm photo
+- assertVisible: "Use Photo"
+- tapOn: "Use Photo"
+
+# ============================================
+# PHASE 2: Wait for Background Job to Fail
+# ============================================
+
+# Return to meal list
+- assertVisible: "Meal List"
+
+# Wait for WorkManager to attempt API call
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# ============================================
+# PHASE 3: Verify Error Notification Appears
+# ============================================
+
+# Pull down notification shade
+- swipe:
+    direction: DOWN
+    from:
+      x: 500
+      y: 50
+    to:
+      x: 500
+      y: 500
+
+# Look for error notification
+- assertVisible:
+    text: "(Failed|Error|Retry|Couldn't analyze)"
+    timeout: 5000
+
+# Notification should be user-friendly
+- assertVisible:
+    text: "(Tap to retry|Try again)"
+
+# ============================================
+# PHASE 4: Fix API Configuration
+# ============================================
+
+# Dismiss notification shade first
+- swipe:
+    direction: UP
+    from:
+      x: 500
+      y: 500
+    to:
+      x: 500
+      y: 50
+
+# Navigate back to settings to fix API config
+- tapOn:
+    id: "settings_icon"
+
+- assertVisible: "Settings"
+
+# Enter valid API credentials
+# Note: Use real credentials or mock endpoint
+- tapOn: "API Key"
+- inputText: "valid-test-key-placeholder"
+
+- tapOn: "Endpoint"
+- inputText: "https://test.openai.azure.com"
+
+- tapOn: "Save"
+- tapOn: "Back"
+    optional: true
+
+# ============================================
+# PHASE 5: Trigger Retry from Notification
+# ============================================
+
+# Pull down notification shade
+- swipe:
+    direction: DOWN
+    from:
+      x: 500
+      y: 50
+    to:
+      x: 500
+      y: 500
+
+# Tap on retry notification
+- tapOn:
+    text: "(Retry|Try again|Tap to retry)"
+
+# Notification should dismiss
+# App may open or retry happens in background
+
+# ============================================
+# PHASE 6: Verify Retry Success
+# ============================================
+
+# Wait for retry to complete
+- waitForAnimationToEnd:
+    timeout: 20000
+
+# Success notification may appear
+- swipe:
+    direction: DOWN
+    from:
+      x: 500
+      y: 50
+    to:
+      x: 500
+      y: 500
+
+- assertVisible:
+    text: "(Success|Meal saved|Added to Health Connect)"
+    optional: true
+    timeout: 5000
+
+# Dismiss notification shade
+- swipe:
+    direction: UP
+    from:
+      x: 500
+      y: 500
+    to:
+      x: 500
+      y: 50
+
+# ============================================
+# PHASE 7: Verify Meal Appears
+# ============================================
+
+# Open app if not already open
+- launchApp:
+    appId: com.foodie.app
+
+# Navigate to meal list
+- tapOn:
+    id: "meal_list_nav_button"
+    text: "Meals"
+    optional: true
+
+# Pull to refresh
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# Meal should now appear (retry succeeded)
+- assertVisible:
+    text: ".*kcal.*"
+    timeout: 5000
+
+# ============================================
+# PHASE 8: Verify WorkManager Queue Clean
+# ============================================
+
+# No pending retry notifications should remain
+- swipe:
+    direction: DOWN
+    from:
+      x: 500
+      y: 50
+    to:
+      x: 500
+      y: 500
+
+# Should not see error notification anymore
+- assertNotVisible:
+    text: "(Failed|Error|Couldn't analyze)"
+    optional: true
+
+# Dismiss notification shade
+- swipe:
+    direction: UP
+    from:
+      x: 500
+      y: 500
+    to:
+      x: 500
+      y: 50
+
+# ============================================
+# ALTERNATIVE FLOW: Multiple Failures
+# ============================================
+
+# Note: To test exponential backoff:
+# 1. Set invalid API config
+# 2. Capture multiple photos
+# 3. Verify each gets queued
+# 4. Fix API config
+# 5. Verify all retry automatically (without notification tap)
+
+# ============================================
+# CLEANUP: Reset API Config
+# ============================================
+
+# Clear test API credentials
+- tapOn:
+    id: "settings_icon"
+
+- assertVisible: "Settings"
+
+- tapOn: "API Key"
+- inputText: ""
+
+- tapOn: "Endpoint"
+- inputText: ""
+
+- tapOn: "Save"
+- tapOn: "Back"
+    optional: true
+
+# Delete test meal
+- tapOn:
+    text: ".*kcal.*"
+    optional: true
+
+- tapOn:
+    id: "delete_button"
+    optional: true
+
+- tapOn: "Delete"
+- tapOn: "Confirm"
+    optional: true
+
+# ============================================
+# SUCCESS CRITERIA
+# ============================================
+
+# ✅ Test passes if:
+# 1. API failure triggered error notification
+# 2. Notification was user-friendly (not technical)
+# 3. Failed job queued in WorkManager
+# 4. API config could be fixed mid-flow
+# 5. Retry notification worked
+# 6. Retry succeeded with valid config
+# 7. Meal appeared after successful retry
+# 8. No duplicate notifications remained
+
+# ⚠️ Manual validation required:
+# - Test with real API failures (timeout, 500 error, rate limit)
+# - Verify exponential backoff timing
+# - Test offline scenario (no network)
+# - Verify notification sound/vibration
+# - Test multiple concurrent failures
+# - Verify WorkManager persists across device restart

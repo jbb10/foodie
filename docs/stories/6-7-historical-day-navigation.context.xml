@@ -1,0 +1,217 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>7</storyId>
+    <title>Historical Day Navigation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-29</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-7-historical-day-navigation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to view my energy balance dashboard for previous days</iWant>
+    <soThat>I can track my deficit/surplus trends over time and understand my progress</soThat>
+    <tasks>
+      <task id="1" priority="critical">Documentation Research &amp; Technical Validation - COMPLETE BEFORE PROCEEDING. Validate Health Connect TimeRangeFilter patterns, date navigation UX patterns, historical weight tracking complexity assessment</task>
+      <task id="2" acs="3,7">Extend EnergyBalanceRepository with Date Parameter - Add LocalDate parameter to getEnergyBalance(), create TimeRangeFilter from LocalDate, query historical weight for BMR</task>
+      <task id="3" acs="2,10">Add selectedDate State to DashboardViewModel - Add selectedDate field to state, implement onPreviousDay/onNextDay/onTodayClicked methods, persist with SavedStateHandle</task>
+      <task id="4" acs="1,2,4,5,6">Add Date Navigation UI to Dashboard Screen - Create DateNavigationRow composable with prev/next buttons, date label ("Today"/"Yesterday"/formatted date), "Today" button</task>
+      <task id="5" acs="9">Update Empty State for Historical Days - Display "No meals logged on this day" for historical dates vs "Log your first meal to start tracking" for today</task>
+      <task id="6" acs="10">Persist Selected Date Across App Lifecycle - Use SavedStateHandle to persist selectedDate when app backgrounded/resumed</task>
+      <task id="7" acs="7,8">Implement Historical Weight Tracking for BMR Accuracy - Add queryWeightForDate() method, query most recent weight up to selected date, fallback to current profile weight</task>
+      <task id="8" acs="all">Unit Tests for Date Navigation - Test ViewModel date navigation logic, state updates, repository queries</task>
+      <task id="9" acs="1,2,4,5,6,9">UI Tests for Date Navigation - Test date navigation UI interactions, empty state, deficit/surplus color coding</task>
+      <task id="10" acs="all">Manual Testing on Physical Device - 6 scenarios: navigate to yesterday, multiple days back, forward to today, "Today" quick navigation, empty state, date persistence</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">When I tap "Previous Day" button, dashboard displays data for the day before the currently selected date</criterion>
+    <criterion id="2">Selected date is prominently displayed at top as "Today", "Yesterday", or formatted date (e.g., "Wednesday, Nov 27, 2025")</criterion>
+    <criterion id="3">All metrics update to show that day's data: Calories In, TDEE components (BMR, NEAT, Active), Deficit/Surplus</criterion>
+    <criterion id="4">I can tap "Next Day" to move forward in time</criterion>
+    <criterion id="5">"Next Day" button is disabled when viewing today (cannot view future dates)</criterion>
+    <criterion id="6">I can navigate back to today instantly with a "Today" button</criterion>
+    <criterion id="7">Historical TDEE calculations use that day's weight measurement if available in Health Connect</criterion>
+    <criterion id="8">If no historical weight exists for that date, current user profile weight is used (graceful fallback)</criterion>
+    <criterion id="9">Empty state shows "No meals logged on this day" when historical Calories In = 0</criterion>
+    <criterion id="10">Date navigation persists when app is backgrounded and resumed</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-6.md</path>
+        <title>Epic 6 Technical Specification</title>
+        <section>System Architecture - EnergyBalanceRepository</section>
+        <snippet>Repository orchestrates BMR, NEAT, Active calculations. getEnergyBalance(date: LocalDate) queries Health Connect with TimeRangeFilter for specified date. Historical weight tracking: queryWeightForDate(date) returns most recent weight up to that date for BMR accuracy.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Foodie PRD</title>
+        <section>V2.0 Energy Balance Tracking</section>
+        <snippet>TDEE = BMR + NEAT + Active. Caloric deficit tracking for sustainable body recomposition. Historical trend visualization deferred to V2.0+.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Foodie Architecture</title>
+        <section>MVVM Pattern and Flow Reactivity</section>
+        <snippet>ViewModel exposes StateFlow, UI collects with collectAsStateWithLifecycle(). Repository provides reactive Flow streams. TimeRangeFilter.between() for date-bounded Health Connect queries.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-5-total-daily-energy-expenditure-tdee.md</path>
+        <title>Story 6-5 Previous Learnings</title>
+        <section>Completion Notes</section>
+        <snippet>getEnergyBalance() Flow combines BMR+NEAT+Active+CaloriesIn. Flow emits on ANY component change. EnergyBalance domain model with calculated fields: tdee, deficitSurplus, isDeficit.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-6-calories-in-vs-calories-out-dashboard.md</path>
+        <title>Story 6-6 Previous Learnings</title>
+        <section>Implementation Details</section>
+        <snippet>EnergyBalanceDashboardViewModel collects repository Flow in init. StateFlow&lt;EnergyBalanceState&gt; exposed to UI. Empty state pattern. Pull-to-refresh with PullToRefreshBox.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+        <kind>interface</kind>
+        <symbol>getEnergyBalance</symbol>
+        <lines>186-215</lines>
+        <reason>Repository interface to extend with date parameter: getEnergyBalance(date: LocalDate = LocalDate.now()). Currently queries "today" only, needs historical date support.</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/EnergyBalanceRepositoryImpl.kt</path>
+        <kind>implementation</kind>
+        <symbol>getEnergyBalance</symbol>
+        <lines>420-474</lines>
+        <reason>Repository implementation to modify: add date parameter, create TimeRangeFilter from LocalDate, query historical weight for BMR. Follow existing querySteps/queryActiveCalories patterns.</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>data source</kind>
+        <symbol>queryLatestWeight</symbol>
+        <lines>289-325</lines>
+        <reason>Existing weight query pattern (EPOCH to now). Template for queryWeightForDate(date): change endTime to date.plusDays(1).atStartOfDay(), returns most recent weight up to that date.</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>EnergyBalanceDashboardViewModel</symbol>
+        <lines>27-120</lines>
+        <reason>ViewModel to extend with selectedDate state (MutableStateFlow), date navigation methods (onPreviousDay/onNextDay/onTodayClicked), SavedStateHandle persistence.</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceState.kt</path>
+        <kind>state</kind>
+        <symbol>EnergyBalanceState</symbol>
+        <lines>26-37</lines>
+        <reason>UI state data class to extend with selectedDate: LocalDate field for date navigation tracking and persistence.</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardScreen.kt</path>
+        <kind>screen</kind>
+        <symbol>EnergyBalanceDashboardScreen</symbol>
+        <lines>74-155</lines>
+        <reason>Dashboard screen to extend with DateNavigationRow composable above EnergyBalanceContent. Add prev/next buttons, date label, "Today" button.</reason>
+      </file>
+      <file>
+        <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>data source</kind>
+        <symbol>querySteps</symbol>
+        <lines>514-556</lines>
+        <reason>Existing step query pattern using TimeRangeFilter.between(startTime, endTime). Template for date-based queries in getEnergyBalance(date) - convert LocalDate to Instant.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <framework name="Kotlin Coroutines" version="1.9.0">
+        <package>kotlinx.coroutines.flow.Flow</package>
+        <package>kotlinx.coroutines.flow.combine</package>
+        <package>kotlinx.coroutines.flow.MutableStateFlow</package>
+      </framework>
+      <framework name="Health Connect SDK" version="1.1.0">
+        <package>androidx.health.connect.client.time.TimeRangeFilter</package>
+        <package>androidx.health.connect.client.records.WeightRecord</package>
+        <package>androidx.health.connect.client.records.StepsRecord</package>
+        <package>androidx.health.connect.client.records.NutritionRecord</package>
+      </framework>
+      <framework name="Jetpack Compose" version="2024.10.01">
+        <package>androidx.compose.material3.IconButton</package>
+        <package>androidx.compose.material3.TextButton</package>
+        <package>androidx.compose.material.icons.Icons</package>
+      </framework>
+      <framework name="Jetpack SavedState" version="2.8.3">
+        <package>androidx.lifecycle.SavedStateHandle</package>
+      </framework>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Architecture: Extend existing EnergyBalanceRepository and ViewModel - DO NOT create new files. Add date parameter to getEnergyBalance(), modify ViewModel state and UI only.</constraint>
+    <constraint>Date Handling: Use LocalDate for user-facing dates, convert to Instant with ZoneId.systemDefault() for Health Connect queries. TimeRangeFilter.between(startOfDay, endOfDay) for midnight-to-midnight ranges.</constraint>
+    <constraint>Historical Weight: Query most recent weight up to selected date using TimeRangeFilter.between(EPOCH, endOfDay). Fallback to current profile weight if null. Single Health Connect query pattern.</constraint>
+    <constraint>State Persistence: Use SavedStateHandle for selectedDate to survive app backgrounding. Initialize with LocalDate.now(), update on user navigation actions.</constraint>
+    <constraint>UI Pattern: Follow existing DateNavigationRow pattern from other projects. IconButton for prev/next, Text for date label, TextButton for "Today". Material 3 styling.</constraint>
+    <constraint>Empty State Messaging: Conditional based on isHistoricalDate: "No meals logged on this day" (historical) vs "Log your first meal to start tracking" (today).</constraint>
+    <constraint>Performance: Historical data queries must complete in &lt; 500ms including weight lookup. No caching needed - Health Connect queries are fast enough.</constraint>
+    <constraint>Testing Standards: Unit tests for ViewModel date navigation logic, repository date parameter. UI tests for date navigation interactions. Manual testing on physical device for 6 scenarios.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>EnergyBalanceRepository.getEnergyBalance</name>
+      <kind>Kotlin Flow function</kind>
+      <signature>fun getEnergyBalance(date: LocalDate = LocalDate.now()): Flow&lt;Result&lt;EnergyBalance&gt;&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+      <description>Extend with date parameter. Create TimeRangeFilter from LocalDate boundaries. Query historical weight for BMR accuracy.</description>
+    </interface>
+    <interface>
+      <name>HealthConnectManager.queryWeightForDate</name>
+      <kind>Kotlin suspend function</kind>
+      <signature>suspend fun queryWeightForDate(date: LocalDate): WeightRecord?</signature>
+      <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+      <description>New method to add. Query most recent weight up to specified date using TimeRangeFilter.between(EPOCH, endOfDay). Returns first record descending order.</description>
+    </interface>
+    <interface>
+      <name>EnergyBalanceState.selectedDate</name>
+      <kind>Kotlin data class field</kind>
+      <signature>val selectedDate: LocalDate = LocalDate.now()</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceState.kt</path>
+      <description>New field to add for date navigation tracking. Persisted in ViewModel via SavedStateHandle.</description>
+    </interface>
+    <interface>
+      <name>DateNavigationRow Composable</name>
+      <kind>Compose function</kind>
+      <signature>@Composable fun DateNavigationRow(selectedDate: LocalDate, onPreviousDay: () -&gt; Unit, onNextDay: () -&gt; Unit, onTodayClicked: () -&gt; Unit)</signature>
+      <path>app/app/src/main/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardScreen.kt</path>
+      <description>New composable to create. Row layout with prev/next IconButtons, date label Text, "Today" TextButton (visible when selectedDate != today).</description>
+    </interface>
+    <interface>
+      <name>TimeRangeFilter.between</name>
+      <kind>Health Connect SDK method</kind>
+      <signature>TimeRangeFilter.between(startTime: Instant, endTime: Instant)</signature>
+      <path>External SDK (androidx.health.connect.client.time)</path>
+      <description>Used to create date-bounded queries. Convert LocalDate to Instant: date.atStartOfDay(ZoneId.systemDefault()).toInstant().</description>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Unit tests required for ViewModel date navigation methods (onPreviousDay, onNextDay, onTodayClicked) and repository date parameter (getEnergyBalance with historical dates). UI instrumentation tests for date navigation UI interactions and empty state messaging. Manual testing on physical device for all 6 scenarios (Task 10). Use JUnit, Mockito-Kotlin for mocking repository, Truth for assertions, Compose UI testing utilities. Test naming: methodName_whenCondition_thenExpectedResult. Target 100% AC coverage via tests.</standards>
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardViewModelDateNavigationTest.kt</location>
+      <location>app/app/src/test/java/com/foodie/app/data/repository/EnergyBalanceRepositoryHistoricalDateTest.kt</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardDateNavigationTest.kt</location>
+    </locations>
+    <ideas>
+      <idea ac-ref="AC-1">Test: onPreviousDay updates selectedDate to date.minusDays(1), verify repository called with new date</idea>
+      <idea ac-ref="AC-4,AC-5">Test: onNextDay increments date when selectedDate &lt; today, does nothing when selectedDate == today</idea>
+      <idea ac-ref="AC-6">Test: onTodayClicked resets selectedDate to LocalDate.now()</idea>
+      <idea ac-ref="AC-3">Test: getEnergyBalance(historicalDate) creates TimeRangeFilter with correct start/end bounds (midnight to midnight)</idea>
+      <idea ac-ref="AC-7,AC-8">Test: Historical BMR uses queryWeightForDate result, falls back to current weight if null</idea>
+      <idea ac-ref="AC-2">Test: UI date label shows "Today" when selectedDate == now, "Yesterday" when minusDays(1), formatted date otherwise</idea>
+      <idea ac-ref="AC-9">Test: Empty state shows "No meals logged on this day" when isHistoricalDate = true</idea>
+      <idea ac-ref="AC-10">Test: selectedDate persists when ViewModel recreated with SavedStateHandle</idea>
+      <idea ac-ref="AC-1,AC-4,AC-5,AC-6">UI Test: Tap prev/next/today buttons, verify date label updates and repository queries triggered</idea>
+    </ideas>
+  </tests>
+</story-context>

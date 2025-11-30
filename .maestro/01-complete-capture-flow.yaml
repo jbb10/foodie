@@ -1,0 +1,162 @@
+# Story 2.7 E2E Test: Complete Capture Flow
+# Priority: P0 (Critical - Core value proposition)
+#
+# Acceptance Criteria Validated:
+# - AC1: Widget tap → camera launch < 500ms
+# - AC2: Photo capture + confirmation < 5s
+# - AC3: User can return immediately after confirmation
+# - AC4: Background processing completes < 15s
+# - AC5: Nutrition data appears in Health Connect
+# - AC6: Temporary photo deleted after save
+# - AC7: Flow feels seamless
+# - AC8: Haptic feedback on capture
+# - AC9: Visual checkmark on confirmation
+
+appId: com.foodie.app
+---
+# ============================================
+# PHASE 1: Launch and Setup (< 1s)
+# ============================================
+
+- launchApp:
+    clearState: false  # Keep existing data
+
+# Wait for app to fully load
+- assertVisible: "Foodie"
+
+# Grant Health Connect permissions if dialog appears (first run)
+- tapOn:
+    text: "Allow"
+    optional: true
+
+# Dismiss any onboarding if present (first run)
+- tapOn:
+    text: "Skip"
+    optional: true
+- tapOn:
+    text: "Get Started"
+    optional: true
+
+# ============================================
+# PHASE 2: Navigate to Camera (< 500ms target)
+# ============================================
+
+# Option A: If widget is configured, test from home screen
+# (Requires manual widget setup - skip if not available)
+
+# Option B: Test from app launcher (fallback)
+# Tap camera FAB on meal list screen
+- tapOn:
+    id: "camera_fab"
+
+# ============================================
+# PHASE 3: Camera Screen Validation
+# ============================================
+
+# Verify camera screen appeared
+# Note: System camera intent cannot be controlled by Maestro
+# This test assumes you're using custom camera UI or mock mode
+
+- assertVisible:
+    text: "Tap to capture"
+    timeout: 1000
+
+# If using system camera (real device), manually take photo
+# If using custom camera UI:
+- tapOn:
+    id: "capture_button"
+    optional: true
+
+# ============================================
+# PHASE 4: Photo Confirmation (< 5s total target)
+# ============================================
+
+# Wait for photo preview screen
+- assertVisible:
+    text: "Use Photo"
+    timeout: 3000
+
+# Verify visual checkmark appears (AC9)
+# Note: Animation may be brief - use optional
+- assertVisible:
+    id: "checkmark_icon"
+    optional: true
+
+# Confirm photo
+- tapOn: "Use Photo"
+
+# ============================================
+# PHASE 5: Background Processing (< 15s target)
+# ============================================
+
+# User should return to meal list immediately (AC3)
+- assertVisible:
+    text: "Meal List"
+    timeout: 2000
+
+# Wait for background WorkManager job to complete
+# Processing: Photo → API → Parsing → Health Connect save
+# Note: This may take 5-20 seconds depending on API latency
+
+- waitForAnimationToEnd:
+    timeout: 20000
+
+# ============================================
+# PHASE 6: Verify Meal Appears (AC5)
+# ============================================
+
+# Pull to refresh to ensure latest data from Health Connect
+- swipe:
+    direction: DOWN
+    duration: 500
+
+- waitForAnimationToEnd
+
+# Meal should appear in list (proves HC save succeeded)
+# Note: Actual meal description depends on AI analysis
+# Look for any item with "kcal" (calorie value)
+- assertVisible:
+    text: ".*kcal.*"
+    timeout: 5000
+
+# ============================================
+# PHASE 7: Verify Data Persistence
+# ============================================
+
+# Background app and return (verify data persists)
+- pressKey: HOME
+- launchApp:
+    appId: com.foodie.app
+
+# Meal should still be visible
+- assertVisible:
+    text: ".*kcal.*"
+
+# ============================================
+# SUCCESS CRITERIA
+# ============================================
+
+# ✅ Test passes if:
+# 1. Camera launched from app
+# 2. Photo confirmed
+# 3. User returned to meal list
+# 4. Meal appeared within 20s
+# 5. Data persisted after backgrounding
+
+# ⚠️ Manual validation required:
+# - Widget launch timing (< 500ms) - measure with adb logcat
+# - Haptic feedback (AC8) - only on physical device
+# - Photo deletion (AC6) - check with Device File Explorer
+# - Actual analysis accuracy - verify with real food photos
+
+# ============================================
+# CLEANUP (Optional)
+# ============================================
+
+# Delete test meal to keep HC clean
+# Note: This requires navigating to the meal and deleting
+# Skip for now to avoid test brittleness
+
+# - tapOn: ".*kcal.*"
+# - tapOn: "Delete"
+# - tapOn: "Confirm"

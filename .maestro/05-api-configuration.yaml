@@ -1,0 +1,159 @@
+# Story 5.2/5.3 E2E Test: API Configuration
+# Priority: P1 (High - Setup critical path)
+#
+# Acceptance Criteria Validated:
+# - User can enter API key and endpoint
+# - API key is encrypted (SecurePreferences)
+# - Test connection validates configuration
+# - Settings persist after app restart
+# - Photo capture uses configured API
+
+appId: com.foodie.app
+---
+# ============================================
+# PHASE 1: Navigate to Settings
+# ============================================
+
+- launchApp:
+    clearState: false
+
+# Tap settings icon (assuming it's in top bar)
+- tapOn:
+    id: "settings_icon"
+
+# Verify settings screen opened
+- assertVisible: "Settings"
+
+# ============================================
+# PHASE 2: Configure API Settings
+# ============================================
+
+# Scroll to API configuration section
+- scroll
+
+# Tap on API Key field
+- tapOn: "API Key"
+
+# Enter test API key (not a real key)
+- inputText: "test-api-key-e2e-12345"
+
+# Tap on Endpoint field
+- tapOn: "Endpoint"
+
+# Enter test endpoint
+- inputText: "https://test.openai.azure.com"
+
+# Tap on Model field (Story 5.3)
+- tapOn: "Model"
+
+# Select a model (or enter custom)
+- inputText: "gpt-4o"
+
+# ============================================
+# PHASE 3: Test Connection
+# ============================================
+
+# Scroll to test button
+- scroll
+
+# Tap Test Connection button
+- tapOn: "Test Connection"
+
+# Wait for API call to complete
+- waitForAnimationToEnd:
+    timeout: 10000
+
+# Verify result (success or error message)
+# Note: With fake credentials, this will likely fail
+# But we're testing the UI flow, not actual API
+- assertVisible:
+    text: "(Connection|Error|Success|Invalid)"
+    timeout: 5000
+
+# ============================================
+# PHASE 4: Save Configuration
+# ============================================
+
+# If test connection showed error, that's expected
+# Save anyway to test persistence
+
+- scroll
+
+# Tap Save or Back button
+- tapOn: "Save"
+- tapOn: "Back"
+    optional: true
+
+# ============================================
+# PHASE 5: Verify Persistence
+# ============================================
+
+# Return to settings
+- tapOn:
+    id: "settings_icon"
+
+# Verify API key is saved (should show masked)
+- assertVisible: "API Key"
+# Note: Actual key should be masked (e.g., "****...5678")
+
+# Verify endpoint is saved
+- assertVisible: "test.openai.azure.com"
+
+# Verify model is saved
+- assertVisible: "gpt-4o"
+
+# ============================================
+# PHASE 6: Verify After Restart
+# ============================================
+
+# Close settings
+- pressKey: BACK
+
+# Restart app
+- pressKey: HOME
+- stopApp
+- launchApp:
+    appId: com.foodie.app
+
+# Navigate back to settings
+- tapOn:
+    id: "settings_icon"
+
+# Settings should still be present
+- assertVisible: "API Key"
+- assertVisible: "test.openai.azure.com"
+- assertVisible: "gpt-4o"
+
+# ============================================
+# CLEANUP: Clear test configuration
+# ============================================
+
+# Clear API key
+- tapOn: "API Key"
+- inputText: ""
+
+# Clear endpoint
+- tapOn: "Endpoint"
+- inputText: ""
+
+# Save cleared state
+- tapOn: "Save"
+- tapOn: "Back"
+    optional: true
+
+# ============================================
+# SUCCESS CRITERIA
+# ============================================
+
+# ✅ Test passes if:
+# 1. Settings screen accessible
+# 2. API fields editable
+# 3. Test connection executed (result doesn't matter)
+# 4. Settings saved successfully
+# 5. Settings persisted after restart
+# 6. Cleanup successful
+
+# ⚠️ Manual validation required:
+# - Verify API key encrypted in preferences
+# - Test with real API credentials
+# - Verify photo capture uses new config
