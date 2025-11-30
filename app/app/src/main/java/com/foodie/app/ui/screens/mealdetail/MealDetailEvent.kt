@@ -4,6 +4,8 @@ package com.foodie.app.ui.screens.mealdetail
  * User interaction events for the meal detail screen.
  *
  * Represents all possible actions a user can take on the edit form.
+ *
+ * **Epic 7 Extension:** Added macros change events (ProteinChanged, CarbsChanged, FatChanged).
  */
 sealed interface MealDetailEvent {
     /**
@@ -15,6 +17,21 @@ sealed interface MealDetailEvent {
      * User modified the description field.
      */
     data class DescriptionChanged(val value: String) : MealDetailEvent
+
+    /**
+     * User modified the protein field (Epic 7).
+     */
+    data class ProteinChanged(val value: String) : MealDetailEvent
+
+    /**
+     * User modified the carbs field (Epic 7).
+     */
+    data class CarbsChanged(val value: String) : MealDetailEvent
+
+    /**
+     * User modified the fat field (Epic 7).
+     */
+    data class FatChanged(val value: String) : MealDetailEvent
 
     /**
      * User tapped the Save button.

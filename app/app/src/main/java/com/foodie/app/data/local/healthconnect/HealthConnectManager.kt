@@ -161,12 +161,18 @@ class HealthConnectManager @Inject constructor(
         calories: Int,
         description: String,
         timestamp: Instant,
+        protein: Double = 0.0,
+        carbs: Double = 0.0,
+        fat: Double = 0.0,
     ): String {
         // Validation
         require(calories in 1..5000) { "Calories must be between 1 and 5000, got: $calories" }
+        require(protein in 0.0..500.0) { "Protein must be between 0 and 500 grams, got: $protein" }
+        require(carbs in 0.0..1000.0) { "Carbs must be between 0 and 1000 grams, got: $carbs" }
+        require(fat in 0.0..500.0) { "Fat must be between 0 and 500 grams, got: $fat" }
         require(description.isNotBlank()) { "Description cannot be blank" }
 
-        Timber.tag(TAG).d("Inserting nutrition record: $calories kcal, '$description', at $timestamp")
+        Timber.tag(TAG).d("Inserting nutrition record: $calories kcal, P:${protein}g C:${carbs}g F:${fat}g, '$description', at $timestamp")
 
         val zoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)
 
@@ -176,6 +182,9 @@ class HealthConnectManager @Inject constructor(
             endTime = timestamp.plusSeconds(1),
             endZoneOffset = zoneOffset,
             energy = Energy.kilocalories(calories.toDouble()),
+            protein = if (protein > 0.0) Mass.grams(protein) else null,
+            totalCarbohydrate = if (carbs > 0.0) Mass.grams(carbs) else null,
+            totalFat = if (fat > 0.0) Mass.grams(fat) else null,
             name = description,
             metadata = Metadata.autoRecorded(
                 device = Device(type = Device.TYPE_PHONE),
@@ -185,7 +194,7 @@ class HealthConnectManager @Inject constructor(
         val response = healthConnectClient.insertRecords(listOf(record))
         val recordId = response.recordIdsList.first()
 
-        Timber.tag(TAG).i("Successfully inserted nutrition record: $recordId")
+        Timber.tag(TAG).i("Successfully inserted nutrition record with macros: $recordId")
         return recordId
     }
 
@@ -222,10 +231,15 @@ class HealthConnectManager @Inject constructor(
      * Note: Health Connect doesn't support direct updates. This method implements the
      * delete + re-insert pattern, preserving the original timestamp.
      *
+     * **Epic 7 Extension:** Added macros parameters (protein, carbs, fat).
+     *
      * @param recordId The unique ID of the record to update
      * @param calories New energy content in kilocalories
      * @param description New meal description
      * @param timestamp Original timestamp (preserved)
+     * @param protein New protein content in grams (0-500, supports up to 2 decimal places)
+     * @param carbs New carbohydrate content in grams (0-1000, supports up to 2 decimal places)
+     * @param fat New fat content in grams (0-500, supports up to 2 decimal places)
      * @throws SecurityException if permissions are not granted
      * @throws IllegalStateException if Health Connect is not available
      */
@@ -234,17 +248,20 @@ class HealthConnectManager @Inject constructor(
         calories: Int,
         description: String,
         timestamp: Instant,
+        protein: Double = 0.0,
+        carbs: Double = 0.0,
+        fat: Double = 0.0,
     ) {
-        Timber.tag(TAG).d("Updating nutrition record: $recordId")
+        Timber.tag(TAG).d("Updating nutrition record with macros: $recordId")
 
         try {
             // Delete old record
             deleteNutritionRecord(recordId)
 
-            // Insert new record with preserved timestamp
-            val newRecordId = insertNutritionRecord(calories, description, timestamp)
+            // Insert new record with preserved timestamp and macros
+            val newRecordId = insertNutritionRecord(calories, description, timestamp, protein, carbs, fat)
 
-            Timber.tag(TAG).i("Updated nutrition record: $recordId → $newRecordId")
+            Timber.tag(TAG).i("Updated nutrition record with macros: $recordId → $newRecordId")
         } catch (exception: Exception) {
             Timber.tag(TAG).e(exception, "Failed to update nutrition record: $recordId")
             throw exception

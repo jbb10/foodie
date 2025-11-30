@@ -211,7 +211,7 @@ class MealDetailViewModelTest {
     @Test
     fun `SaveClicked with valid data should call use case and navigate back`() = runTest {
         // Given
-        whenever(updateMealEntryUseCase(any(), any(), any(), any()))
+        whenever(updateMealEntryUseCase(any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(Result.Success(Unit))
 
         // When
@@ -222,6 +222,9 @@ class MealDetailViewModelTest {
         verify(updateMealEntryUseCase).invoke(
             recordId = testRecordId,
             calories = testCalories.toInt(),
+            protein = 0,
+            carbs = 0,
+            fat = 0,
             description = testDescription,
             timestamp = testTimestamp,
         )
@@ -242,7 +245,7 @@ class MealDetailViewModelTest {
         advanceUntilIdle()
 
         // Then
-        verify(updateMealEntryUseCase, never()).invoke(any(), any(), any(), any())
+        verify(updateMealEntryUseCase, never()).invoke(any(), any(), any(), any(), any(), any(), any())
         val state = viewModel.uiState.value
         assertThat(state.shouldNavigateBack).isFalse()
         assertThat(state.successMessage).isNull()
@@ -251,7 +254,7 @@ class MealDetailViewModelTest {
     @Test
     fun `SaveClicked with valid data should complete successfully`() = runTest {
         // Given
-        whenever(updateMealEntryUseCase(any(), any(), any(), any()))
+        whenever(updateMealEntryUseCase(any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(Result.Success(Unit))
 
         // When
@@ -262,6 +265,9 @@ class MealDetailViewModelTest {
         verify(updateMealEntryUseCase).invoke(
             recordId = testRecordId,
             calories = testCalories.toInt(),
+            protein = 0,
+            carbs = 0,
+            fat = 0,
             description = testDescription,
             timestamp = testTimestamp,
         )
@@ -276,7 +282,7 @@ class MealDetailViewModelTest {
     fun `SaveClicked with use case error should show error and not navigate`() = runTest {
         // Given
         val errorMessage = "Health Connect unavailable"
-        whenever(updateMealEntryUseCase(any(), any(), any(), any()))
+        whenever(updateMealEntryUseCase(any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(Result.Error(RuntimeException(errorMessage)))
 
         // When
@@ -295,7 +301,7 @@ class MealDetailViewModelTest {
     fun `SaveClicked with permission error should surface friendly message`() = runTest {
         // Given
         val friendlyMessage = "Permission denied. Please grant Health Connect access in settings."
-        whenever(updateMealEntryUseCase(any(), any(), any(), any()))
+        whenever(updateMealEntryUseCase(any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(Result.Error(SecurityException("Permissions not granted"), friendlyMessage))
 
         // When
@@ -314,7 +320,7 @@ class MealDetailViewModelTest {
     fun `SaveClicked with Health Connect unavailable should show guidance`() = runTest {
         // Given
         val friendlyMessage = "Health Connect is not available. Please install it from the Play Store."
-        whenever(updateMealEntryUseCase(any(), any(), any(), any()))
+        whenever(updateMealEntryUseCase(any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(Result.Error(IllegalStateException("Health Connect not available"), friendlyMessage))
 
         // When
@@ -335,7 +341,7 @@ class MealDetailViewModelTest {
         viewModel.onEvent(MealDetailEvent.CancelClicked)
 
         // Then
-        verify(updateMealEntryUseCase, never()).invoke(any(), any(), any(), any())
+        verify(updateMealEntryUseCase, never()).invoke(any(), any(), any(), any(), any(), any(), any())
         val state = viewModel.uiState.value
         assertThat(state.shouldNavigateBack).isTrue()
         assertThat(state.successMessage).isNull()

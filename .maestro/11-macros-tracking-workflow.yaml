@@ -1,0 +1,230 @@
+# Story 7.1 E2E Test: Macros Tracking Workflow
+# Tests protein, carbs, fat capture, edit, and dashboard display
+#
+# Acceptance Criteria Validated:
+# - AC1: AI extracts macros from photo (protein, carbs, fat)
+# - AC2: Macros saved to Health Connect with meal entry
+# - AC3: Meal List displays macros (P: Xg | C: Yg | F: Zg)
+# - AC4: Meal Detail allows editing macros (validation 0-500g protein, 0-1000g carbs, 0-500g fat)
+# - AC5: Energy Balance Dashboard aggregates daily macros totals
+# - AC7: Backward compatibility - legacy meals default to 0g macros
+#
+# Prerequisites:
+# - API configuration complete (valid Azure OpenAI endpoint)
+# - Health Connect permissions granted
+# - At least one test image with visible food (e.g., chicken and rice)
+
+appId: com.foodie.app
+---
+# Launch app fresh
+- launchApp:
+    clearState: true
+
+# ============================================
+# PHASE 1: Onboarding & Permissions
+# ============================================
+
+- runFlow: flows/dismiss-onboarding.yaml
+
+# Navigate to settings to verify API configuration
+- tapOn:
+    id: "settings_button"
+- assertVisible: "API Configuration"
+- assertVisible:
+    text: "Azure OpenAI Endpoint"
+- tapOn: "Back"
+
+# ============================================
+# PHASE 2: Capture Meal with Macros
+# ============================================
+
+# Navigate to capture screen
+- tapOn: "Capture Photo"
+- assertVisible: "Tap to capture"
+
+# Wait for camera to initialize
+- waitForAnimationToEnd
+
+# Mock camera capture (in test mode, this should use mock image)
+# In real execution, user would take photo of food
+- tapOn: "Tap to capture"
+- waitForAnimationToEnd
+
+# Confirm photo
+- tapOn: "Confirm"
+
+# Wait for API processing (Azure OpenAI structured outputs)
+# Should extract calories + macros
+- assertVisible:
+    text: "Analyzing"
+    optional: true
+
+# Wait for analysis completion (max 15 seconds per AC9)
+- waitForAnimationToEnd
+
+# ============================================
+# PHASE 3: Verify Macros in Meal List
+# ============================================
+
+# Navigate to Meal List
+- tapOn: "Meal List"
+
+# Verify meal appears with macros (AC3)
+# Format: "P: Xg | C: Yg | F: Zg" where X,Y,Z are integers
+- assertVisible:
+    text: "P: "
+
+# Verify carbs and fat labels present
+- assertVisible: "C: "
+- assertVisible: "F: "
+
+# Tap on meal to open detail screen
+- tapOn:
+    index: 0  # First meal in list
+
+# ============================================
+# PHASE 4: Edit Macros in Meal Detail (AC4)
+# ============================================
+
+# Verify detail screen shows editable macros fields
+- assertVisible: "Calories"
+- assertVisible: "Protein"
+- assertVisible: "Carbs"
+- assertVisible: "Fat"
+
+# Test editing protein
+- tapOn: "Protein"
+- eraseText
+- inputText: "50"
+
+# Test editing carbs
+- tapOn: "Carbs"
+- eraseText
+- inputText: "75"
+
+# Test editing fat
+- tapOn: "Fat"
+- eraseText
+- inputText: "25"
+
+# Save changes
+- tapOn: "Save"
+- waitForAnimationToEnd
+
+# ============================================
+# PHASE 5: Verify Macros Persisted
+# ============================================
+
+# Re-open meal to verify persistence
+- tapOn:
+    index: 0
+
+# Verify edited values persisted
+- assertVisible:
+    text: "50"  # Protein
+- assertVisible:
+    text: "75"  # Carbs
+- assertVisible:
+    text: "25"  # Fat
+
+- tapOn: "Back"
+- tapOn: "Back"
+
+# ============================================
+# PHASE 6: Verify Dashboard Macros Aggregation (AC5)
+# ============================================
+
+# Navigate to Energy Balance Dashboard
+- tapOn: "Dashboard"
+
+# Verify macros totals displayed in Daily Summary card
+# Format: "Macros: P: Xg | C: Yg | F: Zg"
+- assertVisible:
+    text: "Daily Summary"
+
+- assertVisible:
+    text: "Macros:"
+
+# Verify protein/carbs/fat labels present in summary
+- assertVisible: "P: "
+- assertVisible: "C: "
+- assertVisible: "F: "
+
+# ============================================
+# PHASE 7: Test Macros Validation (AC4)
+# ============================================
+
+# Return to meal detail to test validation
+- tapOn: "Back"
+- tapOn: "Meal List"
+- tapOn:
+    index: 0
+
+# Test protein out of range (> 500g)
+- tapOn: "Protein"
+- eraseText
+- inputText: "501"
+
+# Should show error message
+- assertVisible:
+    text: "Must be 0-500"
+
+# Clear invalid protein
+- tapOn: "Protein"
+- eraseText
+- inputText: "50"
+
+# Test carbs out of range (> 1000g)
+- tapOn: "Carbs"
+- eraseText
+- inputText: "1001"
+
+# Should show error message
+- assertVisible:
+    text: "Must be 0-1000"
+
+# Clear invalid carbs
+- tapOn: "Carbs"
+- eraseText
+- inputText: "75"
+
+# Test fat out of range (> 500g)
+- tapOn: "Fat"
+- eraseText
+- inputText: "501"
+
+# Should show error message
+- assertVisible:
+    text: "Must be 0-500"
+
+# Reset to valid value
+- tapOn: "Fat"
+- eraseText
+- inputText: "25"
+
+# Verify Save button enabled with valid values
+- tapOn: "Save"
+- waitForAnimationToEnd
+
+# ============================================
+# PHASE 8: Backward Compatibility Test (AC7)
+# ============================================
+
+# Note: Legacy meals (created before Epic 7) should display "P: 0g | C: 0g | F: 0g"
+# This is validated by checking that all meals show macros line, even if zeros
+# Manual verification: Check meal list for consistent macros display across old/new meals
+
+# Return to list
+- tapOn: "Back"
+
+# All meals should have macros line (even legacy ones with 0g defaults)
+- assertVisible: "P: "
+- assertVisible: "C: "
+- assertVisible: "F: "
+
+# ============================================
+# Test Complete
+# ============================================
+
+- tapOn: "Back"
+- assertVisible: "Foodie"

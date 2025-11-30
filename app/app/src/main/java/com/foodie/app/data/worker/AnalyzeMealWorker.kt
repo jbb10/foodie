@@ -275,6 +275,9 @@ class AnalyzeMealWorker @AssistedInject constructor(
                 calories = nutritionData.calories,
                 description = nutritionData.description,
                 timestamp = timestamp,
+                protein = nutritionData.protein,
+                carbs = nutritionData.carbs,
+                fat = nutritionData.fat,
             )
             val saveDuration = System.currentTimeMillis() - saveStartTime
 

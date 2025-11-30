@@ -411,6 +411,55 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
     }
 
     /**
+     * Calculates daily macros totals from nutrition records.
+     *
+     * **Data Source:**
+     * - Queries Health Connect NutritionRecords for today (midnight to now)
+     * - Sums protein, carbs, fat from Mass fields (protein, totalCarbohydrate, totalFat)
+     *
+     * **Backward Compatibility:**
+     * - Legacy records without macros fields default to 0g (treated as null?.inGrams ?: 0.0)
+     *
+     * **Epic 7 Feature:**
+     * - Enables macros tracking dashboard UI
+     * - Returns Triple(protein, carbs, fat) in grams
+     *
+     * @return Result.success(Triple(protein, carbs, fat)) in grams, or Result.failure on permission error
+     */
+    private suspend fun calculateMacros(): Result<Triple<Double, Double, Double>> {
+        return try {
+            // Calculate time range: midnight to now (local timezone)
+            val startOfDay = LocalDate.now()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+            val now = Instant.now()
+
+            // Query all nutrition records
+            val nutritionRecords = healthConnectManager.queryNutritionRecords(startOfDay, now)
+
+            // Sum macros (protein, carbs, fat) from Mass fields
+            var totalProtein = 0.0
+            var totalCarbs = 0.0
+            var totalFat = 0.0
+
+            nutritionRecords.forEach { record ->
+                totalProtein += record.protein?.inGrams ?: 0.0
+                totalCarbs += record.totalCarbohydrate?.inGrams ?: 0.0
+                totalFat += record.totalFat?.inGrams ?: 0.0
+            }
+
+            Timber.tag(TAG).d("Macros calculated: Protein=${totalProtein}g, Carbs=${totalCarbs}g, Fat=${totalFat}g (from ${nutritionRecords.size} meals)")
+            Result.success(Triple(totalProtein, totalCarbs, totalFat))
+        } catch (e: SecurityException) {
+            Timber.tag(TAG).w("Macros calculation failed - READ_NUTRITION permission denied")
+            Result.failure(e)
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Unexpected error calculating macros")
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Observes Calories In with reactive updates.
      *
      * **Data Flow:**
@@ -476,54 +525,83 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
             }
         } else {
             // Today - reactive polling
-            combine(
-                getBMR(),
-                getNEAT(),
-                getActiveCalories(),
-                getCaloriesIn(),
-            ) { bmrResult, neatResult, activeResult, caloriesInResult ->
-                // Check if BMR is available (required - cannot calculate energy balance without it)
-                val bmr = bmrResult.getOrElse { error ->
-                    Timber.tag(TAG).w("EnergyBalance unavailable - BMR error: ${error.message}")
-                    return@combine Result.failure<EnergyBalance>(error)
+            flow {
+                while (true) {
+                    val result = calculateCurrentEnergyBalance()
+                    emit(result)
+                    delay(5.minutes)
                 }
-
-                // Unwrap other Results, defaulting to 0.0 for errors (graceful degradation)
-                val neat = neatResult.getOrElse { error ->
-                    Timber.tag(TAG).w("EnergyBalance - NEAT unavailable, defaulting to 0.0: ${error.message}")
-                    0.0
-                }
-                val active = activeResult.getOrElse { error ->
-                    Timber.tag(TAG).w("EnergyBalance - Active unavailable, defaulting to 0.0: ${error.message}")
-                    0.0
-                }
-                val caloriesIn = caloriesInResult.getOrElse { error ->
-                    Timber.tag(TAG).w("EnergyBalance - CaloriesIn unavailable, defaulting to 0.0: ${error.message}")
-                    0.0
-                }
-
-                // Calculate derived fields
-                val tdee = bmr + neat + active
-                val deficitSurplus = tdee - caloriesIn
-
-                // Construct EnergyBalance domain model
-                val energyBalance = EnergyBalance(
-                    bmr = bmr,
-                    neat = neat,
-                    activeCalories = active,
-                    tdee = tdee,
-                    caloriesIn = caloriesIn,
-                    deficitSurplus = deficitSurplus,
-                )
-
-                Timber.tag(TAG).d(
-                    "EnergyBalance calculated: TDEE=$tdee kcal (BMR=$bmr + NEAT=$neat + Active=$active), " +
-                        "CaloriesIn=$caloriesIn, Deficit/Surplus=$deficitSurplus"
-                )
-
-                Result.success(energyBalance)
             }
         }
+    }
+
+    /**
+     * Calculates energy balance for the current moment.
+     * Helper for reactive polling flow to avoid inline lambda continue issues.
+     */
+    private suspend fun calculateCurrentEnergyBalance(): Result<EnergyBalance> {
+        // Collect latest values from each component
+        val bmrResult = getBMR().firstOrNull()
+        val neatResult = getNEAT().firstOrNull()
+        val activeResult = getActiveCalories().firstOrNull()
+        val caloriesInResult = calculateCaloriesIn()
+        val macrosResult = calculateMacros()
+
+        // Check if BMR is available (required)
+        if (bmrResult == null) {
+            return Result.failure(ProfileNotConfiguredError("User profile must be configured to calculate BMR"))
+        }
+
+        val bmr = bmrResult.getOrElse { error ->
+            Timber.tag(TAG).w("EnergyBalance unavailable - BMR error: ${error.message}")
+            return Result.failure(error)
+        }
+
+        // Unwrap other Results, defaulting to 0.0 for errors (graceful degradation)
+        val neat = neatResult?.getOrElse { error ->
+            Timber.tag(TAG).w("EnergyBalance - NEAT unavailable, defaulting to 0.0: ${error.message}")
+            0.0
+        } ?: 0.0
+
+        val active = activeResult?.getOrElse { error ->
+            Timber.tag(TAG).w("EnergyBalance - Active unavailable, defaulting to 0.0: ${error.message}")
+            0.0
+        } ?: 0.0
+
+        val caloriesIn = caloriesInResult.getOrElse { error ->
+            Timber.tag(TAG).w("EnergyBalance - CaloriesIn unavailable, defaulting to 0.0: ${error.message}")
+            0.0
+        }
+
+        // Get macros (default to 0.0 if error)
+        val (protein, carbs, fat) = macrosResult.getOrElse { error ->
+            Timber.tag(TAG).w("EnergyBalance - Macros unavailable, defaulting to 0.0: ${error.message}")
+            Triple(0.0, 0.0, 0.0)
+        }
+
+        // Calculate derived fields
+        val tdee = bmr + neat + active
+        val deficitSurplus = tdee - caloriesIn
+
+        // Construct EnergyBalance domain model
+        val energyBalance = EnergyBalance(
+            bmr = bmr,
+            neat = neat,
+            activeCalories = active,
+            tdee = tdee,
+            caloriesIn = caloriesIn,
+            deficitSurplus = deficitSurplus,
+            totalProtein = protein,
+            totalCarbs = carbs,
+            totalFat = fat,
+        )
+
+        Timber.tag(TAG).d(
+            "EnergyBalance calculated: TDEE=$tdee kcal (BMR=$bmr + NEAT=$neat + Active=$active), " +
+                "CaloriesIn=$caloriesIn, Deficit/Surplus=$deficitSurplus, Macros: P=${protein}g C=${carbs}g F=${fat}g"
+        )
+
+        return Result.success(energyBalance)
     }
 
     /**
@@ -591,15 +669,26 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
                 0.0 // Default to 0 if permission denied
             }
 
-            // Query historical nutrition records for Calories In
-            val caloriesIn = try {
+            // Query historical nutrition records for Calories In and macros
+            var caloriesIn = 0.0
+            var totalProtein = 0.0
+            var totalCarbs = 0.0
+            var totalFat = 0.0
+
+            try {
                 val nutritionRecords = healthConnectManager.queryNutritionRecords(startOfDay, endOfDay)
-                nutritionRecords.sumOf { record ->
+                caloriesIn = nutritionRecords.sumOf { record ->
                     record.energy?.inKilocalories ?: 0.0
                 }
+                // Sum macros
+                nutritionRecords.forEach { record ->
+                    totalProtein += record.protein?.inGrams ?: 0.0
+                    totalCarbs += record.totalCarbohydrate?.inGrams ?: 0.0
+                    totalFat += record.totalFat?.inGrams ?: 0.0
+                }
             } catch (e: SecurityException) {
-                Timber.tag(TAG).w("CaloriesIn unavailable - READ_NUTRITION permission denied")
-                0.0 // Default to 0 if permission denied
+                Timber.tag(TAG).w("CaloriesIn/Macros unavailable - READ_NUTRITION permission denied")
+                // All defaults to 0.0 already set above
             }
 
             // Calculate derived fields
@@ -614,17 +703,20 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
                 tdee = tdee,
                 caloriesIn = caloriesIn,
                 deficitSurplus = deficitSurplus,
+                totalProtein = totalProtein,
+                totalCarbs = totalCarbs,
+                totalFat = totalFat,
             )
 
             Timber.tag(TAG).d(
                 "Historical EnergyBalance for $date: TDEE=$tdee kcal (BMR=$bmr + NEAT=$neat + Active=$active), " +
-                    "CaloriesIn=$caloriesIn, Deficit/Surplus=$deficitSurplus"
+                    "CaloriesIn=$caloriesIn, Deficit/Surplus=$deficitSurplus, Macros: P=${totalProtein}g C=${totalCarbs}g F=${totalFat}g"
             )
 
-            Result.success(energyBalance)
+            return Result.success(energyBalance)
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Failed to calculate historical energy balance for $date")
-            Result.failure(e)
+            return Result.failure(e)
         }
     }
 }

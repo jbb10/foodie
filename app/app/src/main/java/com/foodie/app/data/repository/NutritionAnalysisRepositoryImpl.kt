@@ -8,6 +8,9 @@ import com.foodie.app.data.remote.dto.ApiNutritionResponse
 import com.foodie.app.data.remote.dto.AzureResponseRequest
 import com.foodie.app.data.remote.dto.ContentItem
 import com.foodie.app.data.remote.dto.InputMessage
+import com.foodie.app.data.remote.dto.NutritionAnalysisSchema
+import com.foodie.app.data.remote.dto.ResponseFormat
+import com.foodie.app.data.remote.dto.TextModality
 import com.foodie.app.domain.exception.NoFoodDetectedException
 import com.foodie.app.domain.model.NutritionData
 import com.foodie.app.domain.repository.NutritionAnalysisRepository
@@ -75,7 +78,7 @@ class NutritionAnalysisRepositoryImpl @Inject constructor(
         } catch (e: IOException) {
             Timber.tag(TAG).e(e, "Failed to load prompt from assets, using fallback")
             // Fallback prompt in case asset file is missing
-            """You are a nutrition analysis assistant. 
+            """You are a nutrition analysis assistant.
 Analyze the image and determine if it contains food.
 
 If NO FOOD is detected (e.g., empty plate, non-food objects, scenery, documents, people, pets, etc.):
@@ -137,7 +140,7 @@ Return only the JSON object, no other text."""
             val model = securePreferences.azureOpenAiModel ?: DEFAULT_MODEL
             Timber.tag(TAG).d("Using model: $model")
 
-            // Step 3: Build multimodal request
+            // Step 3: Build multimodal request with structured outputs
             val request = AzureResponseRequest(
                 model = model,
                 instructions = loadSystemInstructions(),
@@ -145,9 +148,17 @@ Return only the JSON object, no other text."""
                     InputMessage(
                         role = "user",
                         content = listOf(
-                            ContentItem.TextContent(text = "Analyze this meal and estimate the total calories."),
+                            ContentItem.TextContent(text = "Analyze this meal and estimate the total calories and macros (protein, carbs, fat)."),
                             ContentItem.ImageContent(imageUrl = base64DataUrl),
                         ),
+                    ),
+                ),
+                text = TextModality(
+                    format = ResponseFormat(
+                        type = "json_schema",
+                        name = "nutrition_analysis_with_macros",
+                        strict = true,
+                        schema = NutritionAnalysisSchema.schema,
                     ),
                 ),
             )
@@ -164,7 +175,12 @@ Return only the JSON object, no other text."""
                 )
             } catch (e: HttpException) {
                 val statusCode = e.code()
-                Timber.tag(TAG).e(e, "HTTP error $statusCode from Azure OpenAI")
+                val errorBody = try {
+                    e.response()?.errorBody()?.string()
+                } catch (ex: Exception) {
+                    null
+                }
+                Timber.tag(TAG).e(e, "HTTP error $statusCode from Azure OpenAI. Error body: $errorBody")
                 return Result.Error(
                     exception = e,
                     message = "API error ($statusCode): ${e.message}",
@@ -210,7 +226,7 @@ Return only the JSON object, no other text."""
 
             // Step 6: Check if food was detected
             if (apiNutrition.hasFood == false) {
-                val reason = apiNutrition.reason ?: "No food detected in the image"
+                val reason = apiNutrition.reason?.takeIf { it.isNotBlank() } ?: "No food detected in the image"
                 Timber.tag(TAG).w("No food detected: $reason")
                 return Result.Error(
                     exception = NoFoodDetectedException(reason),
@@ -222,7 +238,11 @@ Return only the JSON object, no other text."""
             val nutritionData = try {
                 NutritionData(
                     calories = apiNutrition.calories ?: throw IllegalArgumentException("Missing calories field"),
-                    description = apiNutrition.description ?: throw IllegalArgumentException("Missing description field"),
+                    protein = apiNutrition.protein?.toDouble() ?: throw IllegalArgumentException("Missing protein field"),
+                    carbs = apiNutrition.carbs?.toDouble() ?: throw IllegalArgumentException("Missing carbs field"),
+                    fat = apiNutrition.fat?.toDouble() ?: throw IllegalArgumentException("Missing fat field"),
+                    description = apiNutrition.description?.takeIf { it.isNotBlank() }
+                        ?: throw IllegalArgumentException("Missing or empty description field"),
                 )
             } catch (e: IllegalArgumentException) {
                 Timber.tag(TAG).e(e, "Validation error creating NutritionData")

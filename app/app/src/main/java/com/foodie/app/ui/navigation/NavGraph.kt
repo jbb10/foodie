@@ -206,6 +206,9 @@ fun NavGraph(
                             recordId = meal.id,
                             calories = meal.calories,
                             description = meal.description,
+                            protein = meal.protein,
+                            carbs = meal.carbs,
+                            fat = meal.fat,
                             timestamp = meal.timestamp.toEpochMilli(),
                         ),
                     )
@@ -229,15 +232,24 @@ fun NavGraph(
                 navArgument("description") {
                     type = NavType.StringType
                 },
+                navArgument("protein") {
+                    type = NavType.StringType
+                },
+                navArgument("carbs") {
+                    type = NavType.StringType
+                },
+                navArgument("fat") {
+                    type = NavType.StringType
+                },
                 navArgument("timestamp") {
                     type = NavType.LongType
                 },
             ),
             deepLinks = listOf(
-                // Updated for Story 3-2
+                // Updated for Story 7.1 with macros
                 navDeepLink {
                     uriPattern = "foodie://meals/{recordId}?" +
-                        "calories={calories}&description={description}&timestamp={timestamp}"
+                        "calories={calories}&description={description}&protein={protein}&carbs={carbs}&fat={fat}&timestamp={timestamp}"
                 },
             ),
             enterTransition = {

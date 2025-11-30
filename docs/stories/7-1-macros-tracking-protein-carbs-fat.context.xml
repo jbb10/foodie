@@ -1,0 +1,372 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>7</epicId>
+    <storyId>1</storyId>
+    <title>Macros Tracking (Protein, Carbs, Fat)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-30</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/7-1-macros-tracking-protein-carbs-fat.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to track protein, carbs, and fat macros in addition to calories</iWant>
+    <soThat>I can ensure proper macronutrient balance for body recomposition</soThat>
+    <tasks>
+      <task id="1" title="Documentation Research &amp; Technical Validation">
+        <subtask>Review Azure OpenAI Structured Outputs documentation</subtask>
+        <subtask>Review existing prompt file: nutrition_analysis.md</subtask>
+        <subtask>Validate assumptions (API supports response_format, JSON Schema enforcement, Health Connect macros fields)</subtask>
+        <subtask>Identify constraints (API version, token usage, performance impact)</subtask>
+      </task>
+      <task id="2" title="Update Azure OpenAI Integration with Structured Outputs">
+        <subtask>Create JSON Schema for nutrition analysis response</subtask>
+        <subtask>Update AzureOpenAiApi interface with response_format parameter</subtask>
+        <subtask>Augment existing prompt with macros instructions</subtask>
+        <subtask>Test API call with structured outputs</subtask>
+      </task>
+      <task id="3" title="Implement Macros Parsing and Validation">
+        <subtask>Create MacrosExtractor utility class</subtask>
+        <subtask>Implement parsing logic for calories, protein, carbs, fat</subtask>
+        <subtask>Add validation (protein 0-500g, carbs 0-1000g, fat 0-500g)</subtask>
+        <subtask>Write unit tests</subtask>
+      </task>
+      <task id="4" title="Extend Domain Models with Macros">
+        <subtask>Update NutritionData and MealEntry domain models with macros fields</subtask>
+        <subtask>Add validation logic</subtask>
+        <subtask>Write unit tests</subtask>
+      </task>
+      <task id="5" title="Update Health Connect Repository with Macros">
+        <subtask>Extend HealthConnectRepository CRUD operations for macros</subtask>
+        <subtask>Handle legacy records (macros = null → 0g)</subtask>
+        <subtask>Write integration tests</subtask>
+      </task>
+      <task id="6" title="Update AnalyzeMealWorker with Macros">
+        <subtask>Modify worker to parse macros from API response</subtask>
+        <subtask>Update error handling for macros validation</subtask>
+        <subtask>Write unit tests</subtask>
+      </task>
+      <task id="7" title="Update Meal List Screen with Macros Display">
+        <subtask>Modify MealEntryCard to display macros line</subtask>
+        <subtask>Format: "P: 45g | C: 60g | F: 20g"</subtask>
+        <subtask>Handle legacy records</subtask>
+        <subtask>Write Compose UI tests</subtask>
+      </task>
+      <task id="8" title="Update Meal Detail/Edit Screen with Macros Fields">
+        <subtask>Add three numeric input fields (Protein, Carbs, Fat)</subtask>
+        <subtask>Implement validation and pre-fill logic</subtask>
+        <subtask>Update MealDetailViewModel</subtask>
+        <subtask>Write unit tests</subtask>
+      </task>
+      <task id="9" title="Update Energy Balance Dashboard with Macros Aggregation">
+        <subtask>Extend EnergyBalanceViewModel to aggregate daily macros</subtask>
+        <subtask>Update dashboard UI to display macros totals</subtask>
+        <subtask>Write unit tests</subtask>
+      </task>
+      <task id="10" title="Performance Testing and Validation">
+        <subtask>Benchmark macros parsing latency (&lt; 50ms)</subtask>
+        <subtask>Measure Health Connect write time (&lt; 200ms)</subtask>
+        <subtask>Profile UI rendering (&lt; 100ms)</subtask>
+        <subtask>Test API response time (&lt; 15 seconds)</subtask>
+      </task>
+      <task id="11" title="Manual Testing Scenarios">
+        <subtask>Capture 5 varied meals and verify macros estimates</subtask>
+        <subtask>Edit macros in UI and verify save</subtask>
+        <subtask>Test backward compatibility with legacy records</subtask>
+        <subtask>Test dashboard macros aggregation</subtask>
+      </task>
+      <task id="12" title="Update Documentation">
+        <subtask>Update architecture.md with macros data flow</subtask>
+        <subtask>Update tech-spec-epic-7.md if needed</subtask>
+        <subtask>Add inline code documentation</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1" title="Azure OpenAI Request Updated with Structured Outputs">
+      <given>the app analyzes a food photo</given>
+      <when>the Azure OpenAI request is sent</when>
+      <then>the request uses response_format parameter with json_schema type</then>
+      <and>the JSON schema defines required fields: hasFood, calories, protein, carbs, fat, description, confidence</and>
+      <and>the schema enforces strict typing: calories (integer 1-5000), protein (integer 0-500), carbs (integer 0-1000), fat (integer 0-500)</and>
+      <and>the schema includes optional fields: caloriesRange, items, assumptions</and>
+      <and>the request includes the existing nutrition analysis prompt from nutrition_analysis.md augmented with macros instructions</and>
+      <and>structured outputs guarantee response format (no JSON parsing errors)</and>
+      <critical>Do NOT replace the existing prompt. Read nutrition_analysis.md and ADD macros instructions to the existing detailed estimation logic.</critical>
+    </criterion>
+    <criterion id="AC2" title="Macros Data Parsing and Validation">
+      <given>Azure OpenAI returns a response with structured outputs</given>
+      <when>the response is parsed</when>
+      <then>the parser extracts: calories: Int, protein: Int, carbs: Int, fat: Int, description: String</then>
+      <and>all fields are guaranteed present (due to JSON schema enforcement)</and>
+      <and>macros values are validated: protein 0-500g, carbs 0-1000g, fat 0-500g</and>
+      <and>if validation fails, the error is logged and user is notified</and>
+      <and>parsing logic is implemented in MacrosExtractor utility class</and>
+    </criterion>
+    <criterion id="AC3" title="Health Connect Integration with Macros Fields">
+      <given>macros data is successfully parsed</given>
+      <when>the nutrition record is saved to Health Connect</when>
+      <then>the NutritionRecord includes: energy (kilocalories), protein (grams), totalCarbohydrate (grams), totalFat (grams), name (description), startTime/endTime (meal timestamp)</then>
+      <and>all fields are saved in a single Health Connect write operation</and>
+      <and>the save operation is atomic (all fields or none)</and>
+    </criterion>
+    <criterion id="AC4" title="Meal List View Displays Macros">
+      <given>the meal list screen queries Health Connect</given>
+      <when>nutrition records with macros are displayed</when>
+      <then>each meal entry shows calories on primary line and macros on secondary line ("P: 45g | C: 60g | F: 20g")</then>
+      <and>macros are formatted with single-letter prefixes (P/C/F)</and>
+      <and>if macros are unavailable (legacy records), display "P: 0g | C: 0g | F: 0g"</and>
+      <and>macros line uses smaller, secondary text color</and>
+      <and>layout remains compact (no UI jank)</and>
+    </criterion>
+    <criterion id="AC5" title="Edit Screen Macros Fields">
+      <given>the user taps a meal entry to edit</given>
+      <when>the edit screen opens</when>
+      <then>three numeric input fields are displayed: Protein (0-500g), Carbs (0-1000g), Fat (0-500g)</then>
+      <and>fields are pre-populated with current macros values</and>
+      <and>validation shows error if values exceed ranges</and>
+      <and>save button is disabled until all fields are valid</and>
+      <and>macros fields are positioned below calories field</and>
+    </criterion>
+    <criterion id="AC6" title="Energy Balance Dashboard Macros Aggregation">
+      <given>the Energy Balance dashboard displays daily totals</given>
+      <when>macros data exists for the selected day</when>
+      <then>the dashboard shows daily macro totals: Total Protein, Total Carbs, Total Fat (sum of all meals)</then>
+      <and>macros totals are displayed below Calories In section</and>
+      <and>if no macros data exists for the day, show "Macros: Not tracked"</and>
+      <and>historical day navigation includes macros aggregation</and>
+    </criterion>
+    <criterion id="AC7" title="Backward Compatibility with Legacy Records">
+      <given>existing nutrition records may not have macros data (pre-Epic-7)</given>
+      <when>the app queries Health Connect</when>
+      <then>records without macros display "P: 0g | C: 0g | F: 0g"</then>
+      <and>edit screen pre-fills macros fields with 0 if missing</and>
+      <and>saving a legacy record updates it with macros data</and>
+      <and>no crashes or errors when handling legacy records</and>
+    </criterion>
+    <criterion id="AC8" title="Performance Requirements">
+      <given>macros data adds complexity to the analysis pipeline</given>
+      <when>performance is measured</when>
+      <then>macros parsing adds &lt; 50ms overhead vs calories-only</then>
+      <and>Health Connect write with macros completes in &lt; 200ms</and>
+      <and>UI updates with macros display in &lt; 100ms (no scrolling lag)</and>
+      <and>Azure OpenAI API response time remains &lt; 15 seconds</and>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-7.md</path>
+        <title>Epic 7 Technical Specification</title>
+        <section>Data Models - Extended Domain Models</section>
+        <snippet>NutritionData extended with protein/carbs/fat fields (grams, integer). Validation: protein 0-500g, carbs 0-1000g, fat 0-500g. MealEntry extended with macros fields. Azure OpenAI Structured Outputs: response_format with json_schema type enforces field presence and types.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-7.md</path>
+        <title>Epic 7 Technical Specification</title>
+        <section>APIs and Interfaces - Azure OpenAI Extended Request</section>
+        <snippet>CRITICAL: Do NOT replace existing prompt. Read nutrition_analysis.md and AUGMENT with macros instructions. Use response_format parameter with JSON Schema to guarantee response format (strict: true). Required fields: hasFood, calories, protein, carbs, fat, description, confidence.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-7.md</path>
+        <title>Epic 7 Technical Specification</title>
+        <section>APIs and Interfaces - Health Connect Extended Write</section>
+        <snippet>NutritionRecord extended fields: protein (Mass.grams), totalCarbohydrate (Mass.grams), totalFat (Mass.grams). Single atomic write operation. Already supported in Health Connect SDK 1.1.0.</snippet>
+      </doc>
+      <doc>
+        <path>app/app/src/main/assets/prompts/nutrition_analysis.md</path>
+        <title>Existing Nutrition Analysis Prompt</title>
+        <section>Complete prompt content</section>
+        <snippet>Existing prompt includes: hasFood detection, visual portion estimation, packaged food label OCR, confidence scoring, calcMethod (visual_estimate/nutrition_label/hybrid). MUST AUGMENT (not replace) with macros instructions for protein/carbs/fat estimation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Health Connect Data Model</section>
+        <snippet>Health Connect NutritionRecord supports macros: protein, totalCarbohydrate, totalFat (all Mass type). Update pattern: delete + re-insert (no direct update support). Single source of truth for nutrition data.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-8-e2e-test-suite-validation.md</path>
+        <title>Story 6.8 Dev Notes</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Test patterns: HiltAndroidTest + Compose UI testing. Coverage: 90%+ domain layer. Performance validation: benchmark critical paths. Avoid test hallucination: verify assertions match actual UI implementation.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/domain/model/NutritionData.kt</path>
+        <kind>domain-model</kind>
+        <symbol>NutritionData</symbol>
+        <lines>1-26</lines>
+        <reason>Domain model to extend with macros fields (protein, carbs, fat). Currently has calories and description with validation. Add new fields with validation ranges.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/domain/model/MealEntry.kt</path>
+        <kind>domain-model</kind>
+        <symbol>MealEntry</symbol>
+        <lines>1-31</lines>
+        <reason>Domain model to extend with macros fields. Currently has id, timestamp, description, calories. Add protein, carbs, fat fields matching NutritionData.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/repository/HealthConnectRepository.kt</path>
+        <kind>repository</kind>
+        <symbol>insertNutritionRecord, queryNutritionRecords, updateNutritionRecord</symbol>
+        <lines>31-80</lines>
+        <reason>Repository methods to update for macros CRUD. insertNutritionRecord needs macros parameters, queryNutritionRecords needs to read macros fields, updateNutritionRecord needs macros in delete+insert.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectDataSourceImpl.kt</path>
+        <kind>data-source</kind>
+        <symbol>insertNutritionRecord</symbol>
+        <lines>59-82</lines>
+        <reason>Data source that creates NutritionRecord. Add protein, totalCarbohydrate, totalFat fields using Mass.grams(). Example pattern for Health Connect field mapping.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/local/healthconnect/NutritionRecordExtensions.kt</path>
+        <kind>extension-functions</kind>
+        <symbol>toDomainModel</symbol>
+        <lines>1-35</lines>
+        <reason>Extension to convert NutritionRecord to MealEntry. Update to extract macros fields (protein, totalCarbohydrate, totalFat) and map to domain model, defaulting to 0g if null for legacy records.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/repository/NutritionAnalysisRepositoryImpl.kt</path>
+        <kind>repository-impl</kind>
+        <symbol>analyzePhoto</symbol>
+        <lines>96-230</lines>
+        <reason>Azure OpenAI API integration. Modify to: 1) Add response_format with JSON schema, 2) Augment system prompt with macros instructions, 3) Parse macros from response, 4) Pass to NutritionData constructor.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt</path>
+        <kind>worker</kind>
+        <symbol>processAnalysis</symbol>
+        <lines>222-300</lines>
+        <reason>Worker that saves analyzed data to Health Connect. Update to pass macros data from NutritionData to insertNutritionRecord call.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt</path>
+        <kind>compose-screen</kind>
+        <symbol>MealEntryCard</symbol>
+        <lines>242-310</lines>
+        <reason>Meal entry card composable. Add macros line below calories with format "P: 45g | C: 60g | F: 20g" using secondary text color. Handle legacy records (show 0g).</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailScreen.kt</path>
+        <kind>compose-screen</kind>
+        <symbol>MealDetailScreen</symbol>
+        <lines>1-400</lines>
+        <reason>Edit screen to add macros input fields. Add three OutlinedTextField components (Protein, Carbs, Fat) below calories field with validation and error messages.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModel.kt</path>
+        <kind>viewmodel</kind>
+        <symbol>MealDetailViewModel</symbol>
+        <lines>1-200</lines>
+        <reason>ViewModel for edit screen. Add macros fields to state, validation logic for ranges, and update logic to save macros via repository.</reason>
+      </artifact>
+      <artifact>
+        <path>app/src/main/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardScreen.kt</path>
+        <kind>compose-screen</kind>
+        <symbol>EnergyBalanceDashboardScreen</symbol>
+        <lines>1-300</lines>
+        <reason>Dashboard screen to display macros aggregation. Add macros section below Calories In showing daily totals (sum of all meals).</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <framework name="Azure OpenAI SDK" version="existing">Structured Outputs feature requires API version support. JSON Schema format for response_format parameter.</framework>
+      <framework name="Health Connect SDK" version="1.1.0">NutritionRecord macros fields: protein, totalCarbohydrate, totalFat (Mass type). Already in project.</framework>
+      <framework name="Jetpack Compose" version="compose-bom-2024.10.01">UI extension for macros display in meal list, edit screen, dashboard.</framework>
+      <framework name="Retrofit + Gson" version="existing">API client for Azure OpenAI with JSON schema support in request body.</framework>
+      <framework name="WorkManager" version="existing">Background processing for meal analysis. AnalyzeMealWorker to pass macros data.</framework>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - CRITICAL: Do NOT replace existing nutrition_analysis.md prompt. Read and AUGMENT with macros instructions.
+    - Use Azure OpenAI Structured Outputs (response_format with json_schema type) to guarantee response format compliance.
+    - Macros validation ranges: protein 0-500g, carbs 0-1000g, fat 0-500g (enforced in domain model init blocks).
+    - Health Connect update pattern: delete + re-insert (no direct update support). Preserve timestamp when updating macros.
+    - Backward compatibility: Legacy records without macros display "P: 0g | C: 0g | F: 0g". No crashes on null macros fields.
+    - Performance targets: macros parsing &lt; 50ms overhead, HC write &lt; 200ms, UI rendering &lt; 100ms, API response &lt; 15s.
+    - Test pattern: HiltAndroidTest + Compose UI testing for UI, unit tests for domain models and repositories (90%+ coverage target).
+    - MVVM architecture: UI → ViewModel → Use Case → Repository → Data Source (maintain existing patterns).
+    - All macros values are integers in grams. Use Mass.grams() for Health Connect, display with "g" suffix in UI.
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>HealthConnectRepository.insertNutritionRecord</name>
+      <kind>repository-method</kind>
+      <signature>suspend fun insertNutritionRecord(calories: Int, description: String, timestamp: Instant, protein: Int, carbs: Int, fat: Int): Result&lt;String&gt;</signature>
+      <path>app/src/main/java/com/foodie/app/data/repository/HealthConnectRepository.kt</path>
+    </interface>
+    <interface>
+      <name>NutritionRecord (Health Connect SDK)</name>
+      <kind>data-class</kind>
+      <signature>NutritionRecord(energy: Energy, protein: Mass?, totalCarbohydrate: Mass?, totalFat: Mass?, name: String, startTime: Instant, endTime: Instant, startZoneOffset: ZoneOffset, endZoneOffset: ZoneOffset)</signature>
+      <path>androidx.health.connect.client.records.NutritionRecord</path>
+    </interface>
+    <interface>
+      <name>Azure OpenAI Structured Outputs</name>
+      <kind>api-request-format</kind>
+      <signature>AzureResponseRequest(model: String, instructions: String, input: List&lt;InputMessage&gt;, response_format: ResponseFormat). ResponseFormat.json_schema with strict: true and schema definition.</signature>
+      <path>https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/structured-outputs</path>
+    </interface>
+    <interface>
+      <name>NutritionData domain model</name>
+      <kind>data-class</kind>
+      <signature>data class NutritionData(val calories: Int, val protein: Int, val carbs: Int, val fat: Int, val description: String) - with init block validation</signature>
+      <path>app/src/main/java/com/foodie/app/domain/model/NutritionData.kt</path>
+    </interface>
+    <interface>
+      <name>MealEntry domain model</name>
+      <kind>data-class</kind>
+      <signature>data class MealEntry(val id: String, val timestamp: Instant, val description: String, val calories: Int, val protein: Int, val carbs: Int, val fat: Int, val zoneOffset: ZoneOffset?)</signature>
+      <path>app/src/main/java/com/foodie/app/domain/model/MealEntry.kt</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Unit tests required for: MacrosExtractor parsing/validation, NutritionData/MealEntry domain model validation, HealthConnectRepository macros CRUD, AnalyzeMealWorker macros parsing, ViewModels (MealDetailViewModel, EnergyBalanceViewModel). Target: 90%+ domain layer coverage.
+
+      Instrumentation tests required for: Health Connect integration (insert/query/update with macros, backward compatibility), Meal list screen macros display (Compose UI test), Meal detail screen macros edit fields (Compose UI test), Energy balance dashboard macros aggregation.
+
+      Test naming convention: methodName_whenCondition_thenExpectedResult or "feature should behavior when condition".
+
+      Assertion library: Truth library for readable assertions (assertThat(x).isEqualTo(y)).
+
+      Mocking: Mockito/Mockito-Kotlin for dependency mocking in unit tests.
+
+      Test pattern from Story 6.8: HiltAndroidTest + createComposeRule for consistent DI and UI testing. Avoid test hallucination by verifying assertions match actual UI implementation (use actual test tag IDs from code).
+    </standards>
+    <locations>
+      <location>app/src/test/java/com/foodie/app/data/remote/parser/MacrosExtractorTest.kt</location>
+      <location>app/src/test/java/com/foodie/app/domain/model/NutritionDataTest.kt</location>
+      <location>app/src/test/java/com/foodie/app/domain/model/MealEntryTest.kt</location>
+      <location>app/src/test/java/com/foodie/app/data/repository/HealthConnectRepositoryMacrosTest.kt</location>
+      <location>app/src/test/java/com/foodie/app/data/worker/AnalyzeMealWorkerMacrosTest.kt</location>
+      <location>app/src/test/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModelMacrosTest.kt</location>
+      <location>app/src/test/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceViewModelMacrosTest.kt</location>
+      <location>app/src/androidTest/java/com/foodie/app/data/healthconnect/HealthConnectMacrosIntegrationTest.kt</location>
+      <location>app/src/androidTest/java/com/foodie/app/ui/screens/meallist/MealEntryCardMacrosTest.kt</location>
+      <location>app/src/androidTest/java/com/foodie/app/ui/screens/mealdetail/MealDetailScreenMacrosTest.kt</location>
+      <location>app/src/androidTest/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardMacrosTest.kt</location>
+    </locations>
+    <ideas>
+      <idea ac="AC1,AC2">Unit test: MacrosExtractor should parse Azure OpenAI structured output with macros fields - verify extraction of calories, protein, carbs, fat, description from JSON with enforced schema</idea>
+      <idea ac="AC2">Unit test: MacrosExtractor should validate macros ranges - test boundary values (protein 0/500/501, carbs 0/1000/1001, fat 0/500/501), verify exceptions thrown for out-of-range</idea>
+      <idea ac="AC3">Integration test: insertNutritionRecord with macros saves to Health Connect - insert record with macros, query back, verify protein/totalCarbohydrate/totalFat fields match</idea>
+      <idea ac="AC3">Unit test: HealthConnectRepository.insertNutritionRecord passes macros to data source - mock data source, verify Mass.grams() calls with correct values</idea>
+      <idea ac="AC4">Compose UI test: MealEntryCard displays macros line - render card with macros data, verify "P: 45g | C: 60g | F: 20g" text exists with secondary color</idea>
+      <idea ac="AC4,AC7">Compose UI test: MealEntryCard handles legacy records - render card with null macros, verify "P: 0g | C: 0g | F: 0g" displayed</idea>
+      <idea ac="AC5">Compose UI test: MealDetailScreen shows three macros input fields - verify Protein/Carbs/Fat fields exist, pre-filled with current values, positioned below calories</idea>
+      <idea ac="AC5">Unit test: MealDetailViewModel validates macros input - test invalid ranges trigger error state, save button disabled when errors present</idea>
+      <idea ac="AC6">Unit test: EnergyBalanceViewModel aggregates daily macros totals - given meals with macros, verify sum of protein/carbs/fat for selected day</idea>
+      <idea ac="AC6">Compose UI test: EnergyBalanceDashboard displays macros section - verify "Total Protein", "Total Carbs", "Total Fat" text exists below Calories In</idea>
+      <idea ac="AC7">Integration test: queryNutritionRecords handles legacy records - insert old record without macros, query, verify domain model has 0g defaults, no crashes</idea>
+      <idea ac="AC8">Performance test: Benchmark macros parsing latency - measure time to extract macros from structured output, verify &lt; 50ms overhead vs calories-only</idea>
+      <idea ac="AC8">Performance test: Measure Health Connect write time with macros - insert record with macros, measure duration, verify &lt; 200ms</idea>
+    </ideas>
+  </tests>
+</story-context>

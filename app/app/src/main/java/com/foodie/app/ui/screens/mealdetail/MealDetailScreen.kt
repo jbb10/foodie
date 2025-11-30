@@ -211,6 +211,34 @@ private fun MealDetailFormContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Epic 7: Macros fields
+        ProteinField(
+            protein = state.protein,
+            proteinError = state.proteinError,
+            enabled = !state.isSaving && !state.isDeleting,
+            onProteinChange = { onEvent(MealDetailEvent.ProteinChanged(it)) },
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        CarbsField(
+            carbs = state.carbs,
+            carbsError = state.carbsError,
+            enabled = !state.isSaving && !state.isDeleting,
+            onCarbsChange = { onEvent(MealDetailEvent.CarbsChanged(it)) },
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        FatField(
+            fat = state.fat,
+            fatError = state.fatError,
+            enabled = !state.isSaving && !state.isDeleting,
+            onFatChange = { onEvent(MealDetailEvent.FatChanged(it)) },
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text(
             text = "Captured: ${formatTimestamp(state.timestamp)}",
             style = MaterialTheme.typography.bodyMedium,
@@ -280,6 +308,76 @@ private fun CaloriesField(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("caloriesField"),
+        enabled = enabled,
+    )
+}
+
+// Epic 7: Macros input fields
+@Composable
+private fun ProteinField(
+    protein: String,
+    proteinError: String?,
+    enabled: Boolean,
+    onProteinChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = protein,
+        onValueChange = onProteinChange,
+        label = { Text("Protein (g)") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        isError = proteinError != null,
+        supportingText = proteinError?.let {
+            { Text(it, color = MaterialTheme.colorScheme.error) }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("proteinField"),
+        enabled = enabled,
+    )
+}
+
+@Composable
+private fun CarbsField(
+    carbs: String,
+    carbsError: String?,
+    enabled: Boolean,
+    onCarbsChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = carbs,
+        onValueChange = onCarbsChange,
+        label = { Text("Carbs (g)") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        isError = carbsError != null,
+        supportingText = carbsError?.let {
+            { Text(it, color = MaterialTheme.colorScheme.error) }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("carbsField"),
+        enabled = enabled,
+    )
+}
+
+@Composable
+private fun FatField(
+    fat: String,
+    fatError: String?,
+    enabled: Boolean,
+    onFatChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = fat,
+        onValueChange = onFatChange,
+        label = { Text("Fat (g)") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        isError = fatError != null,
+        supportingText = fatError?.let {
+            { Text(it, color = MaterialTheme.colorScheme.error) }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("fatField"),
         enabled = enabled,
     )
 }

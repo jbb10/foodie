@@ -228,10 +228,13 @@ internal fun EnergyBalanceContent(
             formattedDeficitSurplus = energyBalance.formattedDeficitSurplus,
         )
 
-        // Calories summary: In vs Out (AC #1, #2)
+        // Calories summary: In vs Out (AC #1, #2) + Macros (Epic 7)
         CaloriesSummaryCard(
             caloriesIn = energyBalance.caloriesIn,
             caloriesOut = energyBalance.tdee,
+            totalProtein = energyBalance.totalProtein,
+            totalCarbs = energyBalance.totalCarbs,
+            totalFat = energyBalance.totalFat,
         )
 
         // TDEE breakdown: BMR + NEAT + Active
@@ -310,15 +313,22 @@ internal fun DeficitSurplusCard(
  *
  * Displays:
  * - Calories In: X kcal (from today's NutritionRecords) with Restaurant icon
+ * - Macros: Protein/Carbs/Fat totals in grams (Epic 7)
  * - Calories Out: Y kcal (TDEE) with DirectionsRun icon
  *
  * @param caloriesIn Total calories consumed today in kcal
  * @param caloriesOut Total daily energy expenditure (TDEE) in kcal
+ * @param totalProtein Total protein consumed today in grams
+ * @param totalCarbs Total carbohydrates consumed today in grams
+ * @param totalFat Total fat consumed today in grams
  */
 @Composable
 internal fun CaloriesSummaryCard(
     caloriesIn: Double,
     caloriesOut: Double,
+    totalProtein: Double = 0.0,
+    totalCarbs: Double = 0.0,
+    totalFat: Double = 0.0,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -350,6 +360,26 @@ internal fun CaloriesSummaryCard(
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                 )
+            }
+
+            // Macros row (Epic 7)
+            if (totalProtein > 0 || totalCarbs > 0 || totalFat > 0) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Macros:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = "P: ${totalProtein.toInt()}g | C: ${totalCarbs.toInt()}g | F: ${totalFat.toInt()}g",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             // Calories Out row

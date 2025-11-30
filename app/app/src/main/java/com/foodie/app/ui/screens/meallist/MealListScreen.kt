@@ -257,8 +257,11 @@ internal fun MealListScreenContent(
 /**
  * Individual meal item card in the list.
  *
- * Displays meal description, timestamp, and calories in a tappable card.
+ * Displays meal description, timestamp, calories, and macros in a tappable card.
  * Supports long-press for future delete functionality.
+ *
+ * **Epic 7 Extension:** Added macros display line showing protein, carbs, and fat.
+ * Legacy records (pre-Epic-7) display "P: 0g | C: 0g | F: 0g".
  *
  * @param meal The meal entry to display
  * @param onClick Callback invoked when the card is tapped
@@ -277,11 +280,16 @@ private fun MealEntryCard(
         formatTimestamp(meal.timestamp)
     }
 
+    // Cache formatted macros to prevent recalculation (Epic 7)
+    val formattedMacros = remember(meal.protein, meal.carbs, meal.fat) {
+        "P: ${meal.protein}g | C: ${meal.carbs}g | F: ${meal.fat}g"
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
-                contentDescription = "Meal entry, ${meal.calories} calories, ${meal.description}, $formattedTimestamp"
+                contentDescription = "Meal entry, ${meal.calories} calories, ${meal.description}, $formattedTimestamp, macros: $formattedMacros"
             }
             .combinedClickable(
                 onClick = onClick,
@@ -306,6 +314,12 @@ private fun MealEntryCard(
                 text = "${meal.calories} kcal",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
+            )
+            // Epic 7: Macros line (protein, carbs, fat)
+            Text(
+                text = formattedMacros,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

@@ -922,6 +922,66 @@ ViewModel StateFlow updates
 Compose UI recomposes with new data
 ```
 
+### Macros Tracking Data Flow (Epic 7)
+
+**Added in Epic 7.1** - Extends nutrition analysis to include protein, carbs, and fat macronutrients.
+
+```
+User Action (Capture Photo)
+    ↓
+System Camera Intent
+    ↓
+Photo saved to cache (app/cache/photos/)
+    ↓
+WorkManager.enqueue(AnalyzeMealWorker)
+    ↓
+[Background] AnalyzeMealWorker
+    ├─→ Read photo from cache
+    ├─→ Base64 encode image
+    ├─→ Retrofit call to Azure OpenAI (with Structured Outputs)
+    │    ├─→ Request includes JSON Schema enforcing response format
+    │    ├─→ Schema defines: calories, protein, carbs, fat, description, confidence
+    │    └─→ Response guaranteed to match schema (no JSON parsing errors)
+    ├─→ Parse response with MacrosExtractor
+    │    ├─→ Extract: calories (1-5000), protein (0-500g), carbs (0-1000g), fat (0-500g)
+    │    └─→ Validate ranges, log errors if validation fails
+    ├─→ Save to Health Connect (NutritionRecord with macros fields)
+    │    ├─→ energy: Energy.kilocalories(calories)
+    │    ├─→ protein: Mass.grams(protein)
+    │    ├─→ totalCarbohydrate: Mass.grams(carbs)
+    │    ├─→ totalFat: Mass.grams(fat)
+    │    └─→ name: description string
+    └─→ Delete photo from cache
+         ↓
+Health Connect stores macros data permanently
+    ↓
+Repository queries Health Connect (queryNutritionRecords)
+    ├─→ Maps NutritionRecord to MealEntry domain model
+    ├─→ Extracts macros: protein.inGrams, totalCarbohydrate.inGrams, totalFat.inGrams
+    └─→ Handles legacy records (null macros → default to 0g)
+         ↓
+Repository Flow emits Result<List<MealEntry>> with macros
+    ↓
+ViewModel StateFlow updates (macros included)
+    ↓
+Compose UI displays macros
+    ├─→ Meal List: "P: 45g | C: 60g | F: 20g" (secondary line)
+    ├─→ Edit Screen: Three numeric fields (Protein, Carbs, Fat)
+    └─→ Energy Balance Dashboard: Daily macros totals aggregated
+```
+
+**Key Components:**
+- **Azure OpenAI Structured Outputs**: JSON Schema with `strict: true` guarantees response format
+- **MacrosExtractor**: Utility class for parsing and validating macros data
+- **NutritionData Domain Model**: Extended with protein, carbs, fat fields (validated ranges)
+- **MealEntry Domain Model**: Extended with macros fields (backward compatible with legacy records)
+- **Health Connect Integration**: Uses existing `NutritionRecord` macros fields (protein, totalCarbohydrate, totalFat)
+
+**Backward Compatibility:**
+- Legacy nutrition records (pre-Epic 7) without macros display as "P: 0g | C: 0g | F: 0g"
+- Edit screen pre-fills macros fields with 0 if missing
+- Saving a legacy record updates it with macros data (or 0 if not edited)
+
 ## API Contracts
 
 ### Azure OpenAI API
@@ -945,7 +1005,8 @@ interface AzureOpenAiApi {
 data class AzureResponseRequest(
     val model: String,  // "gpt-4.1"
     val instructions: String,  // System-level instructions
-    val input: List<InputItem>  // Multimodal input array
+    val input: List<InputItem>,  // Multimodal input array
+    val response_format: ResponseFormat? = null  // Epic 7: Structured Outputs with JSON Schema
 )
 
 data class InputItem(
@@ -957,6 +1018,18 @@ data class ContentItem(
     val type: String,  // "input_text" or "input_image"
     val text: String? = null,
     val image_url: String? = null  // Base64 data URL: "data:image/jpeg;base64,..."
+)
+
+// Epic 7: Structured Outputs - JSON Schema enforcement
+data class ResponseFormat(
+    val type: String,  // "json_schema"
+    val json_schema: JsonSchema
+)
+
+data class JsonSchema(
+    val name: String,  // "nutrition_analysis"
+    val strict: Boolean,  // true - enforces exact schema compliance
+    val schema: Map<String, Any>  // JSON Schema definition
 )
 ```
 
@@ -991,14 +1064,17 @@ data class Usage(
     val total_tokens: Int
 )
 
-// Parsed nutrition data
+// Parsed nutrition data (Epic 7: Extended with macros)
 data class ParsedNutrition(
     val calories: Int,
+    val protein: Int = 0,  // Grams (0-500)
+    val carbs: Int = 0,    // Grams (0-1000)
+    val fat: Int = 0,      // Grams (0-500)
     val description: String
 )
 ```
 
-**Example Request to Azure OpenAI:**
+**Example Request to Azure OpenAI (Epic 7 with Structured Outputs):**
 ```http
 POST https://{your-resource-name}.openai.azure.com/openai/v1/responses
 api-key: {your-api-key}
@@ -1006,14 +1082,14 @@ Content-Type: application/json
 
 {
   "model": "gpt-4.1",
-  "instructions": "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).",
+  "instructions": "[System prompt with nutrition analysis instructions]",
   "input": [
     {
       "role": "user",
       "content": [
         {
           "type": "input_text",
-          "text": "Analyze this meal and estimate total calories."
+          "text": "Analyze this meal and estimate calories and macros."
         },
         {
           "type": "input_image",
@@ -1021,11 +1097,32 @@ Content-Type: application/json
         }
       ]
     }
-  ]
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "nutrition_analysis",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "hasFood": { "type": "boolean" },
+          "calories": { "type": "integer", "minimum": 1, "maximum": 5000 },
+          "protein": { "type": "integer", "minimum": 0, "maximum": 500 },
+          "carbs": { "type": "integer", "minimum": 0, "maximum": 1000 },
+          "fat": { "type": "integer", "minimum": 0, "maximum": 500 },
+          "description": { "type": "string" },
+          "confidence": { "type": "string", "enum": ["high", "medium", "low"] }
+        },
+        "required": ["hasFood", "calories", "protein", "carbs", "fat", "description", "confidence"],
+        "additionalProperties": false
+      }
+    }
+  }
 }
 ```
 
-**Example Response:**
+**Example Response (Epic 7 - Structured Outputs):**
 ```json
 {
   "id": "resp_67cb61fa3a448190bcf2c42d96f0d1a8",
@@ -1033,11 +1130,11 @@ Content-Type: application/json
   "model": "gpt-4.1",
   "object": "response",
   "status": "completed",
-  "output_text": "{\"calories\": 650, \"description\": \"Grilled chicken breast with steamed broccoli and brown rice\"}",
+  "output_text": "{\"hasFood\": true, \"calories\": 650, \"protein\": 45, \"carbs\": 60, \"fat\": 20, \"description\": \"Grilled chicken breast with steamed broccoli and brown rice\", \"confidence\": \"high\"}",
   "usage": {
     "input_tokens": 1245,
-    "output_tokens": 25,
-    "total_tokens": 1270
+    "output_tokens": 35,
+    "total_tokens": 1280
   }
 }
 ```

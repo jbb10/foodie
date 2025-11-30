@@ -86,7 +86,7 @@ class AnalysisStatusTest {
         val statuses: List<AnalysisStatus> = listOf(
             AnalysisStatus.Idle,
             AnalysisStatus.Analyzing(0.5f),
-            AnalysisStatus.Success(NutritionData(450, "Chicken salad")),
+            AnalysisStatus.Success(NutritionData(calories = 450, description = "Chicken salad")),
             AnalysisStatus.Error("Error message"),
         )
 

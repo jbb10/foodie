@@ -31,21 +31,31 @@ sealed class Screen(val route: String) {
      * Meal detail/edit screen with meal data parameters.
      * Displays and allows editing a specific meal entry.
      *
-     * Route pattern: "meal_detail/{recordId}?calories={calories}&description={description}&timestamp={timestamp}"
-     * Actual route example: "meal_detail/abc123?calories=650&description=Chicken&timestamp=1699800000000"
+     * Route pattern: "meal_detail/{recordId}?calories={calories}&description={description}&protein={protein}&carbs={carbs}&fat={fat}&timestamp={timestamp}"
      */
-    data object MealDetail : Screen("meal_detail/{recordId}?calories={calories}&description={description}&timestamp={timestamp}") {
+    data object MealDetail : Screen("meal_detail/{recordId}?calories={calories}&description={description}&protein={protein}&carbs={carbs}&fat={fat}&timestamp={timestamp}") {
         /**
          * Creates a navigation route with the specified meal data.
          *
          * @param recordId The unique identifier of the meal record
          * @param calories Energy content in kilocalories
          * @param description Meal description/name
+         * @param protein Protein in grams (supports up to 2 decimal places)
+         * @param carbs Carbohydrates in grams (supports up to 2 decimal places)
+         * @param fat Fat in grams (supports up to 2 decimal places)
          * @param timestamp When the meal was consumed (epoch millis)
          * @return Complete route string with all parameters
          */
-        fun createRoute(recordId: String, calories: Int, description: String, timestamp: Long): String =
-            "meal_detail/$recordId?calories=$calories&description=${java.net.URLEncoder.encode(description, "UTF-8")}&timestamp=$timestamp"
+        fun createRoute(
+            recordId: String,
+            calories: Int,
+            description: String,
+            protein: Double,
+            carbs: Double,
+            fat: Double,
+            timestamp: Long
+        ): String =
+            "meal_detail/$recordId?calories=$calories&description=${java.net.URLEncoder.encode(description, "UTF-8")}&protein=$protein&carbs=$carbs&fat=$fat&timestamp=$timestamp"
     }
 
     /**

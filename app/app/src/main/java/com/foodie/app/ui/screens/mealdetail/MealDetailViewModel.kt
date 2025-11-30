@@ -53,6 +53,15 @@ class MealDetailViewModel @Inject constructor(
         },
         Charsets.UTF_8.name(),
     )
+    private val initialProtein: String = checkNotNull(savedStateHandle["protein"]) {
+        "protein is required for MealDetailScreen"
+    }
+    private val initialCarbs: String = checkNotNull(savedStateHandle["carbs"]) {
+        "carbs is required for MealDetailScreen"
+    }
+    private val initialFat: String = checkNotNull(savedStateHandle["fat"]) {
+        "fat is required for MealDetailScreen"
+    }
     private val timestampMillis: Long = checkNotNull(savedStateHandle["timestamp"]) {
         "timestamp is required for MealDetailScreen"
     }
@@ -62,6 +71,9 @@ class MealDetailViewModel @Inject constructor(
             recordId = recordId,
             calories = initialCalories,
             description = initialDescription,
+            protein = initialProtein,
+            carbs = initialCarbs,
+            fat = initialFat,
             timestamp = Instant.ofEpochMilli(timestampMillis),
         ),
     )
@@ -73,6 +85,9 @@ class MealDetailViewModel @Inject constructor(
     fun onEvent(event: MealDetailEvent) {
         when (event) {
             is MealDetailEvent.CaloriesChanged -> handleCaloriesChanged(event.value)
+            is MealDetailEvent.ProteinChanged -> handleProteinChanged(event.value)
+            is MealDetailEvent.CarbsChanged -> handleCarbsChanged(event.value)
+            is MealDetailEvent.FatChanged -> handleFatChanged(event.value)
             is MealDetailEvent.DescriptionChanged -> handleDescriptionChanged(event.value)
             is MealDetailEvent.SaveClicked -> handleSaveClicked()
             MealDetailEvent.CancelClicked -> handleCancelClicked()
@@ -97,6 +112,93 @@ class MealDetailViewModel @Inject constructor(
         }
 
         _uiState.update { it.copy(calories = filtered, caloriesError = error) }
+    }
+
+    private fun handleProteinChanged(value: String) {
+        // Normalize comma to dot and filter to valid decimal characters
+        val normalized = value.replace(',', '.')
+        val filtered = normalized.filter { it.isDigit() || it == '.' }
+
+        // Ensure only one decimal point and limit to 2 decimal places
+        val validDecimal = if (filtered.count { it == '.' } <= 1) {
+            val parts = filtered.split('.')
+            if (parts.size == 2 && parts[1].length > 2) {
+                "${parts[0]}.${parts[1].take(2)}"
+            } else {
+                filtered
+            }
+        } else {
+            // Multiple decimal points - keep only the first one
+            val firstDotIndex = filtered.indexOf('.')
+            filtered.take(firstDotIndex + 1) + filtered.drop(firstDotIndex + 1).filter { it != '.' }
+        }
+
+        // Validate protein range (0-500g)
+        val error = when {
+            validDecimal.isNotEmpty() && validDecimal != "." && validDecimal.toDoubleOrNull() == null -> "Invalid number"
+            validDecimal.isNotEmpty() && validDecimal != "." && (validDecimal.toDoubleOrNull() ?: 0.0) !in 0.0..500.0 -> "Protein must be 0-500g"
+            else -> null
+        }
+
+        _uiState.update { it.copy(protein = validDecimal, proteinError = error) }
+    }
+
+    private fun handleCarbsChanged(value: String) {
+        // Normalize comma to dot and filter to valid decimal characters
+        val normalized = value.replace(',', '.')
+        val filtered = normalized.filter { it.isDigit() || it == '.' }
+
+        // Ensure only one decimal point and limit to 2 decimal places
+        val validDecimal = if (filtered.count { it == '.' } <= 1) {
+            val parts = filtered.split('.')
+            if (parts.size == 2 && parts[1].length > 2) {
+                "${parts[0]}.${parts[1].take(2)}"
+            } else {
+                filtered
+            }
+        } else {
+            // Multiple decimal points - keep only the first one
+            val firstDotIndex = filtered.indexOf('.')
+            filtered.take(firstDotIndex + 1) + filtered.drop(firstDotIndex + 1).filter { it != '.' }
+        }
+
+        // Validate carbs range (0-1000g)
+        val error = when {
+            validDecimal.isNotEmpty() && validDecimal != "." && validDecimal.toDoubleOrNull() == null -> "Invalid number"
+            validDecimal.isNotEmpty() && validDecimal != "." && (validDecimal.toDoubleOrNull() ?: 0.0) !in 0.0..1000.0 -> "Carbs must be 0-1000g"
+            else -> null
+        }
+
+        _uiState.update { it.copy(carbs = validDecimal, carbsError = error) }
+    }
+
+    private fun handleFatChanged(value: String) {
+        // Normalize comma to dot and filter to valid decimal characters
+        val normalized = value.replace(',', '.')
+        val filtered = normalized.filter { it.isDigit() || it == '.' }
+
+        // Ensure only one decimal point and limit to 2 decimal places
+        val validDecimal = if (filtered.count { it == '.' } <= 1) {
+            val parts = filtered.split('.')
+            if (parts.size == 2 && parts[1].length > 2) {
+                "${parts[0]}.${parts[1].take(2)}"
+            } else {
+                filtered
+            }
+        } else {
+            // Multiple decimal points - keep only the first one
+            val firstDotIndex = filtered.indexOf('.')
+            filtered.take(firstDotIndex + 1) + filtered.drop(firstDotIndex + 1).filter { it != '.' }
+        }
+
+        // Validate fat range (0-500g)
+        val error = when {
+            validDecimal.isNotEmpty() && validDecimal != "." && validDecimal.toDoubleOrNull() == null -> "Invalid number"
+            validDecimal.isNotEmpty() && validDecimal != "." && (validDecimal.toDoubleOrNull() ?: 0.0) !in 0.0..500.0 -> "Fat must be 0-500g"
+            else -> null
+        }
+
+        _uiState.update { it.copy(fat = validDecimal, fatError = error) }
     }
 
     private fun handleDescriptionChanged(value: String) {
@@ -128,12 +230,20 @@ class MealDetailViewModel @Inject constructor(
             return
         }
 
+        // Parse macros (default to 0.0 if empty)
+        val protein = currentState.protein.toDoubleOrNull() ?: 0.0
+        val carbs = currentState.carbs.toDoubleOrNull() ?: 0.0
+        val fat = currentState.fat.toDoubleOrNull() ?: 0.0
+
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, error = null, successMessage = null) }
 
             val result = updateMealEntryUseCase(
                 recordId = currentState.recordId,
                 calories = calories,
+                protein = protein,
+                carbs = carbs,
+                fat = fat,
                 description = currentState.description,
                 timestamp = currentState.timestamp,
             )

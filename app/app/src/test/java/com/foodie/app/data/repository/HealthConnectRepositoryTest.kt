@@ -55,7 +55,7 @@ class HealthConnectRepositoryTest {
         val description = "Test meal"
         val timestamp = Instant.now()
 
-        whenever(healthConnectManager.insertNutritionRecord(any(), any(), any()))
+        whenever(healthConnectManager.insertNutritionRecord(any(), any(), any(), any(), any(), any()))
             .thenThrow(SecurityException("Permissions not granted"))
 
         // When
@@ -75,7 +75,7 @@ class HealthConnectRepositoryTest {
         val description = "Test meal"
         val timestamp = Instant.now()
 
-        whenever(healthConnectManager.insertNutritionRecord(any(), any(), any()))
+        whenever(healthConnectManager.insertNutritionRecord(any(), any(), any(), any(), any(), any()))
             .thenThrow(IllegalStateException("Health Connect not available"))
 
         // When
@@ -124,7 +124,7 @@ class HealthConnectRepositoryTest {
         val description = "Test"
         val timestamp = Instant.now()
 
-        whenever(healthConnectManager.insertNutritionRecord(any(), any(), any()))
+        whenever(healthConnectManager.insertNutritionRecord(any(), any(), any(), any(), any(), any()))
             .thenThrow(RuntimeException("Network timeout"))
 
         // When
@@ -162,7 +162,7 @@ class HealthConnectRepositoryTest {
         val description = "Invalid meal"
         val timestamp = Instant.now()
 
-        whenever(healthConnectManager.insertNutritionRecord(any(), any(), any()))
+        whenever(healthConnectManager.insertNutritionRecord(any(), any(), any(), any(), any(), any()))
             .thenThrow(IllegalArgumentException("Calories must be positive"))
 
         // When
@@ -216,7 +216,7 @@ class HealthConnectRepositoryTest {
         val description = "Test update"
         val timestamp = Instant.now()
 
-        whenever(healthConnectManager.updateNutritionRecord(any(), any(), any(), any()))
+        whenever(healthConnectManager.updateNutritionRecord(any(), any(), any(), any(), any(), any(), any()))
             .thenThrow(SecurityException("Permissions not granted"))
 
         // When
@@ -237,7 +237,7 @@ class HealthConnectRepositoryTest {
         val description = "Test meal"
         val timestamp = Instant.now()
 
-        whenever(healthConnectManager.updateNutritionRecord(any(), any(), any(), any()))
+        whenever(healthConnectManager.updateNutritionRecord(any(), any(), any(), any(), any(), any(), any()))
             .thenThrow(IllegalStateException("Health Connect not available"))
 
         // When
@@ -279,7 +279,7 @@ class HealthConnectRepositoryTest {
         val description = "Test"
         val timestamp = Instant.now()
 
-        whenever(healthConnectManager.updateNutritionRecord(any(), any(), any(), any()))
+        whenever(healthConnectManager.updateNutritionRecord(any(), any(), any(), any(), any(), any(), any()))
             .thenThrow(RuntimeException("Network error"))
 
         // When

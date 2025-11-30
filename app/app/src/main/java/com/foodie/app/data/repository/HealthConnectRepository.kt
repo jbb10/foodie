@@ -34,19 +34,28 @@ class HealthConnectRepository @Inject constructor(
     /**
      * Inserts a new meal entry into Health Connect.
      *
+     * **Epic 7 Extension:** Added macros parameters (protein, carbs, fat) with default values
+     * of 0 to maintain backward compatibility with existing code.
+     *
      * @param calories Energy content in kilocalories (kcal), must be 1-5000
      * @param description Meal description/name, must not be blank
      * @param timestamp When the meal was consumed
+     * @param protein Protein content in grams (0-500, supports up to 2 decimal places), defaults to 0.0 for legacy records
+     * @param carbs Carbohydrate content in grams (0-1000, supports up to 2 decimal places), defaults to 0.0 for legacy records
+     * @param fat Fat content in grams (0-500, supports up to 2 decimal places), defaults to 0.0 for legacy records
      * @return Result.Success with record ID, or Result.Error on failure
      */
     suspend fun insertNutritionRecord(
         calories: Int,
         description: String,
         timestamp: Instant,
+        protein: Double = 0.0,
+        carbs: Double = 0.0,
+        fat: Double = 0.0,
     ): Result<String> = runCatchingResult {
-        logDebug("Inserting nutrition record: $calories cal, $description")
-        val recordId = healthConnectManager.insertNutritionRecord(calories, description, timestamp)
-        Timber.tag(TAG).i("Insert successful: $recordId")
+        logDebug("Inserting nutrition record: $calories cal, P:${protein}g C:${carbs}g F:${fat}g, $description")
+        val recordId = healthConnectManager.insertNutritionRecord(calories, description, timestamp, protein, carbs, fat)
+        Timber.tag(TAG).i("Insert successful: $recordId (with macros)")
         recordId
     }
 
@@ -74,10 +83,16 @@ class HealthConnectRepository @Inject constructor(
      * Note: Health Connect doesn't support direct updates. This uses delete + re-insert
      * with preserved timestamp.
      *
+     * **Epic 7 Extension:** Added macros parameters (protein, carbs, fat) with default values
+     * of 0 to maintain backward compatibility.
+     *
      * @param recordId The unique ID of the record to update
      * @param calories New energy content in kilocalories
      * @param description New meal description
      * @param timestamp Original timestamp (preserved)
+     * @param protein New protein content in grams (0-500, supports up to 2 decimal places), defaults to 0.0
+     * @param carbs New carbohydrate content in grams (0-1000, supports up to 2 decimal places), defaults to 0.0
+     * @param fat New fat content in grams (0-500, supports up to 2 decimal places), defaults to 0.0
      * @return Result.Success on completion, or Result.Error on failure
      */
     suspend fun updateNutritionRecord(
@@ -85,10 +100,13 @@ class HealthConnectRepository @Inject constructor(
         calories: Int,
         description: String,
         timestamp: Instant,
+        protein: Double = 0.0,
+        carbs: Double = 0.0,
+        fat: Double = 0.0,
     ): Result<Unit> = runCatchingResult {
-        logDebug("Updating nutrition record: $recordId")
-        healthConnectManager.updateNutritionRecord(recordId, calories, description, timestamp)
-        Timber.tag(TAG).i("Update successful: $recordId")
+        logDebug("Updating nutrition record: $recordId (with macros)")
+        healthConnectManager.updateNutritionRecord(recordId, calories, description, timestamp, protein, carbs, fat)
+        Timber.tag(TAG).i("Update successful: $recordId (with macros)")
     }
 
     /**

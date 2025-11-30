@@ -124,6 +124,9 @@ class MealAnalysisForegroundNotifier @Inject constructor(
             recordId = recordId,
             calories = data.calories,
             description = data.description,
+            protein = data.protein,
+            carbs = data.carbs,
+            fat = data.fat,
             timestamp = timestamp.toEpochMilli(),
         )
 
