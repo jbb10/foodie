@@ -61,12 +61,12 @@ The UI will be built with Jetpack Compose using Material 3 components, leveragin
     -   Focus: Input validation, error states, keyboard options, maxLength enforcement
 2.  Review Health Connect update pattern: **Delete old record + Insert new record with preserved timestamp**
     -   Starting point: [Health Connect Guide](https://developer.android.com/health-and-fitness/guides/health-connect)
-    -   Focus: `deleteRecords()` API, preserving `startTime`/`endTime` from original record
+    -   Focus: `deleteRecords()` API, preserving `startTime` from original record, recalculating `endTime` based on calories
 
 3.  Validate assumptions:
     -   ✓ Confirm TextField supports numeric-only input for calories field
     -   ✓ Verify maxLength enforcement for description field
-    -   ✓ Confirm Health Connect update pattern preserves original timestamps
+    -   ✓ Confirm Health Connect update pattern preserves original timestamps (startTime)
 
 4.  Identify constraints:
     -   Platform limitations for form validation
@@ -95,7 +95,7 @@ Document findings in Dev Notes before proceeding to Task 2:
     - [x] In `HealthConnectRepository`, implement `updateMealEntry(recordId, calories, description)` method
     - [x] The method queries original `NutritionRecord` to get timestamp and metadata
     - [x] The method deletes old record using `HealthConnectClient.deleteRecords([recordId])`
-    - [x] The method inserts new record with updated `energy` and `name` fields, preserving `startTime`/`endTime`
+    - [x] The method inserts new record with updated `energy` and `name` fields, preserving `startTime` and recalculating `endTime`
     - [x] The method returns `Result<Unit>` with success or error
     - [x] Write unit tests for the repository method mocking Health Connect client
     - **✅ Complete:** Repository method already existed from previous story, added comprehensive unit tests (6 new tests)
@@ -134,7 +134,7 @@ Document findings in Dev Notes before proceeding to Task 2:
     - [x] In `HealthConnectRepository`, implement `updateMealEntry(recordId, calories, description)` method
     - [x] The method queries original `NutritionRecord` to get timestamp and metadata
     - [x] The method deletes old record using `HealthConnectClient.deleteRecords([recordId])`
-    - [x] The method inserts new record with updated `energy` and `name` fields, preserving `startTime`/`endTime`
+    - [x] The method inserts new record with updated `energy` and `name` fields, preserving `startTime` and recalculating `endTime`
     - [x] The method returns `Result<Unit>` with success or error
     - [x] Write unit tests for the repository method mocking Health Connect client
 
@@ -268,7 +268,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ✓ Confirmed: No direct update API - must use **delete + insert pattern**
 ✓ API methods validated:
 - `deleteRecords(recordType::class, idList = listOf(recordId), clientRecordIdsList = emptyList())`
-- Insert new record with `startTime`, `endTime`, `zoneOffset` from original
+- Insert new record with `startTime`, `zoneOffset` from original, and recalculated `endTime`
 ✓ **Critical edge case identified:** Delete+Insert is **NOT atomic/transactional**
 - If delete succeeds but insert fails → **original data is lost**
 - Mitigation: Log error details, show user-friendly message, allow retry from edit screen
@@ -329,9 +329,9 @@ This structure aligns with the established MVVM pattern from Epic 1 and follows 
 
 **Health Connect Update Pattern:**
 The Health Connect API does not support direct updates to `NutritionRecord`. The standard pattern is:
-1. Query original record by `recordId` to get `startTime`, `endTime`, and `zoneOffset`
+1. Query original record by `recordId` to get `startTime` and `zoneOffset`
 2. Delete old record using `HealthConnectClient.deleteRecords([recordId])`
-3. Insert new record with updated `energy` (calories) and `name` (description), preserving original timestamps
+3. Insert new record with updated `energy` (calories) and `name` (description), preserving `startTime` and recalculating `endTime`
 
 **Edge Case:** If delete succeeds but insert fails, the original data is lost. Log error details and show user-friendly message: "Failed to update entry. Please try again." User can retry from edit screen (don't auto-navigate away on failure).
 

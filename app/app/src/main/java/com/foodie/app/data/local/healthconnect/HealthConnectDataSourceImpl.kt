@@ -60,10 +60,17 @@ class HealthConnectDataSourceImpl @Inject constructor(
 
         val zoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)
 
+        val durationMinutes = when {
+            calories < 300 -> 5
+            calories < 800 -> 10
+            else -> 15
+        }
+        val endTime = timestamp.plus(durationMinutes.toLong(), java.time.temporal.ChronoUnit.MINUTES)
+
         val record = NutritionRecord(
             startTime = timestamp,
             startZoneOffset = zoneOffset,
-            endTime = timestamp.plusSeconds(1),
+            endTime = endTime,
             endZoneOffset = zoneOffset,
             energy = Energy.kilocalories(calories.toDouble()),
             name = description,

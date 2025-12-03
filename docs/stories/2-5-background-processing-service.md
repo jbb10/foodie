@@ -410,7 +410,7 @@ catch (e: JsonSyntaxException) {
 **NutritionRecord Fields:**
 - **energy** (Energy): Calories in kilocalories unit
 - **name** (String): Food description from AI analysis
-- **startTime/endTime** (Instant): Meal capture timestamp
+- **startTime/endTime** (Instant): Meal capture timestamp (endTime calculated based on calories)
 - **startZoneOffset/endZoneOffset** (ZoneOffset): Local time zone
 
 **Health Connect Write Operation:**
@@ -420,11 +420,18 @@ suspend fun insertNutritionRecord(
     description: String,
     timestamp: Instant
 ): String {
+    val durationMinutes = when {
+        calories < 300 -> 5
+        calories < 800 -> 15
+        else -> 30
+    }
+    val endTime = timestamp.plus(durationMinutes.toLong(), java.time.temporal.ChronoUnit.MINUTES)
+
     val record = NutritionRecord(
         energy = Energy.kilocalories(calories.toDouble()),
         name = description,
         startTime = timestamp,
-        endTime = timestamp,
+        endTime = endTime,
         startZoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp),
         endZoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)
     )

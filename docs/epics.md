@@ -326,7 +326,7 @@ So that my nutrition data is available to other health apps without manual entry
 
 **And** the name field contains the food description from AI
 
-**And** startTime and endTime are set to the photo capture timestamp
+**And** startTime is set to the photo capture timestamp, and endTime is calculated based on calories (<300kcal: 5min, <800kcal: 10min, >=800kcal: 15min)
 
 **And** the record is inserted using HealthConnectClient.insertRecords()
 
@@ -502,7 +502,7 @@ So that my corrected data is available to all health apps.
 
 **And** a new NutritionRecord is inserted with updated calories and description
 
-**And** the original timestamp (startTime/endTime) is preserved
+**And** the original startTime is preserved, and endTime is recalculated based on new calories
 
 **And** a toast message displays: "Entry updated"
 
@@ -1212,7 +1212,7 @@ So that I account for workout energy expenditure.
 
 **And** active calories are queried for the current day (midnight to now)
 
-**And** all active calorie records are summed
+**And** active calories are aggregated using ACTIVE_CALORIES_TOTAL
 
 **And** Active value is displayed in energy balance dashboard with label "Active Exercise"
 
@@ -1225,7 +1225,7 @@ So that I account for workout energy expenditure.
 **Technical Notes:**
 - Use HealthConnectClient to query ActiveCaloriesBurnedRecord
 - Use TimeRangeFilter for current day
-- Sum all records
+- Aggregate records using ACTIVE_CALORIES_TOTAL
 - Handle Garmin sync delays gracefully (data may arrive minutes after workout)
 
 ---

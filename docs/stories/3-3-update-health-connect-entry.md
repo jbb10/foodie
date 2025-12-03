@@ -20,7 +20,8 @@ The focus is on integration testing, error handling, and validating that the Hea
 **Key Technical Requirements:**
 - Use existing `HealthConnectRepository.updateNutritionRecord()` method from Story 2.6/3.2
 - Delete old NutritionRecord and insert new record with updated calories and description
-- Preserve original `startTime`, `endTime`, and `zoneOffset` from the original record
+- Preserve original `startTime` and `zoneOffset` from the original record
+- Recalculate `endTime` based on updated calories (<300kcal: 5min, <800kcal: 15min, >=800kcal: 30min)
 - Handle Health Connect permission errors gracefully
 - Navigate back to list view after successful save
 - Trigger automatic list refresh to show updated entry

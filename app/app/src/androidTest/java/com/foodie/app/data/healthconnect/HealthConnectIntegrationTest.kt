@@ -122,7 +122,8 @@ class HealthConnectIntegrationTest {
 
                 // Verify timestamps are preserved
                 assertThat(it.startTime).isEqualTo(timestamp)
-                assertThat(it.endTime).isEqualTo(timestamp.plusSeconds(1))
+                // 350 calories -> 15 minutes duration
+                assertThat(it.endTime).isEqualTo(timestamp.plus(15, java.time.temporal.ChronoUnit.MINUTES))
             }
 
             // Cleanup
@@ -170,6 +171,47 @@ class HealthConnectIntegrationTest {
         } catch (e: SecurityException) {
             return@runTest
         }
+    }
+
+    @Test
+    fun insertNutritionRecord_calculatesDurationBasedOnCalories() = runTest {
+        // Given
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val manager = HealthConnectManager(context)
+
+        if (!manager.isAvailable()) return@runTest
+
+        val timestamp = Instant.now()
+
+        // Case 1: < 300 cal -> 5 min
+        try {
+            val id1 = manager.insertNutritionRecord(200, "Small snack", timestamp)
+            val records1 = manager.queryNutritionRecords(timestamp.minusSeconds(60), timestamp.plusSeconds(3600))
+            val record1 = records1.find { it.metadata.id == id1 }
+            assertThat(record1).isNotNull()
+            assertThat(record1!!.endTime).isEqualTo(timestamp.plus(5, java.time.temporal.ChronoUnit.MINUTES))
+            manager.deleteNutritionRecord(id1)
+        } catch (e: SecurityException) { return@runTest }
+
+        // Case 2: 300-799 cal -> 15 min
+        try {
+            val id2 = manager.insertNutritionRecord(500, "Medium meal", timestamp)
+            val records2 = manager.queryNutritionRecords(timestamp.minusSeconds(60), timestamp.plusSeconds(3600))
+            val record2 = records2.find { it.metadata.id == id2 }
+            assertThat(record2).isNotNull()
+            assertThat(record2!!.endTime).isEqualTo(timestamp.plus(15, java.time.temporal.ChronoUnit.MINUTES))
+            manager.deleteNutritionRecord(id2)
+        } catch (e: SecurityException) { return@runTest }
+
+        // Case 3: >= 800 cal -> 30 min
+        try {
+            val id3 = manager.insertNutritionRecord(900, "Large meal", timestamp)
+            val records3 = manager.queryNutritionRecords(timestamp.minusSeconds(60), timestamp.plusSeconds(3600))
+            val record3 = records3.find { it.metadata.id == id3 }
+            assertThat(record3).isNotNull()
+            assertThat(record3!!.endTime).isEqualTo(timestamp.plus(30, java.time.temporal.ChronoUnit.MINUTES))
+            manager.deleteNutritionRecord(id3)
+        } catch (e: SecurityException) { return@runTest }
     }
 
     @Test

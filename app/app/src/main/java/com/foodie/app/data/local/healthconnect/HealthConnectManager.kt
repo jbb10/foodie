@@ -11,6 +11,7 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
+import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.health.connect.client.units.Energy
@@ -176,10 +177,17 @@ class HealthConnectManager @Inject constructor(
 
         val zoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)
 
+        val durationMinutes = when {
+            calories < 300 -> 5
+            calories < 800 -> 15
+            else -> 30
+        }
+        val endTime = timestamp.plus(durationMinutes.toLong(), java.time.temporal.ChronoUnit.MINUTES)
+
         val record = NutritionRecord(
             startTime = timestamp,
             startZoneOffset = zoneOffset,
-            endTime = timestamp.plusSeconds(1),
+            endTime = endTime,
             endZoneOffset = zoneOffset,
             energy = Energy.kilocalories(calories.toDouble()),
             protein = if (protein > 0.0) Mass.grams(protein) else null,
@@ -799,13 +807,16 @@ class HealthConnectManager @Inject constructor(
         Timber.tag(TAG).d("Querying active calories: $startTime to $endTime")
 
         return try {
-            val records = queryActiveCaloriesRecords(startTime, endTime)
+            val response = healthConnectClient.aggregate(
+                AggregateRequest(
+                    metrics = setOf(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL),
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
+                )
+            )
 
-            // Sum all ActiveCaloriesBurnedRecord.energy.inKilocalories values
-            // (Garmin may write multiple records - one per workout session)
-            val totalActiveCalories = records.sumOf { it.energy.inKilocalories }
+            val totalActiveCalories = response[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories ?: 0.0
 
-            Timber.tag(TAG).i("Total active calories: $totalActiveCalories kcal (from ${records.size} records)")
+            Timber.tag(TAG).i("Total active calories: $totalActiveCalories kcal")
             totalActiveCalories
         } catch (e: SecurityException) {
             // Re-throw SecurityException for caller to handle

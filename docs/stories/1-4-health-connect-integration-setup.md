@@ -435,7 +435,7 @@ N/A - Implementation completed successfully without major blockers.
 
 2. **NutritionRecord Metadata Pattern**: Consulted official Android Health Connect documentation to discover correct pattern for creating NutritionRecord instances. Constructor is internal, must use `Metadata.autoRecorded(device = Device(type = Device.TYPE_PHONE))` factory method.
 
-3. **StartTime vs EndTime Constraint**: NutritionRecord requires `startTime` to be strictly before `endTime`. All test and production code updated to use `endTime = timestamp.plusSeconds(1)` pattern.
+3. **StartTime vs EndTime Constraint**: NutritionRecord requires `startTime` to be strictly before `endTime`. All test and production code updated to calculate `endTime` based on calories.
 
 4. **Temporary ID Handling**: Extension function `NutritionRecord.toDomainModel()` generates temporary ID using `"temp-${startTime.toEpochMilli()}"` when `metadata.id` is empty (before insertion to Health Connect).
 

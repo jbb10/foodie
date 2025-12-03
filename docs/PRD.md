@@ -372,7 +372,8 @@ Content-Type: application/json
 - **Fields Used:**
   - `energy`: Calories from AI analysis (in Energy units, kcal)
   - `name`: Food description from AI (optional String field)
-  - `startTime` / `endTime`: Meal timestamp (Instant)
+  - `startTime`: Meal timestamp (Instant)
+  - `endTime`: Calculated based on calories (<300kcal: 5min, <800kcal: 10min, >=800kcal: 15min)
   - `mealType`: Optional categorization (breakfast/lunch/dinner/snack) - deferred to V2.0
 
 **Single Source of Truth:**
@@ -390,7 +391,7 @@ Health Connect stores ALL data - no local database needed. The `NutritionRecord.
       energy = Energy.kilocalories(650.0),
       name = "Grilled chicken with rice",
       startTime = timestamp,
-      endTime = timestamp,
+      endTime = timestamp.plus(10, ChronoUnit.MINUTES), // 650kcal -> 10min
       startZoneOffset = ZoneOffset.systemDefault(),
       endZoneOffset = ZoneOffset.systemDefault()
   )

@@ -32,7 +32,7 @@
       <description>Active calories are queried for the current day (midnight to now)</description>
     </criterion>
     <criterion id="AC-3">
-      <description>All active calorie records are summed</description>
+      <description>Active calories are aggregated using Health Connect's ACTIVE_CALORIES_TOTAL metric</description>
     </criterion>
     <criterion id="AC-4">
       <description>Active value is displayed in energy balance dashboard with label "Active Exercise"</description>
@@ -52,7 +52,7 @@
       <checkpoint>COMPLETE BEFORE PROCEEDING TO IMPLEMENTATION</checkpoint>
       <deliverables>
         <item>ActiveCaloriesBurnedRecord API patterns confirmed</item>
-        <item>Multi-record summation approach validated</item>
+        <item>Aggregation approach validated (AggregateRequest)</item>
         <item>Energy.inKilocalories accessor documented</item>
         <item>Garmin sync delay handling strategy documented</item>
       </deliverables>
@@ -62,9 +62,8 @@
       <acs>AC-1, AC-2, AC-3</acs>
       <subtasks>
         <item>Add queryActiveCalories(startTime, endTime) method</item>
-        <item>Use HealthConnectClient.readRecords&lt;ActiveCaloriesBurnedRecord&gt;() with TimeRangeFilter</item>
-        <item>Sum all ActiveCaloriesBurnedRecord.energy.inKilocalories values</item>
-        <item>Return total active calories as Double (in kcal)</item>
+        <item>Use HealthConnectClient.aggregate with AggregateRequest and ACTIVE_CALORIES_TOTAL</item>
+        <item>Return total active calories as Double (in kcal) directly from aggregation result</item>
         <item>Handle empty results (return 0.0)</item>
         <item>Add observeActiveCalories() Flow for reactive updates (5-minute polling)</item>
       </subtasks>
@@ -124,13 +123,13 @@
         <path>docs/tech-spec-epic-6.md</path>
         <title>Epic Technical Specification: Energy Balance &amp; Caloric Deficit Tracking</title>
         <section>Active Energy Expenditure Query from Health Connect ActiveCaloriesBurnedRecord</section>
-        <snippet>Query ActiveCaloriesBurnedRecord using TimeRangeFilter for current day (midnight to now), sum all records, handle Garmin sync delays (5-15 minutes typical). TDEE = BMR + NEAT + Active.</snippet>
+        <snippet>Query ActiveCaloriesBurnedRecord using TimeRangeFilter for current day (midnight to now), aggregate using ACTIVE_CALORIES_TOTAL, handle Garmin sync delays (5-15 minutes typical). TDEE = BMR + NEAT + Active.</snippet>
       </doc>
       <doc>
         <path>docs/epics.md</path>
         <title>Foodie - Epic Breakdown</title>
         <section>Story 6.4: Active Energy Expenditure</section>
-        <snippet>Read ActiveCaloriesBurned records from Health Connect, query for current day, sum all records, display with label "Active Exercise", show 0 kcal if no data, refresh when workouts sync.</snippet>
+        <snippet>Read ActiveCaloriesBurned records from Health Connect, query for current day, aggregate total calories, display with label "Active Exercise", show 0 kcal if no data, refresh when workouts sync.</snippet>
       </doc>
       <doc>
         <path>docs/architecture.md</path>
@@ -172,7 +171,7 @@
         <kind>data source</kind>
         <symbol>HealthConnectManager</symbol>
         <lines>500-650</lines>
-        <reason>Extend with queryActiveCalories() and observeActiveCalories() methods following existing querySteps()/observeSteps() patterns (TimeRangeFilter, record summation, 5-minute polling)</reason>
+        <reason>Extend with queryActiveCalories() and observeActiveCalories() methods following existing querySteps()/observeSteps() patterns (TimeRangeFilter, record aggregation, 5-minute polling)</reason>
       </file>
       <file>
         <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
@@ -209,7 +208,7 @@
         <kind>suspend function</kind>
         <signature>suspend fun queryActiveCalories(startTime: Instant, endTime: Instant): Double</signature>
         <path>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
-        <notes>New method to add - follows querySteps() pattern, reads ActiveCaloriesBurnedRecord, sums energy.inKilocalories, throws SecurityException if permission denied</notes>
+        <notes>New method to add - follows querySteps() pattern, aggregates ActiveCaloriesBurnedRecord using ACTIVE_CALORIES_TOTAL, throws SecurityException if permission denied</notes>
       </interface>
       <interface>
         <name>HealthConnectManager.observeActiveCalories</name>
@@ -274,8 +273,8 @@
       <rule>Catch SecurityException when Health Connect permission denied, return Result.failure for caller to handle</rule>
       <source>app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt:530-540</source>
     </constraint>
-    <constraint type="summation">
-      <rule>Sum all ActiveCaloriesBurnedRecord.energy.inKilocalories values (multiple workouts per day require summation)</rule>
+    <constraint type="aggregation">
+      <rule>Aggregate active calories using ACTIVE_CALORIES_TOTAL (handles de-duplication and multiple sources)</rule>
       <source>docs/tech-spec-epic-6.md - Active Energy Expenditure Section</source>
     </constraint>
     <constraint type="external-sync">
@@ -294,10 +293,10 @@
     </locations>
     <ideas>
       <idea ac-ref="AC-3">
-        <description>Test single workout summation: Mock queryActiveCalories to return single ActiveCaloriesBurnedRecord with 500 kcal, verify calculateActiveCalories() returns Result.success(500.0)</description>
+        <description>Test single workout aggregation: Mock queryActiveCalories to return 500 kcal, verify calculateActiveCalories() returns Result.success(500.0)</description>
       </idea>
       <idea ac-ref="AC-3">
-        <description>Test multiple workout summation: Mock two records (300 kcal run + 200 kcal lift), verify total is 500 kcal</description>
+        <description>Test multiple workout aggregation: Mock aggregation result of 500 kcal (from multiple sources), verify total is 500 kcal</description>
       </idea>
       <idea ac-ref="AC-5">
         <description>Test zero workouts: Mock empty record list, verify calculateActiveCalories() returns Result.success(0.0) not error</description>

@@ -61,7 +61,8 @@ This story modifies the Azure OpenAI integration to request and parse macros dat
 - `totalCarbohydrate`: Mass.grams(carbs)
 - `totalFat`: Mass.grams(fat)
 - `name`: description string
-- `startTime` / `endTime`: meal timestamp
+- `startTime`: meal timestamp
+- `endTime`: calculated based on calories (<300kcal: 5min, <800kcal: 15min, >=800kcal: 30min)
 **And** all fields are saved in a single Health Connect write operation
 **And** the save operation is atomic (all fields or none)
 

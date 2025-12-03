@@ -16,7 +16,7 @@ So that my nutrition data is available to other health apps without manual entry
 
 2. **And** the `name` field contains the food description from AI
 
-3. **And** `startTime` and `endTime` are set to the photo capture timestamp
+3. **And** `startTime` is set to the photo capture timestamp, and `endTime` is calculated based on calories (<300kcal: 5min, <800kcal: 15min, >=800kcal: 30min)
 
 4. **And** `startZoneOffset` and `endZoneOffset` are set to the local time zone offset
 
@@ -44,7 +44,7 @@ So that my nutrition data is available to other health apps without manual entry
       - [x] `energy = calories.toDouble().kilocalories` (using extension property)
       - [x] `name = description`
       - [x] `startTime = timestamp`
-      - [x] `endTime = timestamp`
+      - [x] `endTime = timestamp + duration` (calculated based on calories)
       - [x] `startZoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)`
       - [x] `endZoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)`
     - [x] Call `healthConnectClient.insertRecords(listOf(record))`
@@ -285,7 +285,7 @@ NutritionRecord(
     energy = calories.toDouble().kilocalories,          // Use extension property (e.g., 105.0.kilocalories)
     name = description,                                  // Food description as String
     startTime = timestamp,                              // Photo capture time
-    endTime = timestamp,                                // Same as startTime (instant meal)
+    endTime = timestamp + duration,                     // Calculated based on calories (5/15/30 min)
     startZoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp),  // Device local time zone
     endZoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)     // Same as startZoneOffset
 )
@@ -294,6 +294,10 @@ NutritionRecord(
 **Health Connect Units and Types:**
 - **Energy**: Use extension property `calories.toDouble().kilocalories` (NOT `Energy.kilocalories()` constructor)
 - **Time**: Use `Instant` (not `LocalDateTime` or `ZonedDateTime`) with separate `ZoneOffset` fields
+- **Duration**: Calculated based on calories:
+  - < 300 kcal: 5 minutes
+  - < 800 kcal: 15 minutes
+  - >= 800 kcal: 30 minutes
 - **Zone Offset**: Use `ZoneOffset.systemDefault().rules.getOffset(timestamp)` to get device local offset at specific timestamp (handles DST)
 - **Extension Properties**: Health Connect SDK provides extension properties like `.kilocalories`, `.grams`, etc. for units
 
@@ -545,7 +549,7 @@ NutritionRecord(
     energy = Energy.kilocalories(calories.toDouble()),  // Calories in kcal
     name = description,                                  // Food description from AI
     startTime = timestamp,                              // Photo capture timestamp
-    endTime = timestamp.plusSeconds(1),                 // 1 second after start (instant meal)
+    endTime = timestamp + duration,                     // Calculated based on calories (5/10/15 min)
     startZoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp),  // Device timezone at timestamp
     endZoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp),    // Same as start
     metadata = Metadata.autoRecorded(device = Device(type = Device.TYPE_PHONE))
@@ -733,7 +737,7 @@ Story 2.6 successfully adds comprehensive validation, testing, and documentation
 |-----|-------------|--------|----------|
 | 1 | NutritionRecord created with energy field (calories in kcal) | ✅ IMPLEMENTED | `HealthConnectManager.kt:133` - `energy = Energy.kilocalories(calories.toDouble())` |
 | 2 | name field contains food description from AI | ✅ IMPLEMENTED | `HealthConnectManager.kt:134` - `name = description` |
-| 3 | startTime and endTime set to photo capture timestamp | ✅ IMPLEMENTED | `HealthConnectManager.kt:130-132` - `startTime = timestamp`, `endTime = timestamp.plusSeconds(1)` |
+| 3 | startTime and endTime set to photo capture timestamp | ✅ IMPLEMENTED | `HealthConnectManager.kt:130-132` - `startTime = timestamp`, `endTime` calculated based on calories |
 | 4 | startZoneOffset and endZoneOffset set to local time zone offset | ✅ IMPLEMENTED | `HealthConnectManager.kt:128,131-132` - `zoneOffset = ZoneOffset.systemDefault().rules.getOffset(timestamp)` |
 | 5 | Record inserted using HealthConnectClient.insertRecords() | ✅ IMPLEMENTED | `HealthConnectManager.kt:139` - `healthConnectClient.insertRecords(listOf(record))` |
 | 6 | Save operation returns Health Connect record ID | ✅ IMPLEMENTED | `HealthConnectManager.kt:140-143` - `response.recordIdsList.first()` returned |
@@ -835,7 +839,7 @@ Story 2.6 successfully adds comprehensive validation, testing, and documentation
 
 **Advisory Notes (No code changes required):**
 
-- Note: Consider extracting magic number `timestamp.plusSeconds(1)` at `HealthConnectManager.kt:132` as a named constant (e.g., `INSTANT_MEAL_DURATION_SECONDS = 1L`) with documentation explaining it represents "instant meal" vs longer meal duration
+- Note: `endTime` is now calculated based on calories (5/15/30 min) instead of using a fixed 1-second duration.
 - Note: Performance warning threshold in `AnalyzeMealWorker.kt:175` is 20 seconds, but story targets <15 seconds typical - consider aligning warning threshold to match target (change `> 20_000` to `> 15_000`)
 - Note: Test names in `HealthConnectManagerTest.kt` could be more descriptive (e.g., "REQUIRED_PERMISSIONS contains correct number of permissions" → "requiredPermissions_containsExactlyTwoPermissions")
 - Note: Consider adding integration test for validation errors (attempt to insert with calories=0 or blank description and verify exception) to complement unit test coverage

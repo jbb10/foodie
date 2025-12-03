@@ -92,7 +92,7 @@ Epic 6 extends the established MVVM architecture with new domain logic for energ
   - `querySteps(startTime, endTime): List<StepsRecord>`
   - `queryWeight(): WeightRecord?` (latest record)
   - `queryHeight(): HeightRecord?` (latest record)
-  - `queryActiveCalories(startTime, endTime): List<ActiveCaloriesBurnedRecord>`
+  - `queryActiveCalories(startTime, endTime): Double` (using AggregateRequest)
   - `insertWeight(weight, timestamp): Result<Unit>`
   - `insertHeight(height, timestamp): Result<Unit>`
 
@@ -681,10 +681,10 @@ healthConnectClient.readRecords(
 
 Active Calories Query:
 ```kotlin
-// Read-only query from Garmin-synced data
-healthConnectClient.readRecords(
-    ReadRecordsRequest(
-        recordType = ActiveCaloriesBurnedRecord::class,
+// Aggregation query for total active calories (handles de-duplication)
+healthConnectClient.aggregate(
+    AggregateRequest(
+        metrics = setOf(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL),
         timeRangeFilter = TimeRangeFilter.between(
             startTime = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant(),
             endTime = Instant.now()
@@ -1353,7 +1353,7 @@ Epic 6 consists of 7 user stories with the following aggregated acceptance crite
 **Story 6.4: Active Energy Expenditure** (6 ACs)
 1. App reads ActiveCaloriesBurnedRecord from Health Connect
 2. Active calories queried for current day (midnight to now)
-3. All active calorie records summed for total daily active expenditure
+3. Active calories aggregated using ACTIVE_CALORIES_TOTAL for total daily active expenditure
 4. Active value displayed in dashboard with label "Active Exercise"
 5. If no active data exists, shows "0 kcal"
 6. Data refreshes automatically when new workouts sync from Garmin (5-minute polling)

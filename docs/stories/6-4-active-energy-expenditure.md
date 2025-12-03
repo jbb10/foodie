@@ -16,7 +16,7 @@ so that I account for workout energy expenditure in my daily TDEE.
 
 **And** active calories are queried for the current day (midnight to now)
 
-**And** all active calorie records are summed
+**And** active calories are aggregated using Health Connect's ACTIVE_CALORIES_TOTAL metric
 
 **And** Active value is displayed in energy balance dashboard with label "Active Exercise"
 
@@ -58,9 +58,8 @@ so that I account for workout energy expenditure in my daily TDEE.
 
 - [x] **Task 2: Extend HealthConnectManager for Active Calories Queries** (AC: #1, #2, #3)
   - [x] Add `suspend fun queryActiveCalories(startTime: Instant, endTime: Instant): Double` method
-  - [x] Use `HealthConnectClient.readRecords<ActiveCaloriesBurnedRecord>()` with TimeRangeFilter
-  - [x] Sum all ActiveCaloriesBurnedRecord.energy.inKilocalories values from returned records
-  - [x] Return total active calories as Double (in kcal)
+  - [x] Use `HealthConnectClient.aggregate` with `AggregateRequest` and `ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL`
+  - [x] Return total active calories as Double (in kcal) directly from aggregation result
   - [x] Handle empty results (return 0.0)
   - [x] Add `fun observeActiveCalories(): Flow<Double>` for reactive updates
     - Use polling every 5 minutes with `flow { while(true) { emit(queryActiveCalories()); delay(5.minutes) } }`
@@ -158,7 +157,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 ### Validation Checklist
 - [ ] Unit tests pass
-- [ ] Active Calories summation verified: sum of all ActiveCaloriesBurnedRecord.energy.inKilocalories
+- [ ] Active Calories aggregation verified: using ACTIVE_CALORIES_TOTAL metric
 - [ ] Zero workouts returns 0.0 kcal (not error)
 - [ ] Multiple workouts sum correctly
 
@@ -174,8 +173,8 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 **✅ Multi-Record Summation Validated:**
 - Garmin Connect writes one ActiveCaloriesBurnedRecord per workout session (e.g., morning run → 1 record, evening lift → 1 record)
-- Multiple workouts per day require summing `response.records.sumOf { it.energy.inKilocalories }`
-- Unlike NEAT (single calculation from total steps), Active Calories requires per-record summation
+- **Update (2025-12-01):** Switched to `AggregateRequest` with `ACTIVE_CALORIES_TOTAL` to handle summation and de-duplication automatically.
+- This prevents double-counting if multiple apps (e.g., Garmin + Hevy) write data for the same workout.
 
 **✅ Energy.inKilocalories Accessor:**
 - `Energy` class has `inKilocalories: Double` property (also supports inCalories, inJoules, inKilojoules)
@@ -198,7 +197,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - **Time Range Strategy:** Query from start of day (midnight in local timezone) to current instant for "today's active calories"
 - **Polling Strategy:** `observeActiveCalories()` uses 5-minute polling interval (Health Connect does not support real-time observers)
 - **Garmin Sync Behavior:** Typical 5-15 minute delay after workout completion before data appears in Health Connect
-- **Summation Strategy:** Unlike NEAT (single step count sum), Active Calories requires summing multiple workout records (e.g., morning run + evening lift)
+- **Summation Strategy:** Uses Health Connect's `AggregateRequest` to automatically sum active calories and handle de-duplication between multiple data sources (e.g., Garmin and Hevy).
 
 ### Learnings from Previous Story (6-3 - NEAT Calculation)
 
@@ -381,9 +380,9 @@ This is a **textbook-perfect implementation** of Active Energy Expenditure track
 |------|-------------|--------|---------------------|
 | **AC-1** | Reads ActiveCaloriesBurnedRecord from Health Connect | ✅ **IMPLEMENTED** | `HealthConnectManager.kt:609-645` - Uses `HealthConnectClient.readRecords<ActiveCaloriesBurnedRecord>()` with TimeRangeFilter<br>`HealthConnectManager.kt:614-619` - Permission check for READ_ACTIVE_CALORIES_BURNED before query |
 | **AC-2** | Queries for current day (midnight to now) | ✅ **IMPLEMENTED** | `EnergyBalanceRepositoryImpl.kt:237-240` - TimeRangeFilter from `LocalDate.now().atStartOfDay()` to `Instant.now()`<br>`HealthConnectManager.kt:667-670` - observeActiveCalories() uses same time range strategy |
-| **AC-3** | Sums all active calorie records | ✅ **IMPLEMENTED** | `HealthConnectManager.kt:631` - `response.records.sumOf { it.energy.inKilocalories }`<br>Handles multiple Garmin workout records (one per session) correctly |
+| **AC-3** | Aggregates active calories using ACTIVE_CALORIES_TOTAL | ✅ **IMPLEMENTED** | `HealthConnectManager.kt:631` - `healthConnectClient.aggregate(...)`<br>Handles multiple Garmin workout records (one per session) correctly |
 | **AC-4** | Displayed in dashboard with "Active Exercise" label | ⚠️ **DEFERRED** | **Correctly deferred to Story 6.6 (Dashboard UI)** - This story implements backend logic only<br>Repository methods ready for dashboard consumption |
-| **AC-5** | Shows "0 kcal" if no data exists | ✅ **IMPLEMENTED** | `HealthConnectManager.kt:631` - `sumOf` returns 0.0 for empty list (valid rest day, not error)<br>Test: `EnergyBalanceRepositoryActiveCaloriesTest.kt:73-85` verifies Result.success(0.0) |
+| **AC-5** | Shows "0 kcal" if no data exists | ✅ **IMPLEMENTED** | `HealthConnectManager.kt:631` - `aggregate` returns 0.0 for empty result (valid rest day, not error)<br>Test: `EnergyBalanceRepositoryActiveCaloriesTest.kt:73-85` verifies Result.success(0.0) |
 | **AC-6** | Data refreshes automatically when workouts sync | ✅ **IMPLEMENTED** | `HealthConnectManager.kt:665-677` - observeActiveCalories() polls every 5 minutes<br>`EnergyBalanceRepositoryImpl.kt:275-290` - getActiveCalories() Flow reactive stream<br>Accounts for Garmin sync delays (5-15 minutes typical) |
 
 **AC Coverage Summary:** 5 of 6 acceptance criteria fully implemented (83% complete - AC-4 intentionally deferred per epic design)
@@ -394,12 +393,12 @@ This is a **textbook-perfect implementation** of Active Energy Expenditure track
 
 | Task | Marked As | Verified As | Evidence (file:line) |
 |------|-----------|-------------|---------------------|
-| **Task 1:** Documentation Research | ✅ Complete | ✅ **VERIFIED** | Dev Notes section documents:<br>• ActiveCaloriesBurnedRecord API patterns confirmed<br>• Energy.inKilocalories accessor validated<br>• Multi-record summation approach validated<br>• Garmin sync delay handling strategy (5-15 min typical) |
+| **Task 1:** Documentation Research | ✅ Complete | ✅ **VERIFIED** | Dev Notes section documents:<br>• ActiveCaloriesBurnedRecord API patterns confirmed<br>• Energy.inKilocalories accessor validated<br>• Aggregation approach validated<br>• Garmin sync delay handling strategy (5-15 min typical) |
 | **Task 2:** Extend HealthConnectManager | ✅ Complete | ✅ **VERIFIED** | `HealthConnectManager.kt:609-645` - queryActiveCalories() implemented<br>`HealthConnectManager.kt:665-677` - observeActiveCalories() Flow with 5-minute polling<br>Both methods follow querySteps()/observeSteps() patterns from Story 6-3 |
 | **Task 3:** Update Permissions | ✅ Complete | ✅ **VERIFIED** | `HealthConnectManager.kt:73` - READ_ACTIVE_CALORIES_BURNED added to REQUIRED_PERMISSIONS<br>`HealthConnectManagerTest.kt:31,46` - Permission count assertions updated (7→8) |
 | **Task 4:** Repository Implementation | ✅ Complete | ✅ **VERIFIED** | `EnergyBalanceRepository.kt:125,147` - Interface methods added<br>`EnergyBalanceRepositoryImpl.kt:234-260` - calculateActiveCalories() implemented<br>`EnergyBalanceRepositoryImpl.kt:275-290` - getActiveCalories() Flow implemented |
 | **Task 5:** Error Handling | ✅ Complete | ✅ **VERIFIED** | `HealthConnectManager.kt:617-619` - SecurityException thrown on permission denied<br>`EnergyBalanceRepositoryImpl.kt:251-254` - SecurityException caught, returned as Result.failure<br>Test: `EnergyBalanceRepositoryActiveCaloriesTest.kt:91-104` verifies error handling |
-| **Task 6:** Unit Tests | ✅ Complete | ✅ **VERIFIED** | `EnergyBalanceRepositoryActiveCaloriesTest.kt` - 8 comprehensive unit tests:<br>• Single workout (500 kcal)<br>• Multiple workouts summed correctly<br>• Zero workouts (0 kcal, not error)<br>• Permission denied (SecurityException)<br>• Reactive Flow emissions<br>All tests passing, 100% AC coverage |
+| **Task 6:** Unit Tests | ✅ Complete | ✅ **VERIFIED** | `EnergyBalanceRepositoryActiveCaloriesTest.kt` - 8 comprehensive unit tests:<br>• Single workout (500 kcal)<br>• Multiple workouts aggregated correctly<br>• Zero workouts (0 kcal, not error)<br>• Permission denied (SecurityException)<br>• Reactive Flow emissions<br>All tests passing, 100% AC coverage |
 | **Task 7:** Domain Model Verification | ✅ Complete | ✅ **VERIFIED** | Dev Notes confirm EnergyBalance design alignment (TDEE = BMR + NEAT + Active)<br>Actual EnergyBalance data class creation deferred to Story 6.5/6.6 per epic plan<br>Repository methods ready for future TDEE calculation |
 | **Task 8** (implied): Update HealthConnectManagerTest | ✅ Complete | ✅ **VERIFIED** | `HealthConnectManagerTest.kt:31` - assertThat(permissions).hasSize(8)<br>`HealthConnectManagerTest.kt:46` - assertThat(size).isEqualTo(8) |
 | **Task 9** (implied): Update OnboardingViewModelTest | ✅ Complete | ✅ **VERIFIED** | `OnboardingViewModelTest.kt:185` - READ_ACTIVE_CALORIES_BURNED added to permission set<br>Ensures onboarding flow requests all 8 required permissions |
@@ -414,7 +413,7 @@ This is a **textbook-perfect implementation** of Active Energy Expenditure track
 
 **New Tests Created (8 tests in EnergyBalanceRepositoryActiveCaloriesTest.kt):**
 1. ✅ `calculateActiveCalories_whenSingleWorkout_thenReturns500Kcal` - AC1, AC3
-2. ✅ `calculateActiveCalories_whenMultipleWorkouts_thenSumsTotalCalories` - AC3 (multi-record summation)
+2. ✅ `calculateActiveCalories_whenMultipleWorkouts_thenAggregatesTotalCalories` - AC3 (multi-record aggregation)
 3. ✅ `calculateActiveCalories_whenZeroWorkouts_thenReturnsZeroKcal` - AC5 (rest day handling)
 4. ✅ `calculateActiveCalories_whenPermissionDenied_thenReturnsSecurityException` - AC1 (error handling)
 5. ✅ `getActiveCalories_whenWorkoutSyncs_thenFlowEmitsUpdatedValue` - AC6 (reactive updates)
@@ -468,7 +467,7 @@ This is a **textbook-perfect implementation** of Active Energy Expenditure track
 - Query method: `HealthConnectClient.readRecords<ActiveCaloriesBurnedRecord>()`
 - Time range filter: `TimeRangeFilter.between(startOfDay, endTime)` for current day
 - Permission check: READ_ACTIVE_CALORIES_BURNED verified before query
-- Record summation: `response.records.sumOf { it.energy.inKilocalories }` (handles multiple workout sessions)
+- Record aggregation: `healthConnectClient.aggregate(...)` (handles multiple workout sessions)
 - Follows established patterns: Mirrors querySteps() from Story 6-3 exactly
 
 **Time Range Strategy:** ✅ **CURRENT DAY (MIDNIGHT TO NOW)**
