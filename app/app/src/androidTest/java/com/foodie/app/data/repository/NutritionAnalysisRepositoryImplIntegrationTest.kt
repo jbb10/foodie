@@ -100,7 +100,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
             {
                 "id": "resp_test123",
                 "status": "completed",
-                "output_text": "{\"hasFood\": true, \"calories\": 650, \"description\": \"Grilled chicken with rice\"}",
+                "output_text": "{\"hasFood\": true, \"calories\": 650, \"protein\": 45.0, \"carbs\": 70.0, \"fat\": 15.0, \"description\": \"Grilled chicken with rice\"}",
                 "usage": {
                     "input_tokens": 1245,
                     "output_tokens": 25,
@@ -349,7 +349,7 @@ class NutritionAnalysisRepositoryImplIntegrationTest {
             {
                 "id": "resp_enhanced123",
                 "status": "completed",
-                "output_text": "{\"hasFood\": true, \"calories\": 720, \"caloriesRange\": {\"low\": 650, \"high\": 800}, \"confidence\": 0.85, \"description\": \"Grilled salmon with roasted vegetables and quinoa\", \"items\": [{\"name\": \"grilled salmon\", \"quantity\": \"1 fillet\", \"estWeightG\": 180, \"kcal\": 360}, {\"name\": \"roasted vegetables\", \"quantity\": \"1.5 cups\", \"estWeightG\": 200, \"kcal\": 150}, {\"name\": \"quinoa\", \"quantity\": \"0.5 cup cooked\", \"estWeightG\": 90, \"kcal\": 110}, {\"name\": \"olive oil drizzle\", \"quantity\": \"1 tsp\", \"estWeightG\": 5, \"kcal\": 40}], \"assumptions\": [\"Salmon portion estimated from typical dinner plate scale\", \"Vegetables appear lightly oiled\", \"Quinoa serving typical for side dish\"], \"flags\": {\"occluded\": false, \"multiPlate\": false, \"scaleCues\": [\"plate\", \"utensil\"]}}",
+                "output_text": "{\"hasFood\": true, \"calories\": 720, \"protein\": 52.0, \"carbs\": 65.0, \"fat\": 28.0, \"caloriesRange\": {\"low\": 650, \"high\": 800}, \"confidence\": 0.85, \"description\": \"Grilled salmon with roasted vegetables and quinoa\", \"items\": [{\"name\": \"grilled salmon\", \"quantity\": \"1 fillet\", \"estWeightG\": 180, \"kcal\": 360}, {\"name\": \"roasted vegetables\", \"quantity\": \"1.5 cups\", \"estWeightG\": 200, \"kcal\": 150}, {\"name\": \"quinoa\", \"quantity\": \"0.5 cup cooked\", \"estWeightG\": 90, \"kcal\": 110}, {\"name\": \"olive oil drizzle\", \"quantity\": \"1 tsp\", \"estWeightG\": 5, \"kcal\": 40}], \"assumptions\": [\"Salmon portion estimated from typical dinner plate scale\", \"Vegetables appear lightly oiled\", \"Quinoa serving typical for side dish\"], \"flags\": {\"occluded\": false, \"multiPlate\": false, \"scaleCues\": [\"plate\", \"utensil\"]}}",
                 "usage": {
                     "input_tokens": 1450,
                     "output_tokens": 180,

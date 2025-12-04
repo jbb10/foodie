@@ -158,15 +158,15 @@ class MealEntryTest {
             timestamp = timestamp,
             description = "Chicken and rice",
             calories = 650,
-            protein = 45,
-            carbs = 60,
-            fat = 20,
+            protein = 45.0,
+            carbs = 60.0,
+            fat = 20.0,
         )
 
         // Then
-        assertThat(mealEntry.protein).isEqualTo(45)
-        assertThat(mealEntry.carbs).isEqualTo(60)
-        assertThat(mealEntry.fat).isEqualTo(20)
+        assertThat(mealEntry.protein).isEqualTo(45.0)
+        assertThat(mealEntry.carbs).isEqualTo(60.0)
+        assertThat(mealEntry.fat).isEqualTo(20.0)
     }
 
     @Test
@@ -180,9 +180,9 @@ class MealEntryTest {
         )
 
         // Then
-        assertThat(mealEntry.protein).isEqualTo(0)
-        assertThat(mealEntry.carbs).isEqualTo(0)
-        assertThat(mealEntry.fat).isEqualTo(0)
+        assertThat(mealEntry.protein).isEqualTo(0.0)
+        assertThat(mealEntry.carbs).isEqualTo(0.0)
+        assertThat(mealEntry.fat).isEqualTo(0.0)
     }
 
     @Test
@@ -193,15 +193,15 @@ class MealEntryTest {
             timestamp = Instant.now(),
             description = "Extreme macros",
             calories = 5000,
-            protein = 500,
-            carbs = 1000,
-            fat = 500,
+            protein = 500.0,
+            carbs = 1000.0,
+            fat = 500.0,
         )
 
         // Then
-        assertThat(mealEntry.protein).isEqualTo(500)
-        assertThat(mealEntry.carbs).isEqualTo(1000)
-        assertThat(mealEntry.fat).isEqualTo(500)
+        assertThat(mealEntry.protein).isEqualTo(500.0)
+        assertThat(mealEntry.carbs).isEqualTo(1000.0)
+        assertThat(mealEntry.fat).isEqualTo(500.0)
     }
 
     @Test
@@ -213,9 +213,9 @@ class MealEntryTest {
                 timestamp = Instant.now(),
                 description = "Invalid protein",
                 calories = 500,
-                protein = -1,
-                carbs = 50,
-                fat = 10,
+                protein = -1.0,
+                carbs = 50.0,
+                fat = 10.0,
             )
         }
 
@@ -231,9 +231,9 @@ class MealEntryTest {
                 timestamp = Instant.now(),
                 description = "Invalid carbs",
                 calories = 500,
-                protein = 30,
-                carbs = -1,
-                fat = 10,
+                protein = 30.0,
+                carbs = -1.0,
+                fat = 10.0,
             )
         }
 
@@ -249,9 +249,9 @@ class MealEntryTest {
                 timestamp = Instant.now(),
                 description = "Invalid fat",
                 calories = 500,
-                protein = 30,
-                carbs = 50,
-                fat = -1,
+                protein = 30.0,
+                carbs = 50.0,
+                fat = -1.0,
             )
         }
 
@@ -267,9 +267,9 @@ class MealEntryTest {
                 timestamp = Instant.now(),
                 description = "Too much protein",
                 calories = 2000,
-                protein = 501,
-                carbs = 0,
-                fat = 0,
+                protein = 501.0,
+                carbs = 0.0,
+                fat = 0.0,
             )
         }
 
@@ -285,9 +285,9 @@ class MealEntryTest {
                 timestamp = Instant.now(),
                 description = "Too many carbs",
                 calories = 4000,
-                protein = 0,
-                carbs = 1001,
-                fat = 0,
+                protein = 0.0,
+                carbs = 1001.0,
+                fat = 0.0,
             )
         }
 
@@ -303,13 +303,12 @@ class MealEntryTest {
                 timestamp = Instant.now(),
                 description = "Too much fat",
                 calories = 4500,
-                protein = 0,
-                carbs = 0,
-                fat = 501,
+                protein = 0.0,
+                carbs = 0.0,
+                fat = 501.0,
             )
         }
 
         assertThat(exception.message).contains("Fat must be between 0 and 500")
     }
 }
-

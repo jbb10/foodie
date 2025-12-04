@@ -53,7 +53,7 @@ sealed class Screen(val route: String) {
             protein: Double,
             carbs: Double,
             fat: Double,
-            timestamp: Long
+            timestamp: Long,
         ): String =
             "meal_detail/$recordId?calories=$calories&description=${java.net.URLEncoder.encode(description, "UTF-8")}&protein=$protein&carbs=$carbs&fat=$fat&timestamp=$timestamp"
     }

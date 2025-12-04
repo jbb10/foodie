@@ -5,6 +5,7 @@ import com.foodie.app.data.repository.ProfileNotConfiguredError
 import com.foodie.app.domain.model.EnergyBalance
 import com.foodie.app.domain.repository.EnergyBalanceRepository
 import com.google.common.truth.Truth.assertThat
+import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
@@ -18,7 +19,6 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.time.LocalDate
 
 /**
  * Unit tests for EnergyBalanceDashboardViewModel.

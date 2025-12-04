@@ -46,12 +46,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
 import com.foodie.app.domain.model.EnergyBalance
 import com.foodie.app.ui.theme.FoodieTheme
-import timber.log.Timber
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import timber.log.Timber
 
 /**
  * Energy Balance Dashboard screen showing daily calories in vs calories out.

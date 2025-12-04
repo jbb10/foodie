@@ -663,7 +663,7 @@ class HealthConnectManager @Inject constructor(
             if (excludedRecords > 0) {
                 Timber.tag(TAG).i(
                     "Total steps: $totalSteps (from ${nonExerciseSteps.size} records, " +
-                        "excluded $excludedRecords exercise records)"
+                        "excluded $excludedRecords exercise records)",
                 )
             } else {
                 Timber.tag(TAG).i("Total steps: $totalSteps (from ${response.records.size} records)")
@@ -811,7 +811,7 @@ class HealthConnectManager @Inject constructor(
                 AggregateRequest(
                     metrics = setOf(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL),
                     timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
-                )
+                ),
             )
 
             val totalActiveCalories = response[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories ?: 0.0

@@ -3,11 +3,9 @@ package com.foodie.app.data.repository
 import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.units.Energy
 import com.foodie.app.data.local.healthconnect.HealthConnectManager
-import com.foodie.app.domain.model.EnergyBalance
 import com.foodie.app.domain.model.UserProfile
 import com.foodie.app.domain.repository.UserProfileRepository
 import com.google.common.truth.Truth.assertThat
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlinx.coroutines.flow.first
@@ -93,7 +91,7 @@ class EnergyBalanceRepositoryTDEETest {
 
         // NEAT changes: 5000 steps → 10000 steps → 15000 steps
         val stepsFlow = flow {
-            emit(5000)  // NEAT = 200 kcal
+            emit(5000) // NEAT = 200 kcal
             emit(10000) // NEAT = 400 kcal
             emit(15000) // NEAT = 600 kcal
         }
@@ -130,7 +128,7 @@ class EnergyBalanceRepositoryTDEETest {
         // Then: TDEE should update as Active changes
         val expectedBMR = (10 * 70) + (6.25 * 175) - (5 * 30) + 5
         assertThat(tdeeValues).hasSize(3)
-        assertThat(tdeeValues[0]).isWithin(0.1).of(expectedBMR + 400 + 0)   // 2043.75
+        assertThat(tdeeValues[0]).isWithin(0.1).of(expectedBMR + 400 + 0) // 2043.75
         assertThat(tdeeValues[1]).isWithin(0.1).of(expectedBMR + 400 + 500) // 2543.75
         assertThat(tdeeValues[2]).isWithin(0.1).of(expectedBMR + 400 + 800) // 2843.75
     }
@@ -152,8 +150,8 @@ class EnergyBalanceRepositoryTDEETest {
         val tdeeValues = repository.getTDEE().take(2).toList()
 
         // Then: TDEE should update as BMR changes
-        val bmr1 = (10 * 70) + (6.25 * 175) - (5 * 30) + 5  // 1643.75
-        val bmr2 = (10 * 80) + (6.25 * 175) - (5 * 30) + 5  // 1743.75
+        val bmr1 = (10 * 70) + (6.25 * 175) - (5 * 30) + 5 // 1643.75
+        val bmr2 = (10 * 80) + (6.25 * 175) - (5 * 30) + 5 // 1743.75
         assertThat(tdeeValues).hasSize(2)
         assertThat(tdeeValues[0]).isWithin(0.1).of(bmr1 + 400 + 300) // 2343.75
         assertThat(tdeeValues[1]).isWithin(0.1).of(bmr2 + 400 + 300) // 2443.75

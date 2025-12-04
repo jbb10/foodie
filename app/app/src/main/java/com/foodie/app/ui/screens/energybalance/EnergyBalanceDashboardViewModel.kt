@@ -6,15 +6,15 @@ import androidx.lifecycle.viewModelScope
 import com.foodie.app.data.repository.ProfileNotConfiguredError
 import com.foodie.app.domain.repository.EnergyBalanceRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.Instant
+import java.time.LocalDate
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.Instant
-import java.time.LocalDate
-import javax.inject.Inject
 
 /**
  * ViewModel for Energy Balance Dashboard screen.
@@ -59,9 +59,9 @@ class EnergyBalanceDashboardViewModel @Inject constructor(
     val state: StateFlow<EnergyBalanceState> = _state.asStateFlow()
 
     // Persist selectedDate across app lifecycle (backgrounding, process death)
-    private val _selectedDate = MutableStateFlow(
+    private val selectedDateFlow = MutableStateFlow(
         savedStateHandle.get<String>("selected_date")?.let { LocalDate.parse(it) }
-            ?: LocalDate.now()
+            ?: LocalDate.now(),
     )
 
     init {
@@ -70,7 +70,7 @@ class EnergyBalanceDashboardViewModel @Inject constructor(
 
         // Persist selectedDate changes to SavedStateHandle
         viewModelScope.launch {
-            _selectedDate.collect { date ->
+            selectedDateFlow.collect { date ->
                 savedStateHandle["selected_date"] = date.toString()
             }
         }
@@ -83,9 +83,9 @@ class EnergyBalanceDashboardViewModel @Inject constructor(
      * collectEnergyBalance to re-query repository with new date.
      */
     fun onPreviousDay() {
-        val newDate = _selectedDate.value.minusDays(1)
+        val newDate = selectedDateFlow.value.minusDays(1)
         Timber.d("Navigating to previous day: $newDate")
-        _selectedDate.value = newDate
+        selectedDateFlow.value = newDate
         _state.update { it.copy(selectedDate = newDate, isLoading = true) }
         collectEnergyBalance()
     }
@@ -96,7 +96,7 @@ class EnergyBalanceDashboardViewModel @Inject constructor(
      * Updates selectedDate to selectedDate.plusDays(1), disabled if already viewing today.
      */
     fun onNextDay() {
-        val currentDate = _selectedDate.value
+        val currentDate = selectedDateFlow.value
         if (currentDate >= LocalDate.now()) {
             Timber.d("Cannot navigate to future dates (already on today)")
             return
@@ -104,7 +104,7 @@ class EnergyBalanceDashboardViewModel @Inject constructor(
 
         val newDate = currentDate.plusDays(1)
         Timber.d("Navigating to next day: $newDate")
-        _selectedDate.value = newDate
+        selectedDateFlow.value = newDate
         _state.update { it.copy(selectedDate = newDate, isLoading = true) }
         collectEnergyBalance()
     }
@@ -118,7 +118,7 @@ class EnergyBalanceDashboardViewModel @Inject constructor(
     fun onTodayClicked() {
         val today = LocalDate.now()
         Timber.d("Navigating to today: $today")
-        _selectedDate.value = today
+        selectedDateFlow.value = today
         _state.update { it.copy(selectedDate = today, isLoading = true) }
         collectEnergyBalance()
     }
@@ -142,11 +142,11 @@ class EnergyBalanceDashboardViewModel @Inject constructor(
     private fun collectEnergyBalance() {
         viewModelScope.launch {
             try {
-                repository.getEnergyBalance(_selectedDate.value)
+                repository.getEnergyBalance(selectedDateFlow.value)
                     .collect { result ->
                         result.fold(
                             onSuccess = { energyBalance ->
-                                Timber.d("Energy balance updated for ${_selectedDate.value}: $energyBalance")
+                                Timber.d("Energy balance updated for ${selectedDateFlow.value}: $energyBalance")
                                 _state.update { currentState ->
                                     currentState.copy(
                                         energyBalance = energyBalance,
@@ -154,18 +154,18 @@ class EnergyBalanceDashboardViewModel @Inject constructor(
                                         isLoading = false,
                                         error = null,
                                         showSettingsButton = false,
-                                        selectedDate = _selectedDate.value,
+                                        selectedDate = selectedDateFlow.value,
                                     )
                                 }
                             },
                             onFailure = { exception ->
-                                Timber.e(exception, "Failed to fetch energy balance for ${_selectedDate.value}")
+                                Timber.e(exception, "Failed to fetch energy balance for ${selectedDateFlow.value}")
                                 _state.update { currentState ->
                                     currentState.copy(
                                         isLoading = false,
                                         error = exception.message ?: "Unknown error occurred",
                                         showSettingsButton = exception is ProfileNotConfiguredError,
-                                        selectedDate = _selectedDate.value,
+                                        selectedDate = selectedDateFlow.value,
                                     )
                                 }
                             },
@@ -179,7 +179,7 @@ class EnergyBalanceDashboardViewModel @Inject constructor(
                         isLoading = false,
                         error = "Health Connect permissions are required to view your energy balance. Tap 'Grant Access' to allow Foodie to read your activity data.",
                         showSettingsButton = true,
-                        selectedDate = _selectedDate.value,
+                        selectedDate = selectedDateFlow.value,
                     )
                 }
             } catch (e: Exception) {
@@ -190,7 +190,7 @@ class EnergyBalanceDashboardViewModel @Inject constructor(
                         isLoading = false,
                         error = e.message ?: "Unexpected error occurred",
                         showSettingsButton = false,
-                        selectedDate = _selectedDate.value,
+                        selectedDate = selectedDateFlow.value,
                     )
                 }
             }

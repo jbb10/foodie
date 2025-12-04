@@ -63,38 +63,38 @@ object NutritionAnalysisSchema {
         "properties" to mapOf(
             "hasFood" to mapOf(
                 "type" to "boolean",
-                "description" to "True if food was detected in the image, false otherwise"
+                "description" to "True if food was detected in the image, false otherwise",
             ),
             "calories" to mapOf(
                 "type" to "integer",
-                "description" to "Estimated total calories for all visible food (1-5000 kcal, rounded to nearest 10). Set to 0 if hasFood=false."
+                "description" to "Estimated total calories for all visible food (1-5000 kcal, rounded to nearest 10). Set to 0 if hasFood=false.",
             ),
             "protein" to mapOf(
                 "type" to "integer",
-                "description" to "Estimated total protein in grams (0-500g, rounded to nearest gram). Set to 0 if hasFood=false."
+                "description" to "Estimated total protein in grams (0-500g, rounded to nearest gram). Set to 0 if hasFood=false.",
             ),
             "carbs" to mapOf(
                 "type" to "integer",
-                "description" to "Estimated total carbohydrates in grams (0-1000g, rounded to nearest gram). Set to 0 if hasFood=false."
+                "description" to "Estimated total carbohydrates in grams (0-1000g, rounded to nearest gram). Set to 0 if hasFood=false.",
             ),
             "fat" to mapOf(
                 "type" to "integer",
-                "description" to "Estimated total fat in grams (0-500g, rounded to nearest gram). Set to 0 if hasFood=false."
+                "description" to "Estimated total fat in grams (0-500g, rounded to nearest gram). Set to 0 if hasFood=false.",
             ),
             "description" to mapOf(
                 "type" to "string",
-                "description" to "Brief natural language description of the meal or packaged food product. Set to empty string if hasFood=false."
+                "description" to "Brief natural language description of the meal or packaged food product. Set to empty string if hasFood=false.",
             ),
             "confidence" to mapOf(
                 "type" to "number",
-                "description" to "Estimation confidence level (0.0 to 1.0). Set to 0.0 if hasFood=false."
+                "description" to "Estimation confidence level (0.0 to 1.0). Set to 0.0 if hasFood=false.",
             ),
             "reason" to mapOf(
                 "type" to "string",
-                "description" to "Explanation of what was detected instead of food when hasFood=false. Set to empty string if hasFood=true."
-            )
+                "description" to "Explanation of what was detected instead of food when hasFood=false. Set to empty string if hasFood=true.",
+            ),
         ),
         "required" to listOf("hasFood", "calories", "protein", "carbs", "fat", "description", "confidence", "reason"),
-        "additionalProperties" to false
+        "additionalProperties" to false,
     )
 }

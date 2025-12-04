@@ -38,9 +38,9 @@ class NutritionDataTest {
         // When
         val nutritionData = NutritionData(
             calories = calories,
-            protein = protein,
-            carbs = carbs,
-            fat = fat,
+            protein = protein.toDouble(),
+            carbs = carbs.toDouble(),
+            fat = fat.toDouble(),
             description = description,
         )
 
@@ -137,46 +137,46 @@ class NutritionDataTest {
         // When
         val nutritionData = NutritionData(
             calories = 100,
-            protein = 0,
-            carbs = 20,
-            fat = 5,
+            protein = 0.0,
+            carbs = 20.0,
+            fat = 5.0,
             description = "Fruit snack",
         )
 
         // Then
-        assertThat(nutritionData.protein).isEqualTo(0)
+        assertThat(nutritionData.protein).isEqualTo(0.0)
     }
 
     @Test
     fun `constructor should accept protein at maximum valid value 500`() {
         // When
         val nutritionData = NutritionData(
-            calories = 2000,
-            protein = 500,
-            carbs = 0,
-            fat = 0,
-            description = "Pure protein powder",
+            calories = 1000,
+            protein = 500.0,
+            carbs = 50.0,
+            fat = 20.0,
+            description = "High protein meal",
         )
 
         // Then
-        assertThat(nutritionData.protein).isEqualTo(500)
+        assertThat(nutritionData.protein).isEqualTo(500.0)
     }
 
     @Test
-    fun `constructor should throw exception when protein is negative`() {
+    fun `constructor should throw exception when fat exceeds maximum value`() {
         // When/Then
         val exception = org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
             NutritionData(
-                calories = 500,
-                protein = -1,
-                carbs = 50,
-                fat = 10,
-                description = "Invalid protein",
+                calories = 1500,
+                protein = 100.0,
+                carbs = 200.0,
+                fat = 501.0,
+                description = "Invalid",
             )
         }
 
-        assertThat(exception.message).contains("Protein must be between 0 and 500")
-        assertThat(exception.message).contains("-1")
+        assertThat(exception.message).contains("Fat must be between 0 and 500")
+        assertThat(exception.message).contains("501")
     }
 
     @Test
@@ -185,9 +185,9 @@ class NutritionDataTest {
         val exception = org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
             NutritionData(
                 calories = 2000,
-                protein = 501,
-                carbs = 0,
-                fat = 0,
+                protein = 501.0,
+                carbs = 0.0,
+                fat = 0.0,
                 description = "Too much protein",
             )
         }
@@ -197,33 +197,33 @@ class NutritionDataTest {
     }
 
     @Test
-    fun `constructor should accept carbs at minimum valid value 0`() {
+    fun `constructor should accept fat at minimum valid value 0`() {
         // When
         val nutritionData = NutritionData(
-            calories = 200,
-            protein = 40,
-            carbs = 0,
-            fat = 10,
-            description = "Zero carb meal",
+            calories = 150,
+            protein = 30.0,
+            carbs = 20.0,
+            fat = 0.0,
+            description = "Zero fat meal",
         )
 
         // Then
-        assertThat(nutritionData.carbs).isEqualTo(0)
+        assertThat(nutritionData.fat).isEqualTo(0.0)
     }
 
     @Test
     fun `constructor should accept carbs at maximum valid value 1000`() {
         // When
         val nutritionData = NutritionData(
-            calories = 4000,
-            protein = 0,
-            carbs = 1000,
-            fat = 0,
-            description = "High carb load",
+            calories = 2000,
+            protein = 50.0,
+            carbs = 1000.0,
+            fat = 30.0,
+            description = "High carb meal",
         )
 
         // Then
-        assertThat(nutritionData.carbs).isEqualTo(1000)
+        assertThat(nutritionData.carbs).isEqualTo(1000.0)
     }
 
     @Test
@@ -231,11 +231,11 @@ class NutritionDataTest {
         // When/Then
         val exception = org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
             NutritionData(
-                calories = 500,
-                protein = 30,
-                carbs = -1,
-                fat = 10,
-                description = "Invalid carbs",
+                calories = 200,
+                protein = 40.0,
+                carbs = -1.0,
+                fat = 10.0,
+                description = "Invalid data",
             )
         }
 
@@ -249,9 +249,9 @@ class NutritionDataTest {
         val exception = org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
             NutritionData(
                 calories = 4000,
-                protein = 0,
-                carbs = 1001,
-                fat = 0,
+                protein = 0.0,
+                carbs = 1001.0,
+                fat = 0.0,
                 description = "Too many carbs",
             )
         }
@@ -261,33 +261,18 @@ class NutritionDataTest {
     }
 
     @Test
-    fun `constructor should accept fat at minimum valid value 0`() {
-        // When
-        val nutritionData = NutritionData(
-            calories = 300,
-            protein = 50,
-            carbs = 50,
-            fat = 0,
-            description = "Fat-free meal",
-        )
-
-        // Then
-        assertThat(nutritionData.fat).isEqualTo(0)
-    }
-
-    @Test
     fun `constructor should accept fat at maximum valid value 500`() {
         // When
         val nutritionData = NutritionData(
-            calories = 4500,
-            protein = 0,
-            carbs = 0,
-            fat = 500,
-            description = "Pure fat",
+            calories = 1500,
+            protein = 100.0,
+            carbs = 200.0,
+            fat = 500.0,
+            description = "High-fat meal",
         )
 
         // Then
-        assertThat(nutritionData.fat).isEqualTo(500)
+        assertThat(nutritionData.fat).isEqualTo(500.0)
     }
 
     @Test
@@ -295,11 +280,11 @@ class NutritionDataTest {
         // When/Then
         val exception = org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
             NutritionData(
-                calories = 500,
-                protein = 30,
-                carbs = 50,
-                fat = -1,
-                description = "Invalid fat",
+                calories = 300,
+                protein = 50.0,
+                carbs = 50.0,
+                fat = -1.0,
+                description = "Invalid",
             )
         }
 
@@ -313,9 +298,9 @@ class NutritionDataTest {
         val exception = org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
             NutritionData(
                 calories = 4500,
-                protein = 0,
-                carbs = 0,
-                fat = 501,
+                protein = 0.0,
+                carbs = 0.0,
+                fat = 501.0,
                 description = "Too much fat",
             )
         }
@@ -329,18 +314,17 @@ class NutritionDataTest {
         // When
         val nutritionData = NutritionData(
             calories = 650,
-            protein = 45,
-            carbs = 60,
-            fat = 20,
+            protein = 45.0,
+            carbs = 60.0,
+            fat = 20.0,
             description = "Balanced chicken and rice meal",
         )
 
         // Then
-        assertThat(nutritionData.protein).isEqualTo(45)
-        assertThat(nutritionData.carbs).isEqualTo(60)
-        assertThat(nutritionData.fat).isEqualTo(20)
+        assertThat(nutritionData.protein).isEqualTo(45.0)
+        assertThat(nutritionData.carbs).isEqualTo(60.0)
+        assertThat(nutritionData.fat).isEqualTo(20.0)
         // Verify approx calorie calculation: (45*4) + (60*4) + (20*9) = 180 + 240 + 180 = 600
         // Actual calories 650 is reasonable (includes fiber, alcohol, etc.)
     }
 }
-

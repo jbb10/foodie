@@ -11,11 +11,11 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.foodie.app.ui.theme.FoodieTheme
 import com.google.common.truth.Truth.assertThat
-import org.junit.Rule
-import org.junit.Test
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * UI instrumentation tests for EnergyBalanceDashboard date navigation.

@@ -191,7 +191,9 @@ class HealthConnectIntegrationTest {
             assertThat(record1).isNotNull()
             assertThat(record1!!.endTime).isEqualTo(timestamp.plus(5, java.time.temporal.ChronoUnit.MINUTES))
             manager.deleteNutritionRecord(id1)
-        } catch (e: SecurityException) { return@runTest }
+        } catch (e: SecurityException) {
+            return@runTest
+        }
 
         // Case 2: 300-799 cal -> 15 min
         try {
@@ -201,7 +203,9 @@ class HealthConnectIntegrationTest {
             assertThat(record2).isNotNull()
             assertThat(record2!!.endTime).isEqualTo(timestamp.plus(15, java.time.temporal.ChronoUnit.MINUTES))
             manager.deleteNutritionRecord(id2)
-        } catch (e: SecurityException) { return@runTest }
+        } catch (e: SecurityException) {
+            return@runTest
+        }
 
         // Case 3: >= 800 cal -> 30 min
         try {
@@ -211,7 +215,9 @@ class HealthConnectIntegrationTest {
             assertThat(record3).isNotNull()
             assertThat(record3!!.endTime).isEqualTo(timestamp.plus(30, java.time.temporal.ChronoUnit.MINUTES))
             manager.deleteNutritionRecord(id3)
-        } catch (e: SecurityException) { return@runTest }
+        } catch (e: SecurityException) {
+            return@runTest
+        }
     }
 
     @Test

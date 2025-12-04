@@ -19,7 +19,7 @@ class ScreenTest {
     @Test
     fun `MealDetail route should contain all required query parameters`() {
         assertThat(Screen.MealDetail.route)
-            .isEqualTo("meal_detail/{recordId}?calories={calories}&description={description}&timestamp={timestamp}")
+            .isEqualTo("meal_detail/{recordId}?calories={calories}&description={description}&protein={protein}&carbs={carbs}&fat={fat}&timestamp={timestamp}")
     }
 
     @Test
@@ -28,11 +28,14 @@ class ScreenTest {
             recordId = "test-meal-123",
             calories = 450,
             description = "Grilled chicken",
+            protein = 0.0,
+            carbs = 0.0,
+            fat = 0.0,
             timestamp = 1731421800000L,
         )
 
         assertThat(route)
-            .isEqualTo("meal_detail/test-meal-123?calories=450&description=Grilled+chicken&timestamp=1731421800000")
+            .isEqualTo("meal_detail/test-meal-123?calories=450&description=Grilled+chicken&protein=0.0&carbs=0.0&fat=0.0&timestamp=1731421800000")
     }
 
     @Test
@@ -41,11 +44,14 @@ class ScreenTest {
             recordId = "abc-123-xyz",
             calories = 620,
             description = "Yogurt & berries",
-            timestamp = 1731421800000L,
+            protein = 0.0,
+            carbs = 0.0,
+            fat = 0.0,
+            timestamp = 1731422400000L,
         )
 
         assertThat(route)
-            .isEqualTo("meal_detail/abc-123-xyz?calories=620&description=Yogurt+%26+berries&timestamp=1731421800000")
+            .isEqualTo("meal_detail/abc-123-xyz?calories=620&description=Yogurt+%26+berries&protein=0.0&carbs=0.0&fat=0.0&timestamp=1731422400000")
     }
 
     @Test

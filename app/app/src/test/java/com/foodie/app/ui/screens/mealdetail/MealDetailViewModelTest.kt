@@ -47,6 +47,9 @@ class MealDetailViewModelTest {
                 "recordId" to testRecordId,
                 "calories" to testCalories,
                 "description" to testDescription,
+                "protein" to "0.0",
+                "carbs" to "0.0",
+                "fat" to "0.0",
                 "timestamp" to testTimestamp.toEpochMilli(),
             ),
         )
@@ -222,9 +225,9 @@ class MealDetailViewModelTest {
         verify(updateMealEntryUseCase).invoke(
             recordId = testRecordId,
             calories = testCalories.toInt(),
-            protein = 0,
-            carbs = 0,
-            fat = 0,
+            protein = 0.0,
+            carbs = 0.0,
+            fat = 0.0,
             description = testDescription,
             timestamp = testTimestamp,
         )
@@ -265,9 +268,9 @@ class MealDetailViewModelTest {
         verify(updateMealEntryUseCase).invoke(
             recordId = testRecordId,
             calories = testCalories.toInt(),
-            protein = 0,
-            carbs = 0,
-            fat = 0,
+            protein = 0.0,
+            carbs = 0.0,
+            fat = 0.0,
             description = testDescription,
             timestamp = testTimestamp,
         )

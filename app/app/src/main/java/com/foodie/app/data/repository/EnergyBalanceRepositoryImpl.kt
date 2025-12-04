@@ -598,7 +598,7 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
 
         Timber.tag(TAG).d(
             "EnergyBalance calculated: TDEE=$tdee kcal (BMR=$bmr + NEAT=$neat + Active=$active), " +
-                "CaloriesIn=$caloriesIn, Deficit/Surplus=$deficitSurplus, Macros: P=${protein}g C=${carbs}g F=${fat}g"
+                "CaloriesIn=$caloriesIn, Deficit/Surplus=$deficitSurplus, Macros: P=${protein}g C=${carbs}g F=${fat}g",
         )
 
         return Result.success(energyBalance)
@@ -710,7 +710,7 @@ class EnergyBalanceRepositoryImpl @Inject constructor(
 
             Timber.tag(TAG).d(
                 "Historical EnergyBalance for $date: TDEE=$tdee kcal (BMR=$bmr + NEAT=$neat + Active=$active), " +
-                    "CaloriesIn=$caloriesIn, Deficit/Surplus=$deficitSurplus, Macros: P=${totalProtein}g C=${totalCarbs}g F=${totalFat}g"
+                    "CaloriesIn=$caloriesIn, Deficit/Surplus=$deficitSurplus, Macros: P=${totalProtein}g C=${totalCarbs}g F=${totalFat}g",
             )
 
             return Result.success(energyBalance)

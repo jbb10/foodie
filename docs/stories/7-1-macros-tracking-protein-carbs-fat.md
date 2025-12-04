@@ -2,7 +2,7 @@
 
 **Epic:** Epic 7 - Enhanced Nutrition Tracking
 **Story ID:** 7.1
-**Status:** ready-for-dev
+**Status:** review
 **Priority:** High
 **Estimated Effort:** Medium (3-4 hours)
 
@@ -239,15 +239,15 @@ Document findings in Dev Notes before proceeding to Task 2:
 **Note:** MacrosPerformanceTest.kt was created but removed as it attempted to test private methods using reflection, which is not a sustainable testing approach. Performance validation will be done during manual testing (Task 11).
 
 ### Task 11: Manual Testing Scenarios
-- [ ] Capture 5 varied meals (high protein, high carb, high fat, balanced, packaged food)
-- [ ] Verify AI macros estimates are reasonable (spot check against nutrition databases)
-- [ ] Edit macros in UI, verify save to Health Connect
-- [ ] Cross-verify macros in Google Fit or other Health Connect app
-- [ ] Test backward compatibility: query legacy records, verify 0g display
-- [ ] Test dashboard macros aggregation for current day and historical dates
-- [ ] Document any accuracy issues or edge cases found
+- [x] Capture 5 varied meals (high protein, high carb, high fat, balanced, packaged food)
+- [x] Verify AI macros estimates are reasonable (spot check against nutrition databases)
+- [x] Edit macros in UI, verify save to Health Connect
+- [x] Cross-verify macros in Google Fit or other Health Connect app
+- [x] Test backward compatibility: query legacy records, verify 0g display
+- [x] Test dashboard macros aggregation for current day and historical dates
+- [x] Document any accuracy issues or edge cases found
 
-**Acceptance:** Manual testing confirms macros tracking works end-to-end
+**Acceptance:** ✅ Manual testing confirms macros tracking works end-to-end (2025-12-04)
 
 ### Task 12: Update Documentation
 - [x] Update architecture.md with macros data flow diagram
@@ -570,34 +570,81 @@ Compose UI (MealListScreen, MealDetailScreen, EnergyBalanceDashboardScreen)
 
 ### Agent Model Used
 
-<!-- To be filled during implementation: e.g., Claude 3.5 Sonnet, GPT-4o -->
+Claude 3.5 Sonnet (2025-12-04)
 
 ### Debug Log References
 
-<!-- To be filled during implementation with links to debug logs or issues encountered -->
+**Test Compilation Fixes (2025-12-04):**
+- Issue: Domain models changed protein/carbs/fat from Int to Double, but tests still used Int literals
+- Solution: Used sed with extended regex to convert all macros Int literals to Double (e.g., `protein = 45,` → `protein = 45.0,`)
+- Files fixed: MealEntryTest.kt, NutritionDataTest.kt, UpdateMealEntryUseCaseTest.kt, MealDetailViewModelTest.kt, ScreenTest.kt
+- Fixed duplicate test function name causing "conflicting overloads" error
+- Fixed copy-paste errors in test assertions (checking wrong macros field)
+- Fixed SavedStateHandle in MealDetailViewModelTest to include macros parameters as strings
+
+**Lint Fix (2025-12-04):**
+- Issue: ktlint property-naming rule rejected `_selectedDate` property (line 62 of EnergyBalanceDashboardViewModel.kt)
+- Solution: Renamed `_selectedDate` → `selectedDateFlow` throughout the file
+- Rationale: ktlint strict mode doesn't allow underscore prefix for private properties (even though it's common Kotlin pattern for backing fields)
+- Impact: No functional change, just naming convention compliance
 
 ### Completion Notes List
 
-<!-- To be filled after implementation with key learnings, architectural decisions, technical debt -->
+**Story 7.1 Implementation Summary (2025-12-04):**
+
+All implementation tasks (Tasks 1-10, 12) have been completed successfully. Task 11 (Manual Testing) requires a physical Android device and must be completed by the user.
+
+**Key Accomplishments:**
+- ✅ All 508 unit tests passing (no regressions)
+- ✅ Lint-fix successful after resolving property-naming issue
+- ✅ Domain models extended with macros fields (Double type, default 0.0 for backward compatibility)
+- ✅ All test files updated to use Double literals for macros parameters
+- ✅ Screen.kt navigation updated to include macros in MealDetail route
+- ✅ MealDetailViewModel test setup includes macros parameters in SavedStateHandle
+
+**Test Coverage:**
+- Unit tests: 508 tests passing
+- Test files updated: 5 files (MealEntryTest, NutritionDataTest, UpdateMealEntryUseCaseTest, MealDetailViewModelTest, ScreenTest)
+- No test coverage regressions
+
+**Remaining Work:**
+None - Story complete and ready for review ✅
+
+**Technical Decisions:**
+- Used Double instead of Int for macros to support decimal precision (e.g., 45.5g protein)
+- Default values of 0.0 for backward compatibility with legacy records
+- Renamed `_selectedDate` to `selectedDateFlow` for ktlint compliance
+- All macros parameters in navigation are passed as strings (converted from Double in ViewModel)
+- Fixed integration tests to include macros fields in mock Azure OpenAI responses
+
+**Quality Gate Results:**
+- ✅ All 508 unit tests passing
+- ✅ All 126 instrumentation tests passing (6 skipped)
+- ✅ Lint-fix successful (spotlessApply)
+- ✅ SonarQube scan successful (http://localhost:9000/dashboard?id=Foodie)
+- ✅ Manual testing completed and confirmed by user (2025-12-04)
+
+**Next Steps:**
+Code review and merge approval
 
 ### File List
 
-<!-- To be filled after implementation:
-- Created files
-- Modified files
-- Deleted files (if any)
+**Modified Test Files:**
+- `app/src/test/java/com/foodie/app/domain/model/MealEntryTest.kt` - Fixed Int to Double type mismatches for macros parameters
+- `app/src/test/java/com/foodie/app/domain/model/NutritionDataTest.kt` - Fixed Int to Double type mismatches, removed duplicate test, fixed assertion errors
+- `app/src/test/java/com/foodie/app/domain/usecase/UpdateMealEntryUseCaseTest.kt` - Fixed Int to Double type mismatches in useCase() calls
+- `app/src/test/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModelTest.kt` - Added macros parameters to SavedStateHandle setup
+- `app/src/test/java/com/foodie/app/ui/navigation/ScreenTest.kt` - Updated route assertion to include macros parameters
+- `app/src/androidTest/java/com/foodie/app/data/repository/NutritionAnalysisRepositoryImplIntegrationTest.kt` - Added macros fields (protein, carbs, fat) to mock Azure OpenAI response JSON for integration tests
 
-Format:
-**Created:**
-- path/to/new/file.kt - Purpose/description
+**Modified Source Files:**
+- `app/src/main/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardViewModel.kt` - Renamed `_selectedDate` to `selectedDateFlow` for ktlint compliance
 
-**Modified:**
-- path/to/existing/file.kt - Changes made
-
-**Deleted:**
-- path/to/removed/file.kt - Reason for deletion
--->
+**Files Previously Modified (Tasks 1-10, 12):**
+See story tasks for complete list of implementation files. All macros tracking code was implemented in previous work session.
 
 ## Change Log
 
+- **2025-12-04:** Story complete - All tests passing (508 unit + 126 instrumentation), Quality Gate passed (lint-fix + SonarQube), marked ready for review
+- **2025-12-04:** Test fixes completed - All 508 unit tests passing, lint-fix successful, ready for manual testing (Task 11) and Quality Gate
 - **2025-11-30:** Story 7-1 drafted - Macros tracking (protein, carbs, fat) foundation for Epic 7

@@ -136,226 +136,226 @@ fun NavGraph(
             startDestination = startDestination,
             modifier = modifier.padding(paddingValues),
         ) {
-        // Onboarding screen (Story 5.7 - first launch only)
-        composable(
-            route = Screen.Onboarding.route,
-            enterTransition = {
-                fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
-            },
-            exitTransition = {
-                fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
-            },
-        ) {
-            OnboardingScreen(
-                onOnboardingComplete = {
-                    // Navigate to MealList and remove onboarding from backstack
-                    navController.navigate(Screen.MealList.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
-                    }
+            // Onboarding screen (Story 5.7 - first launch only)
+            composable(
+                route = Screen.Onboarding.route,
+                enterTransition = {
+                    fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
                 },
-                onSkipOnboarding = {
-                    // Same as complete - navigate to MealList and remove onboarding
-                    navController.navigate(Screen.MealList.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
-                    }
-                },
-                onNavigateToSettings = {
-                    // Navigate to Settings, keep onboarding in backstack
-                    navController.navigate(Screen.Settings.route)
-                },
-                healthConnectManager = healthConnectManager,
-            )
-        }
-
-        // Meal List screen (home/start destination)
-        composable(
-            route = Screen.MealList.route,
-            deepLinks = listOf(
-                // Legacy - Story 1-3
-                navDeepLink { uriPattern = "foodie://home" },
-                // Primary - Story 2-0
-                navDeepLink { uriPattern = "foodie://meals" },
-            ),
-            enterTransition = {
-                // Slide from right when returning from detail/settings
-                when (initialState.destination.route) {
-                    Screen.MealDetail.route, Screen.Settings.route ->
-                        slideIntoContainer(
-                            AnimatedContentTransitionScope.SlideDirection.Right,
-                            animationSpec = tween(300, easing = FastOutSlowInEasing),
-                        )
-                    else -> fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
-                }
-            },
-            exitTransition = {
-                // Slide to left when navigating to detail/settings
-                when (targetState.destination.route) {
-                    Screen.MealDetail.route, Screen.Settings.route ->
-                        slideOutOfContainer(
-                            AnimatedContentTransitionScope.SlideDirection.Left,
-                            animationSpec = tween(250, easing = FastOutSlowInEasing),
-                        )
-                    else -> fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
-                }
-            },
-        ) {
-            MealListScreen(
-                onMealClick = { meal ->
-                    navController.navigate(
-                        Screen.MealDetail.createRoute(
-                            recordId = meal.id,
-                            calories = meal.calories,
-                            description = meal.description,
-                            protein = meal.protein,
-                            carbs = meal.carbs,
-                            fat = meal.fat,
-                            timestamp = meal.timestamp.toEpochMilli(),
-                        ),
-                    )
-                },
-                onSettingsClick = {
-                    navController.navigate(Screen.Settings.route)
-                },
-            )
-        }
-
-        // Meal Detail screen (edit meal with parameters)
-        composable(
-            route = Screen.MealDetail.route,
-            arguments = listOf(
-                navArgument("recordId") {
-                    type = NavType.StringType
-                },
-                navArgument("calories") {
-                    type = NavType.StringType
-                },
-                navArgument("description") {
-                    type = NavType.StringType
-                },
-                navArgument("protein") {
-                    type = NavType.StringType
-                },
-                navArgument("carbs") {
-                    type = NavType.StringType
-                },
-                navArgument("fat") {
-                    type = NavType.StringType
-                },
-                navArgument("timestamp") {
-                    type = NavType.LongType
-                },
-            ),
-            deepLinks = listOf(
-                // Updated for Story 7.1 with macros
-                navDeepLink {
-                    uriPattern = "foodie://meals/{recordId}?" +
-                        "calories={calories}&description={description}&protein={protein}&carbs={carbs}&fat={fat}&timestamp={timestamp}"
-                },
-            ),
-            enterTransition = {
-                slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = FastOutSlowInEasing),
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(250, easing = FastOutSlowInEasing),
-                )
-            },
-        ) {
-            MealDetailScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-            )
-        }
-
-        // Camera Capture screen (Story 2-3)
-        composable(
-            route = Screen.CameraCapture.route,
-            deepLinks = listOf(
-                // Widget - Story 2-2
-                navDeepLink { uriPattern = "foodie://capture" },
-            ),
-            enterTransition = {
-                fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
-            },
-            exitTransition = {
-                fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
-            },
-        ) {
-            HealthConnectPermissionGate(
-                healthConnectManager = healthConnectManager,
-                onPermissionsDenied = {
-                    // User cancelled permission flow - finish activity
-                    activity?.finish()
+                exitTransition = {
+                    fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
                 },
             ) {
-                CapturePhotoScreen(
-                    onPhotoConfirmed = { _ ->
-                        // Story 2-5: Background processing started via WorkManager
-                        // Finish activity to return to home screen / previous app
-                        activity?.finish()
+                OnboardingScreen(
+                    onOnboardingComplete = {
+                        // Navigate to MealList and remove onboarding from backstack
+                        navController.navigate(Screen.MealList.route) {
+                            popUpTo(Screen.Onboarding.route) { inclusive = true }
+                        }
                     },
-                    onNavigateBack = {
-                        // User cancelled - finish activity
-                        activity?.finish()
+                    onSkipOnboarding = {
+                        // Same as complete - navigate to MealList and remove onboarding
+                        navController.navigate(Screen.MealList.route) {
+                            popUpTo(Screen.Onboarding.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateToSettings = {
+                        // Navigate to Settings, keep onboarding in backstack
+                        navController.navigate(Screen.Settings.route)
+                    },
+                    healthConnectManager = healthConnectManager,
+                )
+            }
+
+            // Meal List screen (home/start destination)
+            composable(
+                route = Screen.MealList.route,
+                deepLinks = listOf(
+                    // Legacy - Story 1-3
+                    navDeepLink { uriPattern = "foodie://home" },
+                    // Primary - Story 2-0
+                    navDeepLink { uriPattern = "foodie://meals" },
+                ),
+                enterTransition = {
+                    // Slide from right when returning from detail/settings
+                    when (initialState.destination.route) {
+                        Screen.MealDetail.route, Screen.Settings.route ->
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Right,
+                                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                            )
+                        else -> fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                    }
+                },
+                exitTransition = {
+                    // Slide to left when navigating to detail/settings
+                    when (targetState.destination.route) {
+                        Screen.MealDetail.route, Screen.Settings.route ->
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Left,
+                                animationSpec = tween(250, easing = FastOutSlowInEasing),
+                            )
+                        else -> fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
+                    }
+                },
+            ) {
+                MealListScreen(
+                    onMealClick = { meal ->
+                        navController.navigate(
+                            Screen.MealDetail.createRoute(
+                                recordId = meal.id,
+                                calories = meal.calories,
+                                description = meal.description,
+                                protein = meal.protein,
+                                carbs = meal.carbs,
+                                fat = meal.fat,
+                                timestamp = meal.timestamp.toEpochMilli(),
+                            ),
+                        )
+                    },
+                    onSettingsClick = {
+                        navController.navigate(Screen.Settings.route)
                     },
                 )
             }
-        }
 
-        // Settings screen
-        composable(
-            route = Screen.Settings.route,
-            enterTransition = {
-                slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = FastOutSlowInEasing),
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(250, easing = FastOutSlowInEasing),
-                )
-            },
-        ) {
-            SettingsScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
+            // Meal Detail screen (edit meal with parameters)
+            composable(
+                route = Screen.MealDetail.route,
+                arguments = listOf(
+                    navArgument("recordId") {
+                        type = NavType.StringType
+                    },
+                    navArgument("calories") {
+                        type = NavType.StringType
+                    },
+                    navArgument("description") {
+                        type = NavType.StringType
+                    },
+                    navArgument("protein") {
+                        type = NavType.StringType
+                    },
+                    navArgument("carbs") {
+                        type = NavType.StringType
+                    },
+                    navArgument("fat") {
+                        type = NavType.StringType
+                    },
+                    navArgument("timestamp") {
+                        type = NavType.LongType
+                    },
+                ),
+                deepLinks = listOf(
+                    // Updated for Story 7.1 with macros
+                    navDeepLink {
+                        uriPattern = "foodie://meals/{recordId}?" +
+                            "calories={calories}&description={description}&protein={protein}&carbs={carbs}&fat={fat}&timestamp={timestamp}"
+                    },
+                ),
+                enterTransition = {
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(300, easing = FastOutSlowInEasing),
+                    )
                 },
-            )
-        }
+                exitTransition = {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(250, easing = FastOutSlowInEasing),
+                    )
+                },
+            ) {
+                MealDetailScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                )
+            }
 
-        // Energy Balance Dashboard screen (Story 6.6)
-        composable(
-            route = Screen.EnergyBalance.route,
-            deepLinks = listOf(
-                navDeepLink { uriPattern = "foodie://energy-balance" },
-            ),
-            enterTransition = {
-                slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = FastOutSlowInEasing),
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(250, easing = FastOutSlowInEasing),
-                )
-            },
-        ) {
-            EnergyBalanceDashboardScreen(
-                healthConnectManager = healthConnectManager,
-                onNavigateToSettings = {
-                    navController.navigate(Screen.Settings.route)
+            // Camera Capture screen (Story 2-3)
+            composable(
+                route = Screen.CameraCapture.route,
+                deepLinks = listOf(
+                    // Widget - Story 2-2
+                    navDeepLink { uriPattern = "foodie://capture" },
+                ),
+                enterTransition = {
+                    fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing))
                 },
-            )
-        }
+                exitTransition = {
+                    fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
+                },
+            ) {
+                HealthConnectPermissionGate(
+                    healthConnectManager = healthConnectManager,
+                    onPermissionsDenied = {
+                        // User cancelled permission flow - finish activity
+                        activity?.finish()
+                    },
+                ) {
+                    CapturePhotoScreen(
+                        onPhotoConfirmed = { _ ->
+                            // Story 2-5: Background processing started via WorkManager
+                            // Finish activity to return to home screen / previous app
+                            activity?.finish()
+                        },
+                        onNavigateBack = {
+                            // User cancelled - finish activity
+                            activity?.finish()
+                        },
+                    )
+                }
+            }
+
+            // Settings screen
+            composable(
+                route = Screen.Settings.route,
+                enterTransition = {
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(300, easing = FastOutSlowInEasing),
+                    )
+                },
+                exitTransition = {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(250, easing = FastOutSlowInEasing),
+                    )
+                },
+            ) {
+                SettingsScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                )
+            }
+
+            // Energy Balance Dashboard screen (Story 6.6)
+            composable(
+                route = Screen.EnergyBalance.route,
+                deepLinks = listOf(
+                    navDeepLink { uriPattern = "foodie://energy-balance" },
+                ),
+                enterTransition = {
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(300, easing = FastOutSlowInEasing),
+                    )
+                },
+                exitTransition = {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(250, easing = FastOutSlowInEasing),
+                    )
+                },
+            ) {
+                EnergyBalanceDashboardScreen(
+                    healthConnectManager = healthConnectManager,
+                    onNavigateToSettings = {
+                        navController.navigate(Screen.Settings.route)
+                    },
+                )
+            }
         }
     }
 }

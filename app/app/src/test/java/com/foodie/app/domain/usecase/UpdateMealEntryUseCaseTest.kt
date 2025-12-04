@@ -35,15 +35,15 @@ class UpdateMealEntryUseCaseTest {
             .thenReturn(Result.Success(Unit))
 
         // When
-        val result = useCase(testRecordId, calories, 0, 0, 0, description, testTimestamp)
+        val result = useCase(testRecordId, calories, 0.0, 0.0, 0.0, description, testTimestamp)
 
         // Then
         verify(repository).updateNutritionRecord(
             recordId = testRecordId,
             calories = calories,
-            protein = 0,
-            carbs = 0,
-            fat = 0,
+            protein = 0.0,
+            carbs = 0.0,
+            fat = 0.0,
             description = description,
             timestamp = testTimestamp,
         )
@@ -57,7 +57,7 @@ class UpdateMealEntryUseCaseTest {
         val description = "Valid description"
 
         // When
-        val result = useCase(testRecordId, calories, 0, 0, 0, description, testTimestamp)
+        val result = useCase(testRecordId, calories, 0.0, 0.0, 0.0, description, testTimestamp)
 
         // Then
         assertThat(result).isInstanceOf(Result.Error::class.java)
@@ -73,7 +73,7 @@ class UpdateMealEntryUseCaseTest {
         val description = "Valid description"
 
         // When
-        val result = useCase(testRecordId, calories, 0, 0, 0, description, testTimestamp)
+        val result = useCase(testRecordId, calories, 0.0, 0.0, 0.0, description, testTimestamp)
 
         // Then
         assertThat(result).isInstanceOf(Result.Error::class.java)
@@ -89,7 +89,7 @@ class UpdateMealEntryUseCaseTest {
         val description = "   "
 
         // When
-        val result = useCase(testRecordId, calories, 0, 0, 0, description, testTimestamp)
+        val result = useCase(testRecordId, calories, 0.0, 0.0, 0.0, description, testTimestamp)
 
         // Then
         assertThat(result).isInstanceOf(Result.Error::class.java)
@@ -105,7 +105,7 @@ class UpdateMealEntryUseCaseTest {
         val description = ""
 
         // When
-        val result = useCase(testRecordId, calories, 0, 0, 0, description, testTimestamp)
+        val result = useCase(testRecordId, calories, 0.0, 0.0, 0.0, description, testTimestamp)
 
         // Then
         assertThat(result).isInstanceOf(Result.Error::class.java)
@@ -121,7 +121,7 @@ class UpdateMealEntryUseCaseTest {
         val description = "a".repeat(201)
 
         // When
-        val result = useCase(testRecordId, calories, 0, 0, 0, description, testTimestamp)
+        val result = useCase(testRecordId, calories, 0.0, 0.0, 0.0, description, testTimestamp)
 
         // Then
         assertThat(result).isInstanceOf(Result.Error::class.java)
@@ -139,15 +139,15 @@ class UpdateMealEntryUseCaseTest {
             .thenReturn(Result.Success(Unit))
 
         // When
-        val result = useCase(testRecordId, calories, 0, 0, 0, description, testTimestamp)
+        val result = useCase(testRecordId, calories, 0.0, 0.0, 0.0, description, testTimestamp)
 
         // Then
         verify(repository).updateNutritionRecord(
             recordId = testRecordId,
             calories = calories,
-            protein = 0,
-            carbs = 0,
-            fat = 0,
+            protein = 0.0,
+            carbs = 0.0,
+            fat = 0.0,
             description = description,
             timestamp = testTimestamp,
         )
@@ -163,15 +163,15 @@ class UpdateMealEntryUseCaseTest {
             .thenReturn(Result.Success(Unit))
 
         // When
-        val result = useCase(testRecordId, calories, 0, 0, 0, description, testTimestamp)
+        val result = useCase(testRecordId, calories, 0.0, 0.0, 0.0, description, testTimestamp)
 
         // Then
         verify(repository).updateNutritionRecord(
             recordId = testRecordId,
             calories = calories,
-            protein = 0,
-            carbs = 0,
-            fat = 0,
+            protein = 0.0,
+            carbs = 0.0,
+            fat = 0.0,
             description = description,
             timestamp = testTimestamp,
         )
@@ -187,15 +187,15 @@ class UpdateMealEntryUseCaseTest {
             .thenReturn(Result.Success(Unit))
 
         // When
-        val result = useCase(testRecordId, calories, 0, 0, 0, description, testTimestamp)
+        val result = useCase(testRecordId, calories, 0.0, 0.0, 0.0, description, testTimestamp)
 
         // Then
         verify(repository).updateNutritionRecord(
             recordId = testRecordId,
             calories = calories,
-            protein = 0,
-            carbs = 0,
-            fat = 0,
+            protein = 0.0,
+            carbs = 0.0,
+            fat = 0.0,
             description = description,
             timestamp = testTimestamp,
         )
@@ -212,7 +212,7 @@ class UpdateMealEntryUseCaseTest {
             .thenReturn(Result.Error(repositoryError))
 
         // When
-        val result = useCase(testRecordId, calories, 0, 0, 0, description, testTimestamp)
+        val result = useCase(testRecordId, calories, 0.0, 0.0, 0.0, description, testTimestamp)
 
         // Then
         assertThat(result).isInstanceOf(Result.Error::class.java)
