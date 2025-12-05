@@ -33,7 +33,7 @@ interface UserProfileRepository {
      * Combines data from Health Connect (weight, height) and SharedPreferences (sex, age).
      * Emits null if profile is not configured (any required field missing).
      *
-     * **Pre-population Behavior:**
+     * **Pre-population Behaviour:**
      * - Weight/height auto-populated from Health Connect latest records
      * - Sex/age remain null until user first configures profile
      *
@@ -48,10 +48,9 @@ interface UserProfileRepository {
     /**
      * Updates the complete user profile with validation.
      *
-     * **Storage Behavior:**
-     * - Sex & age: Always saved to SharedPreferences
-     * - Weight & height: Written to Health Connect ONLY if explicitly edited by user
-     *   (controlled by writeWeightToHC and writeHeightToHC flags)
+     * **Storage Behaviour:**
+     * - Saves profile settings to local preferences (SecurePreferences).
+     * - Does NOT write back to Health Connect (read-only integration for V1).
      *
      * **Validation:**
      * - Calls profile.validate() before save

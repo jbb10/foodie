@@ -83,7 +83,7 @@ Throughout Epic 6 development, we've accumulated 23 instrumentation test files c
 
 ### AC #8: Coverage Gaps Identified
 **Given** current test suite coverage is measured
-**When** I analyze coverage reports
+**When** I analyse coverage reports
 **Then** any critical uncovered code paths are documented
 **And** recommendations are made for additional tests (if needed)
 **And** acceptable coverage threshold is defined (e.g., 80% line coverage)
@@ -135,7 +135,7 @@ Throughout Epic 6 development, we've accumulated 23 instrumentation test files c
 
 ### Task 8: Coverage Analysis
 - [x] Generate JaCoCo coverage report
-- [x] Analyze line/branch coverage percentages
+- [x] Analyse line/branch coverage percentages
 - [x] Identify critical uncovered code
 - [x] Document coverage metrics
 
@@ -206,7 +206,7 @@ Throughout Epic 6 development, we've accumulated 23 instrumentation test files c
 - HealthConnectHiltTest.kt ✅
 
 **Background Processing (Epic 2):**
-- AnalyzeMealWorkerForegroundTest.kt ✅
+- AnalyseMealWorkerForegroundTest.kt ✅
 - MealAnalysisForegroundNotifierTest.kt ✅
 - PhotoCleanupWorkerTest.kt ✅
 - FoodieApplicationWorkManagerTest.kt ✅
@@ -447,7 +447,7 @@ JaCoCo must be configured to include both:
 - Task 5 complete: Reliability validated via 3 consecutive runs
 - Task 6 complete: Test dependencies audited - proper Hilt usage, no pollution
 - Task 7 complete: Performance profiled - 1-2 min execution time baseline
-- Task 8 complete: Coverage analyzed - 18% instruction, domain layer 90%+
+- Task 8 complete: Coverage analysed - 18% instruction, domain layer 90%+
 - Task 9 complete: Regression test guide created with comprehensive documentation
 - Task 10 complete: Epic 6 test summary documented (605 total tests)
 
@@ -489,7 +489,7 @@ JaCoCo must be configured to include both:
 12. HealthConnectPermissionFlowTest.kt
 13. HealthConnectUnavailableDialogTest.kt
 14. HealthConnectHiltTest.kt
-15. AnalyzeMealWorkerForegroundTest.kt
+15. AnalyseMealWorkerForegroundTest.kt
 16. MealAnalysisForegroundNotifierTest.kt
 17. PhotoCleanupWorkerTest.kt
 18. FoodieApplicationWorkManagerTest.kt

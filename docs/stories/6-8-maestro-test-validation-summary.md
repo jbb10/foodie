@@ -161,7 +161,7 @@ Successfully fixed and validated **7 out of 10** Maestro E2E test files, removin
    - **Status**: ⏭️ NOT FIXED
    - **Issue**: Uses deprecated `shell` command for airplane mode
    - **Requires**: Manual execution or test rewrite without shell command
-   - **Test Flow**: Toggle airplane mode + verify offline behavior
+   - **Test Flow**: Toggle airplane mode + verify offline behaviour
 
 ---
 

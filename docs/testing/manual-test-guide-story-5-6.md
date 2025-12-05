@@ -278,7 +278,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
    - Upload `bugreport.zip`
    - Wait for analysis to complete
 
-6. **Analyze Foodie battery consumption**:
+6. **Analyse Foodie battery consumption**:
    - Find "Foodie" in app list
    - Check percentage of total battery usage
    - Look for wake locks (should be minimal)
@@ -321,8 +321,8 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
    -rw-r--r--  1 user  staff   5.5M Nov 23 17:27 app-release-unsigned.apk
    ```
 
-4. **Analyze APK contents** (optional):
-   - In Android Studio: Build → Analyze APK
+4. **Analyse APK contents** (optional):
+   - In Android Studio: Build → Analyse APK
    - Select `app-release-unsigned.apk`
    - Review largest files/resources
    - Verify resources were shrunk
@@ -337,7 +337,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - [ ] Release APK size: ______ MB (< 10MB)
 - [ ] ProGuard enabled: `isMinifyEnabled = true` ✓
 - [ ] Resource shrinking enabled: `isShrinkResources = true` ✓
-- [ ] APK Analyzer shows optimized classes.dex
+- [ ] APK Analyser shows optimized classes.dex
 - [ ] AC #7 PASSED: APK size < 10MB
 
 ---
@@ -460,7 +460,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 3. **Click "+" to start new profiling session**
 4. **Select device** and choose "Foodie" process
 5. **Tabs available**:
-   - CPU: Analyze method traces and thread activity
+   - CPU: Analyse method traces and thread activity
    - Memory: Monitor heap allocations and GC events
    - Network: Track network requests and data transfer
    - Energy: Battery usage profiling
@@ -490,9 +490,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
    - **Network**: Should spike only during meal analysis
    - **Screen on/off**: Most battery use should be during screen-on
 
-### APK Analyzer Usage
+### APK Analyser Usage
 
-1. **In Android Studio**: Build → Analyze APK
+1. **In Android Studio**: Build → Analyse APK
 2. **Select APK file**: `app/build/outputs/apk/release/app-release-unsigned.apk`
 3. **Review contents**:
    - **classes.dex**: Should be minified/optimized

@@ -91,7 +91,7 @@
 - Story 3.3: Non-atomic operation edge case handled with comprehensive error logging
 - Story 3.4: Atomic delete operation confirmed via API research
 - Story 3.5: Lifecycle-aware refresh with Health Connect as single source of truth
-- All cross-app sync behavior validated (Health Connect system app)
+- All cross-app sync behaviour validated (Health Connect system app)
 
 **Impact:**
 - Team developed expert-level Health Connect knowledge
@@ -147,23 +147,23 @@
 **What happened:**
 - Story 3.3: Cross-app sync (Google Fit) validation deferred due to installation requirements
 - Story 3.4: Task 6 cross-app validation marked as deferred pending Google Fit
-- Implementation correct (API guarantees atomic behavior) but stakeholder demo validation incomplete
+- Implementation correct (API guarantees atomic behaviour) but stakeholder demo validation incomplete
 
 **Why it was challenging:**
 - Google Fit requires Google Play Services (not available on all emulators)
 - Cross-app testing adds complexity to validation workflow
-- API documentation confirms behavior but manual testing preferred
+- API documentation confirms behaviour but manual testing preferred
 
 **Resolution:**
 - Health Connect system app used for validation (always available)
-- API documentation research confirmed cross-app sync behavior
+- API documentation research confirmed cross-app sync behaviour
 - Manual testing validated on Health Connect data view
-- Behavior guaranteed by Health Connect SDK atomic operations
+- Behaviour guaranteed by Health Connect SDK atomic operations
 
 **Learning:**
 - Health Connect system app sufficient for cross-app validation
 - Google Fit installation nice-to-have but not required for validation
-- API documentation can substitute for manual cross-app testing when behavior is guaranteed
+- API documentation can substitute for manual cross-app testing when behaviour is guaranteed
 - Document cross-app sync expectations clearly in AC criteria
 
 ### 3. Health Connect Update Pattern Learning Curve
@@ -221,7 +221,7 @@
 
 1. **Material 3 Compose Component Availability**
    - **Observation:** Material 3 `PullToRefreshBox` available natively (no Accompanist needed)
-   - **Impact:** Reduced dependencies, native Material Design behavior
+   - **Impact:** Reduced dependencies, native Material Design behaviour
    - **Note:** Contrast with Epic 2 navigation animations (manual implementation required)
    - **Recommendation:** Always check latest Material 3 Compose releases before adding libraries
 
@@ -351,7 +351,7 @@
 - **Risk:** Medium - Story 3-3 noted UX enhancement opportunity (proactive permission prompt)
 
 **Q6: Graceful Degradation Patterns**
-- **Question:** What fallback behaviors needed when Health Connect unavailable or permissions denied?
+- **Question:** What fallback behaviours needed when Health Connect unavailable or permissions denied?
 - **Research Needed:** Local storage fallback, user notification strategies, recovery workflows
 - **Risk:** Medium - architectural decision (local storage vs Health Connect-only)
 - **Initial Recommendation:** Prevent capture with clear messaging (avoid local storage sync complexity)

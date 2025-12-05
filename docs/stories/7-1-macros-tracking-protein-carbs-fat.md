@@ -32,9 +32,9 @@ This story modifies the Azure OpenAI integration to request and parse macros dat
 ## Acceptance Criteria
 
 ### AC #1: Azure OpenAI Request Updated with Structured Outputs
-**Given** the app analyzes a food photo
+**Given** the app analyses a food photo
 **When** the Azure OpenAI request is sent
-**Then** the request uses `response_format` parameter with `json_schema` type
+**Then** the request uses `response_format` parametre with `json_schema` type
 **And** the JSON schema defines required fields: `hasFood`, `calories`, `protein`, `carbs`, `fat`, `description`, `confidence`
 **And** the schema enforces strict typing: `calories` (integer 1-5000), `protein` (integer 0-500), `carbs` (integer 0-1000), `fat` (integer 0-500)
 **And** the schema includes optional fields: `caloriesRange`, `items`, `assumptions`
@@ -74,7 +74,7 @@ This story modifies the Azure OpenAI integration to request and parse macros dat
 - Macros on secondary line (e.g., "P: 45g | C: 60g | F: 20g")
 **And** macros are formatted with single-letter prefixes (P/C/F)
 **And** if macros are unavailable (legacy records), display "P: 0g | C: 0g | F: 0g"
-**And** macros line uses smaller, secondary text color
+**And** macros line uses smaller, secondary text colour
 **And** layout remains compact (no UI jank)
 
 ### AC #5: Edit Screen Macros Fields
@@ -124,7 +124,7 @@ This story modifies the Azure OpenAI integration to request and parse macros dat
 **Required Research:**
 1. **Review Azure OpenAI Structured Outputs documentation** (fetch web pages with tool):
    - Starting point: https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/structured-outputs
-   - Focus: JSON Schema format, `response_format` parameter, `strict: true` enforcement
+   - Focus: JSON Schema format, `response_format` parametre, `strict: true` enforcement
    - Verify: gpt-4.1 model supports structured outputs
    
 2. **Review existing prompt file**: `/app/app/src/main/assets/prompts/nutrition_analysis.md`
@@ -157,7 +157,7 @@ Document findings in Dev Notes before proceeding to Task 2:
 
 ### Task 2: Update Azure OpenAI Integration with Structured Outputs
 - [x] Create JSON Schema for nutrition analysis response in `data/remote/dto/NutritionAnalysisSchema.kt`
-- [x] Update `AzureOpenAiApi` interface to include `response_format` parameter
+- [x] Update `AzureOpenAiApi` interface to include `response_format` parametre
 - [x] Read existing prompt from `nutrition_analysis.md` asset file
 - [x] Augment prompt with macros instructions (add to existing, don't replace)
 - [x] Update `NutritionRequest` DTO to include `response_format` field with JSON schema
@@ -191,17 +191,17 @@ Document findings in Dev Notes before proceeding to Task 2:
 
 **Acceptance:** Health Connect CRUD operations work with macros, legacy records handled correctly
 
-### Task 6: Update AnalyzeMealWorker with Macros
-- [x] Modify `AnalyzeMealWorker` to parse macros from Azure OpenAI response
+### Task 6: Update AnalyseMealWorker with Macros
+- [x] Modify `AnalyseMealWorker` to parse macros from Azure OpenAI response
 - [x] Pass macros data to `MealRepository.saveMeal()`
 - [x] Update error handling to include macros validation errors
-- [x] Write unit tests: `AnalyzeMealWorkerMacrosTest.kt` (test macros parsing, validation, error handling)
+- [x] Write unit tests: `AnalyseMealWorkerMacrosTest.kt` (test macros parsing, validation, error handling)
 
 **Acceptance:** Worker extracts and saves macros successfully, handles errors
 
 ### Task 7: Update Meal List Screen with Macros Display
 - [x] Modify `MealEntryCard` composable to display macros line
-- [x] Format macros: "P: 45g | C: 60g | F: 20g" with secondary text color
+- [x] Format macros: "P: 45g | C: 60g | F: 20g" with secondary text colour
 - [x] Handle legacy records: display "P: 0g | C: 0g | F: 0g" if macros missing
 - [x] Verify UI performance: no lag during scrolling with macros
 - [x] Write Compose UI tests: `MealEntryCardMacrosTest.kt` (verify macros display, legacy handling)
@@ -274,7 +274,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
   - MacrosExtractor parsing and validation
   - NutritionData domain model validation
   - HealthConnectRepository macros CRUD operations
-  - AnalyzeMealWorker macros parsing
+  - AnalyseMealWorker macros parsing
   - ViewModels (MealDetailViewModel, EnergyBalanceViewModel)
 - [x] **All unit tests passing** (`./gradlew test` executes successfully with zero failures)
 - [x] **Instrumentation tests written** for:
@@ -299,7 +299,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary
 - **Unit Tests Required:** Always, for any story with business logic or data handling
 - **Instrumentation Tests Required:** Conditional - for UI flows, Health Connect integration, E2E scenarios
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
 
@@ -347,7 +347,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
      - "P: 0g | C: 0g | F: 0g" in meal list
      - Can be edited to add macros data
 
-### Expected Behavior
+### Expected Behaviour
 - **AI Accuracy:** Macros estimates should be reasonable for common foods (within 20% of nutrition database values)
 - **UI Responsiveness:** Macros display should not cause UI lag or stuttering
 - **Data Persistence:** Macros saved to Health Connect should be visible in Google Fit or other HC apps
@@ -383,7 +383,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - Current API call: Uses AzureResponseRequest with model + instructions + multimodal input
 - Current response parsing: Extracts `output_text` field and parses as JSON using Gson
 - Current DTO: `ApiNutritionResponse` with hasFood, calories, description, reason
-- **No `response_format` parameter currently used** - JSON compliance relies on prompt instructions only
+- **No `response_format` parametre currently used** - JSON compliance relies on prompt instructions only
 
 **Macros Estimation Feasibility:**
 ✅ Confirmed - Azure OpenAI gpt-4.1 can estimate macros from food photos (vision capabilities proven in existing calorie estimates)
@@ -472,7 +472,7 @@ User captures photo
     ↓
 System Camera Intent → Photo saved to cache
     ↓
-AnalyzeMealWorker (background processing)
+AnalyseMealWorker (background processing)
     ├─→ Read photo from cache
     ├─→ Base64 encode image
     ├─→ Retrofit call to Azure OpenAI (with structured outputs JSON schema)
@@ -502,14 +502,14 @@ Compose UI (MealListScreen, MealDetailScreen, EnergyBalanceDashboardScreen)
 ```
 
 **Files to Modify (Expected):**
-- `data/remote/api/AzureOpenAiApi.kt` - Add `response_format` parameter to request
+- `data/remote/api/AzureOpenAiApi.kt` - Add `response_format` parametre to request
 - `data/remote/dto/NutritionRequest.kt` - Include JSON schema in request body
 - `data/remote/dto/NutritionResponse.kt` - Update to parse structured output (already has `output_text` field)
 - `domain/model/NutritionData.kt` - Add protein, carbs, fat fields with validation
 - `domain/model/MealEntry.kt` - Add macros fields
 - `data/repository/MealRepository.kt` - Update CRUD operations for macros
 - `data/repository/HealthConnectRepository.kt` - Save/read macros fields in NutritionRecord
-- `data/worker/AnalyzeMealWorker.kt` - Parse macros from API response
+- `data/worker/AnalyseMealWorker.kt` - Parse macros from API response
 - `ui/screens/meallist/MealListScreen.kt` - Display macros in meal entry cards
 - `ui/screens/mealdetail/MealDetailScreen.kt` - Add macros input fields
 - `ui/screens/mealdetail/MealDetailViewModel.kt` - Handle macros validation and save
@@ -519,7 +519,7 @@ Compose UI (MealListScreen, MealDetailScreen, EnergyBalanceDashboardScreen)
 **Files to Create (Expected):**
 - `data/remote/dto/NutritionAnalysisSchema.kt` - JSON Schema for structured outputs
 - `data/remote/parser/MacrosExtractor.kt` - Parse and validate macros from API response
-- Unit test files: `MacrosExtractorTest.kt`, `NutritionDataTest.kt`, `HealthConnectRepositoryMacrosTest.kt`, `AnalyzeMealWorkerMacrosTest.kt`, `MealDetailViewModelMacrosTest.kt`, `EnergyBalanceViewModelMacrosTest.kt`
+- Unit test files: `MacrosExtractorTest.kt`, `NutritionDataTest.kt`, `HealthConnectRepositoryMacrosTest.kt`, `AnalyseMealWorkerMacrosTest.kt`, `MealDetailViewModelMacrosTest.kt`, `EnergyBalanceViewModelMacrosTest.kt`
 - Instrumentation test files: `HealthConnectMacrosIntegrationTest.kt`, `MealEntryCardMacrosTest.kt`, `MealDetailScreenMacrosTest.kt`, `EnergyBalanceDashboardMacrosTest.kt`
 
 **Architecture Alignment:**
@@ -533,7 +533,7 @@ Compose UI (MealListScreen, MealDetailScreen, EnergyBalanceDashboardScreen)
 
 **Azure OpenAI Structured Outputs:**
 - Documentation: https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/structured-outputs
-- JSON Schema format for `response_format` parameter
+- JSON Schema format for `response_format` parametre
 - Enforces strict typing and required fields (eliminates JSON parsing errors)
 
 **Existing Nutrition Analysis Prompt:**
@@ -580,7 +580,7 @@ Claude 3.5 Sonnet (2025-12-04)
 - Files fixed: MealEntryTest.kt, NutritionDataTest.kt, UpdateMealEntryUseCaseTest.kt, MealDetailViewModelTest.kt, ScreenTest.kt
 - Fixed duplicate test function name causing "conflicting overloads" error
 - Fixed copy-paste errors in test assertions (checking wrong macros field)
-- Fixed SavedStateHandle in MealDetailViewModelTest to include macros parameters as strings
+- Fixed SavedStateHandle in MealDetailViewModelTest to include macros parametres as strings
 
 **Lint Fix (2025-12-04):**
 - Issue: ktlint property-naming rule rejected `_selectedDate` property (line 62 of EnergyBalanceDashboardViewModel.kt)
@@ -598,9 +598,9 @@ All implementation tasks (Tasks 1-10, 12) have been completed successfully. Task
 - ✅ All 508 unit tests passing (no regressions)
 - ✅ Lint-fix successful after resolving property-naming issue
 - ✅ Domain models extended with macros fields (Double type, default 0.0 for backward compatibility)
-- ✅ All test files updated to use Double literals for macros parameters
+- ✅ All test files updated to use Double literals for macros parametres
 - ✅ Screen.kt navigation updated to include macros in MealDetail route
-- ✅ MealDetailViewModel test setup includes macros parameters in SavedStateHandle
+- ✅ MealDetailViewModel test setup includes macros parametres in SavedStateHandle
 
 **Test Coverage:**
 - Unit tests: 508 tests passing
@@ -614,7 +614,7 @@ None - Story complete and ready for review ✅
 - Used Double instead of Int for macros to support decimal precision (e.g., 45.5g protein)
 - Default values of 0.0 for backward compatibility with legacy records
 - Renamed `_selectedDate` to `selectedDateFlow` for ktlint compliance
-- All macros parameters in navigation are passed as strings (converted from Double in ViewModel)
+- All macros parametres in navigation are passed as strings (converted from Double in ViewModel)
 - Fixed integration tests to include macros fields in mock Azure OpenAI responses
 
 **Quality Gate Results:**
@@ -630,11 +630,11 @@ Code review and merge approval
 ### File List
 
 **Modified Test Files:**
-- `app/src/test/java/com/foodie/app/domain/model/MealEntryTest.kt` - Fixed Int to Double type mismatches for macros parameters
+- `app/src/test/java/com/foodie/app/domain/model/MealEntryTest.kt` - Fixed Int to Double type mismatches for macros parametres
 - `app/src/test/java/com/foodie/app/domain/model/NutritionDataTest.kt` - Fixed Int to Double type mismatches, removed duplicate test, fixed assertion errors
 - `app/src/test/java/com/foodie/app/domain/usecase/UpdateMealEntryUseCaseTest.kt` - Fixed Int to Double type mismatches in useCase() calls
-- `app/src/test/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModelTest.kt` - Added macros parameters to SavedStateHandle setup
-- `app/src/test/java/com/foodie/app/ui/navigation/ScreenTest.kt` - Updated route assertion to include macros parameters
+- `app/src/test/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModelTest.kt` - Added macros parametres to SavedStateHandle setup
+- `app/src/test/java/com/foodie/app/ui/navigation/ScreenTest.kt` - Updated route assertion to include macros parametres
 - `app/src/androidTest/java/com/foodie/app/data/repository/NutritionAnalysisRepositoryImplIntegrationTest.kt` - Added macros fields (protein, carbs, fat) to mock Azure OpenAI response JSON for integration tests
 
 **Modified Source Files:**

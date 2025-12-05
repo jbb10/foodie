@@ -1,7 +1,7 @@
 # Foodie App - Makefile
 # Convenient commands for building, deploying, and testing the Android app
 
-.PHONY: help install-debug install-release test-unit test-instrumentation test-all clean sonar coverage lint lint-fix format format-check detekt android-lint run-emulator
+.PHONY: help install-debug install-release test-unit test-instrumentation test-all clean sonar coverage lint lint-fix format format-check detekt android-lint run-emulator pull-logs pull-errors pull-app-logs analyze-logs
 
 # Default target - show available commands
 help:
@@ -28,6 +28,12 @@ help:
 	@echo ""
 	@echo "Analysis & Reporting:"
 	@echo "  make sonar                - Run tests, generate coverage, and upload to SonarQube"
+	@echo ""
+	@echo "Debugging & Logs:"
+	@echo "  make pull-logs            - Pull all Foodie logs from connected device (logcat buffer)"
+	@echo "  make pull-errors          - Pull only errors/warnings from connected device (logcat)"
+	@echo "  make pull-app-logs        - Pull persistent app log file (days/weeks of logs)"
+	@echo "  make analyze-logs         - Pull persistent logs and display summary for LLM analysis"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean                - Clean build artifacts"
@@ -107,3 +113,46 @@ detekt:
 # Run Android Lint checks
 android-lint:
 	cd app && ./gradlew :app:lintDebug
+
+# === Debugging & Log Analysis ===
+
+# Pull all Foodie logs from connected device (logcat buffer - last few minutes)
+pull-logs:
+	@echo "Pulling Foodie logs from logcat buffer (last few minutes)..."
+	@./scripts/pull-logs.sh
+
+# Pull only errors and warnings from connected device (logcat buffer)
+pull-errors:
+	@echo "Pulling Foodie errors from logcat buffer..."
+	@./scripts/pull-logs.sh --errors-only
+
+# Pull persistent app log file (days/weeks of logs stored on device)
+pull-app-logs:
+	@echo "Pulling persistent app log file from device..."
+	@./scripts/pull-logs.sh --app-file
+
+# Pull logs and display for LLM analysis
+analyze-logs:
+	@echo "=== Foodie Log Analysis ==="
+	@echo ""
+	@./scripts/pull-logs.sh --app-file
+	@echo ""
+	@LATEST_LOG=$$(ls -t logs/foodie_persistent_*.txt | head -1); \
+	if [ -f "$$LATEST_LOG" ]; then \
+		echo "=== Log Content Preview (last 100 lines) ==="; \
+		echo ""; \
+		tail -100 "$$LATEST_LOG"; \
+		echo ""; \
+		echo "=== Full log path: $$LATEST_LOG ==="; \
+		echo ""; \
+		echo "To analyze the full log, use: cat $$LATEST_LOG"; \
+	else \
+		echo "No persistent log file found. Falling back to logcat..."; \
+		./scripts/pull-logs.sh; \
+		LATEST_LOG=$$(ls -t logs/foodie_*.log | head -1); \
+		echo "=== Log Content Preview (last 50 lines) ==="; \
+		echo ""; \
+		tail -50 "$$LATEST_LOG"; \
+		echo ""; \
+		echo "=== Full log path: $$LATEST_LOG ==="; \
+	fi

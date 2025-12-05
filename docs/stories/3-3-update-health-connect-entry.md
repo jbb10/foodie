@@ -58,12 +58,12 @@ The focus is on integration testing, error handling, and validating that the Hea
 
 - [x] **Task 1: Documentation Research & Technical Validation** ⚠️ COMPLETE BEFORE PROCEEDING TO IMPLEMENTATION
 
-**Objective:** Validate Health Connect update API behavior and error handling patterns before integration testing
+**Objective:** Validate Health Connect update API behaviour and error handling patterns before integration testing
 
 **Required Research:**
 1. Review Health Connect delete+insert update pattern documentation
    - Starting point: [Health Connect Data Management](https://developer.android.com/health-and-fitness/guides/health-connect/develop/delete-data)
-   - Focus: `deleteRecords()` API, atomic behavior, error handling
+   - Focus: `deleteRecords()` API, atomic behaviour, error handling
 
 2. Review timestamp preservation requirements
    - Starting point: [Health Connect Data Types](https://developer.android.com/health-and-fitness/guides/health-connect/develop/data-types)
@@ -170,7 +170,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** Yes - ViewModel integration with use case and repository
 - **Instrumentation Tests Required:** Yes - Health Connect integration requires device/emulator validation
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
 
@@ -200,7 +200,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 14. **Expected:** Updated entry appears with new calories (700)
 15. **Expected:** Timestamp matches original meal time (not update time)
 
-### Expected Behavior
+### Expected Behaviour
 - Save operation completes in <1 second
 - Toast message confirms successful update
 - Automatic navigation back to list view
@@ -311,14 +311,14 @@ The `updateNutritionRecord()` method in HealthConnectRepository follows this seq
 
 - 2025-11-12: Kicked off Task 1 research; reviewing Health Connect delete+insert guidance, timestamp fields, and permission/error handling expectations before implementation.
 - 2025-11-12: Research findings — confirmed delete+insert is required for NutritionRecord updates and not atomic, so error messaging must warn users on partial failure; re-read existing `HealthConnectRepository.updateNutritionRecord()` implementation using `HealthConnectManager` delete+insert to validate technical approach; validated timestamps (`startTime`, `endTime`, `startZoneOffset`) must be preserved when re-inserting; noted `HealthConnectClient.deleteRecords` and `insertRecords` surface `SecurityException`, `IllegalStateException`, and `RemoteException` variants that should become user-friendly toasts; verified Health Connect propagates changes to Google Fit after sync, so list refresh plus manual cross-app check remains necessary.
-- 2025-11-12: Task 2 plan — extend instrumentation coverage in `HealthConnectIntegrationTest` (or new dedicated suite) to exercise update path end-to-end, confirming delete+insert behavior, timestamp preservation, and absence of stale records; instantiate `HealthConnectRepository` with real `HealthConnectManager` for a flow test ensuring `getMealHistory()` returns updated data post-update to mimic list refresh; prep manual validation notes for toast/navigation once automated checks pass.
+- 2025-11-12: Task 2 plan — extend instrumentation coverage in `HealthConnectIntegrationTest` (or new dedicated suite) to exercise update path end-to-end, confirming delete+insert behaviour, timestamp preservation, and absence of stale records; instantiate `HealthConnectRepository` with real `HealthConnectManager` for a flow test ensuring `getMealHistory()` returns updated data post-update to mimic list refresh; prep manual validation notes for toast/navigation once automated checks pass.
 - 2025-11-12: Added `HealthConnectUpdateIntegrationTest` covering delete+insert replacement, timestamp preservation, and meal history refresh using real SDK to satisfy AC #1-6 integration automation (skipping gracefully when Health Connect unavailable/permissions missing).
 - 2025-11-12: Task 3 plan — update ViewModel to surface `Result` user messages, harden `HealthConnectManager.updateNutritionRecord` logging for partial failures, and extend unit tests to cover SecurityException, IllegalStateException, and generic failure messaging (plus repository mock to simulate delete succeeded + insert failed path).
 - 2025-11-12: Implemented Task 3 updates — ViewModel now uses `Result.message`, HealthConnectManager logs and rethrows partial failures, and new unit tests cover permission + availability messaging paths.
 - 2025-11-12: Task 4 plan — schedule manual validation on emulator + Google Fit to confirm updated calories/description propagate, capturing timestamp screenshots for Dev Notes.
 - 2025-11-12: Task 5 plan — leverage existing MealDetailViewModel coverage, add targeted unit tests for permission + availability paths (done) and create new MealListViewModel unit test using fake flow to assert refresh emits updated entry upon load.
 - 2025-11-12: Task 5 updates — added success toast state wiring, updated Compose screen to show "Entry updated" toast, and extended MealDetailViewModel tests to cover success + error messaging states alongside existing MealListViewModel coverage.
-- 2025-11-12: Executed `./gradlew :app:testDebugUnitTest` after state + UI updates to ensure unit suite passes with new success messaging behavior.
+- 2025-11-12: Executed `./gradlew :app:testDebugUnitTest` after state + UI updates to ensure unit suite passes with new success messaging behaviour.
 - 2025-11-12: Ran `./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.foodie.app.data.healthconnect.HealthConnectUpdateIntegrationTest` to validate the new Health Connect integration tests on emulator (tests skipped gracefully when HC unavailable).
 
 ### Completion Notes List
@@ -385,7 +385,7 @@ The implementation leverages existing infrastructure from Story 3.2 while adding
 |-----|-------------|--------|----------|
 | AC #1 | Old NutritionRecord is deleted from Health Connect | ✅ IMPLEMENTED | `HealthConnectManager.kt:197` - `deleteNutritionRecord(recordId)` called first in update sequence; `HealthConnectUpdateIntegrationTest.kt:62-66` validates old record no longer exists after update |
 | AC #2 | New NutritionRecord inserted with updated calories and description | ✅ IMPLEMENTED | `HealthConnectManager.kt:200` - `insertNutritionRecord()` called with new values; `HealthConnectUpdateIntegrationTest.kt:68-72` validates updated record exists with correct values |
-| AC #3 | Original timestamp preserved | ✅ IMPLEMENTED | `HealthConnectManager.kt:200` - timestamp parameter passed to insert preserves original; `HealthConnectUpdateIntegrationTest.kt:144-147` validates `startTime`, `endTime`, and `zoneOffset` match original |
+| AC #3 | Original timestamp preserved | ✅ IMPLEMENTED | `HealthConnectManager.kt:200` - timestamp parametre passed to insert preserves original; `HealthConnectUpdateIntegrationTest.kt:144-147` validates `startTime`, `endTime`, and `zoneOffset` match original |
 | AC #4 | Toast message displays "Entry updated" | ✅ IMPLEMENTED | `MealDetailState.kt:19` - `successMessage` field; `MealDetailViewModel.kt:136` - sets `"Entry updated"` on success; `MealDetailScreen.kt:63-67` - `LaunchedEffect` shows `Toast` with message |
 | AC #5 | Navigate back to list view | ✅ IMPLEMENTED | `MealDetailViewModel.kt:135` - sets `shouldNavigateBack = true` on success; `MealDetailScreen.kt:71-77` - `LaunchedEffect` triggers `onNavigateBack()` callback |
 | AC #6 | List view shows updated entry immediately | ✅ IMPLEMENTED | Story 3.2 already implemented auto-refresh via `LaunchedEffect(Unit)` in `MealListScreen`; `HealthConnectUpdateIntegrationTest.kt:183-186` validates `getMealHistory()` returns updated entry |

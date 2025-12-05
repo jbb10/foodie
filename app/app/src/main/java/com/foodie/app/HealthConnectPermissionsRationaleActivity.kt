@@ -98,7 +98,7 @@ private fun PermissionsRationaleScreen(
             Text(
                 text = """
                     • Nutrition Records: We write meal information (calories, description, timestamp) to Health Connect after you capture and analyze a meal photo.
-                    
+
                     • Read Access: We read your existing nutrition records to display your meal history within the app.
                 """.trimIndent(),
                 style = MaterialTheme.typography.bodyMedium,
@@ -114,11 +114,13 @@ private fun PermissionsRationaleScreen(
             Text(
                 text = """
                     1. Photo Analysis: When you capture a meal photo, we send it to Azure OpenAI Vision API to analyze the food and estimate nutritional content.
-                    
-                    2. Health Connect Storage: The analyzed nutrition data (calories and meal description) is saved to your Health Connect database, where it can be accessed by other health apps you choose to connect.
-                    
-                    3. Local Display: Your meal history is read from Health Connect and displayed within the Foodie app.
-                    
+
+                    1. Camera: Used only to take photos of your meals. Photos are processed locally and by our secure AI partner, then deleted immediately.
+
+                    2. Health Connect Storage: The analysed nutrition data (calories and meal description) is saved to your Health Connect database, where it can be accessed by other health apps you choose to connect.
+
+                    3. Notifications: Used to show you the progress of meal analysis so you can pocket your phone immediately after snapping a photo.
+
                     We do NOT:
                     • Store your health data on our servers
                     • Share your nutrition data with third parties
@@ -138,11 +140,11 @@ private fun PermissionsRationaleScreen(
             Text(
                 text = """
                     • You can revoke Health Connect permissions at any time through Android Settings → Health Connect → App permissions → Foodie
-                    
+
                     • All nutrition data is stored locally on your device in Health Connect, not on external servers
-                    
+
                     • You have full control over which apps can access your Health Connect data
-                    
+
                     • Deleting the Foodie app will not delete your Health Connect data; you must delete it separately through the Health Connect app
                 """.trimIndent(),
                 style = MaterialTheme.typography.bodyMedium,
@@ -158,11 +160,11 @@ private fun PermissionsRationaleScreen(
             Text(
                 text = """
                     • Meal photos are temporarily stored in the app's cache directory and deleted immediately after analysis
-                    
+
                     • API communication with Azure OpenAI uses encrypted HTTPS connections
-                    
+
                     • Your Azure OpenAI API key is stored securely using Android's EncryptedSharedPreferences
-                    
+
                     • Health Connect data is protected by Android's built-in security and permission system
                 """.trimIndent(),
                 style = MaterialTheme.typography.bodyMedium,

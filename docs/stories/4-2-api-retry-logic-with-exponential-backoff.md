@@ -50,7 +50,7 @@ So that temporary network issues don't cause lost meal entries.
   2. Review NetworkMonitor integration from Story 4-1
      - File: `app/src/main/java/com/foodie/app/data/network/NetworkMonitor.kt`
      - File: `app/src/main/java/com/foodie/app/data/network/NetworkMonitorImpl.kt`
-     - Focus: How to inject and use in AnalyzeMealWorker
+     - Focus: How to inject and use in AnalyseMealWorker
   
   3. Review ErrorHandler classification from Story 4-1
      - File: `app/src/main/java/com/foodie/app/domain/error/ErrorHandler.kt`
@@ -78,7 +78,7 @@ So that temporary network issues don't cause lost meal entries.
   ⚠️ Do NOT proceed to implementation tasks until research checkpoint is complete
 
 - [x] **Task 2: Configure WorkManager Exponential Backoff Policy** (AC: #2)
-  - [x] Open `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+  - [x] Open `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
   - [x] Locate WorkRequest builder in the enqueue logic (in CapturePhotoViewModel.kt)
   - [x] Already configured: `setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.SECONDS)`
   - [x] Verified backoff policy: first retry at 1s, second at 2s (2^1), third at 4s (2^2)
@@ -86,20 +86,20 @@ So that temporary network issues don't cause lost meal entries.
   - [x] WorkManager test dependency already present
 
 - [x] **Task 3: Track Retry Count in Worker** (AC: #1, #3, #6)
-  - [x] In `AnalyzeMealWorker.doWork()`, access `runAttemptCount` property
+  - [x] In `AnalyseMealWorker.doWork()`, access `runAttemptCount` property
   - [x] Constant already defined: `private const val MAX_ATTEMPTS = 4`
   - [x] Retry count used in logging and retry exhaustion check
   - [x] Logging added: `Timber.d("Starting meal analysis (attempt ${runAttemptCount + 1}/$MAX_ATTEMPTS)")`
 
 - [x] **Task 4: Integrate NetworkMonitor Before API Calls** (AC: #1, from Story 4-1)
-  - [x] Injected NetworkMonitor into AnalyzeMealWorker via constructor
+  - [x] Injected NetworkMonitor into AnalyseMealWorker via constructor
   - [x] Added network check at start of `doWork()`: `networkMonitor.checkConnectivity()`
   - [x] If offline and retries remaining, return `Result.retry()`
   - [x] If offline and retries exhausted, delete photo and return `Result.failure()`
   - [x] Notification shows offline status when detected
 
 - [x] **Task 5: Classify API Errors Using ErrorHandler** (AC: #1, from Story 4-1)
-  - [x] Injected ErrorHandler into AnalyzeMealWorker constructor
+  - [x] Injected ErrorHandler into AnalyseMealWorker constructor
   - [x] Wrap API errors with `errorHandler.classify(exception)` to get ErrorType
   - [x] Call `errorHandler.isRetryable(errorType)` to determine retry strategy
   - [x] If retryable and retries remaining: return `Result.retry()`
@@ -107,7 +107,7 @@ So that temporary network issues don't cause lost meal entries.
   - [x] Removed old isRetryableError() method - now using ErrorHandler
 
 - [x] **Task 6: Update Notification During Retry Attempts** (AC: #3)
-  - [x] In `AnalyzeMealWorker.doWork()`, update notification text before each retry
+  - [x] In `AnalyseMealWorker.doWork()`, update notification text before each retry
   - [x] Call `setForeground(foregroundNotifier.createForegroundInfo(id, message))` to update notification
   - [x] Notification text: "Retrying analysis... (attempt ${runAttemptCount + 2}/$MAX_ATTEMPTS)"
   - [x] Notification channel already exists from Story 2-8
@@ -138,14 +138,14 @@ So that temporary network issues don't cause lost meal entries.
 - [ ] **Task 11: Unit Tests for Retry Logic** (AC: All)
   - Note: Unit testing WorkManager with dependency injection and suspend functions requires TestListenableWorkerBuilder
   - Integration tests will cover retry logic end-to-end instead
-  - Manual testing will validate retry behavior with network toggling
+  - Manual testing will validate retry behaviour with network toggling
 
 - [ ] **Task 12: Instrumentation Tests for Retry Integration** (AC: All)
   - Note: Deferred to manual testing - WorkManager retry timing tests require TestDriver and substantial test infrastructure
   - Manual testing plan covers: network failure → retry → success flow
 
 - [ ] **Task 13: Documentation and Integration Notes** (AC: All)
-  - [ ] Add inline KDoc comments to retry-related methods in AnalyzeMealWorker
+  - [ ] Add inline KDoc comments to retry-related methods in AnalyseMealWorker
   - [ ] Document retry strategy in Dev Notes section
   - [ ] Update architecture.md with retry logic details if not already documented
 
@@ -182,7 +182,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** All retry logic, error classification integration, notification updates, photo retention
 - **Instrumentation Tests Required:** WorkManager retry timing, manual retry flow, retry exhaustion
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use MockK for mocking NetworkMonitor, ErrorHandler, dependencies
 
@@ -206,7 +206,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 7. **Verify Success:** After retry succeeds, notification should dismiss and data should appear in meal list
 8. **Verify Photo Deleted:** Check cache directory - photo should be deleted after successful retry
 
-### Expected Behavior
+### Expected Behaviour
 - Notification updates during retry attempts with attempt count
 - Automatic retry when network restored
 - No user intervention required for successful retry
@@ -224,7 +224,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Implementation Summary
 
 **Core Changes Made:**
-- Integrated NetworkMonitor and ErrorHandler from Story 4-1 into AnalyzeMealWorker
+- Integrated NetworkMonitor and ErrorHandler from Story 4-1 into AnalyseMealWorker
 - Added network connectivity check before API calls
 - Replaced custom retry logic with ErrorHandler-based error classification
 - Enhanced notification updates to show retry attempt count
@@ -255,7 +255,7 @@ Retry Flow:
 
 **Testing Approach:**
 - Manual testing will validate retry logic (network toggle during analysis)
-- Existing integration tests verify Worker behavior
+- Existing integration tests verify Worker behaviour
 - Regression tests confirm no impact to existing functionality
 
 **Deferred Items:**
@@ -293,7 +293,7 @@ From Story 4-1 ErrorHandler:
 ### Project Structure Notes
 
 **Files Modified:**
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Added NetworkMonitor/ErrorHandler integration, network check, enhanced retry logic
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Added NetworkMonitor/ErrorHandler integration, network check, enhanced retry logic
 - `app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoViewModel.kt` - BackoffPolicy already configured (no changes needed)
 
 **Files Created:**
@@ -342,7 +342,7 @@ Claude Sonnet 4.5
 
 Implementation Log (2025-11-14):
 1. Reviewed NetworkMonitor and ErrorHandler from Story 4-1 for integration patterns
-2. Updated AnalyzeMealWorker constructor to inject NetworkMonitor and ErrorHandler
+2. Updated AnalyseMealWorker constructor to inject NetworkMonitor and ErrorHandler
 3. Added network connectivity check at start of doWork() before API call
 4. Replaced isRetryableError() method with ErrorHandler.classify() and isRetryable()
 5. Enhanced notification updates to show retry attempt count during retries
@@ -355,29 +355,29 @@ Implementation Log (2025-11-14):
 ### Completion Notes List
 
 ✅ **NetworkMonitor Integration Complete**
-- Injected NetworkMonitor into AnalyzeMealWorker constructor
+- Injected NetworkMonitor into AnalyseMealWorker constructor
 - Added connectivity check before API calls: `networkMonitor.checkConnectivity()`
 - Offline detection triggers retry when attempts remain, fails when exhausted
-- File: `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt:78,170-192`
+- File: `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt:78,170-192`
 
 ✅ **ErrorHandler Integration Complete**
-- Injected ErrorHandler into AnalyzeMealWorker constructor
+- Injected ErrorHandler into AnalyseMealWorker constructor
 - All API errors classified via `errorHandler.classify(exception)`
 - Retry decision based on `errorHandler.isRetryable(errorType)`
 - User messages from `errorHandler.getUserMessage(errorType)`
 - Removed old `isRetryableError()` method - centralized error handling
-- File: `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt:79,279-334`
+- File: `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt:79,279-334`
 
 ✅ **Notification Updates During Retry**
 - Notification shows retry attempt count: "Retrying analysis... (attempt X/4)"
 - Uses `setForeground(foregroundNotifier.createForegroundInfo())` to update
-- File: `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt:318-323`
+- File: `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt:318-323`
 
 ✅ **Photo Retention Logic Verified**
 - Photos retained during retry attempts (not deleted between retries)
 - Photos deleted after: 1) Successful HC save, 2) Max retries exhausted, 3) Non-retryable error
 - Photos retained after SecurityException (HC permission denied) for manual intervention
-- File: `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt:245,267,308,328`
+- File: `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt:245,267,308,328`
 
 ✅ **Exponential Backoff Already Configured**
 - BackoffPolicy.EXPONENTIAL with 1s base delay already set in CapturePhotoViewModel
@@ -385,10 +385,10 @@ Implementation Log (2025-11-14):
 - File: `app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoViewModel.kt:269-272`
 
 ✅ **Retry Count Tracking**
-- Using WorkerParameters.runAttemptCount for retry tracking
+- Using WorkerParametres.runAttemptCount for retry tracking
 - MAX_ATTEMPTS = 4 constant defined
 - Logging includes attempt count in all retry-related messages
-- File: `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt:103,184`
+- File: `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt:103,184`
 
 **Deferred Items:**
 - Task 8 (Persistent notification with manual retry action): Requires notification action infrastructure beyond retry logic scope
@@ -404,7 +404,7 @@ Implementation Log (2025-11-14):
 ### File List
 
 **Modified:**
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Added NetworkMonitor/ErrorHandler injection, network check, enhanced retry logic
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Added NetworkMonitor/ErrorHandler injection, network check, enhanced retry logic
 
 **No files created** (tests deferred)
 
@@ -425,7 +425,7 @@ Story 4.2 successfully implements automatic retry with exponential backoff for A
 **Strengths:**
 - ✅ Clean integration of NetworkMonitor and ErrorHandler using dependency injection
 - ✅ Proper exponential backoff configuration (1s base delay)
-- ✅ Correct retry count tracking using WorkerParameters.runAttemptCount
+- ✅ Correct retry count tracking using WorkerParametres.runAttemptCount
 - ✅ Photo retention logic correctly implemented (retained during retries, deleted after success/exhaustion)
 - ✅ Notification updates include retry attempt count
 - ✅ All existing tests pass (280 tests) - no regressions
@@ -441,13 +441,13 @@ Story 4.2 successfully implements automatic retry with exponential backoff for A
 
 | AC | Description | Status | Evidence |
 |---|---|---|---|
-| AC-1 | App retries up to 3 additional times (4 total attempts) | ✅ IMPLEMENTED | `AnalyzeMealWorker.kt:104` MAX_ATTEMPTS = 4, `AnalyzeMealWorker.kt:197,314` retry count checks |
+| AC-1 | App retries up to 3 additional times (4 total attempts) | ✅ IMPLEMENTED | `AnalyseMealWorker.kt:104` MAX_ATTEMPTS = 4, `AnalyseMealWorker.kt:197,314` retry count checks |
 | AC-2 | Retry delays use exponential backoff: 0s, 1s, 2s, 4s | ✅ IMPLEMENTED | `CapturePhotoViewModel.kt:269-272` BackoffPolicy.EXPONENTIAL with 1s base delay |
-| AC-3 | Notification updates during retries with attempt count | ✅ IMPLEMENTED | `AnalyzeMealWorker.kt:330` "Retrying analysis... (attempt ${runAttemptCount + 2}/$MAX_ATTEMPTS)" |
+| AC-3 | Notification updates during retries with attempt count | ✅ IMPLEMENTED | `AnalyseMealWorker.kt:330` "Retrying analysis... (attempt ${runAttemptCount + 2}/$MAX_ATTEMPTS)" |
 | AC-4 | Each retry uses same photo from temporary storage | ✅ IMPLEMENTED | Photo URI persists in WorkManager inputData, photo not deleted during retries |
-| AC-5 | After successful retry, processing continues normally | ✅ IMPLEMENTED | `AnalyzeMealWorker.kt:228-258` HC save → photo delete → success notification |
+| AC-5 | After successful retry, processing continues normally | ✅ IMPLEMENTED | `AnalyseMealWorker.kt:228-258` HC save → photo delete → success notification |
 | AC-6 | Persistent notification after retry exhaustion | ⚠️ DEFERRED | Documented as requiring additional UI infrastructure. Error message shown via ErrorHandler.getUserMessage() |
-| AC-7 | Photo retained for manual retry | ✅ PARTIAL | Photo retained during retries (`AnalyzeMealWorker.kt:308,328`), manual retry not implemented (deferred with AC-8) |
+| AC-7 | Photo retained for manual retry | ✅ PARTIAL | Photo retained during retries (`AnalyseMealWorker.kt:308,328`), manual retry not implemented (deferred with AC-8) |
 | AC-8 | Manual retry button re-initiates API call | ⚠️ DEFERRED | Documented as requiring PendingIntent and notification action setup beyond retry logic scope |
 
 **Summary:** 5 of 8 ACs fully implemented, 3 deferred with documentation
@@ -459,9 +459,9 @@ Story 4.2 successfully implements automatic retry with exponential backoff for A
 | Task 1: Documentation Research | ✅ Complete | Story Dev Notes document research findings |
 | Task 2: Configure BackoffPolicy | ✅ Complete | `CapturePhotoViewModel.kt:269-272` configured |
 | Task 3: Track Retry Count | ✅ Complete | MAX_ATTEMPTS = 4, runAttemptCount used |
-| Task 4: Integrate NetworkMonitor | ✅ Complete | Injected and called at `AnalyzeMealWorker.kt:78,192` |
-| Task 5: Classify Errors with ErrorHandler | ✅ Complete | Injected and used at `AnalyzeMealWorker.kt:79,303-305` |
-| Task 6: Update Notification During Retry | ✅ Complete | `AnalyzeMealWorker.kt:330-334` |
+| Task 4: Integrate NetworkMonitor | ✅ Complete | Injected and called at `AnalyseMealWorker.kt:78,192` |
+| Task 5: Classify Errors with ErrorHandler | ✅ Complete | Injected and used at `AnalyseMealWorker.kt:79,303-305` |
+| Task 6: Update Notification During Retry | ✅ Complete | `AnalyseMealWorker.kt:330-334` |
 | Task 7: Retain Photo During Retry | ✅ Complete | Verified retention logic |
 | Task 8: Retry Exhaustion Handling | ✅ Partial | Exhaustion detected, persistent notification deferred |
 | Task 9: Manual Retry Action | Incomplete | Correctly marked and deferred |
@@ -477,7 +477,7 @@ Story 4.2 successfully implements automatic retry with exponential backoff for A
 **Current State:**
 - All existing tests pass: 280 tests ✅
 - No regressions introduced
-- Existing integration tests cover Worker behavior
+- Existing integration tests cover Worker behaviour
 
 **Gaps (Documented):**
 - No dedicated retry logic unit tests (WorkManager unit testing complexity)

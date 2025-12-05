@@ -8,7 +8,7 @@
 
 **Topic:** Foodie App - AI-Powered Food Calorie Tracking
 
-**Session Goals:** Comprehensive exploration of features, UX, technical approaches, future growth, and business model for a mobile app that uses Azure OpenAI multimodal models to analyze food photos and estimate calories.
+**Session Goals:** Comprehensive exploration of features, UX, technical approaches, future growth, and business model for a mobile app that uses Azure OpenAI multimodal models to analyse food photos and estimate calories.
 
 **Techniques Used:** What If Scenarios, SCAMPER Method, Mind Mapping, First Principles Thinking
 
@@ -296,7 +296,7 @@ _Key realizations from the session_
 - Progressive enhancement from simple to sophisticated reduces risk
 
 **UX Insights:**
-- Two-mode flow (Capture vs Review) matches natural behavior
+- Two-mode flow (Capture vs Review) matches natural behaviour
 - Invisible tracking reduces social anxiety and cognitive load
 - Evening summary preferred over instant notifications
 - Widget is primary interface, full app is secondary

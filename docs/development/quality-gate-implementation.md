@@ -51,7 +51,7 @@ Step 6: Story completion and mark for review
      - Documents results in Dev Agent Record
      - Proceeds to Step 6 (story completion)
 
-**Critical Behaviors:**
+**Critical Behaviours:**
 - ✅ Fully automated - no manual intervention unless HALT conditions
 - ✅ Loop continues until quality standards met
 - ✅ All results documented in story file
@@ -214,7 +214,7 @@ To verify the quality gate works as expected:
    BMad Master → Execute dev-story workflow
    ```
 
-3. **Observe Step 5.5 behavior:**
+3. **Observe Step 5.5 behaviour:**
    - Should detect lint issues → auto-fix
    - Should detect complexity → flag in SonarQube
    - Should loop until resolved or user intervenes
@@ -229,7 +229,7 @@ To verify the quality gate works as expected:
 ✅ **Step 4:** Implementation documentation created (this file)
 
 **Next Steps:**
-- Run next story using updated workflow to validate behavior
+- Run next story using updated workflow to validate behaviour
 - Monitor quality gate execution time (add to retrospectives)
 - Gather feedback on loop efficiency (too strict vs. too lenient)
 

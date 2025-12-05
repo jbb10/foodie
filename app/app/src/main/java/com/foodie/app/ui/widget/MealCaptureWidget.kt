@@ -29,9 +29,9 @@ import com.foodie.app.R
  * - Uses Jetpack Glance for modern Compose-like widget API
  * - Stateless widget (no periodic updates needed)
  * - Deep links to foodie://capture for camera navigation
- * - PendingIntent configured for Android 12+ security compliance
+ * PendingIntent configured for Android 12+ security compliance
  *
- * Widget Behavior:
+ * Widget Behaviour:
  * - Tap → Launches MainActivity with deep link intent
  * - MainActivity navigates to camera via NavGraph deep link handling
  * - Requires device unlock (home screen widget)

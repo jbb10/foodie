@@ -198,7 +198,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** SettingsViewModel state management, PreferencesRepository CRUD operations
 - **Instrumentation Tests Required:** Navigation flow, settings screen rendering
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use MockK for mocking PreferencesRepository, NavController
 
@@ -222,7 +222,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 6. **Verify Return:** App returns to meal list screen
 7. **Re-open Settings:** Tap settings menu again, verify screen state persists
 
-### Expected Behavior
+### Expected Behaviour
 - Settings menu item appears in meal list toolbar
 - Tapping settings navigates to settings screen with smooth transition
 - Settings screen displays organized preference categories
@@ -556,7 +556,7 @@ Story 5-1 successfully establishes a **solid foundation** for Epic 5's configura
   - Data class with apiEndpoint, modelName, themeMode fields
   - Loading and error state management
 - File: `app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt:56`
-  - ViewModel injected via hiltViewModel() parameter
+  - ViewModel injected via hiltViewModel() parametre
 
 **Test Coverage:**
 - `SettingsViewModelTest.kt`: 6 unit tests covering initialization, preference loading, saving, error handling (ALL PASSING)
@@ -611,10 +611,10 @@ Story 5-1 successfully establishes a **solid foundation** for Epic 5's configura
   - Line 53: @OptIn(ExperimentalMaterial3Api::class) for TopAppBar
   - Lines 60-74: Scaffold + TopAppBar structure
   - Line 143: MaterialTheme.typography.labelLarge for category headers
-  - Line 144: MaterialTheme.colorScheme.primary for text color
+  - Line 144: MaterialTheme.colourScheme.primary for text colour
   - Line 161: androidx.compose.material3.ListItem for preference items
 - File: `app/src/main/java/com/foodie/app/ui/theme/Theme.kt:1-48`
-  - Material3 ColorScheme with lightColorScheme/darkColorScheme
+  - Material3 ColourScheme with lightColourScheme/darkColourScheme
 
 **Test Coverage:**
 - `SettingsScreenTest.kt:91-99`: `topAppBarDisplaysCorrectTitle` (PASSING)
@@ -698,9 +698,9 @@ Story 5-1 successfully establishes a **solid foundation** for Epic 5's configura
 
 **✅ Task 1.1:** Research Material Design 3 settings patterns and preference component library  
 **Evidence:**
-- SettingsScreen.kt implementation uses Material3 ListItem, typography, color scheme
+- SettingsScreen.kt implementation uses Material3 ListItem, typography, colour scheme
 - PreferenceCategoryHeader follows M3 labelLarge typography pattern
-- Theme.kt provides Material3 ColorScheme integration
+- Theme.kt provides Material3 ColourScheme integration
 **Status:** VERIFIED COMPLETE
 
 ---
@@ -814,7 +814,7 @@ Story 5-1 successfully establishes a **solid foundation** for Epic 5's configura
 
 **Evidence:**
 - SettingsViewModel doesn't directly access SharedPreferences (repository abstraction)
-- SettingsScreen is stateless (ViewModel parameter with hiltViewModel() default)
+- SettingsScreen is stateless (ViewModel parametre with hiltViewModel() default)
 - PreferencesRepositoryImpl uses callbackFlow for reactive updates (lines 75-92)
 
 ---

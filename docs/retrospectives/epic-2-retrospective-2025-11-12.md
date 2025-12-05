@@ -80,7 +80,7 @@
 - Stories 2-7 and 2-8 validated on actual Pixel 8 Pro device
 - Real-world timing metrics captured (< 3 seconds wake-to-camera)
 - Notification permission flow tested in realistic scenarios
-- Silent notification behavior verified as designed
+- Silent notification behaviour verified as designed
 
 **Impact:**
 - High confidence in production readiness
@@ -136,7 +136,7 @@
 
 **Learning:**
 - Always test WorkManager changes on physical device for production validation
-- Emulator caching can mask real behavior - restart when worker behavior seems inconsistent
+- Emulator caching can mask real behaviour - restart when worker behaviour seems inconsistent
 - Document environment quirks immediately when discovered
 
 ### 2. Lock Screen Widget Platform Limitation
@@ -160,7 +160,7 @@
 - Validate PRD assumptions against platform capabilities before committing to stories
 - Home screen widgets provide 90% of lock screen widget value for quick access
 
-### 3. Navigation Animation Default Behavior
+### 3. Navigation Animation Default Behaviour
 **What happened:**
 - Default Compose Navigation uses crossfade transitions (non-native feeling)
 - Material 3 doesn't provide Motion transitions for Compose Navigation
@@ -211,7 +211,7 @@
    - **Recommendation:** Document pattern in architecture.md for future secret management
 
 2. **Physical Device Testing Critical:**
-   - **Observation:** Emulator issues (WorkManager caching) vs real device behavior diverged
+   - **Observation:** Emulator issues (WorkManager caching) vs real device behaviour diverged
    - **Impact:** Physical device testing caught emulator artifacts
    - **Recommendation:** Always validate WorkManager, notifications, and performance on physical device
 
@@ -256,7 +256,7 @@
 ### AI-5: Physical Device Testing Requirement
 - **Owner:** Bob (Scrum Master)
 - **Timeline:** Before Epic 3 starts
-- **Description:** Update Definition of Done to require physical device testing for: WorkManager jobs, notifications, performance-sensitive features, platform-specific behavior. Emulator acceptable for UI layout and basic functionality.
+- **Description:** Update Definition of Done to require physical device testing for: WorkManager jobs, notifications, performance-sensitive features, platform-specific behaviour. Emulator acceptable for UI layout and basic functionality.
 - **Success Criteria:** DoD updated, Epic 3+ stories include device testing where applicable
 
 ### AI-6: Document Material 3 Compose Gaps in Architecture.md
@@ -359,7 +359,7 @@
 **Recommendation:** No PRD update needed - home screen widget solution accepted and working well.
 
 ### Physical Device Testing Critical for Production Validation
-**Discovery:** Emulator WorkManager caching caused false failures. Physical device testing revealed real behavior.
+**Discovery:** Emulator WorkManager caching caused false failures. Physical device testing revealed real behaviour.
 
 **Impact on Epic 3:** All WorkManager features, notifications, and performance-sensitive code must be validated on physical device before marking "done."
 

@@ -48,8 +48,8 @@ So that I can immediately return to my previous activity without waiting.
   - [x] Write unit test for WorkManagerModule DI configuration
   - [x] Document WorkManager initialization in KDocs
 
-- [x] **Task 2: Create AnalyzeMealWorker** (AC: #1-6)
-  - [x] Create `AnalyzeMealWorker` in `data/worker/` package extending `CoroutineWorker`
+- [x] **Task 2: Create AnalyseMealWorker** (AC: #1-6)
+  - [x] Create `AnalyseMealWorker` in `data/worker/` package extending `CoroutineWorker`
   - [x] Annotate with `@HiltWorker` for dependency injection
   - [x] Inject dependencies via constructor:
     - [x] `NutritionAnalysisRepository` (API calls)
@@ -62,7 +62,7 @@ So that I can immediately return to my previous activity without waiting.
   - [x] Implement `doWork()` suspend function:
     - [x] Extract photo URI and timestamp from input data
     - [x] Verify photo file exists (return Result.failure() if missing)
-    - [x] Call `nutritionAnalysisRepository.analyzePhoto(photoUri)`
+    - [x] Call `nutritionAnalysisRepository.analysePhoto(photoUri)`
     - [x] If API call succeeds:
       - [x] Extract calories and description from NutritionData
       - [x] Save to Health Connect: `healthConnectManager.insertNutritionRecord(calories, description, timestamp)`
@@ -89,11 +89,11 @@ So that I can immediately return to my previous activity without waiting.
   - [x] Update `CapturePhotoViewModel` in `ui/screens/capturephoto/`
     - [x] Inject `WorkManager` instance via Hilt
     - [x] After successful photo save, build WorkRequest:
-      - [x] Use `OneTimeWorkRequestBuilder<AnalyzeMealWorker>()`
+      - [x] Use `OneTimeWorkRequestBuilder<AnalyseMealWorker>()`
       - [x] Set input data: photo URI, timestamp
       - [x] Set constraints: `NetworkType.CONNECTED`
       - [x] Set backoff criteria: `BackoffPolicy.EXPONENTIAL`, initial delay 1 second
-      - [x] Add tag: "analyze_meal" for query/cancel operations
+      - [x] Add tag: "analyse_meal" for query/cancel operations
     - [x] Enqueue work: `workManager.enqueue(workRequest)`
     - [x] Update UI state: Set processing status to background (user can leave)
     - [x] Log work request ID with Timber.d() for debugging
@@ -107,7 +107,7 @@ So that I can immediately return to my previous activity without waiting.
     - [x] Policy: `BackoffPolicy.EXPONENTIAL`
     - [x] Initial delay: 1 second
     - [x] Note: Delays will be 1s, 2s, 4s for attempts 2-4 (WorkManager doubles delay each retry)
-  - [x] In `AnalyzeMealWorker.doWork()`, implement retry decision logic:
+  - [x] In `AnalyseMealWorker.doWork()`, implement retry decision logic:
     - [x] Classify errors as retryable vs non-retryable (delegate to repository Result)
     - [x] Return `Result.retry()` only for network errors and API 5xx responses
     - [x] Return `Result.failure()` for client errors (4xx), parse errors, validation failures
@@ -118,7 +118,7 @@ So that I can immediately return to my previous activity without waiting.
       - [x] Log final failure with Timber.e()
       - [x] Delete photo via PhotoManager
       - [x] Return `Result.failure()` (stop retrying)
-  - [ ] Write integration test for retry behavior:
+  - [ ] Write integration test for retry behaviour:
     - [ ] Use `TestListenableWorkerBuilder` to simulate retries
     - [ ] Mock repository to return retryable error
     - [ ] Verify worker returns Result.retry()
@@ -134,7 +134,7 @@ So that I can immediately return to my previous activity without waiting.
 
 - [x] **Task 6: Photo Cleanup After Processing** (AC: #6, #11)
   - [x] PhotoManager.deletePhoto() method already exists from Story 2-3
-  - [x] Update `AnalyzeMealWorker.doWork()` to call deletePhoto:
+  - [x] Update `AnalyseMealWorker.doWork()` to call deletePhoto:
     - [x] After successful Health Connect save → delete photo
     - [x] After max retries exhausted → delete photo
     - [x] After non-retryable error → delete photo
@@ -142,7 +142,7 @@ So that I can immediately return to my previous activity without waiting.
   - [x] Document photo lifecycle in KDocs (capture → process → delete)
 
 - [x] **Task 7: Performance Monitoring and Logging** (AC: #5)
-  - [x] Add performance logging to `AnalyzeMealWorker.doWork()`:
+  - [x] Add performance logging to `AnalyseMealWorker.doWork()`:
     - [x] Record start time at beginning of doWork()
     - [x] Record API call duration (before and after repository call)
     - [x] Record Health Connect save duration
@@ -165,7 +165,7 @@ So that I can immediately return to my previous activity without waiting.
   - [x] Document error handling decision tree in KDocs
 
 - [ ] **Task 9: Integration Testing and Validation** (AC: All)
-  - [ ] Create `AnalyzeMealWorkerIntegrationTest` in `androidTest/`
+  - [ ] Create `AnalyseMealWorkerIntegrationTest` in `androidTest/`
   - [ ] Use `TestListenableWorkerBuilder` for worker testing
   - [ ] Test success scenario
   - [ ] Test retry scenarios
@@ -176,7 +176,7 @@ So that I can immediately return to my previous activity without waiting.
 
 - [ ] **Task 10: Documentation and Completion** (AC: All)
   - [x] Update Dev Notes with background processing architecture
-  - [ ] Update README if background processing behavior needs explanation
+  - [ ] Update README if background processing behaviour needs explanation
   - [ ] Update Dev Agent Record with completion notes and file list
   - [ ] Add Change Log entry summarizing background processing implementation
   - [ ] Run all tests: `./gradlew test connectedAndroidTest`
@@ -197,13 +197,13 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Requirements
 - [ ] **Unit tests written** for WorkManagerModule, PhotoManager.deletePhoto(), HealthConnectManager.insertNutritionRecord()
 - [ ] **All unit tests passing** (`./gradlew test` executes successfully with zero failures)
-- [x] **Integration tests written** for AnalyzeMealWorker with mocked dependencies (success, retry, failure scenarios) - *Note: Manual validation via User Demo preferred for WorkManager + Health Connect + Azure API stack*
+- [x] **Integration tests written** for AnalyseMealWorker with mocked dependencies (success, retry, failure scenarios) - *Note: Manual validation via User Demo preferred for WorkManager + Health Connect + Azure API stack*
 - [x] **All integration tests passing** (`./gradlew connectedAndroidTest` succeeds) - *Note: Integration validation via manual end-to-end testing per User Demo section*
 - [x] No test coverage regressions (existing tests still pass)
 
 ### Documentation
 - [x] Inline code documentation (KDocs) added for WorkManager configuration, worker implementation, retry logic
-- [x] README updated with background processing behavior explanation
+- [x] README updated with background processing behaviour explanation
 - [x] Dev Notes section includes WorkManager architecture and references
 
 ### Story File Completeness
@@ -213,7 +213,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 **Testing Standards Summary:**
 - **Unit Tests Required:** WorkManager DI, PhotoManager, HealthConnectManager methods
-- **Integration Tests Required:** AnalyzeMealWorker with all error scenarios (network, API, parse, Health Connect)
+- **Integration Tests Required:** AnalyseMealWorker with all error scenarios (network, API, parse, Health Connect)
 - **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Mockito/Mockito-Kotlin for dependency mocking
@@ -243,7 +243,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 9. Check app cache directory: `cacheDir/photos/`
 10. **Expected**: Photo file deleted after successful processing
 
-**Demo 2: Network Retry Behavior**
+**Demo 2: Network Retry Behaviour**
 1. Enable airplane mode on device
 2. Capture meal photo via widget
 3. **Expected**: Camera closes, photo saved to cache
@@ -258,7 +258,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 4. Check Logcat for error message
 5. **Expected**: Photo deleted, error logged with "API 401 Unauthorized"
 
-### Expected Behavior
+### Expected Behaviour
 - Photo capture flow completes in < 5 seconds (widget → camera → confirm → return)
 - Background processing completes in < 15 seconds typical (no user waiting)
 - WorkManager survives app closure and device doze mode
@@ -327,9 +327,9 @@ class FoodieApplication : Application(), Configuration.Provider {
 **Worker Implementation Pattern:**
 ```kotlin
 @HiltWorker
-class AnalyzeMealWorker @AssistedInject constructor(
+class AnalyseMealWorker @AssistedInject constructor(
     @Assisted appContext: Context,
-    @Assisted workerParams: WorkerParameters,
+    @Assisted workerParams: WorkerParametres,
     private val nutritionAnalysisRepository: NutritionAnalysisRepository,
     private val healthConnectManager: HealthConnectManager,
     private val photoManager: PhotoManager
@@ -341,7 +341,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
         
         return try {
             // Attempt API analysis
-            when (val result = nutritionAnalysisRepository.analyzePhoto(photoUri)) {
+            when (val result = nutritionAnalysisRepository.analysePhoto(photoUri)) {
                 is com.foodie.app.util.Result.Success -> {
                     // Save to Health Connect
                     healthConnectManager.insertNutritionRecord(
@@ -369,7 +369,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
                 }
             }
         } catch (e: Exception) {
-            Timber.e(e, "Unexpected error in AnalyzeMealWorker")
+            Timber.e(e, "Unexpected error in AnalyseMealWorker")
             photoManager.deletePhoto(photoUri)
             Result.failure()
         }
@@ -446,7 +446,7 @@ suspend fun insertNutritionRecord(
 **Photo States:**
 1. **Captured**: Photo saved to cache directory by CapturePhotoViewModel
 2. **Queued**: WorkManager job enqueued with photo URI
-3. **Processing**: Worker analyzes photo via API
+3. **Processing**: Worker analyses photo via API
 4. **Success**: Health Connect save successful → delete photo
 5. **Retry**: Network error or API 5xx → keep photo, retry with backoff
 6. **Failed**: Non-retryable error or max retries → delete photo
@@ -484,21 +484,21 @@ suspend fun insertNutritionRecord(
 app/src/main/java/com/foodie/app/
 ├── data/
 │   └── worker/
-│       └── AnalyzeMealWorker.kt                     # Background processing worker
+│       └── AnalyseMealWorker.kt                     # Background processing worker
 └── di/
     └── WorkManagerModule.kt                         # WorkManager DI configuration
 
 app/src/test/java/com/foodie/app/
 ├── data/
 │   └── worker/
-│       └── AnalyzeMealWorkerTest.kt                 # Worker unit tests
+│       └── AnalyseMealWorkerTest.kt                 # Worker unit tests
 └── di/
     └── WorkManagerModuleTest.kt                     # DI configuration tests
 
 app/src/androidTest/java/com/foodie/app/
 └── data/
     └── worker/
-        └── AnalyzeMealWorkerIntegrationTest.kt      # Worker integration tests
+        └── AnalyseMealWorkerIntegrationTest.kt      # Worker integration tests
 ```
 
 **Modified Files:**
@@ -526,7 +526,7 @@ app/src/androidTest/java/com/foodie/app/
 
 **New Capabilities to Reuse:**
 - **NutritionAnalysisRepository**: API client for Azure OpenAI Responses API
-  - Method: `suspend fun analyzePhoto(photoUri: Uri): Result<NutritionData>`
+  - Method: `suspend fun analysePhoto(photoUri: Uri): Result<NutritionData>`
   - Returns structured nutrition data (calories + description) or error
   - Error classification: retryable (IOException, 5xx) vs non-retryable (4xx, parse errors)
 - **NutritionData Domain Model**: Validated domain model with calories (1-5000) and description (max 200 chars)
@@ -543,7 +543,7 @@ app/src/androidTest/java/com/foodie/app/
 - `app/src/main/java/com/foodie/app/util/Result.kt` - Result wrapper for error handling
 
 **Integration Points for This Story:**
-- Worker will call `NutritionAnalysisRepository.analyzePhoto()` from background thread
+- Worker will call `NutritionAnalysisRepository.analysePhoto()` from background thread
 - Worker consumes Result<NutritionData> and makes retry decision based on error type
 - Worker extracts calories and description from NutritionData for Health Connect save
 - Worker uses Result.isRetryable flag to determine retry vs failure
@@ -567,7 +567,7 @@ app/src/androidTest/java/com/foodie/app/
 **WorkManager Setup - First Tasks Requirement:**
 Per Epic 2 retrospective action items (docs/epic-2-story-notes.md), the first tasks in this story MUST establish WorkManager basic infrastructure:
 - Task 1 focuses on WorkManagerModule DI configuration
-- Task 2 creates AnalyzeMealWorker with Hilt integration
+- Task 2 creates AnalyseMealWorker with Hilt integration
 - These foundational tasks enable reliable background processing for the entire epic
 
 **Rationale**: WorkManager is the backbone of "invisible tracking" - ensuring processing happens reliably in the background without user waiting. Establishing this infrastructure early prevents rework and enables systematic testing of background flows.
@@ -589,13 +589,13 @@ Per Epic 2 retrospective action items (docs/epic-2-story-notes.md), the first ta
 
 3. **Architecture WorkManager** - [Source: docs/architecture.md#WorkManager-Background-Processing]
    - WorkManager 2.9.1 for reliable background execution
-   - AnalyzeMealWorker coordinates photo → API → Health Connect → cleanup
+   - AnalyseMealWorker coordinates photo → API → Health Connect → cleanup
    - Network constraints: NetworkType.CONNECTED
    - Retry policy: Exponential backoff, max 3 retries
    - HiltWorkerFactory for dependency injection
 
 4. **Tech Spec Epic 2 - Background Processing Module** - [Source: docs/tech-spec-epic-2.md#Background-Processing-Module]
-   - Component table: AnalyzeMealWorker, WorkManagerModule
+   - Component table: AnalyseMealWorker, WorkManagerModule
    - Worker responsibilities: API call, Health Connect save, photo cleanup, retry logic
    - Retry policy: Exponential backoff with 1s, 2s, 4s delays
    - Error handling: Retryable vs non-retryable classification
@@ -635,7 +635,7 @@ Key Context Sections:
 - Code Artifacts: Existing interfaces (NutritionAnalysisRepository, HealthConnectManager, PhotoManager) and new files to create
 - Dependencies: WorkManager 2.9.1, Hilt 2.53, Coroutines 1.9.0 (all already configured)
 - Constraints: Performance targets (< 15s typical), retry logic (exponential backoff 1s/2s/4s), error handling (retryable vs non-retryable)
-- Interfaces: WorkManager configuration, AnalyzeMealWorker signature, WorkRequest builder pattern
+- Interfaces: WorkManager configuration, AnalyseMealWorker signature, WorkRequest builder pattern
 - Tests: Unit tests for worker + DI module, integration tests with TestListenableWorkerBuilder, test scenarios for success/retry/failure paths
 
 ### Agent Model Used
@@ -647,7 +647,7 @@ Key Context Sections:
 **Implementation Log - 2025-11-10:**
 
 **All Tasks Completed (with caveats):**
-✅ Tasks 1-8: WorkManager infrastructure, AnalyzeMealWorker, retry logic, error handling, photo cleanup, performance monitoring
+✅ Tasks 1-8: WorkManager infrastructure, AnalyseMealWorker, retry logic, error handling, photo cleanup, performance monitoring
 ✅ Task 9-10: Documentation complete (README, KDocs), Health Connect permission flow fixed
 ✅ Unit tests passing (187 tests, 0 failing)
 
@@ -662,7 +662,7 @@ Key Context Sections:
    - Status: ✅ Permission dialog now appears and grants work correctly
 
 2. **HiltWorkerFactory Integration (PARTIALLY RESOLVED)**:
-   - Issue: WorkManager unable to instantiate AnalyzeMealWorker - `NoSuchMethodException` looking for `(Context, WorkerParameters)` constructor
+   - Issue: WorkManager unable to instantiate AnalyseMealWorker - `NoSuchMethodException` looking for `(Context, WorkerParametres)` constructor
    - Root Cause: WorkManager not using HiltWorkerFactory for dependency injection
    - Attempted Fixes:
      - ✅ Added `HiltWorkerFactory` injection to `WorkManagerModule.provideWorkManagerConfiguration()`
@@ -713,7 +713,7 @@ Key Context Sections:
 
 **Recommended Next Steps:**
 1. Clear app data and validate full flow: widget → camera → photo → background processing → Health Connect entry
-2. Test retry behavior with airplane mode
+2. Test retry behaviour with airplane mode
 3. Test error scenarios (invalid API key, network timeout, permission revocation)
 4. Code review
 5. Story approval
@@ -726,14 +726,14 @@ All core functionality implemented and unit tested. Health Connect permission fl
 
 **What Works:**
 - ✅ WorkManager infrastructure with HiltWorkerFactory DI
-- ✅ AnalyzeMealWorker with retry logic and error handling
+- ✅ AnalyseMealWorker with retry logic and error handling
 - ✅ Health Connect permission request flow
 - ✅ Photo capture → background processing enqueue
 - ✅ All unit tests passing (187 tests)
 
 **What Needs Device Validation:**
 - ⚠️ Full end-to-end flow (photo → API → Health Connect → photo cleanup)
-- ⚠️ Retry behavior with network interruption
+- ⚠️ Retry behaviour with network interruption
 - ⚠️ Error scenarios (API failure, permission issues)
 
 **Blocker for Testing:**
@@ -745,7 +745,7 @@ Fresh installs (from Play Store) will work correctly. Issue only affects develop
 ### File List
 
 **New Files Created:**
-- `app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` (268 lines) - Background worker coordinating photo → API → Health Connect → cleanup flow with retry logic
+- `app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` (268 lines) - Background worker coordinating photo → API → Health Connect → cleanup flow with retry logic
 - `app/app/src/main/java/com/foodie/app/HealthConnectPermissionsRationaleActivity.kt` (180 lines) - Privacy policy activity required by Health Connect (Android 13/14+ support)
 - `app/README.md` - Added "Background Processing" section (150+ lines) with architecture, retry logic, debugging guide
 
@@ -764,12 +764,12 @@ Fresh installs (from Play Store) will work correctly. Issue only affects develop
 
 **2025-11-10 - Story 2.5: Background Processing Service - Code Complete**
 
-**Summary:** Implemented complete WorkManager background processing infrastructure with AnalyzeMealWorker for photo analysis, Health Connect save, and photo cleanup. All core functionality implemented with retry logic, error handling, and Health Connect permission flow. Unit tests passing. Pending device validation after app data clear.
+**Summary:** Implemented complete WorkManager background processing infrastructure with AnalyseMealWorker for photo analysis, Health Connect save, and photo cleanup. All core functionality implemented with retry logic, error handling, and Health Connect permission flow. Unit tests passing. Pending device validation after app data clear.
 
 **Implementation Highlights:**
 - **WorkManager + Hilt Integration**: Added HiltWorkerFactory to Configuration, disabled auto-initialization, manual WorkManager.initialize() in Application
 - **Health Connect Permissions**: Created privacy policy activity (required by Health Connect), added Android 13/14+ support via activity-alias
-- **AnalyzeMealWorker**: Full implementation with exponential backoff retry (1s, 2s, 4s delays), max 4 attempts, retryable vs non-retryable error classification
+- **AnalyseMealWorker**: Full implementation with exponential backoff retry (1s, 2s, 4s delays), max 4 attempts, retryable vs non-retryable error classification
 - **Photo Processing Trigger**: Updated CapturePhotoViewModel to enqueue WorkRequest after photo capture with network constraints
 - **Error Handling**: Comprehensive error handling - SecurityException (keep photo), IOException (retry), other exceptions (delete photo and fail)
 - **Performance Logging**: Tracks API duration, Health Connect save duration, total processing time with warnings for slow processing (>20s)
@@ -784,10 +784,10 @@ Fresh installs (from Play Store) will work correctly. Issue only affects develop
 - Fresh installs work correctly; issue only affects development iteration
 
 **Files Created:**
-- `AnalyzeMealWorker.kt` (268 lines) - Background worker with retry logic
+- `AnalyseMealWorker.kt` (268 lines) - Background worker with retry logic
 - `HealthConnectPermissionsRationaleActivity.kt` (180 lines) - Health Connect privacy policy
 - README.md "Background Processing" section (150+ lines)
-- `AnalyzeMealWorkerTest.kt` - Unit tests (271 lines, needs integration test conversion)
+- `AnalyseMealWorkerTest.kt` - Unit tests (271 lines, needs integration test conversion)
 - `WorkManagerModuleTest.kt` - DI configuration tests
 
 **Files Modified:**
@@ -802,7 +802,7 @@ Fresh installs (from Play Store) will work correctly. Issue only affects develop
 **Remaining Work:**
 - Integration tests using TestListenableWorkerBuilder (androidTest/)
 - End-to-end testing with live API and Health Connect
-- README updates for background processing behavior
+- README updates for background processing behaviour
 
 **Dependencies:**
 - WorkManager 2.9.1 (androidx.work:work-runtime-ktx)
@@ -831,20 +831,20 @@ All 11 acceptance criteria verified complete with explicit file:line evidence:
 
 1. ✅ **AC #1:** WorkManager queues analysis job with network constraints - Verified in `CapturePhotoViewModel.kt:184-213`
 2. ✅ **AC #2:** User can immediately return without waiting - Verified in `CapturePhotoViewModel.kt:215-218`
-3. ✅ **AC #3:** WorkManager calls Azure OpenAI API via repository - Verified in `AnalyzeMealWorker.kt:136-141`
+3. ✅ **AC #3:** WorkManager calls Azure OpenAI API via repository - Verified in `AnalyseMealWorker.kt:136-141`
 4. ✅ **AC #4:** Processing survives app termination - Verified in `WorkManagerModule.kt`, `FoodieApplication.kt`
-5. ✅ **AC #5:** Process completes in <15 seconds typical - Verified with performance monitoring in `AnalyzeMealWorker.kt:108-181`
-6. ✅ **AC #6:** Photo deleted after successful HC save - Verified in `AnalyzeMealWorker.kt:166-172`
-7. ✅ **AC #7:** Retry logic uses exponential backoff, max 3 retries - Verified in `CapturePhotoViewModel.kt:199-203`, `AnalyzeMealWorker.kt:88-92`
-8. ✅ **AC #8:** Retry delays are 0s, 1s, 2s, 4s - Verified in `AnalyzeMealWorker.kt:88-92` (documented sequence)
-9. ✅ **AC #9:** Retryable errors trigger retry - Verified in `AnalyzeMealWorker.kt:239-263` (`isRetryableError()`)
-10. ✅ **AC #10:** Non-retryable errors stop immediately - Verified in `AnalyzeMealWorker.kt:218-227`
-11. ✅ **AC #11:** Photo deleted after max retries - Verified in `AnalyzeMealWorker.kt:206-214`
+5. ✅ **AC #5:** Process completes in <15 seconds typical - Verified with performance monitoring in `AnalyseMealWorker.kt:108-181`
+6. ✅ **AC #6:** Photo deleted after successful HC save - Verified in `AnalyseMealWorker.kt:166-172`
+7. ✅ **AC #7:** Retry logic uses exponential backoff, max 3 retries - Verified in `CapturePhotoViewModel.kt:199-203`, `AnalyseMealWorker.kt:88-92`
+8. ✅ **AC #8:** Retry delays are 0s, 1s, 2s, 4s - Verified in `AnalyseMealWorker.kt:88-92` (documented sequence)
+9. ✅ **AC #9:** Retryable errors trigger retry - Verified in `AnalyseMealWorker.kt:239-263` (`isRetryableError()`)
+10. ✅ **AC #10:** Non-retryable errors stop immediately - Verified in `AnalyseMealWorker.kt:218-227`
+11. ✅ **AC #11:** Photo deleted after max retries - Verified in `AnalyseMealWorker.kt:206-214`
 
 ### Task Validation (8/10 Complete)
 
 - ✅ **Task 1:** WorkManager infrastructure setup - All subtasks complete with verified implementations
-- ✅ **Task 2:** AnalyzeMealWorker creation - Complete with comprehensive implementation (268 lines)
+- ✅ **Task 2:** AnalyseMealWorker creation - Complete with comprehensive implementation (268 lines)
 - ✅ **Task 3:** Photo processing trigger - Complete with WorkManager enqueuing in ViewModel
 - ✅ **Task 4:** Retry logic configuration - Complete (integration tests deferred to manual testing)
 - ✅ **Task 5:** Health Connect integration - Complete with SecurityException handling
@@ -871,7 +871,7 @@ All 11 acceptance criteria verified complete with explicit file:line evidence:
 
 **Testing:** ⚠️ **GAPS IDENTIFIED**
 - Unit tests: 187 passing, 0 failures ✅
-- AnalyzeMealWorker unit tests missing ⚠️ (MEDIUM severity)
+- AnalyseMealWorker unit tests missing ⚠️ (MEDIUM severity)
 - Integration tests deferred to manual testing ⚠️ (documented strategy)
 
 **Documentation:** ✅ **EXCELLENT**
@@ -882,7 +882,7 @@ All 11 acceptance criteria verified complete with explicit file:line evidence:
 ### Findings Summary
 
 **MEDIUM Severity:**
-1. AnalyzeMealWorker unit tests missing (not blocking - manual testing documented)
+1. AnalyseMealWorker unit tests missing (not blocking - manual testing documented)
 2. Integration tests incomplete (not blocking - manual testing strategy documented)
 3. Device validation pending (not blocking - implementation verified correct)
 
@@ -902,7 +902,7 @@ All 11 acceptance criteria verified complete with explicit file:line evidence:
 - Production deployment unaffected by development environment limitation
 
 **Recommended Follow-up Work (Future Stories):**
-1. Create AnalyzeMealWorker unit tests with mocked dependencies
+1. Create AnalyseMealWorker unit tests with mocked dependencies
 2. Perform device validation after clearing app data
 3. Add HttpException handling if repository doesn't wrap errors
 
@@ -919,12 +919,12 @@ See [CODE-REVIEW-2-5-background-processing-service.md](./CODE-REVIEW-2-5-backgro
 - **Documentation References**: 6 source documents (Architecture, Tech Spec Epic 2, PRD, Story 2-4, Story 2-3, Story 1-4)
 - **Code Artifacts**: 7 existing files to reference/modify, 4 new files to create
 - **Dependencies**: All dependencies already configured (WorkManager 2.9.1, Hilt 2.53, Coroutines 1.9.0)
-- **Interfaces Documented**: 6 key interfaces (WorkManager config, WorkManagerModule, AnalyzeMealWorker, repository calls, photo cleanup)
+- **Interfaces Documented**: 6 key interfaces (WorkManager config, WorkManagerModule, AnalyseMealWorker, repository calls, photo cleanup)
 - **Test Coverage**: 10+ test scenarios across unit and integration tests
 
 **Key Context Sections:**
 - **Acceptance Criteria**: All 11 ACs with technical specifications
-- **Worker Architecture**: AnalyzeMealWorker with @HiltWorker, dependency injection pattern, doWork() implementation
+- **Worker Architecture**: AnalyseMealWorker with @HiltWorker, dependency injection pattern, doWork() implementation
 - **Retry Logic**: Exponential backoff (1s, 2s, 4s delays), max 4 attempts, retryable vs non-retryable error classification
 - **Photo Lifecycle**: Capture → process → delete (except SecurityException case)
 - **Performance Targets**: < 15s typical, < 30s 95th percentile, doze mode avoidance
@@ -954,7 +954,7 @@ See [CODE-REVIEW-2-5-background-processing-service.md](./CODE-REVIEW-2-5-backgro
 
 **Key Requirements:**
 - WorkManager with network constraints and exponential backoff retry (1s, 2s, 4s delays)
-- AnalyzeMealWorker coordinates photo → API → Health Connect → cleanup flow
+- AnalyseMealWorker coordinates photo → API → Health Connect → cleanup flow
 - Retry logic: max 4 attempts (initial + 3 retries) for retryable errors (network, 5xx)
 - Non-retryable errors (4xx, parse errors) stop processing immediately
 - Health Connect NutritionRecord with energy (calories) and name (description) fields
@@ -966,7 +966,7 @@ See [CODE-REVIEW-2-5-background-processing-service.md](./CODE-REVIEW-2-5-backgro
 - Or run `story-ready` workflow to mark story ready for development without context generation
 - Implementation ready to begin after context generation or ready-for-dev marking
 
-**Files Expected to Create:** 4 new files (AnalyzeMealWorker, WorkManagerModule, tests)
+**Files Expected to Create:** 4 new files (AnalyseMealWorker, WorkManagerModule, tests)
 **Files Expected to Modify:** 4 files (FoodieApplication, CapturePhotoViewModel, HealthConnectManager, PhotoManager)
 
 ---

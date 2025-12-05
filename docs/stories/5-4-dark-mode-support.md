@@ -12,13 +12,13 @@ So that I can use it comfortably in low-light conditions (late-night meal loggin
 
 **Given** users may prefer dark mode for comfort
 **When** dark mode is enabled (system-wide or in-app)
-**Then** all screens use dark theme colors
+**Then** all screens use dark theme colours
 
 **And** the theme follows Material Design dark theme guidelines
 
 **And** text remains legible with proper contrast ratios
 
-**And** camera preview maintains natural colors (not inverted)
+**And** camera preview maintains natural colours (not inverted)
 
 **And** notifications use dark styling when appropriate
 
@@ -32,19 +32,19 @@ So that I can use it comfortably in low-light conditions (late-night meal loggin
 
 - [x] **Task 1: Documentation Research & Design System Validation** ⚠️ COMPLETE BEFORE PROCEEDING TO IMPLEMENTATION
 
-  **Objective:** Validate Material Design 3 dark theme implementation approach, understand dynamic color system, and confirm existing project theme foundation from Story 5.1.
+  **Objective:** Validate Material Design 3 dark theme implementation approach, understand dynamic colour system, and confirm existing project theme foundation from Story 5.1.
 
   **Required Research:**
   1. Review Material Design 3 dark theme guidelines
-     - Starting point: https://m3.material.io/styles/color/dark-theme/overview
-     - Focus: Dark color palette generation, contrast requirements, surface elevation
-     - Validate: Dynamic color system compatibility, accessibility contrast ratios
+     - Starting point: https://m3.material.io/styles/colour/dark-theme/overview
+     - Focus: Dark colour palette generation, contrast requirements, surface elevation
+     - Validate: Dynamic colour system compatibility, accessibility contrast ratios
   
   2. Review existing theme implementation from project setup
      - File: `app/src/main/java/com/foodie/app/ui/theme/Theme.kt` - FoodieTheme composable
-     - File: `app/src/main/java/com/foodie/app/ui/theme/Color.kt` - Color palette definitions
+     - File: `app/src/main/java/com/foodie/app/ui/theme/Colour.kt` - Colour palette definitions
      - File: `app/src/main/res/values/themes.xml` - AppCompat theme configuration
-     - Current approach: Material Design 3 with dynamic color support
+     - Current approach: Material Design 3 with dynamic colour support
   
   3. Review Android dark theme patterns
      - System theme detection: isSystemInDarkTheme()
@@ -54,39 +54,39 @@ So that I can use it comfortably in low-light conditions (late-night meal loggin
   
   4. Review camera preview dark mode handling
      - File: `app/src/main/java/com/foodie/app/ui/screens/camera/CameraScreen.kt` (if exists)
-     - Validate: Camera preview should maintain natural colors regardless of theme
+     - Validate: Camera preview should maintain natural colours regardless of theme
      - Android system camera intent handles this automatically
   
   5. Validate assumptions:
-     - Material 3 dynamic color system supports dark mode out of the box
-     - Compose Color scheme has built-in dark variants
+     - Material 3 dynamic colour system supports dark mode out of the box
+     - Compose Colour scheme has built-in dark variants
      - System theme preference accessible via isSystemInDarkTheme()
      - Notifications inherit app theme via notification channel configuration
   
   **Deliverable Checkpoint:** ✅ REQUIRED
   Document findings in Dev Notes before proceeding to Task 2:
   - [x] Material Design 3 dark theme approach confirmed
-  - [x] Existing theme infrastructure reviewed (Color.kt, Theme.kt patterns)
+  - [x] Existing theme infrastructure reviewed (Colour.kt, Theme.kt patterns)
   - [x] Runtime theme switching strategy determined (AppCompatDelegate vs Compose only)
   - [x] Camera preview dark mode handling validated
   - [x] Risks/unknowns flagged for review (e.g., notification styling limitations)
   
   ⚠️ Do NOT proceed to implementation tasks until research checkpoint is complete
 
-- [x] **Task 2: Define Dark Color Palette** (AC: #2, #3)
-  - [ ] Review existing Color.kt for Material 3 color scheme
-  - [ ] Define dark color palette in `ui/theme/Color.kt`:
+- [x] **Task 2: Define Dark Colour Palette** (AC: #2, #3)
+  - [ ] Review existing Colour.kt for Material 3 colour scheme
+  - [ ] Define dark colour palette in `ui/theme/Colour.kt`:
     ```kotlin
-    val md_theme_dark_primary = Color(0xFFB3C5FF)
-    val md_theme_dark_onPrimary = Color(0xFF002F65)
-    val md_theme_dark_background = Color(0xFF1B1B1F)
-    val md_theme_dark_surface = Color(0xFF1B1B1F)
-    val md_theme_dark_error = Color(0xFFFFB4AB)
+    val md_theme_dark_primary = Colour(0xFFB3C5FF)
+    val md_theme_dark_onPrimary = Colour(0xFF002F65)
+    val md_theme_dark_background = Colour(0xFF1B1B1F)
+    val md_theme_dark_surface = Colour(0xFF1B1B1F)
+    val md_theme_dark_error = Colour(0xFFFFB4AB)
     // ... complete Material 3 dark palette
     ```
   - [ ] Ensure contrast ratios meet WCAG AA standards (4.5:1 for text)
-  - [ ] Test colors with accessibility tools (Contrast Checker)
-  - [ ] Document color choices in Dev Notes
+  - [ ] Test colours with accessibility tools (Contrast Checker)
+  - [ ] Document colour choices in Dev Notes
 
 - [x] **Task 3: Update Theme.kt for Dark Mode Support** (AC: #1, #2, #6)
   - [ ] Update `FoodieTheme` composable to support dark mode:
@@ -94,27 +94,27 @@ So that I can use it comfortably in low-light conditions (late-night meal loggin
     @Composable
     fun FoodieTheme(
         darkTheme: Boolean = isSystemInDarkTheme(),
-        dynamicColor: Boolean = true,
+        dynamicColour: Boolean = true,
         content: @Composable () -> Unit
     ) {
-        val colorScheme = when {
-            dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        val colourScheme = when {
+            dynamicColour && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
                 val context = LocalContext.current
-                if (darkTheme) dynamicDarkColorScheme(context)
-                else dynamicLightColorScheme(context)
+                if (darkTheme) dynamicDarkColourScheme(context)
+                else dynamicLightColourScheme(context)
             }
-            darkTheme -> DarkColorScheme
-            else -> LightColorScheme
+            darkTheme -> DarkColourScheme
+            else -> LightColourScheme
         }
         
         MaterialTheme(
-            colorScheme = colorScheme,
+            colourScheme = colourScheme,
             typography = Typography,
             content = content
         )
     }
     ```
-  - [ ] Create `DarkColorScheme` and `LightColorScheme` ColorScheme objects
+  - [ ] Create `DarkColourScheme` and `LightColourScheme` ColourScheme objects
   - [ ] Test theme switching at app level (MainActivity applies FoodieTheme)
   - [ ] Verify all screens reactively update when theme changes
 
@@ -181,13 +181,13 @@ So that I can use it comfortably in low-light conditions (late-night meal loggin
 
 - [x] **Task 7: Update Notification Styling for Dark Mode** (AC: #5)
   - [ ] Review existing notification implementations:
-    - File: `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Foreground notification
+    - File: `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Foreground notification
     - File: `app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt` - Any error notifications
-  - [ ] Ensure NotificationCompat.Builder uses app theme colors:
+  - [ ] Ensure NotificationCompat.Builder uses app theme colours:
     ```kotlin
     val notification = NotificationCompat.Builder(context, CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_notification)
-        .setColor(ContextCompat.getColor(context, R.color.notification_color))
+        .setColour(ContextCompat.getColour(context, R.colour.notification_colour))
         // Android automatically adapts notification to system theme
         .build()
     ```
@@ -197,25 +197,25 @@ So that I can use it comfortably in low-light conditions (late-night meal loggin
 
 - [x] **Task 8: Validate Camera Preview Dark Mode Handling** (AC: #4)
   - [ ] If using system camera intent (Story 2.3):
-    - Verify camera preview maintains natural colors automatically (system handles this)
+    - Verify camera preview maintains natural colours automatically (system handles this)
     - No code changes needed - system camera unaffected by app theme
   - [ ] If using CameraX or custom camera (future):
-    - Ensure camera preview composable uses `Color.Unspecified` background
-    - Camera preview surface should not apply theme colors
-  - [ ] Test camera capture in dark mode to confirm natural color rendering
-  - [ ] Document camera preview behavior in Dev Notes
+    - Ensure camera preview composable uses `Colour.Unspecified` background
+    - Camera preview surface should not apply theme colours
+  - [ ] Test camera capture in dark mode to confirm natural colour rendering
+  - [ ] Document camera preview behaviour in Dev Notes
 
 - [x] **Task 9: Update All Screens for Dark Mode Compatibility** (AC: #1, #3)
-  - [ ] Audit all Composable screens for hardcoded colors:
+  - [ ] Audit all Composable screens for hardcoded colours:
     - MealListScreen, MealDetailScreen, SettingsScreen, CameraScreen
-    - Replace hardcoded colors with MaterialTheme.colorScheme references
+    - Replace hardcoded colours with MaterialTheme.colourScheme references
   - [ ] Verify text contrast in dark mode:
-    - Use `colorScheme.onSurface` for body text
-    - Use `colorScheme.onBackground` for text over background
-    - Use `colorScheme.onPrimary` for text over primary colored surfaces
+    - Use `colourScheme.onSurface` for body text
+    - Use `colourScheme.onBackground` for text over background
+    - Use `colourScheme.onPrimary` for text over primary coloured surfaces
   - [ ] Test all screens in both light and dark modes
   - [ ] Use Accessibility Scanner to verify contrast ratios
-  - [ ] Fix any contrast issues (adjust colors, increase font weight)
+  - [ ] Fix any contrast issues (adjust colours, increase font weight)
 
 - [x] **Task 10: Unit Tests for Theme Management** (AC: #6, #7, #8)
   - [ ] Test: `ThemeMode_fromValue_returnsCorrectEnum()` - Verify enum conversion
@@ -234,14 +234,14 @@ So that I can use it comfortably in low-light conditions (late-night meal loggin
     - Theme preference persists after app restart ✓ (Scenario 4)
     - All screens render correctly in both light and dark modes ✓ (Scenario 5)
     - Text remains legible (no contrast issues) ✓ (Scenario 6)
-    - Camera preview maintains natural colors in dark mode ✓ (Scenario 7)
+    - Camera preview maintains natural colours in dark mode ✓ (Scenario 7)
     - Notifications use appropriate dark styling ✓ (Scenario 8)
     - No visual glitches during theme switching ✓ (Scenario 10)
   - [x] Take screenshots of all screens in both modes for documentation
     **Deferred to manual testing execution**
-  - [x] Test on multiple devices (OLED for true blacks, LCD for backlight behavior)
+  - [x] Test on multiple devices (OLED for true blacks, LCD for backlight behaviour)
     **Documented in manual test guide**
-  - [x] Document expected behavior and validation steps
+  - [x] Document expected behaviour and validation steps
     **Documented:** Each scenario includes steps, expected results, and variations
   - [x] Update Dev Agent Record with manual testing results
     **Complete:** Manual testing executed on Pixel 8 Pro (Android 16) - All scenarios passing
@@ -268,7 +268,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 ### Documentation
 - [x] Inline code documentation (KDocs) for ThemeMode, theme application methods
-- [x] Dev Notes include dark theme color palette rationale and design decisions
+- [x] Dev Notes include dark theme colour palette rationale and design decisions
 - [x] Manual test guide created with theme switching scenarios and visual validation checklist
 - [x] Screenshots captured for both light and dark modes (N/A - validated visually on device)
 
@@ -280,8 +280,8 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** ThemeMode enum, theme preference persistence, SettingsViewModel theme methods
 - **Instrumentation Tests Required:** Settings UI theme selection (conditional on environmental fix)
-- **Manual Testing Required:** Visual validation of all screens in both modes, theme switching behavior
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Manual Testing Required:** Visual validation of all screens in both modes, theme switching behaviour
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use MockK for PreferencesRepository, SharedPreferences mocking
 
@@ -300,13 +300,13 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 1. **Enable System Dark Mode:**
    - Open device Settings → Display → Dark theme (toggle ON)
 2. **Open Foodie App:**
-   - Verify app opens in dark mode with dark color palette
+   - Verify app opens in dark mode with dark colour palette
    - All screens (MealListScreen, SettingsScreen) use dark theme
 3. **Disable System Dark Mode:**
    - Return to device Settings → Display → Dark theme (toggle OFF)
    - Return to Foodie app
    - Verify app switches to light mode automatically
-4. **Observe Color Changes:**
+4. **Observe Colour Changes:**
    - Dark mode: Dark backgrounds, light text
    - Light mode: Light backgrounds, dark text
    - Verify text remains legible in both modes
@@ -331,12 +331,12 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 1. **MealListScreen in Dark Mode:**
    - Navigate to meal list
    - Verify dark background, light text
-   - Verify meal entry cards use appropriate surface colors
-   - Verify FAB and toolbar use dark theme colors
+   - Verify meal entry cards use appropriate surface colours
+   - Verify FAB and toolbar use dark theme colours
 2. **MealDetailScreen in Dark Mode:**
    - Tap a meal entry to view details
    - Verify edit fields readable with proper contrast
-   - Verify save button uses dark theme primary color
+   - Verify save button uses dark theme primary colour
 3. **SettingsScreen in Dark Mode:**
    - Navigate to Settings
    - Verify preference items readable
@@ -345,7 +345,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 **Part 4: Camera and Notifications**
 1. **Camera Preview:**
    - Launch camera (via widget or FAB)
-   - Verify camera preview maintains natural colors (not dark-tinted)
+   - Verify camera preview maintains natural colours (not dark-tinted)
    - Capture a photo, verify preview image natural
 2. **Foreground Notification:**
    - Confirm photo capture to trigger analysis
@@ -363,13 +363,13 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
    - Rotate device (if theme triggers activity recreate)
    - Verify theme persists across rotation
 
-### Expected Behavior
+### Expected Behaviour
 - App respects system dark mode setting by default
 - In-app theme selector overrides system preference
 - Theme preference persists across app restarts
 - All screens render correctly in both light and dark modes
 - Text remains legible with proper contrast (no white-on-white or black-on-black)
-- Camera preview maintains natural colors regardless of theme
+- Camera preview maintains natural colours regardless of theme
 - Notifications inherit app theme (Android handles this automatically)
 - Theme switching is smooth with no visual artifacts
 
@@ -379,7 +379,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - [ ] Theme preference persists after app restart
 - [ ] All screens render correctly in dark mode
 - [ ] Text contrast ratios meet WCAG AA standards (verified with Accessibility Scanner)
-- [ ] Camera preview maintains natural colors
+- [ ] Camera preview maintains natural colours
 - [ ] Notifications use appropriate dark styling
 - [ ] No visual glitches during theme switching
 - [ ] No crashes when changing theme multiple times
@@ -390,23 +390,23 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 **Material Design 3 Dark Theme Approach:**
 - ✅ Existing Theme.kt (lines 1-56) already implements Material 3 dark mode foundation
-- ✅ darkColorScheme() and lightColorScheme() builders present (lines 14-32)
-- ✅ Dynamic color system functional for Android 12+ (lines 46-49)
-- ✅ isSystemInDarkTheme() integration already in place (line 39, parameter defaults correctly)
-- **Finding:** Placeholder colors (Purple/Pink) need replacing with proper Material 3 palette
+- ✅ darkColourScheme() and lightColourScheme() builders present (lines 14-32)
+- ✅ Dynamic colour system functional for Android 12+ (lines 46-49)
+- ✅ isSystemInDarkTheme() integration already in place (line 39, parametre defaults correctly)
+- **Finding:** Placeholder colours (Purple/Pink) need replacing with proper Material 3 palette
 
 **Existing Theme Infrastructure Review:**
-- **Color.kt** (lines 1-11): Only defines 6 placeholder colors (Purple80, PurpleGrey80, Pink80, Purple40, PurpleGrey40, Pink40)
-- **Theme.kt DarkColorScheme** (lines 14-18): Uses darkColorScheme() builder with only primary, secondary, tertiary defined
-- **Theme.kt LightColorScheme** (lines 20-32): Uses lightColorScheme() builder with only primary, secondary, tertiary defined
-- **Comments in code** (lines 24-31): Show awareness of other colorScheme properties (background, surface, onPrimary, onSecondary, onTertiary, onBackground, onSurface)
-- **Decision:** Keep existing structure, extend color definitions to complete Material 3 palette
+- **Colour.kt** (lines 1-11): Only defines 6 placeholder colours (Purple80, PurpleGrey80, Pink80, Purple40, PurpleGrey40, Pink40)
+- **Theme.kt DarkColourScheme** (lines 14-18): Uses darkColourScheme() builder with only primary, secondary, tertiary defined
+- **Theme.kt LightColourScheme** (lines 20-32): Uses lightColourScheme() builder with only primary, secondary, tertiary defined
+- **Comments in code** (lines 24-31): Show awareness of other colourScheme properties (background, surface, onPrimary, onSecondary, onTertiary, onBackground, onSurface)
+- **Decision:** Keep existing structure, extend colour definitions to complete Material 3 palette
 
 **Runtime Theme Switching Strategy:**
 - **Option A:** AppCompatDelegate.setDefaultNightMode() in Application.onCreate() (forces activity recreate)
-- **Option B:** Compose-only approach with state-driven darkTheme parameter (no recreate, reactive)
+- **Option B:** Compose-only approach with state-driven darkTheme parametre (no recreate, reactive)
 - **Selected: Option B (Compose-only)** 
-  - Rationale: Existing FoodieTheme already accepts darkTheme: Boolean parameter (line 39)
+  - Rationale: Existing FoodieTheme already accepts darkTheme: Boolean parametre (line 39)
   - MainActivity can read theme preference and pass to FoodieTheme composable
   - No activity recreation needed - Compose recomposes reactively
   - Smoother UX, less complex than AppCompatDelegate
@@ -414,26 +414,26 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 **Camera Preview Dark Mode Handling:**
 - ✅ App uses system camera intent (Story 2.3) - no custom CameraX implementation
-- ✅ System camera maintains natural colors automatically regardless of app theme
-- ✅ No code changes needed for AC-4 (camera preview natural colors)
+- ✅ System camera maintains natural colours automatically regardless of app theme
+- ✅ No code changes needed for AC-4 (camera preview natural colours)
 - **Validation:** Will manually test camera capture in dark mode to confirm
 
 **Notification Styling:**
 - ✅ Notification implementation uses NotificationCompat (Material styling)
-- ✅ File: `MealAnalysisForegroundNotifier.kt` line 105 uses setColor(accentColor)
+- ✅ File: `MealAnalysisForegroundNotifier.kt` line 105 uses setColour(accentColour)
 - ✅ NotificationCompat automatically adapts to system dark mode
-- **Finding:** Current notification uses custom accent color - Material 3 dark mode should apply automatically
+- **Finding:** Current notification uses custom accent colour - Material 3 dark mode should apply automatically
 - **Action:** Verify notification in dark mode via manual testing (Task 11)
 
 **Risks/Unknowns:**
-- **Low Risk:** Material 3 dynamic color system might override custom dark palette on Android 12+
-  - Mitigation: Test on Android 11 and 12+ devices, document behavior
+- **Low Risk:** Material 3 dynamic colour system might override custom dark palette on Android 12+
+  - Mitigation: Test on Android 11 and 12+ devices, document behaviour
 - **No Risk:** Theme preference persistence - reuses proven SharedPreferences pattern from Story 5.2/5.3
 - **No Risk:** Accessibility contrast - Material 3 default palettes meet WCAG AA standards
 
 **Assumptions Validated:**
-- ✅ Material 3 dynamic color system supports dark mode out of the box (confirmed in Theme.kt lines 46-49)
-- ✅ Compose ColorScheme has built-in dark variants (darkColorScheme() builder confirmed)
+- ✅ Material 3 dynamic colour system supports dark mode out of the box (confirmed in Theme.kt lines 46-49)
+- ✅ Compose ColourScheme has built-in dark variants (darkColourScheme() builder confirmed)
 - ✅ System theme preference accessible via isSystemInDarkTheme() (confirmed in use at line 39)
 - ✅ Theme preference in SettingsState already exists (themeMode: String = "system", line 42)
 
@@ -456,7 +456,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - `PreferencesRepositoryImpl.kt`: Add `saveThemeMode()` and `getThemeMode()` methods
 
 **Architectural Decisions from Previous Stories:**
-- Material Design 3 with dynamic color support already configured (Story 1.1)
+- Material Design 3 with dynamic colour support already configured (Story 1.1)
 - Compose-based UI with reactive state updates (all Epic 2-5 stories)
 - Hilt dependency injection for repositories and data sources
 - Testing approach: Unit tests + manual testing (instrumentation tests limited by environmental issue)
@@ -469,13 +469,13 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - Focus on evidence-based DoD completion (file:line references for ACs)
 
 **What's Already Done:**
-- Material Design 3 theme foundation (Color.kt, Theme.kt) from project setup
+- Material Design 3 theme foundation (Colour.kt, Theme.kt) from project setup
 - Settings screen infrastructure (Story 5.1)
 - Preference persistence patterns (Story 5.2/5.3)
 
 **What Story 5.4 Adds:**
-- Dark color palette definition (Material 3 dark theme colors)
-- Theme.kt updates to support dark mode (DarkColorScheme)
+- Dark colour palette definition (Material 3 dark theme colours)
+- Theme.kt updates to support dark mode (DarkColourScheme)
 - ThemeMode enum for theme preference management
 - In-app theme selector in Settings UI
 - Runtime theme switching via AppCompatDelegate
@@ -506,14 +506,14 @@ Maintain the successful pattern from Story 5.3: simple, focused implementation w
 ### Project Structure Notes
 
 **Alignment with Unified Project Structure:**
-- Dark color palette: `app/src/main/java/com/foodie/app/ui/theme/Color.kt` (existing file)
+- Dark colour palette: `app/src/main/java/com/foodie/app/ui/theme/Colour.kt` (existing file)
 - Theme composable: `app/src/main/java/com/foodie/app/ui/theme/Theme.kt` (existing file)
 - ThemeMode enum: `app/src/main/java/com/foodie/app/domain/model/ThemeMode.kt` (new file)
 - Theme preference UI: `app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt` (existing file, add section)
 - FoodieApplication: `app/src/main/java/com/foodie/app/FoodieApplication.kt` (existing file, add theme initialization)
 
 **File Locations:**
-- Color palette: Use existing Color.kt, add dark color definitions
+- Colour palette: Use existing Colour.kt, add dark colour definitions
 - Theme logic: Update existing Theme.kt FoodieTheme composable
 - Domain model: Create new ThemeMode.kt in domain/model/
 - No new repositories needed (reuse PreferencesRepository from Story 5.1)
@@ -528,7 +528,7 @@ Maintain the successful pattern from Story 5.3: simple, focused implementation w
 - [Source: docs/epics.md#Story-5.4] - Epic breakdown and acceptance criteria for dark mode support
 - [Source: docs/tech-spec-epic-5.md#Story-5.4] - Technical specification for dark theme implementation
 - [Source: docs/architecture.md#Material-Design-3] - Material 3 theme configuration
-- [Material Design 3 Dark Theme Guidelines](https://m3.material.io/styles/color/dark-theme/overview) - Color palette and contrast requirements
+- [Material Design 3 Dark Theme Guidelines](https://m3.material.io/styles/colour/dark-theme/overview) - Colour palette and contrast requirements
 - [Android Dark Theme Documentation](https://developer.android.com/develop/ui/views/theming/darktheme) - Android-specific dark mode patterns
 
 ## Dev Agent Record
@@ -544,12 +544,12 @@ Claude Sonnet 4.5 (via GitHub Copilot)
 ### Debug Log References
 
 - Task 1: Research completed - Material 3 dark mode foundation already exists, selected Compose-only theme switching approach (no AppCompatDelegate, smoother UX)
-- Task 2-3: Created complete Material 3 dark/light color palettes (green theme) in Color.kt, updated Theme.kt with full DarkColorScheme and LightColorScheme definitions
+- Task 2-3: Created complete Material 3 dark/light colour palettes (green theme) in Colour.kt, updated Theme.kt with full DarkColourScheme and LightColourScheme definitions
 - Task 4: Created ThemeMode enum with SYSTEM_DEFAULT, LIGHT, DARK values and string-based persistence
 - Task 5: Added theme preference UI to SettingsScreen with radio button list, implemented ViewModel.updateThemeMode() method
-- Task 6: Updated MainActivity to observe theme preference via PreferencesRepository.getThemeMode() Flow and pass darkTheme parameter to FoodieTheme composable
-- Task 7-8: Validated notifications and camera preview - both maintain correct behavior automatically (no code changes needed)
-- Task 9: Audited all screens - found only 2 intentional hardcoded colors in camera preview (black overlay, green checkmark), all other screens use MaterialTheme.colorScheme
+- Task 6: Updated MainActivity to observe theme preference via PreferencesRepository.getThemeMode() Flow and pass darkTheme parametre to FoodieTheme composable
+- Task 7-8: Validated notifications and camera preview - both maintain correct behaviour automatically (no code changes needed)
+- Task 9: Audited all screens - found only 2 intentional hardcoded colours in camera preview (black overlay, green checkmark), all other screens use MaterialTheme.colourScheme
 - Task 10: Created 22 unit tests (9 ThemeMode + 7 repository + 6 ViewModel), all passing
 - Task 11: Created comprehensive manual test guide with 10 test scenarios + 4 edge cases
 
@@ -557,12 +557,12 @@ Claude Sonnet 4.5 (via GitHub Copilot)
 
 **Implementation Approach:**
 - Selected "Compose-only" theme switching approach (Option B from Task 1 research)
-- Rationale: FoodieTheme already accepts darkTheme parameter, MainActivity reads preference and passes boolean to composable, no activity recreation needed (smoother UX than AppCompatDelegate approach)
-- Material 3 color palette uses green theme (food/health focus) with proper WCAG AA contrast ratios
+- Rationale: FoodieTheme already accepts darkTheme parametre, MainActivity reads preference and passes boolean to composable, no activity recreation needed (smoother UX than AppCompatDelegate approach)
+- Material 3 colour palette uses green theme (food/health focus) with proper WCAG AA contrast ratios
 
 **Files Modified:**
-1. `app/src/main/java/com/foodie/app/ui/theme/Color.kt` - Replaced placeholder Purple/Pink colors with complete Material 3 dark and light palettes (86 lines total)
-2. `app/src/main/java/com/foodie/app/ui/theme/Theme.kt` - Updated DarkColorScheme and LightColorScheme with full color definitions, added comprehensive KDocs
+1. `app/src/main/java/com/foodie/app/ui/theme/Colour.kt` - Replaced placeholder Purple/Pink colours with complete Material 3 dark and light palettes (86 lines total)
+2. `app/src/main/java/com/foodie/app/ui/theme/Theme.kt` - Updated DarkColourScheme and LightColourScheme with full colour definitions, added comprehensive KDocs
 3. `app/src/main/java/com/foodie/app/data/repository/PreferencesRepository.kt` - Added saveThemeMode() and getThemeMode() interface methods
 4. `app/src/main/java/com/foodie/app/data/repository/PreferencesRepositoryImpl.kt` - Implemented theme mode persistence via SharedPreferences with reactive Flow observation
 5. `app/src/main/java/com/foodie/app/ui/screens/settings/SettingsViewModel.kt` - Added updateThemeMode() method for theme preference updates
@@ -584,10 +584,10 @@ Claude Sonnet 4.5 (via GitHub Copilot)
 - Manual test guide: Created with 10 test scenarios covering all ACs
 
 **Acceptance Criteria Verification:**
-- AC #1: All screens use dark theme colors ✓ (Theme.kt lines 22-71, MaterialTheme.colorScheme used consistently across all screens)
-- AC #2: Material Design 3 guidelines followed ✓ (Color.kt palettes match Material 3 recommendations, true dark #191C1A for OLED)
+- AC #1: All screens use dark theme colours ✓ (Theme.kt lines 22-71, MaterialTheme.colourScheme used consistently across all screens)
+- AC #2: Material Design 3 guidelines followed ✓ (Colour.kt palettes match Material 3 recommendations, true dark #191C1A for OLED)
 - AC #3: Text contrast meets WCAG AA 4.5:1 ✓ (Material 3 default palettes meet contrast requirements, manual test guide includes Accessibility Scanner validation)
-- AC #4: Camera maintains natural colors ✓ (System camera intent from Story 2.3 handles this automatically, verified in Task 1 research)
+- AC #4: Camera maintains natural colours ✓ (System camera intent from Story 2.3 handles this automatically, verified in Task 1 research)
 - AC #5: Notifications use dark styling ✓ (NotificationCompat from Story 2.8 inherits system dark mode automatically, verified in Task 1 research)
 - AC #6: App respects system dark mode ✓ (MainActivity.kt lines 100-106, isSystemInDarkTheme() used when themeMode == SYSTEM_DEFAULT)
 - AC #7: In-app theme selector with 3 options ✓ (SettingsScreen.kt lines 456-489, ThemePreference composable with radio buttons for System Default, Light, Dark)
@@ -596,7 +596,7 @@ Claude Sonnet 4.5 (via GitHub Copilot)
 **Key Design Decisions:**
 1. Compose-only theme switching (no AppCompatDelegate) for smoother UX without activity recreation
 2. String-based theme storage ("system", "light", "dark") in standard SharedPreferences (non-sensitive data)
-3. Green color palette (#006C4C light primary, #6CDBAC dark primary) reflecting food/health focus
+3. Green colour palette (#006C4C light primary, #6CDBAC dark primary) reflecting food/health focus
 4. ThemePreference UI uses radio buttons (not dropdown) for immediate visual feedback
 5. MainActivity observes theme Flow and recomposes FoodieTheme reactively (leverages Compose's strengths)
 
@@ -614,15 +614,15 @@ Claude Sonnet 4.5 (via GitHub Copilot)
 - Theme persistence: ✅ Preference persists across app restarts
 - All screens compatibility: ✅ MealList, Settings, and all screens render correctly in both modes
 - Text contrast: ✅ All text legible with proper contrast ratios
-- Camera natural colors: ✅ Camera preview maintains natural colors in dark mode
+- Camera natural colours: ✅ Camera preview maintains natural colours in dark mode
 - Theme switching smoothness: ✅ No flicker or visual glitches during theme changes
 - Production ready: ✅ Zero issues found during manual validation
 
 ### File List
 
 **Modified Files:**
-- `app/app/src/main/java/com/foodie/app/ui/theme/Color.kt` - Material 3 dark and light color palettes
-- `app/app/src/main/java/com/foodie/app/ui/theme/Theme.kt` - DarkColorScheme and LightColorScheme with full definitions
+- `app/app/src/main/java/com/foodie/app/ui/theme/Colour.kt` - Material 3 dark and light colour palettes
+- `app/app/src/main/java/com/foodie/app/ui/theme/Theme.kt` - DarkColourScheme and LightColourScheme with full definitions
 - `app/app/src/main/java/com/foodie/app/data/repository/PreferencesRepository.kt` - Added theme mode methods (saveThemeMode, getThemeMode)
 - `app/app/src/main/java/com/foodie/app/data/repository/PreferencesRepositoryImpl.kt` - Implemented theme persistence and Flow observation
 - `app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsViewModel.kt` - Added updateThemeMode() method
@@ -667,7 +667,7 @@ Story 5.4 delivers a complete, production-quality dark mode implementation using
 - Compose-only approach eliminates activity recreation overhead (better UX than AppCompatDelegate)
 - Proper WCAG AA contrast ratios via Material 3 default palettes
 - Comprehensive test coverage with realistic mocking and edge cases
-- Only 2 intentional hardcoded colors found (camera overlay), both justified
+- Only 2 intentional hardcoded colours found (camera overlay), both justified
 
 **Zero Blockers, Zero Changes Required**
 
@@ -677,10 +677,10 @@ Story 5.4 delivers a complete, production-quality dark mode implementation using
 
 | AC# | Description | Status | Evidence |
 |-----|-------------|--------|----------|
-| AC-1 | All screens use dark theme colors | ✅ IMPLEMENTED | Theme.kt:22-52 (DarkColorScheme), MainActivity.kt:100-108 (theme observation), All screens use MaterialTheme.colorScheme |
-| AC-2 | Follows Material Design 3 guidelines | ✅ IMPLEMENTED | Color.kt:44-82 (Material 3 dark palette), Theme.kt:15-26 (KDoc confirms MD3 compliance), Uses darkColorScheme() builder |
-| AC-3 | Text contrast meets WCAG AA 4.5:1 | ✅ IMPLEMENTED | Color.kt uses Material 3 default palettes (guaranteed WCAG AA), Manual test guide includes Accessibility Scanner validation |
-| AC-4 | Camera maintains natural colors | ✅ IMPLEMENTED | PreviewScreen.kt:103,110 (only 2 intentional hardcoded colors for overlay), System camera intent from Story 2.3 handles naturally |
+| AC-1 | All screens use dark theme colours | ✅ IMPLEMENTED | Theme.kt:22-52 (DarkColourScheme), MainActivity.kt:100-108 (theme observation), All screens use MaterialTheme.colourScheme |
+| AC-2 | Follows Material Design 3 guidelines | ✅ IMPLEMENTED | Colour.kt:44-82 (Material 3 dark palette), Theme.kt:15-26 (KDoc confirms MD3 compliance), Uses darkColourScheme() builder |
+| AC-3 | Text contrast meets WCAG AA 4.5:1 | ✅ IMPLEMENTED | Colour.kt uses Material 3 default palettes (guaranteed WCAG AA), Manual test guide includes Accessibility Scanner validation |
+| AC-4 | Camera maintains natural colours | ✅ IMPLEMENTED | PreviewScreen.kt:103,110 (only 2 intentional hardcoded colours for overlay), System camera intent from Story 2.3 handles naturally |
 | AC-5 | Notifications use dark styling | ✅ IMPLEMENTED | NotificationCompat from Story 2.8 inherits system dark mode automatically (verified in Task 1 research notes) |
 | AC-6 | Respects system dark mode | ✅ IMPLEMENTED | MainActivity.kt:102 (isSystemInDarkTheme()), ThemeMode.SYSTEM_DEFAULT logic at line 104-106 |
 | AC-7 | In-app theme selector (3 options) | ✅ IMPLEMENTED | SettingsScreen.kt:456-489 (ThemePreference with radio buttons), ThemeMode.kt:14-31 (enum with 3 values) |
@@ -695,14 +695,14 @@ Story 5.4 delivers a complete, production-quality dark mode implementation using
 | Task | Marked As | Verified As | Evidence |
 |------|-----------|-------------|----------|
 | Task 1: Documentation research | [x] Complete | ✅ VERIFIED | Story file Dev Notes lines 75-95 document Material 3 validation, Compose-only approach selected, camera/notification validation |
-| Task 2: Dark color palette | [x] Complete | ✅ VERIFIED | Color.kt:44-82 (38 dark colors + 38 light colors), Material 3 compliant palette |
-| Task 3: Theme.kt updates | [x] Complete | ✅ VERIFIED | Theme.kt:22-52 (DarkColorScheme), :61-91 (LightColorScheme), :117-145 (FoodieTheme with darkTheme param) |
+| Task 2: Dark colour palette | [x] Complete | ✅ VERIFIED | Colour.kt:44-82 (38 dark colours + 38 light colours), Material 3 compliant palette |
+| Task 3: Theme.kt updates | [x] Complete | ✅ VERIFIED | Theme.kt:22-52 (DarkColourScheme), :61-91 (LightColourScheme), :117-145 (FoodieTheme with darkTheme param) |
 | Task 4: ThemeMode enum | [x] Complete | ✅ VERIFIED | ThemeMode.kt:14-31 (enum with 3 modes), :34-42 (fromValue companion), string-based persistence |
 | Task 5: Settings UI | [x] Complete | ✅ VERIFIED | SettingsScreen.kt:256 (ThemePreference call), :456-489 (composable implementation), SettingsViewModel.kt:284-301 (updateThemeMode) |
 | Task 6: Runtime switching | [x] Complete | ✅ VERIFIED | MainActivity.kt:100-108 (observes Flow, passes darkTheme to FoodieTheme), No activity recreation (Compose-only) |
 | Task 7: Notification styling | [x] Complete | ✅ VERIFIED | NotificationCompat inherits system theme automatically (verified in research), No code changes needed |
-| Task 8: Camera preview | [x] Complete | ✅ VERIFIED | System camera intent maintains natural colors (Story 2.3), PreviewScreen.kt only has 2 intentional overlay colors |
-| Task 9: Screen audits | [x] Complete | ✅ VERIFIED | Only 2 hardcoded colors found (camera overlay), all other screens use MaterialTheme.colorScheme |
+| Task 8: Camera preview | [x] Complete | ✅ VERIFIED | System camera intent maintains natural colours (Story 2.3), PreviewScreen.kt only has 2 intentional overlay colours |
+| Task 9: Screen audits | [x] Complete | ✅ VERIFIED | Only 2 hardcoded colours found (camera overlay), all other screens use MaterialTheme.colourScheme |
 | Task 10: Unit tests | [x] Complete | ✅ VERIFIED | 22 tests created (9+7+6), all passing, test-results/*.xml confirms 0 failures |
 | Task 11: Manual test guide | [x] Complete | ✅ VERIFIED | manual-test-guide-story-5-4.md created (435 lines), 10 scenarios + 4 edge cases, Manual testing executed on Pixel 8 Pro |
 
@@ -749,16 +749,16 @@ Story 5.4 delivers a complete, production-quality dark mode implementation using
 - Reactive Flow observation for theme changes
 
 **✅ Material Design 3 Compliance:**
-- Uses darkColorScheme() and lightColorScheme() builders
-- Complete 24-color property definitions
+- Uses darkColourScheme() and lightColourScheme() builders
+- Complete 24-colour property definitions
 - WCAG AA contrast ratios guaranteed by Material 3 defaults
-- Dynamic color support on Android 12+
+- Dynamic colour support on Android 12+
 
 **✅ Compose Best Practices:**
 - Reactive theme switching via collectAsState()
 - No activity recreation needed (cleaner than AppCompatDelegate)
-- FoodieTheme accepts darkTheme parameter
-- MaterialTheme.colorScheme used consistently
+- FoodieTheme accepts darkTheme parametre
+- MaterialTheme.colourScheme used consistently
 
 **✅ Persistence Strategy:**
 - SharedPreferences for theme preference (non-sensitive)
@@ -805,13 +805,13 @@ Story 5.4 delivers a complete, production-quality dark mode implementation using
 ### Best Practices and References
 
 **Material Design 3 Dark Theme:**
-- ✅ Follows [Material 3 Dark Theme Guidelines](https://m3.material.io/styles/color/dark-theme/overview)
-- ✅ Uses recommended color palette generation approach
+- ✅ Follows [Material 3 Dark Theme Guidelines](https://m3.material.io/styles/colour/dark-theme/overview)
+- ✅ Uses recommended colour palette generation approach
 - ✅ True dark background (#191C1A) optimized for OLED displays
 
 **Jetpack Compose Theming:**
 - ✅ Reactive theme switching via State observation
-- ✅ Dynamic color support for Android 12+ (Material You)
+- ✅ Dynamic colour support for Android 12+ (Material You)
 - ✅ Proper use of `isSystemInDarkTheme()` for system preference detection
 
 **Android Best Practices:**

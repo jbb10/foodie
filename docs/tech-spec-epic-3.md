@@ -48,7 +48,7 @@ This epic aligns with the established **client-only architecture** using:
 - `MealListScreen.kt` - Jetpack Compose screen consuming StateFlow from ViewModel
 - `MealDetailScreen.kt` - Edit screen with form validation and navigation
 - Material 3 components: `LazyColumn`, `Card`, `OutlinedTextField`, `Button`, `Dialog`
-- Navigation via existing `NavGraph` with type-safe route parameters
+- Navigation via existing `NavGraph` with type-safe route parametres
 
 **Domain Layer:**
 - `GetMealHistoryUseCase` - Orchestrates Health Connect query with date filtering
@@ -424,7 +424,7 @@ Time: <1s for refresh completion
   - Not implemented - wait for Health Connect confirmation
   - Prevents showing stale data if operation fails
 
-**Offline Behavior:**
+**Offline Behaviour:**
 - Health Connect operations are local (no network required)
 - No offline considerations needed for this epic
 - Epic 4 addresses network failures for AI analysis flow
@@ -475,7 +475,7 @@ Timber.w("Health Connect permissions denied")
 
 **Internal Dependencies (from Previous Epics):**
 - **Epic 1.2 (MVVM Architecture):** ViewModel pattern, Repository pattern, Hilt DI
-- **Epic 1.3 (Navigation):** NavGraph, deep linking, SafeArgs for type-safe parameters
+- **Epic 1.3 (Navigation):** NavGraph, deep linking, SafeArgs for type-safe parametres
 - **Epic 1.4 (Health Connect):** HealthConnectManager, permission handling, NutritionRecord CRUD
 - **Epic 1.5 (Error Handling):** Timber logging, Result<T> wrapper, error message mapping
 - **Epic 2.6 (Health Connect Save):** Existing NutritionRecord data to query/display
@@ -516,7 +516,7 @@ implementation("com.jakewharton.timber:timber:5.0.1")
 **Integration Points:**
 - **Health Connect API:** `HealthConnectClient.readRecords()`, `deleteRecords()`, `insertRecords()`
 - **Navigation:** `NavController.navigate()` with MealEntry data as args
-- **Material 3 Theme:** Use existing theme from Epic 1 (colors, typography, shapes)
+- **Material 3 Theme:** Use existing theme from Epic 1 (colours, typography, shapes)
 - **Hilt Modules:** Register repositories and use cases in existing DI graph
 
 ## Acceptance Criteria (Authoritative)
@@ -690,7 +690,7 @@ implementation("com.jakewharton.timber:timber:5.0.1")
 **A-3: 7-Day History is Sufficient**
 - Assumption: Users primarily review recent meals, not full history
 - Validation: Test with real usage over 30 days
-- Fallback: Can extend to 30 days if needed (query parameter change)
+- Fallback: Can extend to 30 days if needed (query parametre change)
 
 **A-4: No Local Caching Needed**
 - Assumption: Health Connect queries are fast enough (<500ms) to query on every load

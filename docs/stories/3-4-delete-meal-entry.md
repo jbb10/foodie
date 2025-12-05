@@ -58,7 +58,7 @@ The delete operation is triggered via long-press interaction on meal entries in 
 
 - [x] **Task 1: Documentation Research & Technical Validation** ⚠️ COMPLETE BEFORE PROCEEDING TO IMPLEMENTATION
 
-**Objective:** Validate Health Connect delete API behavior and interaction patterns before implementation
+**Objective:** Validate Health Connect delete API behaviour and interaction patterns before implementation
 
 **Required Research:**
 1. Review Health Connect delete operations documentation
@@ -193,7 +193,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** Yes - Use case, ViewModel event handling, state management
 - **Instrumentation Tests Required:** Yes - Compose UI interactions (long-press, dialog), Health Connect integration
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
 
@@ -226,9 +226,9 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 17. **Expected:** Deleted entry no longer appears in Google Fit
 18. **Expected:** No "undo" or "restore" option available (permanent deletion)
 
-### Expected Behavior
+### Expected Behaviour
 - Long-press gesture triggers dialog (not navigation or scroll)
-- Dialog appears centered with backdrop overlay
+- Dialog appears centreed with backdrop overlay
 - Cancel button dismisses without any changes
 - Delete button removes entry in <1 second
 - Toast message confirms successful deletion
@@ -337,8 +337,8 @@ if (state.showDeleteDialog) {
         confirmButton = {
             TextButton(
                 onClick = { viewModel.onDeleteConfirmed() },
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error  // Red text for destructive action
+                colours = ButtonDefaults.textButtonColours(
+                    contentColour = MaterialTheme.colourScheme.error  // Red text for destructive action
                 )
             ) {
                 Text("Delete")
@@ -456,9 +456,9 @@ fun onDeleteConfirmed() {
    - Destructive Action Pattern Requirements:
      - Clear warning copy: "This cannot be undone"
      - Dismiss button (Cancel) on left side
-     - Destructive button (Delete) on right side with error color (red)
+     - Destructive button (Delete) on right side with error colour (red)
      - Backdrop to prevent accidental outside taps
-   - Reference: Material 3 Dialogs - Destructive actions should use error color scheme
+   - Reference: Material 3 Dialogs - Destructive actions should use error colour scheme
 
 4. **Compose Long-Press Gesture Detection:**
    - Modifier: `Modifier.pointerInput(Unit) { detectTapGestures(...) }`
@@ -556,7 +556,7 @@ Core delete functionality implemented with comprehensive unit test coverage:
 **Modified Files:**
 - `MealListState.kt` - Added dialog state fields: showDeleteDialog, deleteTargetId, successMessage
 - `MealListViewModel.kt` - Added delete event handlers: onMealLongPress(), onDismissDeleteDialog(), onDeleteConfirmed(), clearSuccessMessage()
-- `MealListScreen.kt` - Updated dialog to use ViewModel state, added Material 3 error color for Delete button, added success toast
+- `MealListScreen.kt` - Updated dialog to use ViewModel state, added Material 3 error colour for Delete button, added success toast
 - `strings.xml` - Updated delete dialog strings to match AC requirements ("Delete this entry? This cannot be undone.")
 - `MealListViewModelTest.kt` - Added 8 new delete tests (dialog state, success, error handling, edge cases)
 
@@ -587,7 +587,7 @@ Core delete functionality implemented with comprehensive unit test coverage:
 1. ✅ **Long-press gesture detection** - Long-press on meal entry triggers delete dialog
 2. ✅ **Dialog displays correct text** - "Delete Entry" title, "Delete this entry? This cannot be undone." message
 3. ✅ **Cancel button works** - Dismisses dialog without deleting entry
-4. ✅ **Delete button has red text** - Material 3 error color applied correctly
+4. ✅ **Delete button has red text** - Material 3 error colour applied correctly
 5. ✅ **Delete operation succeeds** - Entry removed from list immediately
 6. ✅ **Toast message displays** - "Entry deleted" confirmation shown
 7. ✅ **No scroll conflict** - Can still scroll list normally, long-press only triggers on held press
@@ -609,8 +609,8 @@ Note: Full cross-app validation requires:
 **Files Created:**
 
 1. **`MealListScreenDeleteTest.kt`** (193 lines)
-   - 7 Compose UI tests validating delete dialog behavior
-   - Tests: Long-press gesture detection, dialog text accuracy, cancel/delete button behavior, success toast, normal tap coexistence
+   - 7 Compose UI tests validating delete dialog behaviour
+   - Tests: Long-press gesture detection, dialog text accuracy, cancel/delete button behaviour, success toast, normal tap coexistence
    - Framework: Compose UI Test, JUnit4, Truth assertions
    - Status: **Compiled successfully, ready to run after Health Connect permissions granted**
 
@@ -621,7 +621,7 @@ Note: Full cross-app validation requires:
    - Status: **Compiled successfully, requires Health Connect permissions to execute**
 
 **Test Coverage:**
-- ✅ AC #1-#3: Dialog rendering and button behavior (3 UI tests)
+- ✅ AC #1-#3: Dialog rendering and button behaviour (3 UI tests)
 - ✅ AC #4: Delete button triggers deletion (1 UI test + 2 integration tests)
 - ✅ AC #5: Immediate list update (1 integration test)
 - ✅ AC #6: Success toast (1 UI test)
@@ -823,11 +823,11 @@ Core implementation is SOLID, with proper separation of concerns, error handling
 | Task | Marked As | Verified As | Evidence (file:line) |
 |------|-----------|-------------|---------------------|
 | Task 1: Documentation Research | ✅ Complete | ✅ VERIFIED | Story Debug Log lines 25-112 - Comprehensive research documented with findings |
-| Task 2: Delete Confirmation Dialog | ✅ Complete | ✅ VERIFIED | `MealListScreen.kt:210-234` - AlertDialog with Material 3 error color for Delete button <br> `strings.xml:12-15` - Dialog strings match AC requirements <br> `MealListViewModelTest.kt:260-273` - Dialog state tests passing |
+| Task 2: Delete Confirmation Dialog | ✅ Complete | ✅ VERIFIED | `MealListScreen.kt:210-234` - AlertDialog with Material 3 error colour for Delete button <br> `strings.xml:12-15` - Dialog strings match AC requirements <br> `MealListViewModelTest.kt:260-273` - Dialog state tests passing |
 | Task 3: Long-Press Gesture Detection | ✅ Complete | ✅ VERIFIED | `MealListScreen.kt:268-274` - `combinedClickable` with `onLongClick` callback <br> `MealListViewModel.kt:163-168` - `onMealLongPress` stores selected meal ID and shows dialog <br> Completion Notes line 301: Manual test confirmed long-press triggers dialog |
 | Task 4: Delete Operation | ✅ Complete | ✅ VERIFIED | `DeleteMealEntryUseCase.kt` - 28 lines, delegates to repository <br> `MealListViewModel.kt:180-223` - `onDeleteConfirmed` implementation <br> `MealListViewModelTest.kt:291-313` - Success path verified with entry removal <br> `DeleteMealEntryUseCaseTest.kt:40-68` - 6 tests passing covering success/errors |
 | Task 5: Error Handling | ✅ Complete | ✅ VERIFIED | `MealRepositoryImpl.kt:143-155` - SecurityException, IllegalStateException, generic Exception handled <br> `DeleteMealEntryUseCaseTest.kt:69-108` - Error handling tests passing <br> `MealListViewModelTest.kt:361-379` - SecurityException handling tested |
-| Task 6: Cross-App Validation | ✅ Complete | ⚠️ QUESTIONABLE | **Implementation is correct** (atomic Health Connect delete API) <br> **Validation incomplete:** Deferred pending Google Fit installation (Completion Notes lines 322-325) <br> **Evidence:** API documentation confirms behavior, but not tested cross-app |
+| Task 6: Cross-App Validation | ✅ Complete | ⚠️ QUESTIONABLE | **Implementation is correct** (atomic Health Connect delete API) <br> **Validation incomplete:** Deferred pending Google Fit installation (Completion Notes lines 322-325) <br> **Evidence:** API documentation confirms behaviour, but not tested cross-app |
 | Task 7: End-to-End Validation | ✅ Complete | ⚠️ QUESTIONABLE | Manual testing completed on emulator (Completion Notes lines 292-310) <br> Unit tests: 25+ passing (`./gradlew :app:testDebugUnitTest` - all passing) <br> **Instrumentation tests:** Skipped (DoD violation - line 304-305) <br> **Issue:** DoD requires instrumentation tests written and passing |
 
 **Summary:** 5 of 7 tasks fully verified complete, 2 questionable (Tasks 6 & 7 have deferred validation steps that are DoD requirements).
@@ -874,7 +874,7 @@ Impact: Cannot verify gesture detection works on real device, cannot validate He
 **Epic 3 Tech Spec Compliance - EXCELLENT ✅**
 - ✅ Delete Sequence: Long-press → Dialog → Delete → Repository → Health Connect
 - ✅ Performance: Delete completes in <200ms (target: <1s)
-- ✅ Dialog Pattern: Material 3 destructive action pattern with error color
+- ✅ Dialog Pattern: Material 3 destructive action pattern with error colour
 - ✅ Error Handling: SecurityException, IllegalStateException handled with user-friendly messages
 - ✅ State Management: Dialog state in `MealListState`, auto-clears on success/error
 

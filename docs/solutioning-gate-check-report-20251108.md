@@ -65,7 +65,7 @@ Every PRD functional requirement has comprehensive architectural support:
 | **FR-1: Lock Screen Widget** | Glance widget configuration (project structure line 286), ADR-003 explains no custom camera (system intent faster) | Widget XML config file in structure |
 | **FR-2: Food Photo Capture** | System Camera Intent (ADR-003), ImageUtils for compression (line 307), ephemeral storage | Integration Points section (lines 408-422) |
 | **FR-3: AI Nutrition Analysis** | AzureOpenAiApi Retrofit interface (lines 829-1035), NutritionRequest/Response DTOs, GPT-4.1 model | Complete API Contracts section |
-| **FR-4: Background Processing** | AnalyzeMealWorker with WorkManager (ADR-004), exponential backoff retry logic | Worker implementation pattern (lines 600-700) |
+| **FR-4: Background Processing** | AnalyseMealWorker with WorkManager (ADR-004), exponential backoff retry logic | Worker implementation pattern (lines 600-700) |
 | **FR-5: Health Connect Storage** | HealthConnectManager (line 221), dual storage with Room (ADR-005), sync patterns | Data Architecture section (lines 720-828) |
 | **FR-6: Meal Entry List** | MealListScreen + MealListViewModel + MealRepository + Room DAO | Complete UI structure (lines 253-274) |
 | **FR-7: Edit Meal Entry** | MealDetailScreen + UpdateMealEntryUseCase + Repository update methods | CRUD operations in repository pattern |
@@ -83,7 +83,7 @@ Every PRD functional requirement has comprehensive architectural support:
 | **NFR-2: Reliability** (zero data loss) | WorkManager retry (3 attempts), dual storage (Room + Health Connect), Result wrapper | ADR-004, ADR-005 |
 | **NFR-3: Security** (API key encryption) | EncryptedSharedPreferences, HTTPS-only, ephemeral photos (delete after upload) | Security Architecture (lines 1036-1196) |
 | **NFR-4: Usability** (one-handed) | System camera (familiar UI), lock screen widget (no unlock), simple list view | UX addressed via Android system components |
-| **NFR-5: Data Privacy** (ephemeral photos) | Photos deleted after successful Health Connect save, no server storage | Data flow: capture → analyze → delete (line 331) |
+| **NFR-5: Data Privacy** (ephemeral photos) | Photos deleted after successful Health Connect save, no server storage | Data flow: capture → analyse → delete (line 331) |
 | **NFR-6: Maintainability** | Clean Architecture (UI/Domain/Data), Hilt DI, comprehensive tests (80%+ coverage) | Testing Strategy (lines 1302-1564) |
 
 **Verification:** All 6 non-functional requirements fully addressed with specific architectural decisions and implementation guidance.

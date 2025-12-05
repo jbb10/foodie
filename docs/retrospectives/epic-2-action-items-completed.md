@@ -98,16 +98,16 @@ Added "Physical Device Testing - CONDITIONAL" section to Definition of Done with
 1. WorkManager & Background Processing (emulator caching issues - Epic 2 Story 2-5 discovery)
 2. Notifications & Foreground Services (permission flows, Android 13+)
 3. Performance-Sensitive Features (camera timing, API latency, animations)
-4. Platform-Specific Behavior (deep linking, permissions, hardware)
+4. Platform-Specific Behaviour (deep linking, permissions, hardware)
 
 **Checklist items:**
 - [ ] Physical device testing completed (if applicable)
 - [ ] Device model & Android version documented in Dev Notes
 - [ ] Real-world timing metrics captured
-- [ ] Platform-specific behaviors validated
+- [ ] Platform-specific behaviours validated
 
 **Impact:**
-Production readiness validation enforced. Emulator artifacts (like WorkManager caching) won't mask real behavior.
+Production readiness validation enforced. Emulator artifacts (like WorkManager caching) won't mask real behaviour.
 
 ---
 

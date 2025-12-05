@@ -11,7 +11,7 @@ So that Epic 2 meal capture flow triggers (widget, FAB) integrate seamlessly wit
 ## Acceptance Criteria
 
 1. Deep links to MealListScreen work correctly from external triggers
-2. Deep links to MealDetailScreen with meal ID parameter work correctly
+2. Deep links to MealDetailScreen with meal ID parametre work correctly
 3. Navigation back stack behaves correctly after deep link navigation
 4. Deep linking works when app is in background, foreground, or killed states
 5. All existing navigation tests continue to pass (no regressions)
@@ -112,7 +112,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 **Testing Standards Summary:**
 - **Unit Tests Required:** Always, for any story with business logic or data handling
 - **Instrumentation Tests Required:** Conditional - only for UI flows, platform integration, or E2E scenarios
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
 
@@ -143,7 +143,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 2. From terminal, run: `adb shell am start -a android.intent.action.VIEW -d "foodie://meals"`
 3. **Expected**: App navigates to Meal List screen from current location
 
-### Expected Behavior
+### Expected Behaviour
 - No crashes or errors during deep link navigation
 - Correct screen displayed based on URI
 - Back button works correctly after deep link (closes app from MealListScreen)
@@ -210,14 +210,14 @@ Story 2.0 is a **preparation story** created during Epic 1 retrospective to vali
 
 **Manual Validation Results (via adb):**
 ✅ `foodie://meals` → Successfully launches MealListScreen
-✅ `foodie://meals/test-meal-123` → Successfully launches MealDetailScreen with mealId parameter
+✅ `foodie://meals/test-meal-123` → Successfully launches MealDetailScreen with mealId parametre
 ✅ `foodie://home` → Successfully launches MealListScreen (legacy support)
 
 **Key Requirements:**
 - URIs must follow Android deep link best practices ✅
 - Must work in killed, background, and foreground states ✅ (validated manually)
 - Must handle invalid/malformed URIs gracefully ✅ (error test cases created)
-- Must maintain correct back stack behavior ✅ (test cases created)
+- Must maintain correct back stack behaviour ✅ (test cases created)
 
 ### Testing Strategy
 
@@ -315,7 +315,7 @@ GitHub Copilot (claude-3.7-sonnet) - Story 2-0 Implementation
 
 ✅ **Deep Link Configuration Complete**
 - MealListScreen: `foodie://meals` and `foodie://home` (legacy)
-- MealDetailScreen: `foodie://meals/{mealId}` with parameter extraction
+- MealDetailScreen: `foodie://meals/{mealId}` with parametre extraction
 - AndroidManifest.xml updated with proper intent filters
 
 ✅ **Test Infrastructure Complete**
@@ -379,7 +379,7 @@ GitHub Copilot (claude-3.7-sonnet) - Story 2-0 Implementation
 **Changes:**
 - ✅ Added `foodie://meals` deep link to MealListScreen (primary)
 - ✅ Maintained `foodie://home` deep link for backward compatibility (legacy from Story 1-3)
-- ✅ Added `foodie://meals/{mealId}` deep link to MealDetailScreen with parameter support
+- ✅ Added `foodie://meals/{mealId}` deep link to MealDetailScreen with parametre support
 - ✅ Updated AndroidManifest.xml with intent filter for meals host
 - ✅ Created DeepLinkTestHelper utility with 5 helper functions for testing
 - ✅ Created 15 comprehensive deep link test cases (compile successfully)
@@ -431,7 +431,7 @@ Story 2-0 successfully validates deep linking infrastructure for Epic 2 meal cap
 **✅ STRENGTHS:**
 1. **Complete AC Coverage**: All 6 acceptance criteria verified with file:line evidence
 2. **Comprehensive Testing**: 15 instrumentation tests + 5 unit tests (20 total test cases)
-3. **Android Best Practices**: Proper intent filter configuration, URI patterns, back stack behavior
+3. **Android Best Practices**: Proper intent filter configuration, URI patterns, back stack behaviour
 4. **Code Quality**: Excellent KDoc documentation, reusable test utilities, clean implementation
 5. **Transparent Documentation**: Regression documented with root cause analysis and resolution path
 6. **Manual Validation**: All deep links verified working via adb commands (production-ready)
@@ -454,11 +454,11 @@ Story 2-0 successfully validates deep linking infrastructure for Epic 2 meal cap
 | AC | Description | Status | Evidence | Notes |
 |----|-------------|--------|----------|-------|
 | #1 | Deep links to MealListScreen from external intents | ✅ PASS | NavGraph.kt:50-53 (`navDeepLink` for `foodie://meals`, `foodie://home`, `foodie://capture`); AndroidManifest.xml:45-51, 55-60 | Manual adb test: ✅ verified |
-| #2 | Deep links to MealDetailScreen with meal ID parameter | ✅ PASS | NavGraph.kt:71 (`navDeepLink` for `foodie://meals/{mealId}`); AndroidManifest.xml:55-60 | Manual adb test with `test-123` ID: ✅ verified |
-| #3 | Back stack behavior correct (back press exits app from deep link entry) | ✅ PASS | NavGraph.kt:50 (`popUpTo = "mealList" { inclusive = false }`); Manual testing documented in Dev Notes | Back button exits app from MealListScreen: ✅ verified |
+| #2 | Deep links to MealDetailScreen with meal ID parametre | ✅ PASS | NavGraph.kt:71 (`navDeepLink` for `foodie://meals/{mealId}`); AndroidManifest.xml:55-60 | Manual adb test with `test-123` ID: ✅ verified |
+| #3 | Back stack behaviour correct (back press exits app from deep link entry) | ✅ PASS | NavGraph.kt:50 (`popUpTo = "mealList" { inclusive = false }`); Manual testing documented in Dev Notes | Back button exits app from MealListScreen: ✅ verified |
 | #4 | Deep links work from all app states (killed/background/foreground) | ✅ PASS | DeepLinkTest.kt test cases cover all states; Manual adb validation documented in Dev Notes | All states tested and working: ✅ verified |
 | #5 | No regressions to existing navigation tests | ✅ PASS WITH NOTES | ViewModel regression documented as separate issue (Story 2-1); Core navigation functionality intact; Unit tests 5/5 passing | Regression isolated to test infrastructure, not production code |
-| #6 | URI patterns follow Android best practices | ✅ PASS | Scheme: `foodie://`, hosts: `home`, `meals`, `capture`; Parameters: `{mealId}` type-safe; Intent filters properly configured | Follows Android deep link documentation |
+| #6 | URI patterns follow Android best practices | ✅ PASS | Scheme: `foodie://`, hosts: `home`, `meals`, `capture`; Parametres: `{mealId}` type-safe; Intent filters properly configured | Follows Android deep link documentation |
 
 **AC VALIDATION RESULT**: 6/6 PASS ✅
 
@@ -486,7 +486,7 @@ Story 2-0 successfully validates deep linking infrastructure for Epic 2 meal cap
 - Execution: `./gradlew :app:testDebugUnitTest --tests "*DeepLinkTestHelperTest"` successful
 
 **Instrumentation Tests**: ⚠️ 15 created, blocked by regression
-- DeepLinkTest.kt: Comprehensive coverage of MealList/MealDetail deep links, back stack behavior, error scenarios
+- DeepLinkTest.kt: Comprehensive coverage of MealList/MealDetail deep links, back stack behaviour, error scenarios
 - Blocker: ViewModel injection requires @AndroidEntryPoint activity context
 - Attempted solutions documented: createComposeRule(), createAndroidComposeRule<MainActivity>(), createAndroidComposeRule<HiltTestActivity>()
 - Manual Validation: ✅ All deep links verified working via adb commands
@@ -516,14 +516,14 @@ adb shell am start -a android.intent.action.VIEW -d "foodie://home"          # �
 - Intent filters: ACTION_VIEW + DEFAULT + BROWSABLE categories
 - URI scheme convention: `foodie://` custom scheme
 - Type-safe navigation arguments via Navigation Compose
-- Back stack behavior matches Android UX guidelines
+- Back stack behaviour matches Android UX guidelines
 
 ### Code Quality Review
 
 **NavGraph.kt** (90 lines total):
 - ✅ Clean implementation using Jetpack Navigation Compose DSL
 - ✅ Proper `navDeepLink {}` configuration for all three deep link patterns
-- ✅ Correct `popUpTo` configuration for back stack behavior
+- ✅ Correct `popUpTo` configuration for back stack behaviour
 - ✅ Inline comment documenting Story 2-0 changes (line 48)
 
 **DeepLinkTestHelper.kt** (151 lines):
@@ -550,7 +550,7 @@ adb shell am start -a android.intent.action.VIEW -d "foodie://home"          # �
 ✅ **Deep Link Security**:
 - URI validation: Type-safe navigation arguments prevent malicious input
 - Intent filter scope: Properly limited to DEFAULT + BROWSABLE (no implicit intents)
-- Parameter handling: Navigation Compose safe args prevent injection attacks
+- Parametre handling: Navigation Compose safe args prevent injection attacks
 - Error handling: Graceful fallback for malformed URIs (no crashes)
 
 ✅ **No Security Issues Found**
@@ -560,7 +560,7 @@ adb shell am start -a android.intent.action.VIEW -d "foodie://home"          # �
 1. **Widget Integration (Story 2-2)**: Use `foodie://capture` deep link with PendingIntent - infrastructure validated and ready ✅
 2. **Test Infrastructure (Story 2-1)**: Prioritize HiltTestActivity implementation before Epic 2 stories requiring complex UI instrumentation tests
 3. **Test Utilities Reuse**: Leverage DeepLinkTestHelper utilities for future navigation testing across Epic 2 stories
-4. **URI Validation**: Consider adding explicit URI validation logic if Epic 2 introduces complex deep link parameters (e.g., meal capture metadata)
+4. **URI Validation**: Consider adding explicit URI validation logic if Epic 2 introduces complex deep link parametres (e.g., meal capture metadata)
 5. **Documentation Pattern**: Continue transparent regression documentation approach - enables informed decision-making
 
 ### Definition of Done Assessment

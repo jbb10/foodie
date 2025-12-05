@@ -1,0 +1,212 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>7</epicId>
+    <storyId>2</storyId>
+    <title>Enhanced Passive Calorie Calculation</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-04</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/7-2-enhanced-passive-calorie-calculation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>accurate passive calorie (NEAT) calculations based on Health Connect data</iWant>
+    <soThat>I can see accurate energy expenditure regardless of my activity type (cycling, lifting, etc.) and avoid inaccuracies from step-based estimations</soThat>
+    <tasks>
+      <task id="1" priority="critical">Documentation Research &amp; Technical Validation - Review official HC docs, validate Garmin/HC assumptions, identify constraints</task>
+      <task id="2">Remove Legacy Logic - Remove step-multiplier NEAT calculation</task>
+      <task id="3">Implement Core Algorithm Infrastructure - startOfDay handling, AggregateRequest for TotalCaloriesBurned, ReadRecordsRequest for ExerciseSession</task>
+      <task id="4">Implement Calculation Logic - BMR subtraction, lower-bound clamping, plausibility checks</task>
+      <task id="5">Error Handling &amp; UI Feedback - Sealed result types, permission prompts</task>
+      <task id="6">Telemetry &amp; Logging - Ratio validation, HighPassive events, data origin logging</task>
+      <task id="7">Testing &amp; Validation - Unit tests, instrumentation tests, manual QA matrix</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1">Legacy step-multiplier path removed from codebase</criterion>
+    <criterion id="AC-2">Both aggregate requests (TotalCaloriesBurned, ActiveCaloriesBurned) return successfully when HC permission is granted</criterion>
+    <criterion id="AC-3">If HC permission is revoked, UI shows reconnect prompt (no crash, no silent zero)</criterion>
+    <criterion id="AC-4">At 00:01 local time Passive = 0 (±1 kcal)</criterion>
+    <criterion id="AC-5">On a multi-workout day, (Passive + Active + BmrElapsed) ≈ TotalHC (±5 %)</criterion>
+    <criterion id="AC-6">Travel test: start day in UTC-5, fly to UTC-8 at noon; algorithm still returns reasonable totals (does not reset or drop morning calories)</criterion>
+    <criterion id="AC-7">DST spring-forward day: algorithm completes without negative Passive and without crash</criterion>
+    <criterion id="AC-8">Guardrail: if rawPassive > plausibleMax (dailyBmr × 3.0), value is retained and 'HighPassive' telemetry event is logged (no truncation)</criterion>
+    <criterion id="AC-9">Ratio telemetry must be within ±5 % except when rawPassive > plausibleMax</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-7.md</path>
+        <title>Epic 7 Technical Specification - Enhanced Nutrition Tracking</title>
+        <section>Story 7.2: Enhanced Passive Calorie Calculation</section>
+        <snippet>Legacy step-multiplier path removed from codebase. Both aggregate requests (TotalCaloriesBurned, ActiveCaloriesBurned) return successfully. Uses TotalCaloriesBurnedRecord.ENERGY_TOTAL via AggregateRequest and ExerciseSessionRecord for Active component. Critical implementation: rawPassive = TotalHC – bmrElapsed – ActiveHC with plausibility check.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Foodie Architecture Document</title>
+        <section>Health Connect Integration</section>
+        <snippet>HealthConnectManager wrapper class provides: queryNutritionRecords(), insertNutritionRecord(), querySteps(), queryActiveCaloriesRecords(). Use TimeRangeFilter.between() for date-bounded queries. Handle SecurityException for permission errors. Reactive Flow updates via observeSteps() polling every 5 minutes.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Energy Balance &amp; Caloric Deficit Tracking (V2.0)</section>
+        <snippet>Passive energy expenditure (NEAT) from step data using 0.04 kcal/step formula. Total Daily Energy Expenditure (TDEE) = BMR + NEAT + Active. Active energy from Health Connect ActiveEnergyBurned. Scientific formulas: fully transparent and controllable calculations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-6.md</path>
+        <title>Epic 6 Technical Specification - Energy Balance</title>
+        <section>Story 6.3: Passive Energy (NEAT) Calculation</section>
+        <snippet>Current implementation: Step-based NEAT = steps × 0.04 kcal/step. Uses StepsRecord with exercise step exclusion logic. Query pattern: TimeRangeFilter.between(midnight, now). Exercise steps excluded via ActiveCaloriesBurnedRecord time range overlap detection.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-3-passive-energy-neat-calculation.md</path>
+        <title>Story 6.3 Completion - Legacy NEAT Implementation</title>
+        <section>Dev Notes</section>
+        <snippet>Implemented step-based NEAT with exercise exclusion. HealthConnectManager.querySteps() filters StepsRecord overlapping with ActiveCaloriesBurnedRecord time ranges. EnergyBalanceRepositoryImpl.calculateNEAT() returns Result&lt;Double&gt; with 0.04 kcal/step formula. Reactive updates via observeSteps() Flow with 5-minute polling.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+        <kind>interface</kind>
+        <symbol>EnergyBalanceRepository</symbol>
+        <lines>1-273</lines>
+        <reason>Core interface defining energy calculation methods. Current implementation has calculateNEAT() and getNEAT() using step-based formula that needs replacement with TotalCaloriesBurned approach.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/EnergyBalanceRepositoryImpl.kt</path>
+        <kind>repository</kind>
+        <symbol>EnergyBalanceRepositoryImpl.calculateNEAT()</symbol>
+        <lines>140-210</lines>
+        <reason>Current NEAT implementation using steps × 0.04 formula with exercise exclusion. This is the legacy logic to be removed (AC-1). Contains patterns for time range calculation and error handling to reuse.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>data source</kind>
+        <symbol>HealthConnectManager.queryActiveCalories()</symbol>
+        <lines>800-835</lines>
+        <reason>Example of AggregateRequest usage for ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL. Pattern to follow for TotalCaloriesBurnedRecord.ENERGY_TOTAL query. Shows permission checking and error handling.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+        <kind>data source</kind>
+        <symbol>HealthConnectManager.querySteps()</symbol>
+        <lines>590-680</lines>
+        <reason>Current step query implementation with exercise exclusion logic. Provides time range filtering pattern (midnight to now) to reuse. This method will become obsolete after migration but shows TimeRangeFilter usage.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/domain/model/UserProfile.kt</path>
+        <kind>domain model</kind>
+        <symbol>UserProfile</symbol>
+        <lines>1-50</lines>
+        <reason>Required for BMR calculation in new algorithm (rawPassive = TotalHC - bmrElapsed - ActiveHC). Contains sex, dateOfBirth (for age), weightKg, heightCm fields needed for Mifflin-St Jeor formula.</reason>
+      </artifact>
+      <artifact>
+        <path>app/app/src/main/java/com/foodie/app/data/repository/EnergyBalanceRepositoryImpl.kt</path>
+        <kind>repository</kind>
+        <symbol>EnergyBalanceRepositoryImpl.calculateBMR()</symbol>
+        <lines>88-110</lines>
+        <reason>BMR calculation implementation using Mifflin-St Jeor formula. Needed for bmrElapsed component in new Passive calculation: bmrElapsed = (dailyBmr / 1440) × minutesElapsed.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <android>
+        <library name="androidx.health.connect:connect-client" version="1.1.0">Required for TotalCaloriesBurnedRecord, ExerciseSessionRecord, AggregateRequest APIs</library>
+        <library name="kotlinx.coroutines" version="1.9.0">Flow and suspend function support for reactive energy calculations</library>
+      </android>
+      <healthConnect>
+        <permission>READ_TOTAL_CALORIES_BURNED</permission>
+        <permission>READ_EXERCISE</permission>
+        <record>TotalCaloriesBurnedRecord</record>
+        <record>ExerciseSessionRecord</record>
+        <api>AggregateRequest with ENERGY_TOTAL metric</api>
+        <api>ReadRecordsRequest for ExerciseSessionRecord list query</api>
+      </healthConnect>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <architectural>
+      <constraint>MVVM pattern: Repository → ViewModel → Compose UI (maintain existing architecture from Epic 6)</constraint>
+      <constraint>Health Connect as single source of truth (no local database for energy data)</constraint>
+      <constraint>Result&lt;T&gt; wrapper for error handling (established pattern from Epic 4)</constraint>
+      <constraint>Timber logging with TAG for all calculations and Health Connect queries</constraint>
+      <constraint>Hilt dependency injection for all repositories and data sources</constraint>
+    </architectural>
+    <development>
+      <constraint>Remove legacy step-based logic: delete querySteps() usage in calculateNEAT(), preserve for other features if used elsewhere</constraint>
+      <constraint>Time zone handling: Use ZoneId.systemDefault() for midnight calculation (established pattern)</constraint>
+      <constraint>Instant persistence: Store startOfDayInstant and zoneOffsetAtMidnight in SharedPreferences for process restart survival</constraint>
+      <constraint>Sealed result types: Return PermissionsMissing vs HcUnavailable distinctly (no silent fallbacks)</constraint>
+      <constraint>No UI truncation: If rawPassive &gt; plausibleMax, log telemetry but retain full value (AC-8)</constraint>
+    </development>
+    <testing>
+      <constraint>Unit tests required for all business logic (calculateNEAT, BMR subtraction, clamping)</constraint>
+      <constraint>Mock HealthConnectManager for repository unit tests</constraint>
+      <constraint>Integration tests for Health Connect queries (TotalCaloriesBurned, ExerciseSession)</constraint>
+      <constraint>Manual testing required: QA Test Matrix scenarios (timezone changes, DST, permission revocation)</constraint>
+      <constraint>Zero test coverage regressions (existing 400+ tests must continue passing)</constraint>
+    </testing>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>HealthConnectManager (new methods needed)</name>
+      <kind>Data source interface extension</kind>
+      <signature>
+        suspend fun queryTotalCaloriesBurned(startTime: Instant, endTime: Instant): Double
+        suspend fun queryExerciseSessions(startTime: Instant, endTime: Instant): List&lt;ExerciseSessionRecord&gt;
+      </signature>
+      <path>app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt</path>
+      <usage>Called by EnergyBalanceRepositoryImpl.calculateNEAT() to get TotalHC and ActiveHC components</usage>
+    </interface>
+    <interface>
+      <name>EnergyBalanceRepository.calculateNEAT()</name>
+      <kind>Repository method signature (unchanged interface)</kind>
+      <signature>suspend fun calculateNEAT(): Result&lt;Double&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt</path>
+      <usage>Signature remains same but implementation changes from step-based to TotalCaloriesBurned algorithm</usage>
+    </interface>
+    <interface>
+      <name>UserProfileRepository.getUserProfile()</name>
+      <kind>Repository dependency</kind>
+      <signature>fun getUserProfile(): Flow&lt;UserProfile?&gt;</signature>
+      <path>app/app/src/main/java/com/foodie/app/domain/repository/UserProfileRepository.kt</path>
+      <usage>Required to get user profile for dailyBmr calculation in new NEAT algorithm</usage>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <standard>All unit tests use JUnit 4.13.2 with Mockito-Kotlin 5.4.0 for mocking</standard>
+      <standard>Repository tests mock HealthConnectManager and UserProfileRepository dependencies</standard>
+      <standard>Use Result.success() and Result.failure() assertions for error handling validation</standard>
+      <standard>Instrumentation tests run on physical device or emulator with Health Connect installed</standard>
+      <standard>Test coverage target: 80%+ for new business logic (calculation methods)</standard>
+      <standard>KDoc documentation required for all public APIs and complex algorithms</standard>
+    </standards>
+    <locations>
+      <location>app/app/src/test/java/com/foodie/app/data/repository/EnergyBalanceRepositoryNeatTest.kt - Unit tests for NEAT calculation logic</location>
+      <location>app/app/src/test/java/com/foodie/app/data/local/healthconnect/HealthConnectManagerTest.kt - Unit tests for HC query methods</location>
+      <location>app/app/src/androidTest/java/com/foodie/app/data/healthconnect/ - Integration tests for HC API calls</location>
+      <location>docs/stories/7-2-enhanced-passive-calorie-calculation.md - QA Test Matrix for manual validation</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-2">Unit test: Mock TotalCaloriesBurned and ExerciseSession queries, verify both return successfully with granted permissions</idea>
+      <idea ac="AC-3">Unit test: Mock SecurityException from HC query, verify Result.failure with PermissionDenied error type (not silent zero)</idea>
+      <idea ac="AC-4">Unit test: At 00:01 with midnight startOfDay, verify Passive calculation = 0 ± 1 kcal (bmrElapsed minimal, Total/Active likely zero)</idea>
+      <idea ac="AC-5">Unit test: Multi-workout day scenario - mock TotalHC=2500, ActiveHC=500, BMR=1800, minutesElapsed=1200 → verify (Passive + Active + BmrElapsed) ≈ TotalHC within ±5%</idea>
+      <idea ac="AC-6">Manual test: Timezone travel scenario - requires physical device testing with actual HC data, cannot unit test easily</idea>
+      <idea ac="AC-7">Unit test: DST spring-forward day (23-hour day) - verify algorithm handles minutesElapsed=1380 without crash, Passive ≥ 0</idea>
+      <idea ac="AC-8">Unit test: Mock rawPassive = dailyBmr × 3.5 (exceeds plausibleMax) → verify value retained (not truncated) and 'HighPassive' telemetry logged</idea>
+      <idea ac="AC-9">Unit test: Verify ratio = (Passive + ActiveHC + bmrElapsed) / TotalHC is within 0.95-1.05 for normal scenarios, log warning if outside range unless rawPassive > plausibleMax</idea>
+      <idea ac="AC-1">Integration test: After migration, verify querySteps() is NOT called by calculateNEAT() (no step-based logic remains)</idea>
+      <idea>Edge case test: TotalHC=0, ActiveHC=0 (no data yet) → verify Passive=0 after clamping (not negative from BMR subtraction)</idea>
+      <idea>Performance test: Benchmark new algorithm execution time, verify &lt; 100ms for typical day (matches existing NEAT performance)</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -42,7 +42,7 @@ So that I get a clear image for AI analysis while holding my plate.
   - [x] Create `CameraActivity` in `ui/camera/` package extending `ComponentActivity`
   - [x] Implement `PreviewView` in Compose with full-screen camera preview
   - [x] Configure camera use case with 2MP resolution limit (ImageCapture)
-  - [x] Implement large capture button (minimum 48dp, centered bottom) using Material3 FAB
+  - [x] Implement large capture button (minimum 48dp, centreed bottom) using Material3 FAB
   - [x] Add volume button listener for alternative capture method
   - [x] Handle device rotation with camera orientation listener
   - [x] Request CAMERA permission if not granted (runtime permission flow)
@@ -145,7 +145,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 **Testing Standards Summary:**
 - **Unit Tests Required:** CameraViewModel logic, PhotoManager utility methods, compression settings
 - **Instrumentation Tests Required:** Camera UI interactions, permission flow, navigation integration
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
 
@@ -167,7 +167,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 3. Tap the "Log Meal" widget on home screen
 4. **Expected**: Camera launches within 3 seconds showing full-screen camera preview
 5. Frame the food in the camera view (hold device with one hand, plate in other hand)
-6. Tap the large capture button at the bottom center
+6. Tap the large capture button at the bottom centre
 7. **Expected**: Photo captured, preview screen appears immediately showing the captured image
 8. Review the photo quality
 9. If photo is blurry: Tap "Retake" → camera reopens for another attempt
@@ -186,7 +186,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 4. Capture photo in landscape orientation
 5. **Expected**: Preview screen shows photo in correct orientation
 
-### Expected Behavior
+### Expected Behaviour
 - Camera launches quickly (< 3 seconds from widget tap with unlock)
 - Full-screen camera preview is responsive and smooth
 - Capture button is large and easy to tap with thumb while holding device
@@ -227,7 +227,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - Use Hilt DI to inject `PhotoManager` utility into ViewModel
 
 **One-Handed Operation Design:**
-- Capture button: Minimum 48dp height, positioned bottom center (Material3 FAB)
+- Capture button: Minimum 48dp height, positioned bottom centre (Material3 FAB)
 - Button placement optimized for right-hand thumb reach (majority use case)
 - Volume buttons as alternative (left-hand users, physical feedback preference)
 - Large touch targets throughout UI (Material Design guidelines)

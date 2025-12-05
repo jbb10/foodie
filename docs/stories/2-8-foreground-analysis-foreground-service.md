@@ -26,8 +26,8 @@ So that I can immediately resume what I was doing while knowing progress is happ
 ## Tasks / Subtasks
 
 - [x] **Task 1: Foreground Execution Architecture Review** (AC: #1, #8)
-  - [x] Audit existing `AnalyzeMealWorker` implementation and WorkManager setup from Story 2-5
-  - [x] Document gaps vs. foreground-service requirement (notification, lifecycle, restart behavior)
+  - [x] Audit existing `AnalyseMealWorker` implementation and WorkManager setup from Story 2-5
+  - [x] Document gaps vs. foreground-service requirement (notification, lifecycle, restart behaviour)
   - [x] Produce lightweight ADR appendix outlining why Foreground Worker approach satisfies requirement
   - [x] Update architecture notes if deviations from ADR-004 are required
 
@@ -42,11 +42,11 @@ So that I can immediately resume what I was doing while knowing progress is happ
   - [x] Create `MealAnalysisForegroundNotifier` helper in `data/worker/foreground/`
     - [x] Method `createForegroundInfo(workId, statusText, progress?)`
     - [x] Method `createCompletionNotification(successData)` and `createFailureNotification(errorReason)`
-  - [x] Use `NotificationCompat.Builder` with small icon, color, content intent to open app
+  - [x] Use `NotificationCompat.Builder` with small icon, colour, content intent to open app
   - [x] Include cancel action that opens troubleshooting docs (optional, documented)
   - [x] Write unit test verifying notification fields (title, text, channel, priority)
 
-- [x] **Task 4: Upgrade AnalyzeMealWorker to Foreground Worker** (AC: #1-3, #5, #7-9)
+- [x] **Task 4: Upgrade AnalyseMealWorker to Foreground Worker** (AC: #1-3, #5, #7-9)
   - [x] Inject `MealAnalysisForegroundNotifier`
   - [x] Call `setForegroundAsync(foregroundInfo)` at worker start
   - [x] Update progress in notification for major phases (encoding, API call, save)
@@ -76,7 +76,7 @@ So that I can immediately resume what I was doing while knowing progress is happ
   - [x] Update Dev Notes with foreground execution diagrams and trade-offs vs. background-only WorkManager
   - [x] Reference Android Foreground Service & Notification docs in story references
   - [x] Append Dev Agent Record entry summarizing decisions, metrics, and outstanding risks
-  - [x] Add Change Log entry describing new notification-visible processing behavior
+  - [x] Add Change Log entry describing new notification-visible processing behaviour
 
 ## Definition of Done
 
@@ -89,7 +89,7 @@ So that I can immediately resume what I was doing while knowing progress is happ
 
 ### Testing Requirements
 - [x] Unit tests cover notification builder, permission gating, and worker foreground lifecycle
-- [x] WorkManager instrumentation or Robolectric tests verify `setForegroundAsync` usage and completion behavior
+- [x] WorkManager instrumentation or Robolectric tests verify `setForegroundAsync` usage and completion behaviour
 - [x] Manual exploratory test cases executed on Android 13+ physical device/emulator covering permission denial/acceptance
 - [x] All automated tests pass: `./gradlew test connectedAndroidTest`
 
@@ -107,7 +107,7 @@ So that I can immediately resume what I was doing while knowing progress is happ
 5. **Failure Messaging**
   - Configure invalid API key, confirm failure notification posts with descriptive message and work ID subtext
 6. **Performance Timing**
-  - Capture logcat (`AnalyzeMealWorker` tag) on Wi-Fi and LTE; verify timetable stays under 15s and log shows elapsed metrics
+  - Capture logcat (`AnalyseMealWorker` tag) on Wi-Fi and LTE; verify timetable stays under 15s and log shows elapsed metrics
 
 ### Documentation
 - [x] Dev Notes updated with foreground-service rationale, notification UX, and timing metrics
@@ -141,7 +141,7 @@ So that I can immediately resume what I was doing while knowing progress is happ
 ### Foreground Execution Strategy
 - WorkManager remains the orchestrator, but worker must enter foreground immediately to satisfy Android 8+ background limits
 - Use `ForegroundInfo` to bridge WorkManager and system Foreground Service infrastructure
-- Notification should reflect major milestones (uploading, analyzing, saving) but stay concise per UX guidelines
+- Notification should reflect major milestones (uploading, analysing, saving) but stay concise per UX guidelines
 - Cancel or update notification explicitly once work finishes to avoid lingering system UI artifacts
 - `MealAnalysisForegroundNotifier` owns notification construction (foreground, success, failure) to keep worker lean and testable
 - Status updates use string resources (`notification_meal_analysis_status_*`) so progress text localizes cleanly and can be tweaked without code changes
@@ -157,7 +157,7 @@ Check POST_NOTIFICATIONS permission (Android 13+)
     ├─→ [Denied] → Show permission rationale → Request permission → [Grant] → Continue
     └─→ [Granted] → Continue
     ↓
-Enqueue AnalyzeMealWorker with photo URI
+Enqueue AnalyseMealWorker with photo URI
     ↓
 Worker.doWork() starts
     ↓
@@ -211,7 +211,7 @@ User sees data in app             OR final failure notification posted
 [Source: ADR-004 Appendix 004-A in docs/architecture.md]
 
 ### Notification UX Guidelines
-- Follow Material You style: Foodie icon, accent color, short title/subtitle, optional progress bar
+- Follow Material You style: Foodie icon, accent colour, short title/subtitle, optional progress bar
 - Provide tap action opening app summary screen so users can view results when ready
 - Failure notification should include plain-language message and developer-friendly log reference ID
 - Optional cancel action remains deferred; documentation now points to troubleshooting instructions instead of shipping a stub action
@@ -221,7 +221,7 @@ User sees data in app             OR final failure notification posted
 - `setForegroundAsync()` must be called before any long-running work; handle exceptions if notification permission missing
 - If WorkManager retries, call `setForegroundAsync()` on each attempt to restore notification
 - Use `runAttemptCount` to enrich logs and failure notifications ("Attempt 2 of 4")
-- `AnalyzeMealWorker` catches `ForegroundServiceStartNotAllowedException` and schedules retry to respect background restrictions introduced in Android 12+
+- `AnalyseMealWorker` catches `ForegroundServiceStartNotAllowedException` and schedules retry to respect background restrictions introduced in Android 12+
 - Success, non-retryable failure, and exhausted retries all delete temporary photos to prevent cache growth; failure notification fired in every terminal case
 
 ### Performance Targets
@@ -253,7 +253,7 @@ User sees data in app             OR final failure notification posted
 - **Critical Gap Identified**: Users have NO visibility during background processing (10-15 seconds)
 - Current experience: Photo confirmed → user returns to app → *silent processing* → data appears in Health Connect
 - **User Confusion Risk**: Without notification, users may think processing failed or is stuck
-- Story 2-7 validated that WorkManager reliably executes AnalyzeMealWorker, but there's zero user-facing progress indication
+- Story 2-7 validated that WorkManager reliably executes AnalyseMealWorker, but there's zero user-facing progress indication
 
 **What Story 2.8 Adds:**
 - Visible foreground notification during processing ("Analyzing meal…")
@@ -268,7 +268,7 @@ User sees data in app             OR final failure notification posted
 - Performance targets met: widget launch <500ms, processing <15s, photo deletion confirmed
 
 **Architectural Context:**
-Story 2-7 validated the complete capture flow WITHOUT foreground notification. Story 2.8 enhances the existing AnalyzeMealWorker with `setForegroundAsync()` to add the missing user-facing notification layer. This is an additive change - the core WorkManager orchestration remains unchanged.
+Story 2-7 validated the complete capture flow WITHOUT foreground notification. Story 2.8 enhances the existing AnalyseMealWorker with `setForegroundAsync()` to add the missing user-facing notification layer. This is an additive change - the core WorkManager orchestration remains unchanged.
 
 [Source: docs/stories/2-7-end-to-end-capture-flow-integration.md#Completion-Notes]
 
@@ -281,7 +281,7 @@ app/src/main/java/com/foodie/app/
 │
 ├── data/
 │   ├── worker/
-│   │   ├── AnalyzeMealWorker.kt         # MODIFIED: Add setForegroundAsync() call
+│   │   ├── AnalyseMealWorker.kt         # MODIFIED: Add setForegroundAsync() call
 │   │   └── foreground/                  # NEW DIRECTORY
 │   │       └── MealAnalysisForegroundNotifier.kt  # NEW: Notification builder helper
 │
@@ -295,7 +295,7 @@ app/src/main/java/com/foodie/app/
 
 **Key Files to Modify:**
 
-1. **AnalyzeMealWorker.kt** (data/worker/)
+1. **AnalyseMealWorker.kt** (data/worker/)
    - Inject `MealAnalysisForegroundNotifier`
    - Call `setForegroundAsync(foregroundInfo)` at worker start
    - Update notification for each processing phase
@@ -337,7 +337,7 @@ app/src/main/java/com/foodie/app/
 
 **BEFORE IMPLEMENTATION: Research Android Foreground Service Requirements**
 
-Use Playwright MCP to fetch and analyze official Android documentation:
+Use Playwright MCP to fetch and analyse official Android documentation:
 
 **1. WorkManager Foreground Execution** (Primary Source - CRITICAL)
 - URL: https://developer.android.com/topic/libraries/architecture/workmanager/advanced/long-running
@@ -355,7 +355,7 @@ Use Playwright MCP to fetch and analyze official Android documentation:
 - URL: https://developer.android.com/develop/ui/views/notifications/notification-permission
 - **Focus Areas:**
   - `POST_NOTIFICATIONS` runtime permission request flow
-  - Fallback behavior when permission denied (work still runs, no notification shown)
+  - Fallback behaviour when permission denied (work still runs, no notification shown)
   - UX patterns for permission rationale
 - **Extract:**
   - Permission request code examples using `ActivityResultContracts.RequestPermission`
@@ -370,7 +370,7 @@ Use Playwright MCP to fetch and analyze official Android documentation:
   - User-facing channel name and description best practices
 - **Extract:**
   - `NotificationChannel` setup code for foreground service notifications
-  - Channel importance impact on notification behavior
+  - Channel importance impact on notification behaviour
   - Testing channel creation (verify in Settings app)
 
 **4. Foreground Service Background Execution Restrictions**
@@ -401,12 +401,12 @@ Use `fetch_webpage` tool to retrieve documentation pages, then extract code exam
 **Source Documents:**
 
 1. **Epic 2, Story 2.8 (Foreground Meal Analysis Service)** - [Source: docs/epics.md#Story-2-8, line ~380]
-   - Acceptance criteria: Foreground service with notification, Android 13+ permission flow, auto-dismiss behavior
+   - Acceptance criteria: Foreground service with notification, Android 13+ permission flow, auto-dismiss behaviour
    - Prerequisites: Stories 2.5 (WorkManager implementation) and 2.6 (Health Connect save)
    - Context: Addresses gap from original Epic 2.4 specification which required foreground service with visible notification
 
 2. **Tech Spec Epic 2 - Background Processing Module** - [Source: docs/tech-spec-epic-2.md#Background-Processing-Module, lines 180-220]
-   - AnalyzeMealWorker implementation details and current workflow
+   - AnalyseMealWorker implementation details and current workflow
    - WorkManager configuration with network constraints, exponential backoff retry (1s, 2s, 4s delays)
    - **NOTE**: Current spec states "no foreground service needed" - Story 2.8 updates this architectural decision to add foreground notification while keeping WorkManager orchestration
 
@@ -422,7 +422,7 @@ Use `fetch_webpage` tool to retrieve documentation pages, then extract code exam
    - Performance target: <15 seconds processing time with user confidence it's progressing
 
 5. **Story 2-5 Background Processing Service** - [Source: docs/stories/2-5-background-processing-service.md#Completion-Notes]
-   - AnalyzeMealWorker implementation: photo → API → Health Connect → cleanup workflow
+   - AnalyseMealWorker implementation: photo → API → Health Connect → cleanup workflow
    - WorkManager configuration: Network constraints, HiltWorkerFactory for DI
    - Gap identified: No user-facing notification during 10-15 second processing window
 
@@ -455,19 +455,19 @@ Use `fetch_webpage` tool to retrieve documentation pages, then extract code exam
   2. Sync with architecture owner on ADR update regarding foreground execution
   3. Plan manual test matrix covering Android 13+ notification permission cases
 
-- **Completion Summary:** Foreground execution migrated to `MealAnalysisForegroundNotifier` + `AnalyzeMealWorker` integration, capture flow gates POST_NOTIFICATIONS before enqueue, and FoodieApplication registers the new `meal_analysis` channel.
-- **Metrics Captured:** Timber telemetry logs (TAG `AnalyzeMealWorker`) now emit total processing time; QA checklist captures Wi-Fi and LTE measurements prior to release to confirm the <15s requirement.
+- **Completion Summary:** Foreground execution migrated to `MealAnalysisForegroundNotifier` + `AnalyseMealWorker` integration, capture flow gates POST_NOTIFICATIONS before enqueue, and FoodieApplication registers the new `meal_analysis` channel.
+- **Metrics Captured:** Timber telemetry logs (TAG `AnalyseMealWorker`) now emit total processing time; QA checklist captures Wi-Fi and LTE measurements prior to release to confirm the <15s requirement.
 - **Outstanding Risks:** Physical device validation + timing capture still required (tracked in Manual QA checklist); optional notification cancel action deferred pending troubleshooting doc URL.
-- **Files Modified:** `app/app/src/main/java/com/foodie/app/FoodieApplication.kt`, `CapturePhotoViewModel.kt`, `CapturePhotoScreen.kt`, `PreviewScreen.kt`, `AnalyzeMealWorker.kt`, `app/README.md`, `docs/architecture.md`, `docs/stories/2-8-foreground-analysis-foreground-service.md`.
-- **Files Created:** `app/app/src/main/java/com/foodie/app/data/worker/foreground/MealAnalysisNotificationSpec.kt`, `MealAnalysisForegroundNotifier.kt`, `app/app/src/main/java/com/foodie/app/notifications/NotificationPermissionManager.kt`, `MealAnalysisNotificationSpecTest.kt`, `MealAnalysisForegroundNotifierTest.kt`, `AnalyzeMealWorkerForegroundTest.kt`.
+- **Files Modified:** `app/app/src/main/java/com/foodie/app/FoodieApplication.kt`, `CapturePhotoViewModel.kt`, `CapturePhotoScreen.kt`, `PreviewScreen.kt`, `AnalyseMealWorker.kt`, `app/README.md`, `docs/architecture.md`, `docs/stories/2-8-foreground-analysis-foreground-service.md`.
+- **Files Created:** `app/app/src/main/java/com/foodie/app/data/worker/foreground/MealAnalysisNotificationSpec.kt`, `MealAnalysisForegroundNotifier.kt`, `app/app/src/main/java/com/foodie/app/notifications/NotificationPermissionManager.kt`, `MealAnalysisNotificationSpecTest.kt`, `MealAnalysisForegroundNotifierTest.kt`, `AnalyseMealWorkerForegroundTest.kt`.
 - **Tests Added:**
   - `MealAnalysisNotificationSpecTest` (unit)
   - `MealAnalysisForegroundNotifierTest` (instrumentation)
-  - `AnalyzeMealWorkerForegroundTest` (instrumentation, success + failure scenarios)
+  - `AnalyseMealWorkerForegroundTest` (instrumentation, success + failure scenarios)
 
 ## File List
 - `app/app/src/main/java/com/foodie/app/FoodieApplication.kt`
-- `app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+- `app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
 - `app/app/src/main/java/com/foodie/app/data/worker/foreground/MealAnalysisNotificationSpec.kt`
 - `app/app/src/main/java/com/foodie/app/data/worker/foreground/MealAnalysisForegroundNotifier.kt`
 - `app/app/src/main/java/com/foodie/app/notifications/NotificationPermissionManager.kt`
@@ -477,7 +477,7 @@ Use `fetch_webpage` tool to retrieve documentation pages, then extract code exam
 - `app/app/src/main/res/values/strings.xml`
 - `app/app/src/test/java/com/foodie/app/data/worker/foreground/MealAnalysisNotificationSpecTest.kt`
 - `app/app/src/androidTest/java/com/foodie/app/data/worker/foreground/MealAnalysisForegroundNotifierTest.kt`
-- `app/app/src/androidTest/java/com/foodie/app/data/worker/AnalyzeMealWorkerForegroundTest.kt`
+- `app/app/src/androidTest/java/com/foodie/app/data/worker/AnalyseMealWorkerForegroundTest.kt`
 - `app/README.md`
 - `docs/architecture.md`
 - `docs/stories/2-8-foreground-analysis-foreground-service.md`
@@ -487,18 +487,18 @@ Use `fetch_webpage` tool to retrieve documentation pages, then extract code exam
 
 ### Debug Log
 
-- 2025-11-11: Task 1 plan — review current AnalyzeMealWorker + related docs, catalog foreground gaps (notification channel, ForegroundInfo, permission handling, resiliency), draft ADR appendix outline, and note required architecture doc updates before coding.
-- 2025-11-11: Task 1 complete — audited AnalyzeMealWorker, documented gaps/resolution, added `meal_analysis` foreground notes to docs/architecture.md, and captured ADR Appendix 004-A rationale.
+- 2025-11-11: Task 1 plan — review current AnalyseMealWorker + related docs, catalog foreground gaps (notification channel, ForegroundInfo, permission handling, resiliency), draft ADR appendix outline, and note required architecture doc updates before coding.
+- 2025-11-11: Task 1 complete — audited AnalyseMealWorker, documented gaps/resolution, added `meal_analysis` foreground notes to docs/architecture.md, and captured ADR Appendix 004-A rationale.
 - 2025-11-11: Task 2 plan — introduce notification spec constants, register channel in `FoodieApplication`, scaffold notification permission utilities for capture flow, add unit coverage for channel config, and refresh developer docs with Android 13+ notification guidance.
 - 2025-11-11: Task 2 complete — added `MealAnalysisNotificationSpec`, registered channel on app start, surfaced notification permission helpers for capture flow, documented Android 13+ expectations, and delivered unit coverage for channel configuration.
 - 2025-11-11: Task 3 plan — build `MealAnalysisForegroundNotifier` to supply ForegroundInfo + success/failure notifications, ensure NotificationCompat usage aligns with spec constants, add unit coverage for builder fields, and document optional cancel action progression.
 - 2025-11-11: Task 3 complete — implemented notifier builder with ForegroundInfo + follow-up notifications, added instrumentation coverage for channel/priority fields, and logged optional cancel action follow-up for documentation.
-- 2025-11-11: Task 4 plan — inject notifier into `AnalyzeMealWorker`, request foreground state immediately, update phase progress messaging, wire success/failure notifications with cleanup, handle `ForegroundServiceStartNotAllowedException`, and extend tests for foreground behavior.
+- 2025-11-11: Task 4 plan — inject notifier into `AnalyseMealWorker`, request foreground state immediately, update phase progress messaging, wire success/failure notifications with cleanup, handle `ForegroundServiceStartNotAllowedException`, and extend tests for foreground behaviour.
 - 2025-11-11: Task 4 complete — worker now enters foreground with staged progress updates, posts completion/failure notifications, guards ForegroundServiceStartNotAllowedException with retry, and new instrumentation verifies foreground info + completion notification wiring.
 - 2025-11-11: Task 5 plan — gate enqueue behind notification permission, surface rationale signal in capture state, log telemetry immediately after enqueue, and document manual verification for returning user flow.
 - 2025-11-11: Task 5 complete — capture flow now requests POST_NOTIFICATIONS before enqueue, exposes new state for permission prompting, logs enqueue telemetry, and capture screen wiring maintains user return after scheduling.
 - 2025-11-11: Task 6 plan — validate resiliency via WorkManager tests, document manual process death checks, exercise file cleanup paths, and record timing metrics to confirm <15s target.
-- 2025-11-11: Task 6 complete — added worker tests covering failure cleanup and max-retry behavior, noted manual process-death + timing validation steps, and captured cleanup verification logs.
+- 2025-11-11: Task 6 complete — added worker tests covering failure cleanup and max-retry behaviour, noted manual process-death + timing validation steps, and captured cleanup verification logs.
 - 2025-11-11: Task 7 plan — expand unit + instrumentation coverage for notifier/worker, design manual QA checklist for notification flows, and update CI notes if emulator limitations persist.
 - 2025-11-11: Task 7 complete — notifier + worker tests landed in unit/androidTest suites, QA checklist queued for permission/notification scenarios, and CI guidance updated to run `connectedAndroidTest` for foreground coverage.
 - 2025-11-11: Task 8 plan — update Dev Notes with foreground workflow diagrams/metrics, refresh references with Android docs, append Dev Agent completion summary and change log entry.
@@ -511,7 +511,7 @@ Use `fetch_webpage` tool to retrieve documentation pages, then extract code exam
 **Status:** ✅ Implementation Complete - Ready for Manual QA
 
 **What Was Built:**
-- Foreground notification infrastructure for `AnalyzeMealWorker` using WorkManager's `setForegroundAsync()` API
+- Foreground notification infrastructure for `AnalyseMealWorker` using WorkManager's `setForegroundAsync()` API
 - `MealAnalysisForegroundNotifier` helper class providing ForegroundInfo + success/failure notifications
 - `meal_analysis` notification channel registered in `FoodieApplication` on app launch
 - Android 13+ POST_NOTIFICATIONS permission gating in capture flow (CapturePhotoViewModel)
@@ -523,11 +523,11 @@ Use `fetch_webpage` tool to retrieve documentation pages, then extract code exam
 3. `NotificationPermissionManager.kt` - Android 13+ permission check utility
 4. `MealAnalysisNotificationSpecTest.kt` - Unit tests for notification spec
 5. `MealAnalysisForegroundNotifierTest.kt` - Instrumentation tests for notifier builder
-6. `AnalyzeMealWorkerForegroundTest.kt` - Instrumentation tests for worker foreground behavior
+6. `AnalyseMealWorkerForegroundTest.kt` - Instrumentation tests for worker foreground behaviour
 
 **Files Modified (9):**
 1. `FoodieApplication.kt` - Notification channel registration
-2. `AnalyzeMealWorker.kt` - Foreground execution + progress notifications
+2. `AnalyseMealWorker.kt` - Foreground execution + progress notifications
 3. `CapturePhotoViewModel.kt` - Permission gating before WorkManager enqueue
 4. `CapturePhotoScreen.kt` - Permission prompt UI integration
 5. `PreviewScreen.kt` - Permission flow wiring
@@ -539,7 +539,7 @@ Use `fetch_webpage` tool to retrieve documentation pages, then extract code exam
 **Test Coverage:**
 - ✅ Unit Tests: `MealAnalysisNotificationSpecTest` (notification spec validation)
 - ✅ Instrumentation Tests: `MealAnalysisForegroundNotifierTest` (builder fields validation)
-- ✅ Instrumentation Tests: `AnalyzeMealWorkerForegroundTest` (foreground lifecycle + cleanup)
+- ✅ Instrumentation Tests: `AnalyseMealWorkerForegroundTest` (foreground lifecycle + cleanup)
 - ✅ All automated tests passing: `./gradlew test` (Build successful, 179 tests)
 
 **Manual QA Results (Android 16 / Pixel 8 Pro):**

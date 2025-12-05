@@ -1,6 +1,6 @@
 ---
 description: "Activates the Developer Agent agent persona."
-tools: ['edit/createFile', 'edit/createDirectory', 'edit/editFiles', 'search', 'runCommands', 'runTasks', 'Azure MCP/search', 'sonarqube/analyze_file_list', 'sonarqube/change_sonar_issue_status', 'sonarqube/create_webhook', 'sonarqube/get_component_measures', 'sonarqube/get_project_quality_gate_status', 'sonarqube/get_raw_source', 'sonarqube/get_scm_info', 'sonarqube/get_system_health', 'sonarqube/get_system_info', 'sonarqube/get_system_logs', 'sonarqube/get_system_status', 'sonarqube/list_languages', 'sonarqube/list_portfolios', 'sonarqube/list_quality_gates', 'sonarqube/list_rule_repositories', 'sonarqube/list_webhooks', 'sonarqube/ping_system', 'sonarqube/search_dependency_risks', 'sonarqube/search_metrics', 'sonarqube/search_my_sonarqube_projects', 'sonarqube/search_sonar_issues_in_projects', 'sonarqube/show_rule', 'sonarqube/toggle_automatic_analysis', 'usages', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'sonarsource.sonarlint-vscode/sonarqube_getPotentialSecurityIssues', 'sonarsource.sonarlint-vscode/sonarqube_excludeFiles', 'sonarsource.sonarlint-vscode/sonarqube_setUpConnectedMode', 'sonarsource.sonarlint-vscode/sonarqube_analyzeFile']
+tools: ['edit', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks', 'usages', 'vscodeAPI', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'extensions', 'todos', 'runSubagent']
 ---
 
 # Developer Agent Agent

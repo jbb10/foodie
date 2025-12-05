@@ -157,7 +157,7 @@ interface MealRepository {
 
 // NutritionAnalysisRepository.kt (placeholder for Epic 2)
 interface NutritionAnalysisRepository {
-    suspend fun analyzePhoto(photoUri: Uri): Result<NutritionData>
+    suspend fun analysePhoto(photoUri: Uri): Result<NutritionData>
 }
 ```
 
@@ -719,7 +719,7 @@ All acceptance criteria extracted from Epic 1 stories in epics.md:
 | 1.3.1 | Navigation | NavGraph.kt | Verify NavHost configuration |
 | 1.3.2 | Navigation | MainActivity | Assert NavController hosted |
 | 1.3.3 | Navigation | Screens | UI test navigation to each screen |
-| 1.3.4 | Navigation | NavController | Test back stack behavior |
+| 1.3.4 | Navigation | NavController | Test back stack behaviour |
 | 1.3.5 | Navigation | Deep linking | Test deep link intent handling |
 | 1.4.1 | Health Connect | FoodieApplication | Verify HealthConnectClient initialized |
 | 1.4.2 | Health Connect | HealthConnectManager | Test permission request flow |
@@ -838,7 +838,7 @@ All acceptance criteria extracted from Epic 1 stories in epics.md:
 - [ ] Permission request flow completes successfully
 - [ ] Sample Health Connect write appears in Google Fit app
 - [ ] Navigation works between all placeholder screens
-- [ ] Back button behavior correct (doesn't exit app on first back)
+- [ ] Back button behaviour correct (doesn't exit app on first back)
 - [ ] Deep link intent navigates to correct screen
 - [ ] Logs appear in Logcat with correct tags and levels
 - [ ] Error messages are user-friendly (no stack traces shown to user)

@@ -159,7 +159,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 2. Verify all tests pass
 3. (Optional) Run app with debugger, check Timber logs for NEAT values
 
-### Expected Behavior
+### Expected Behaviour
 - Tests confirm correct NEAT values for various step counts
 - Reactive Flow emits updated NEAT when mocked step data changes
 

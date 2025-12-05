@@ -14,7 +14,7 @@ This manual test guide validates accessibility improvements including TalkBack s
 - TalkBack screen reader navigation across all screens
 - Large font size scaling (Settings → Display → Font Size → Largest)
 - Touch target validation with Layout Inspector / Accessibility Scanner
-- Color contrast visual inspection
+- Colour contrast visual inspection
 - D-pad/keyboard navigation (if device supports)
 
 **Prerequisites:**
@@ -101,7 +101,7 @@ This manual test guide validates accessibility improvements including TalkBack s
    - Expected: System camera app launches (uses ACTION_IMAGE_CAPTURE intent)
 2. System camera app handles TalkBack announcements
 
-**Expected Behavior:**
+**Expected Behaviour:**
 - **Widget Tap:** Launches system camera (TalkBack announces "Camera" or app-specific label)
 - **Camera Controls:** System camera app provides TalkBack support (shutter button, mode switcher, etc.)
 - **Note:** Custom camera implementation not used - system camera handles accessibility
@@ -125,21 +125,21 @@ This manual test guide validates accessibility improvements including TalkBack s
 2. Set font size to Largest: Settings → Display → Font Size → Largest
 3. Return to Foodie app and inspect all screens
 
-**Expected Behavior - MealListScreen:**
+**Expected Behaviour - MealListScreen:**
 - All text increases in size proportionally
 - Meal descriptions wrap to multiple lines (no truncation)
 - Meal timestamps and calories scale correctly
-- Empty state text scales and remains centered
+- Empty state text scales and remains centreed
 - No text clipping or overflow
 
-**Expected Behavior - SettingsScreen:**
+**Expected Behaviour - SettingsScreen:**
 - Preference titles scale correctly
 - API Key/Endpoint/Model input fields scale (text and labels)
 - Theme radio button labels scale
 - No text clipping in OutlinedTextFields
 - Buttons expand vertically to accommodate larger text
 
-**Expected Behavior - General:**
+**Expected Behaviour - General:**
 - All Material 3 typography scales (headlineMedium, bodyLarge, labelSmall, etc.)
 - No hardcoded fontSize values override scaling
 - UI remains usable (no overlapping elements)
@@ -178,13 +178,13 @@ This manual test guide validates accessibility improvements including TalkBack s
 **Scanner Report Expected:**
 - **Touch Target Violations:** 0 HIGH priority issues
 - **Acceptable:** 0-2 MEDIUM priority issues (if any edge cases)
-- **Color Contrast:** 0 violations (Material 3 palette WCAG AA compliant)
+- **Colour Contrast:** 0 violations (Material 3 palette WCAG AA compliant)
 - **Content Descriptions:** 0 violations (all added in implementation)
 
 **Validation:**
 - [ ] Accessibility Scanner reports 0 CRITICAL issues
 - [ ] Accessibility Scanner reports 0 HIGH severity touch target violations
-- [ ] No color contrast violations reported
+- [ ] No colour contrast violations reported
 - [ ] No missing content description violations
 - [ ] Screenshot/note any MEDIUM or LOW issues for future work
 
@@ -192,9 +192,9 @@ This manual test guide validates accessibility improvements including TalkBack s
 
 ---
 
-### Scenario 6: Color Contrast Visual Inspection
+### Scenario 6: Colour Contrast Visual Inspection
 
-**Objective:** Verify color contrast meets WCAG AA in both light and dark modes
+**Objective:** Verify colour contrast meets WCAG AA in both light and dark modes
 
 **Steps:**
 1. Set theme to Light mode: Settings → Appearance → Theme → Light
@@ -214,17 +214,17 @@ This manual test guide validates accessibility improvements including TalkBack s
 - Error pink (#FFB4AB) on dark background: Readable for warnings ✅
 - No eye-straining bright white text
 
-**Expected - Non-Color Information:**
-- Error states use icon + red color (not color alone)
+**Expected - Non-Colour Information:**
+- Error states use icon + red colour (not colour alone)
 - Success states use checkmark icon + green
 - Theme selection uses radio button + text label
 
 **Validation:**
 - [ ] Light mode: All text clearly readable, no low-contrast issues
 - [ ] Dark mode: All text clearly readable, no eye strain
-- [ ] Primary colors distinct in both modes
-- [ ] Error/success states convey information via icons + color
-- [ ] No information conveyed by color alone
+- [ ] Primary colours distinct in both modes
+- [ ] Error/success states convey information via icons + colour
+- [ ] No information conveyed by colour alone
 
 **Notes:** _____________________________________________________
 
@@ -259,7 +259,7 @@ This manual test guide validates accessibility improvements including TalkBack s
 8. Accessibility preference
 9. Version preference
 
-**Expected Behavior:**
+**Expected Behaviour:**
 - Focus indicators visible (Material 3 default blue outline)
 - Tab advances to next focusable element (top-to-bottom, left-to-right)
 - Shift+Tab goes to previous element
@@ -301,10 +301,10 @@ This manual test guide validates accessibility improvements including TalkBack s
 - [ ] Accessibility Scanner: 0 HIGH severity issues
 - [ ] MEDIUM/LOW issues documented
 
-**Color Contrast:**
+**Colour Contrast:**
 - [ ] Light mode: All text readable
 - [ ] Dark mode: All text readable
-- [ ] Non-color information verified
+- [ ] Non-colour information verified
 
 **Keyboard Navigation (if tested):**
 - [ ] Focus order logical
@@ -326,8 +326,8 @@ This manual test guide validates accessibility improvements including TalkBack s
 - [ ] **AC #2:** App supports TalkBack screen reader ✓ (TalkBack navigation scenarios)
 - [ ] **AC #3:** Touch targets minimum 48dp ✓ (Accessibility Scanner validation)
 - [ ] **AC #4:** Text scales with system font size ✓ (Large font testing)
-- [ ] **AC #5:** Color contrast meets WCAG AA 4.5:1 ✓ (Visual inspection + calculated ratios)
-- [ ] **AC #6:** Information not color-only ✓ (Visual inspection of error/success states)
+- [ ] **AC #5:** Colour contrast meets WCAG AA 4.5:1 ✓ (Visual inspection + calculated ratios)
+- [ ] **AC #6:** Information not colour-only ✓ (Visual inspection of error/success states)
 - [ ] **AC #7:** Focus order logical for keyboard/D-pad ✓ (Keyboard navigation testing)
 - [ ] **AC #8:** Camera button discoverable with TalkBack ✓ (Camera flow testing)
 
@@ -364,10 +364,10 @@ This manual test guide validates accessibility improvements including TalkBack s
 - **Scan:** Tap blue FAB on screen edge
 - **Report:** Review violations by severity (HIGH, MEDIUM, LOW)
 
-### Color Contrast Calculation (Reference)
+### Colour Contrast Calculation (Reference)
 Contrast ratios calculated using WebAIM Contrast Checker:
 - **Light theme onBackground/background:** #191C1A / #FBFDF9 = 16.5:1
 - **Dark theme onBackground/background:** #E1E3DF / #191C1A = 12.8:1
 - **WCAG AA Requirement:** 4.5:1 for normal text, 3:1 for large text (≥18pt)
 
-All Foodie app color combinations exceed WCAG AA standards.
+All Foodie app colour combinations exceed WCAG AA standards.

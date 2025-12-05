@@ -245,7 +245,7 @@ AI-driven projects need more comprehensive test coverage than human projects bec
 
 **Rationale:**
 - AI agents can't "remember" what code does across sessions
-- Tests document expected behavior and catch unintended changes
+- Tests document expected behaviour and catch unintended changes
 - Fast feedback loops prevent compounding errors
 
 ### 4. Process Maturity - Following Through on Retrospective Commitments

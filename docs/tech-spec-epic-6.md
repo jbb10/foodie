@@ -11,7 +11,7 @@ Status: Draft
 
 Epic 6 delivers comprehensive caloric deficit tracking by implementing scientifically grounded Total Daily Energy Expenditure (TDEE) calculations and visualizing daily Calories In vs Calories Out. This epic transforms Foodie from a simple meal logger into a complete body recomposition tool by calculating TDEE as the sum of Basal Metabolic Rate (BMR using Mifflin-St Jeor equation), Non-Exercise Activity Thermogenesis (NEAT from step counts using 0.04 kcal/step peer-reviewed formula), and Active Energy Expenditure (direct from Health Connect ActiveEnergyBurned records).
 
-The core value proposition centers on eliminating reliance on third-party tools (MyFitnessPal, Garmin calculators) for energy balance tracking by providing fully transparent, controllable calculations with real-time TDEE updates as activity data syncs throughout the day. This epic directly addresses the primary use case stated in the PRD: sustainable body recomposition through precision nutrition tracking with complete visibility into the energy balance equation.
+The core value proposition centres on eliminating reliance on third-party tools (MyFitnessPal, Garmin calculators) for energy balance tracking by providing fully transparent, controllable calculations with real-time TDEE updates as activity data syncs throughout the day. This epic directly addresses the primary use case stated in the PRD: sustainable body recomposition through precision nutrition tracking with complete visibility into the energy balance equation.
 
 Epic 6 builds upon the established meal tracking foundation (Epics 1-5) by adding the "Calories Out" side of the energy equation, enabling users to track deficit/surplus with scientific accuracy using peer-reviewed formulas and Health Connect's standardized health data platform.
 
@@ -30,7 +30,7 @@ Epic 6 builds upon the established meal tracking foundation (Epics 1-5) by addin
 - Energy Balance Dashboard screen displaying:
   - Calories In (sum of today's NutritionRecord entries)
   - Calories Out (TDEE)
-  - Deficit/Surplus (Calories Out - Calories In) with color coding (green deficit, red surplus)
+  - Deficit/Surplus (Calories Out - Calories In) with colour coding (green deficit, red surplus)
   - TDEE breakdown showing BMR + Passive + Active components for transparency
 - Navigation integration: Dashboard accessible from main app navigation
 - Pull-to-refresh for manual data sync from Health Connect
@@ -191,8 +191,8 @@ fun EnergyBalanceDashboardScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Energy Balance") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                colours = TopAppBarDefaults.topAppBarColours(
+                    containerColour = MaterialTheme.colourScheme.primaryContainer
                 )
             )
         }
@@ -222,7 +222,7 @@ fun EnergyBalanceDashboardScreen(
             PullRefreshIndicator(
                 refreshing = state.isLoading,
                 state = pullRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.align(Alignment.TopCentre)
             )
         }
     }
@@ -245,7 +245,7 @@ fun EnergyBalanceContent(
             Text(
                 text = "Last updated: ${formatRelativeTime(it)}",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                colour = MaterialTheme.colourScheme.onSurfaceVariant
             )
         }
         
@@ -262,24 +262,24 @@ fun EnergyBalanceContent(
 
 @Composable
 fun DeficitSurplusCard(energyBalance: EnergyBalance) {
-    val (textColor, containerColor) = if (energyBalance.isDeficit) {
-        MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.primaryContainer
+    val (textColour, containerColour) = if (energyBalance.isDeficit) {
+        MaterialTheme.colourScheme.primary to MaterialTheme.colourScheme.primaryContainer
     } else {
-        MaterialTheme.colorScheme.error to MaterialTheme.colorScheme.errorContainer
+        MaterialTheme.colourScheme.error to MaterialTheme.colourScheme.errorContainer
     }
     
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
+        colours = CardDefaults.cardColours(containerColour = containerColour)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CentreHorizontally
         ) {
             Text(
                 text = if (energyBalance.isDeficit) "Caloric Deficit" else "Caloric Surplus",
                 style = MaterialTheme.typography.titleMedium,
-                color = textColor
+                colour = textColour
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -288,13 +288,13 @@ fun DeficitSurplusCard(energyBalance: EnergyBalance) {
                 text = "${abs(energyBalance.deficitSurplus).toInt()} kcal",
                 style = MaterialTheme.typography.displayMedium,
                 fontWeight = FontWeight.Bold,
-                color = textColor
+                colour = textColour
             )
             
             Text(
                 text = energyBalance.formattedDeficitSurplus,
                 style = MaterialTheme.typography.bodyMedium,
-                color = textColor.copy(alpha = 0.8f)
+                colour = textColour.copy(alpha = 0.8f)
             )
         }
     }
@@ -317,11 +317,11 @@ fun CaloriesSummaryCard(energyBalance: EnergyBalance) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CentreVertically) {
                     Icon(
                         imageVector = Icons.Default.Restaurant,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary
+                        tint = MaterialTheme.colourScheme.secondary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Calories In")
@@ -339,11 +339,11 @@ fun CaloriesSummaryCard(energyBalance: EnergyBalance) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CentreVertically) {
                     Icon(
                         imageVector = Icons.Default.DirectionsRun,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary
+                        tint = MaterialTheme.colourScheme.tertiary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Calories Out (TDEE)")
@@ -387,7 +387,7 @@ fun TDEEBreakdownCard(energyBalance: EnergyBalance) {
             BreakdownRow(
                 label = "Active Exercise",
                 value = energyBalance.activeCalories.toInt(),
-                icon = Icons.Default.FitnessCenter
+                icon = Icons.Default.FitnessCentre
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -398,9 +398,9 @@ fun TDEEBreakdownCard(energyBalance: EnergyBalance) {
             Text(
                 text = "${energyBalance.bmr.toInt()} + ${energyBalance.neat.toInt()} + ${energyBalance.activeCalories.toInt()} = ${energyBalance.tdee.toInt()} kcal",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                colour = MaterialTheme.colourScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Centre
             )
         }
     }
@@ -417,14 +417,14 @@ fun BreakdownRow(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CentreVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CentreVertically) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colourScheme.primary
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
@@ -444,23 +444,23 @@ fun BreakdownRow(
 fun EmptyState() {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Centre
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.CentreHorizontally,
+            verticalArrangement = Arrangement.Centre
         ) {
             Icon(
                 imageVector = Icons.Default.SsidChart,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colourScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Log your first meal to start tracking",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                colour = MaterialTheme.colourScheme.onSurfaceVariant
             )
         }
     }
@@ -475,24 +475,24 @@ fun ErrorState(
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Centre
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CentreHorizontally,
             modifier = Modifier.padding(32.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.ErrorOutline,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.error
+                tint = MaterialTheme.colourScheme.error
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = error,
                 style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
+                textAlign = TextAlign.Centre,
+                colour = MaterialTheme.colourScheme.onSurface
             )
             Spacer(modifier = Modifier.height(24.dp))
             
@@ -555,7 +555,7 @@ Responsibilities:
 - BMR calculation using Mifflin-St Jeor equation (pure function, < 1ms execution)
 - NEAT calculation from step count (pure function)
 - TDEE aggregation from BMR + NEAT + Active components
-- Input validation for user profile parameters
+- Input validation for user profile parametres
 
 Inputs:
 - UserProfile (sex, age, weight, height) for BMR
@@ -619,7 +619,7 @@ data class UserProfile(
     val sex: Sex,           // Required for BMR formula gender coefficient
     val age: Int,           // Required for BMR age adjustment
     val weightKg: Double,   // Body weight in kilograms (from HC or manual)
-    val heightCm: Double    // Height in centimeters (from HC or manual)
+    val heightCm: Double    // Height in centimetres (from HC or manual)
 ) {
     enum class Sex {
         MALE,    // BMR formula adds +5
@@ -658,7 +658,7 @@ Height Record:
 ```kotlin
 // androidx.health.connect.client.records.HeightRecord
 HeightRecord(
-    height = Length.meters(1.78),
+    height = Length.metres(1.78),
     time = Instant.now(),
     zoneOffset = ZoneOffset.systemDefault(),
     metadata = Metadata(dataOrigin = DataOrigin("com.foodie.app"))
@@ -771,7 +771,7 @@ interface UserProfileRepository {
     
     /**
      * Writes height to Health Connect with current timestamp
-     * @param heightCm Height in centimeters (validated 100-250)
+     * @param heightCm Height in centimetres (validated 100-250)
      */
     suspend fun saveHeightToHealthConnect(heightCm: Double): Result<Unit>
 }
@@ -960,7 +960,7 @@ Emit updated EnergyBalance to StateFlow
     ↓
 Dashboard UI automatically updates (collectAsStateWithLifecycle)
     ↓
-Deficit/surplus number and color update in real-time
+Deficit/surplus number and colour update in real-time
 ```
 
 **Garmin Active Calories Sync Flow:**
@@ -1393,7 +1393,7 @@ Epic 6 consists of 7 user stories with the following aggregated acceptance crite
 | 6.3 | 1-6 | Detailed Design → Health Connect Query Module | HealthConnectDataSource.querySteps(), EnergyBalanceRepository.getNEAT() | Unit test NEAT calculation (10000 steps → 400 kcal), mock HC query |
 | 6.4 | 1-6 | Detailed Design → Health Connect Query Module | HealthConnectDataSource.queryActiveCalories() | Integration test with mocked Garmin ActiveCaloriesBurnedRecord |
 | 6.5 | 1-5 | Workflows → TDEE Calculation Flow | EnergyBalanceRepository.getTDEE(), Flow.combine() | Unit test TDEE aggregation, verify breakdown display |
-| 6.6 | 1-8 | UI Layer → EnergyBalanceDashboardScreen | EnergyBalanceDashboardViewModel, Compose UI | UI test deficit/surplus color coding, manual test navigation |
+| 6.6 | 1-8 | UI Layer → EnergyBalanceDashboardScreen | EnergyBalanceDashboardViewModel, Compose UI | UI test deficit/surplus colour coding, manual test navigation |
 | 6.7 | 1-5 | User Profile Management → HC Sync | UserProfileRepository.saveWeightToHealthConnect() | Integration test HC insert, verify in Google Fit app |
 
 **Cross-Story Dependencies:**
@@ -1511,7 +1511,7 @@ Epic 6 consists of 7 user stories with the following aggregated acceptance crite
 **ViewModel Tests:**
 - EnergyBalanceDashboardViewModel state updates on data changes
 - Deficit/surplus calculation correctness
-- Color coding logic (deficit green, surplus red)
+- Colour coding logic (deficit green, surplus red)
 - Empty state when profile not configured
 - Pull-to-refresh triggers repository.refresh()
 
@@ -1547,7 +1547,7 @@ Epic 6 consists of 7 user stories with the following aggregated acceptance crite
 4. Change to Female, verify BMR updates to 1596.5 kcal (formula difference -166)
 
 **NEAT Tracking:**
-1. Walk 10000 steps during day (track with pedometer app)
+1. Walk 10000 steps during day (track with pedometre app)
 2. Open dashboard, verify "Passive: 400 kcal" (10000 × 0.04)
 3. Walk additional 2000 steps, pull-to-refresh
 4. Verify NEAT updates to 480 kcal (12000 × 0.04)

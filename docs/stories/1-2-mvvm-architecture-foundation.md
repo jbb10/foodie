@@ -27,8 +27,8 @@ So that the codebase is maintainable and follows Android best practices.
 
 - [x] **Task 2: Define repository interfaces** (AC: #2)
   - [x] Create `domain/repository/MealRepository.kt` interface with methods: `getMealHistory(): Flow<Result<List<MealEntry>>>`, `updateMeal()`, `deleteMeal()`
-  - [x] Create `domain/repository/NutritionAnalysisRepository.kt` interface with `analyzePhoto()` method (placeholder for Epic 2)
-  - [x] Add KDoc comments documenting expected behavior and error conditions
+  - [x] Create `domain/repository/NutritionAnalysisRepository.kt` interface with `analysePhoto()` method (placeholder for Epic 2)
+  - [x] Add KDoc comments documenting expected behaviour and error conditions
   - [x] Ensure all methods return `Result<T>` wrapper for consistent error handling
 
 - [x] **Task 3: Create Result wrapper for error handling** (AC: #1, #2)
@@ -131,7 +131,7 @@ Story 1-1 established the foundational build configuration and dependency inject
   - **Use AppModule** if data source bindings needed
 - **FoodieApplication** at `FoodieApplication.kt` with Hilt integration and Timber logging
   - Application class already configured with `@HiltAndroidApp`
-- **Theme Setup** at `ui/theme/`: Color.kt, Theme.kt, Type.kt
+- **Theme Setup** at `ui/theme/`: Colour.kt, Theme.kt, Type.kt
   - Use existing Compose theme for sample screen
 
 **Package Structure Established:**
@@ -644,7 +644,7 @@ While the code implementation is excellent (all 5 ACs implemented, 10/11 tasks v
 - SampleViewModel: 7 tests covering state management, loading/success/error flows
 - All tests use Truth assertions for readability
 - Proper use of Mockito for mocking repositories and data sources
-- Test naming follows `methodName should behavior when condition` pattern
+- Test naming follows `methodName should behaviour when condition` pattern
 
 **Tests Currently Disabled:**
 - MealRepositoryImplTest: 11 tests marked @Ignore pending Story 1.4 Health Connect implementation (expected and acceptable)

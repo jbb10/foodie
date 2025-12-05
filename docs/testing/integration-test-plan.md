@@ -101,7 +101,7 @@ This comprehensive integration test plan validates the complete Foodie MVP acros
   - MealList → Settings → back to MealList
   - Deep link navigation working (Story 2.0 validation)
   - Material 3 Shared Axis transitions (300ms enter / 250ms exit)
-  - Back button behavior correct on all screens
+  - Back button behaviour correct on all screens
 
 - [ ] **Screen Rendering**
   - All screens render without visual glitches
@@ -317,7 +317,7 @@ This comprehensive integration test plan validates the complete Foodie MVP acros
 **Objective:** Verify foreground service displays notification correctly
 
 **Test Scenarios:**
-- [ ] **Notification Behavior**
+- [ ] **Notification Behaviour**
   - Silent notification (no sound/vibration)
   - Notification displays during analysis
   - Notification dismisses automatically on completion
@@ -349,7 +349,7 @@ This comprehensive integration test plan validates the complete Foodie MVP acros
 
 - [ ] **Pull-to-Refresh**
   - Swipe down triggers refresh
-  - Material 3 PullToRefreshBox behavior
+  - Material 3 PullToRefreshBox behaviour
   - Refresh completes < 1 second
   - List updates with latest data
 
@@ -469,7 +469,7 @@ This comprehensive integration test plan validates the complete Foodie MVP acros
 **Objective:** Verify retry logic works correctly
 
 **Test Scenarios:**
-- [ ] **Retry Behavior**
+- [ ] **Retry Behaviour**
   - Transient errors trigger retry
   - Exponential backoff delays (1s, 2s, 4s, 8s, 16s)
   - Max retry attempts: 5 (WorkManager default)
@@ -656,8 +656,8 @@ This comprehensive integration test plan validates the complete Foodie MVP acros
   - Smooth transition (no visual glitches)
 
 - [ ] **Material 3 Palettes**
-  - Light mode: Material 3 light color scheme
-  - Dark mode: Material 3 dark color scheme
+  - Light mode: Material 3 light colour scheme
+  - Dark mode: Material 3 dark colour scheme
   - WCAG AA contrast compliance (16.5:1) - Story 5.5
 
 - [ ] **All Screens Tested**
@@ -914,7 +914,7 @@ This comprehensive integration test plan validates the complete Foodie MVP acros
 **Configuration:** Pixel 8 API 35, Google APIs
 
 **Test Coverage:**
-- [ ] Android 15 new behaviors don't break app
+- [ ] Android 15 new behaviours don't break app
 - [ ] Notification permission flow (Android 13+)
 - [ ] Predictive back gesture (Android 14+)
 - [ ] Edge-to-edge display (Android 15)
@@ -982,7 +982,7 @@ This comprehensive integration test plan validates the complete Foodie MVP acros
 **Alternative:** Use Battery Historian for detailed analysis
 - [ ] Capture bug report: `adb bugreport bugreport.zip`
 - [ ] Upload to Battery Historian: https://bathist.ef.lc/
-- [ ] Analyze WorkManager impact, foreground service usage
+- [ ] Analyse WorkManager impact, foreground service usage
 
 **Expected:** Battery usage acceptable for daily tracking
 

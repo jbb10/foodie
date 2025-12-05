@@ -203,7 +203,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** Always, for use case, repository method, and ViewModel
 - **Instrumentation Tests Required:** Yes - UI form validation and navigation flows require device/emulator validation
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
 
@@ -231,7 +231,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 13. Correct calories to valid value → Error disappears, Save button enabled
 14. Tap "Cancel" → Verify no changes saved, navigate back to list
 
-### Expected Behavior
+### Expected Behaviour
 - Edit screen opens quickly (<200ms)
 - All fields pre-filled with current meal data
 - Timestamp displays as read-only with formatted date/time
@@ -258,9 +258,9 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 **Jetpack Compose TextField Validation:**
 ✓ Confirmed: TextField supports numeric-only input via `KeyboardOptions(keyboardType = KeyboardType.Number)`
-✓ Verified: No built-in `maxLength` parameter - must be enforced in ViewModel via state management
-✓ Pattern: Use `isError` and `supportingText` parameters for validation feedback
-- `isError: Boolean` - displays red outline and error color
+✓ Verified: No built-in `maxLength` parametre - must be enforced in ViewModel via state management
+✓ Pattern: Use `isError` and `supportingText` parametres for validation feedback
+- `isError: Boolean` - displays red outline and error colour
 - `supportingText: @Composable () -> Unit` - displays helper/error text below field
 ✓ Real-time validation: Update state on every text change in ViewModel
 
@@ -288,7 +288,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 **Technical Approach Validated:**
 1. Use `OutlinedTextField` with `keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)`
 2. Implement ViewModel validation on text change: filter non-digits, enforce 1-5000 range, enforce 200 char limit
-3. Display errors via `isError` and `supportingText` parameters
+3. Display errors via `isError` and `supportingText` parametres
 4. Disable Save button when validation errors exist
 5. Call existing `HealthConnectRepository.updateNutritionRecord()` method on Save
 6. Handle Result.Error by keeping user on screen with error message (don't navigate away)
@@ -398,7 +398,7 @@ MealEntryCard composable missing from app/app/src/main module - exists in app/sr
 **Total Unit Tests:** 40 tests passing (UpdateMealEntryUseCase: 10, HealthConnectRepository: 6, MealDetailViewModel: 24)
 
 ### Completion Notes List
-1. **Documentation Research (Task 1)** - Validated TextField validation patterns using `isError` and `supportingText` parameters. Confirmed Health Connect update uses delete+insert pattern (non-atomic). Documented edge case: if delete succeeds but insert fails, original data is lost - mitigation is error logging + user-friendly message + retry from edit screen without auto-navigation.
+1. **Documentation Research (Task 1)** - Validated TextField validation patterns using `isError` and `supportingText` parametres. Confirmed Health Connect update uses delete+insert pattern (non-atomic). Documented edge case: if delete succeeds but insert fails, original data is lost - mitigation is error logging + user-friendly message + retry from edit screen without auto-navigation.
 
 2. **Use Case Implementation (Task 2)** - Created UpdateMealEntryUseCase with domain-level validation (calories 1-5000, description non-blank and ≤200 chars). Returns Result.Error with IllegalArgumentException for validation failures. Delegates to repository for persistence. All 10 unit tests passing including boundary conditions.
 
@@ -408,7 +408,7 @@ MealEntryCard composable missing from app/app/src/main module - exists in app/sr
 
 5. **UI Screen (Task 5)** - Created MealDetailScreen with OutlinedTextField components for calories (numeric keyboard) and description (multiline). Displays read-only formatted timestamp. Save button disabled when validation errors exist or form invalid. Cancel button navigates back without saving. Error messages shown via Snackbar. Navigation setup updated in NavGraph and Screen sealed class to pass full meal data.
 
-6. **Navigation + UI Tests (2025-11-12)** - Restored MealEntryCard in app module, extracted reusable `MealDetailScreenContent`, and added Compose test tags for deterministic queries. Reworked instrumentation coverage (`MealDetailScreenTest`, `NavGraphTest`, `DeepLinkTest`) to validate pre-filled state, validation, navigation, and deep link payloads. Updated `ScreenTest` for new query parameters. Re-ran `./gradlew :app:testDebugUnitTest` and `./gradlew :app:connectedAndroidTest` (pass).
+6. **Navigation + UI Tests (2025-11-12)** - Restored MealEntryCard in app module, extracted reusable `MealDetailScreenContent`, and added Compose test tags for deterministic queries. Reworked instrumentation coverage (`MealDetailScreenTest`, `NavGraphTest`, `DeepLinkTest`) to validate pre-filled state, validation, navigation, and deep link payloads. Updated `ScreenTest` for new query parametres. Re-ran `./gradlew :app:testDebugUnitTest` and `./gradlew :app:connectedAndroidTest` (pass).
 
 7. **List Auto-Refresh + Performance Validation (2025-11-12)** - Fixed AC #12: List view now auto-refreshes when returning from edit screen via `LaunchedEffect(Unit)` in MealListScreen, eliminating need for manual pull-to-refresh. Removed duplicate `init` block load in ViewModel to prevent double-loading on first open. Added performance logging to measure screen open time. **Performance verified: Edit screen opens in 107ms on Pixel 8 Pro (physical device), well under 200ms target.**
 
@@ -427,14 +427,14 @@ MealEntryCard composable missing from app/app/src/main module - exists in app/sr
 
 **Modified:**
 - `app/app/src/test/java/com/foodie/app/data/repository/HealthConnectRepositoryTest.kt` (added 6 update tests)
-- `app/app/src/main/java/com/foodie/app/ui/navigation/Screen.kt` (updated MealDetail route with all parameters)
+- `app/app/src/main/java/com/foodie/app/ui/navigation/Screen.kt` (updated MealDetail route with all parametres)
 - `app/app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt` (updated navigation args and callbacks, added performance logging)
 - `app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt` (updated callback signature to pass MealEntry object, added LaunchedEffect for auto-refresh)
 - `app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt` (removed init block duplicate load)
 - `app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt` (updated callback signature)
 - `app/app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailScreen.kt` (extracted testable content composable, added test tags, added performance logging)
 - `app/app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModel.kt` (decode URL-encoded nav args)
-- `app/app/src/androidTest/java/com/foodie/app/ui/screens/mealdetail/MealDetailScreenTest.kt` (rewritten for new UI behaviors)
+- `app/app/src/androidTest/java/com/foodie/app/ui/screens/mealdetail/MealDetailScreenTest.kt` (rewritten for new UI behaviours)
 - `app/app/src/androidTest/java/com/foodie/app/ui/navigation/NavGraphTest.kt` (updated for new route payloads and assertions)
 - `app/app/src/androidTest/java/com/foodie/app/ui/navigation/DeepLinkTest.kt` (adjusted deep link URIs and expectations)
 - `app/app/src/androidTest/java/com/foodie/app/ui/screens/meallist/MealListScreenTest.kt` (updated callback assertions)

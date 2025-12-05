@@ -33,7 +33,7 @@ so that I account for workout energy expenditure in my daily TDEE.
   **Required Research:**
   1. Review official Health Connect ActiveCaloriesBurnedRecord documentation using fetch_webpage tool:
      - Starting point: https://developer.android.com/health-and-fitness/guides/health-connect/plan/data-types#active-calories-burned
-     - Focus: ActiveCaloriesBurnedRecord query patterns, energy field structure, time range filtering, Garmin sync behavior
+     - Focus: ActiveCaloriesBurnedRecord query patterns, energy field structure, time range filtering, Garmin sync behaviour
   
   2. Validate assumptions:
      - ✓ ActiveCaloriesBurnedRecord.energy field contains Energy type (kilocalories unit)
@@ -124,7 +124,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Documentation
 - [x] Inline code documentation (KDocs) added for active calories query methods
 - [x] README or relevant docs updated if new patterns introduced
-- [x] Dev Notes section includes Garmin sync behavior documentation
+- [x] Dev Notes section includes Garmin sync behaviour documentation
 
 ### Story File Completeness
 - [x] Dev Agent Record updated with completion notes and file list
@@ -151,7 +151,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 2. Verify all tests pass
 3. (Optional) Run app with debugger after completing a Garmin workout, check Timber logs for Active Calories values after sync
 
-### Expected Behavior
+### Expected Behaviour
 - Tests confirm correct Active Calories summation for various workout scenarios
 - Reactive Flow emits updated Active Calories when mocked Garmin workout data appears
 
@@ -196,7 +196,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - **Reactive Updates:** `getActiveCalories(): Flow<Result<Double>>` provides real-time updates as Garmin Connect syncs new workout data to Health Connect
 - **Time Range Strategy:** Query from start of day (midnight in local timezone) to current instant for "today's active calories"
 - **Polling Strategy:** `observeActiveCalories()` uses 5-minute polling interval (Health Connect does not support real-time observers)
-- **Garmin Sync Behavior:** Typical 5-15 minute delay after workout completion before data appears in Health Connect
+- **Garmin Sync Behaviour:** Typical 5-15 minute delay after workout completion before data appears in Health Connect
 - **Summation Strategy:** Uses Health Connect's `AggregateRequest` to automatically sum active calories and handle de-duplication between multiple data sources (e.g., Garmin and Hevy).
 
 ### Learnings from Previous Story (6-3 - NEAT Calculation)
@@ -366,7 +366,7 @@ This is a **textbook-perfect implementation** of Active Energy Expenditure track
 - Perfect pattern replication from Story 6-3 (querySteps → queryActiveCalories, observeSteps → observeActiveCalories)
 - Comprehensive testing: 8 new unit tests cover all edge cases with 100% pass rate
 - Zero regressions: All 436 existing unit tests still passing
-- Documentation excellence: Dev Notes include research findings, API validation, Garmin sync behavior
+- Documentation excellence: Dev Notes include research findings, API validation, Garmin sync behaviour
 - Clean architecture: Repository pattern, Result<T> error handling, Flow reactivity all correctly implemented
 - Permission handling: SecurityException properly caught and propagated through Result.failure
 
@@ -438,7 +438,7 @@ This is a **textbook-perfect implementation** of Active Energy Expenditure track
 **Test Gaps:** ✅ **NONE**
 - All acceptance criteria have corresponding test coverage
 - Edge cases covered (zero workouts, high values, permission denied)
-- Reactive Flow behavior tested (emissions, polling)
+- Reactive Flow behaviour tested (emissions, polling)
 - No instrumentation tests required (Health Connect mocked in unit tests per DoD)
 
 ---

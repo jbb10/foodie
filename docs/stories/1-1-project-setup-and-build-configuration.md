@@ -280,7 +280,7 @@ fun `build configuration should use correct SDK versions`() {
 **NEW:**
 - app/src/main/java/com/foodie/app/FoodieApplication.kt
 - app/src/main/java/com/foodie/app/MainActivity.kt
-- app/src/main/java/com/foodie/app/ui/theme/Color.kt
+- app/src/main/java/com/foodie/app/ui/theme/Colour.kt
 - app/src/main/java/com/foodie/app/ui/theme/Theme.kt
 - app/src/main/java/com/foodie/app/ui/theme/Type.kt
 - app/src/main/java/com/foodie/app/di/AppModule.kt

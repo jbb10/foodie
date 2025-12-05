@@ -31,7 +31,7 @@ This epic builds directly on the foundation established in Epics 2 (AI-powered c
 **Architectural Components Affected:**
 - **Data Layer:** Extend `NutritionData` domain model with macros fields (protein, carbs, fat); add `BarcodeRepository` for OpenFoodFacts API integration; implement `OfflineQueueManager` for encrypted photo storage
 - **Repository Layer:** Update `MealRepository` and `HealthConnectRepository` to handle macros fields in CRUD operations; add barcode lookup logic
-- **Worker Layer:** Extend `AnalyzeMealWorker` to parse macros from Azure OpenAI response; implement `ProcessQueueWorker` for offline queue processing with network constraints
+- **Worker Layer:** Extend `AnalyseMealWorker` to parse macros from Azure OpenAI response; implement `ProcessQueueWorker` for offline queue processing with network constraints
 - **UI Layer:** Update `MealListScreen`, `MealDetailScreen`, and `EnergyBalanceDashboardScreen` to display macros; add `BarcodeScannerScreen` for barcode capture
 - **Integration Points:** Azure OpenAI API (updated prompt for macros), OpenFoodFacts API (new integration), Health Connect (macros fields: protein, totalCarbohydrate, totalFat), ML Kit Barcode Scanning (new dependency)
 
@@ -59,7 +59,7 @@ This epic builds directly on the foundation established in Epics 2 (AI-powered c
 - MacrosExtractor → Azure OpenAI API response format
 - BarcodeRepository → OpenFoodFacts API, NetworkMonitor
 - OfflineQueueManager → EncryptedFile, WorkManager
-- ProcessQueueWorker → OfflineQueueManager, AnalyzeMealWorker logic, NetworkMonitor
+- ProcessQueueWorker → OfflineQueueManager, AnalyseMealWorker logic, NetworkMonitor
 - BarcodeScannerViewModel → BarcodeRepository, ML Kit Barcode Scanning
 - HealthConnectRepository → Health Connect SDK (protein, totalCarbohydrate, totalFat fields)
 
@@ -120,7 +120,7 @@ sealed class QueueStatus {
 sealed class MealListItem {
     abstract val timestamp: Instant
     
-    data class Analyzed(
+    data class Analysed(
         val mealEntry: MealEntry  // Contains id, timestamp, description, calories, protein, carbs, fat
     ) : MealListItem() {
         override val timestamp: Instant = mealEntry.timestamp
@@ -166,7 +166,7 @@ data class Nutriments(
 **🔧 REQUIRED: Azure OpenAI Structured Outputs (JSON Schema)**
 
 Story 7.1 MUST implement Azure OpenAI's structured outputs feature to guarantee response format:
-- Use `response_format` parameter with `json_schema` type (see: https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/structured-outputs)
+- Use `response_format` parametre with `json_schema` type (see: https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/structured-outputs)
 - Define JSON schema with required fields: `hasFood`, `calories`, `protein`, `carbs`, `fat`, `description` (plus existing fields)
 - This replaces relying solely on prompt instructions for format compliance
 - Benefit: Eliminates JSON parsing errors, guarantees field presence, enables compile-time type safety
@@ -224,7 +224,7 @@ Content-Type: application/json
       "content": [
         {
           "type": "input_text",
-          "text": "Analyze this meal and estimate calories and macros (protein, carbs, fat in grams)."
+          "text": "Analyse this meal and estimate calories and macros (protein, carbs, fat in grams)."
         },
         {
           "type": "input_image",
@@ -324,7 +324,7 @@ suspend fun insertNutritionRecordWithMacros(
 ```
 User captures photo
     ↓
-AnalyzeMealWorker (updated)
+AnalyseMealWorker (updated)
     ├─→ Base64 encode photo
     ├─→ Send to Azure OpenAI with updated prompt (macros request)
     ├─→ Parse response JSON: {calories, protein, carbs, fat, description}
@@ -388,7 +388,7 @@ MealListScreen displays queued items
     │    ├─→ Gray/muted appearance (different from normal meal cards)
     │    ├─→ Icon: Cloud with slash or sync pending icon
     │    ├─→ Text: "Meal captured at {timestamp} - Waiting for connection"
-    │    ├─→ No calories/macros shown (data not yet analyzed)
+    │    ├─→ No calories/macros shown (data not yet analysed)
     │    ├─→ Retry button: Tappable "Retry" button to manually trigger analysis
     │    │    ├─→ Only enabled when network available (NetworkMonitor.isConnected)
     │    │    ├─→ On tap: Manually enqueue ProcessQueueWorker for this specific photo
@@ -403,11 +403,11 @@ ProcessQueueWorker triggered (WorkManager with CONNECTED constraint)
     ├─→ Load queue from OfflineQueueManager
     ├─→ For each queued photo (FIFO order):
     │    ├─→ Decrypt photo
-    │    ├─→ Analyze with AnalyzeMealWorker logic
+    │    ├─→ Analyse with AnalyseMealWorker logic
     │    ├─→ Save to Health Connect
     │    ├─→ Delete encrypted photo
     │    ├─→ Update notification: "Processing queued meal 2/5..."
-    │    └─→ MealListScreen auto-refreshes: queued item replaced by analyzed NutritionRecord
+    │    └─→ MealListScreen auto-refreshes: queued item replaced by analysed NutritionRecord
     └─→ Queue empty → Dismiss notification
          ↓
 All queued meals processed and saved
@@ -418,14 +418,14 @@ MealListScreen shows all items as normal Health Connect records
 **IMPORTANT - Meal List Implementation Note:**
 
 The meal list currently displays only Health Connect `NutritionRecord` items. For Story 7.3, the list must be modified to show BOTH:
-1. **Health Connect records** (analyzed meals with calories/macros)
+1. **Health Connect records** (analysed meals with calories/macros)
 2. **Queued photos** (encrypted files awaiting analysis)
 
 This requires:
-- Create a sealed class `MealListItem` with two variants: `MealListItem.Analyzed(nutritionRecord)` and `MealListItem.Queued(queuedPhoto)`
+- Create a sealed class `MealListItem` with two variants: `MealListItem.Analysed(nutritionRecord)` and `MealListItem.Queued(queuedPhoto)`
 - Update `MealListViewModel` to query both sources and merge into single chronological list (sorted by timestamp)
 - Update UI composables to render different card styles:
-  - **Analyzed meals:** Normal card with calories, macros, description
+  - **Analysed meals:** Normal card with calories, macros, description
   - **Queued items:** Muted/gray card with "Waiting for connection" message, sync icon, timestamp only, **manual "Retry" button**
 - **Retry button logic:**
   - Button enabled only when `NetworkMonitor.isConnected == true`
@@ -433,7 +433,7 @@ This requires:
   - Show loading state on card while processing
   - Provides manual fallback if automatic processing fails to trigger
 - No local database needed - just read encrypted files directly from `OfflineQueueManager.getQueuedPhotos()`
-- When queue processes, queued items disappear and analyzed records appear in same position
+- When queue processes, queued items disappear and analysed records appear in same position
 
 ## Non-Functional Requirements
 
@@ -622,7 +622,7 @@ implementation("androidx.security:security-crypto:1.1.0-alpha06") // Already in 
 10. **AC-10:** When network restored, ProcessQueueWorker triggered automatically
 11. **AC-11:** Photos processed in FIFO order (oldest first)
 12. **AC-12:** Notification updates during processing: "Processing queued meal 2/5..."
-13. **AC-13:** MealListScreen auto-refreshes: queued items replaced by analyzed records after processing
+13. **AC-13:** MealListScreen auto-refreshes: queued items replaced by analysed records after processing
 14. **AC-14:** Encrypted photos deleted after successful Health Connect save
 15. **AC-15:** Queued photos auto-deleted after 7 days with warning notification
 16. **AC-16:** Queue limit: Maximum 50 photos, prevent new captures if exceeded
@@ -660,7 +660,7 @@ implementation("androidx.security:security-crypto:1.1.0-alpha06") // Already in 
 | **7.3-AC-10** | Workflows → Offline Queue Flow | ProcessQueueWorker | Integration test: Mock network restore, verify worker triggered |
 | **7.3-AC-11** | Data Models → QueuedPhoto timestamp | OfflineQueueManager.dequeue() | Unit test: Verify FIFO order (earliest timestamp first) |
 | **7.3-AC-12** | Workflows → Offline Queue Flow | Notification updates | Manual test: Process queue, verify notification text updates |
-| **7.3-AC-13** | Workflows → Offline Queue Flow | MealListScreen state | UI test: Verify queued item replaced by analyzed record |
+| **7.3-AC-13** | Workflows → Offline Queue Flow | MealListScreen state | UI test: Verify queued item replaced by analysed record |
 | **7.3-AC-14** | NFR Security → Photo deletion | ProcessQueueWorker | Unit test: Verify encrypted file deleted after HC save |
 | **7.3-AC-15** | NFR Reliability → 7-day retention | PhotoCleanupWorker (reuse) | Unit test: Mock 8-day-old photo, verify auto-delete |
 | **7.3-AC-16** | NFR Reliability → Queue limits | OfflineQueueManager | Unit test: Enqueue 50 photos, verify 51st blocked |

@@ -124,11 +124,11 @@ So that I can optimize for speed, cost, or accuracy based on my needs.
   - [x] Confirm test connection uses minimal Responses API request with configured model
     **Verified:** Test uses minimal AzureResponseRequest with model field
 
-- [x] **Task 6: Update AnalyzeMealWorker and API Client** (AC: #3)
-  - [x] Verify `AzureOpenAiApi.analyzeNutrition()` uses model from SecurePreferences
+- [x] **Task 6: Update AnalyseMealWorker and API Client** (AC: #3)
+  - [x] Verify `AzureOpenAiApi.analyseNutrition()` uses model from SecurePreferences
     **Verified:** NutritionAnalysisRepositoryImpl.kt line 138 reads model from securePreferences.azureOpenAiModel
-  - [x] Confirm `AnalyzeMealWorker` reads model configuration before API call
-    **Verified:** Worker calls NutritionAnalysisRepository.analyzePhoto() which reads model from preferences
+  - [x] Confirm `AnalyseMealWorker` reads model configuration before API call
+    **Verified:** Worker calls NutritionAnalysisRepository.analysePhoto() which reads model from preferences
   - [x] Ensure model field in Responses API request body reflects user selection
     **Verified:** AzureResponseRequest built with model field at line 142
   - [x] No code changes needed if Story 2.4/5.2 already implemented correctly
@@ -172,7 +172,7 @@ So that I can optimize for speed, cost, or accuracy based on my needs.
     - Model selection persists after app restart ✓ (Scenario 7)
     - API calls use configured model ✓ (Scenario 8)
     - Invalid model name produces clear error ✓ (Scenario 5)
-  - [x] Document expected behavior and validation steps
+  - [x] Document expected behaviour and validation steps
     **Documented:** Each scenario includes steps, expected results, and variations
   - [x] Update Dev Agent Record with manual testing results
     **Pending:** Awaiting manual test execution by BMad or team member
@@ -209,7 +209,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** ModelOption validation, SettingsViewModel model methods, model persistence
 - **Instrumentation Tests Required:** Settings UI model selection, model description display, custom model entry
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use MockK for PreferencesRepository, Retrofit API mocking
 
@@ -263,7 +263,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
    - Use ADB logcat to verify API request uses configured model in `model` field
    - Command: `adb logcat | grep "model"`
 
-### Expected Behavior
+### Expected Behaviour
 - Model selection defaults to "gpt-4.1" on fresh install
 - Model description provides clear guidance for selection
 - Custom deployment names accepted and validated
@@ -344,7 +344,7 @@ Column {
     Text(
         text = selectedModelOption.description,
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        colour = MaterialTheme.colourScheme.onSurfaceVariant
     )
     
     // If "Custom" selected, show text field
@@ -373,7 +373,7 @@ OutlinedTextField(
 Text(
     text = "Default: gpt-4.1 (Advanced reasoning and vision capabilities). Enter custom deployment name if needed.",
     style = MaterialTheme.typography.bodySmall,
-    color = MaterialTheme.colorScheme.onSurfaceVariant
+    colour = MaterialTheme.colourScheme.onSurfaceVariant
 )
 ```
 
@@ -386,7 +386,7 @@ suspend fun testConnection(): Result<TestConnectionResult> {
     val config = getApiConfiguration().first()
     
     return try {
-        val response = azureOpenAiApi.analyzeNutrition(
+        val response = azureOpenAiApi.analyseNutrition(
             request = NutritionRequest(
                 model = config.modelName, // Uses configured model
                 instructions = "Return a simple greeting.",
@@ -544,8 +544,8 @@ Claude Sonnet 4.5 (via GitHub Copilot)
 3. `PreferencesRepositoryImpl.kt` - Enhanced 404 error handling to distinguish model vs endpoint errors
 4. `ApiConfigurationTest.kt` - Added 4 unit tests for model defaults and validation
 5. `ModelSelectionTest.kt` - Created new test file with 4 unit tests for model persistence and validation
-6. `PreferencesRepositoryTest.kt` - Fixed constructor call (added gson parameter)
-7. `SettingsViewModelApiConfigTest.kt` - Fixed test assertions to match actual ViewModel behavior (saveSuccessMessage vs testConnectionResult)
+6. `PreferencesRepositoryTest.kt` - Fixed constructor call (added gson parametre)
+7. `SettingsViewModelApiConfigTest.kt` - Fixed test assertions to match actual ViewModel behaviour (saveSuccessMessage vs testConnectionResult)
 
 **Test Results:**
 - Unit tests: 8 new tests created, all passing
@@ -583,7 +583,7 @@ Claude Sonnet 4.5 (via GitHub Copilot)
 - `app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt` - Added model description Text composable
 - `app/app/src/main/java/com/foodie/app/data/repository/PreferencesRepositoryImpl.kt` - Enhanced 404 error handling
 - `app/app/src/test/java/com/foodie/app/domain/model/ApiConfigurationTest.kt` - Added 4 model-related unit tests
-- `app/app/src/test/java/com/foodie/app/data/repository/PreferencesRepositoryTest.kt` - Fixed constructor call (gson parameter)
+- `app/app/src/test/java/com/foodie/app/data/repository/PreferencesRepositoryTest.kt` - Fixed constructor call (gson parametre)
 - `app/app/src/test/java/com/foodie/app/ui/screens/settings/SettingsViewModelApiConfigTest.kt` - Fixed test assertions for model tests
 
 **New Files:**

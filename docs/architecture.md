@@ -215,7 +215,7 @@ foodie/
 │   │   │   │   │   │       └── AuthInterceptor.kt   # API key injection
 │   │   │   │   │   │
 │   │   │   │   │   ├── worker/                       # WorkManager workers
-│   │   │   │   │   │   └── AnalyzeMealWorker.kt     # Background AI analysis
+│   │   │   │   │   │   └── AnalyseMealWorker.kt     # Background AI analysis
 │   │   │   │   │   │
 │   │   │   │   │   └── repository/                   # Repository implementations
 │   │   │   │   │       ├── MealRepository.kt
@@ -235,7 +235,7 @@ foodie/
 │   │   │   │   │
 │   │   │   │   ├── ui/                               # Presentation layer
 │   │   │   │   │   ├── theme/                        # Compose theme
-│   │   │   │   │   │   ├── Color.kt
+│   │   │   │   │   │   ├── Colour.kt
 │   │   │   │   │   │   ├── Theme.kt
 │   │   │   │   │   │   └── Type.kt
 │   │   │   │   │   │
@@ -312,7 +312,7 @@ foodie/
 
 | Epic | Architecture Components | Data Flow |
 | ---- | ----------------------- | --------- |
-| **Meal Capture** | System Camera Intent → ImageUtils → AnalyzeMealWorker → AzureOpenAiApi → MealRepository → Health Connect | User taps widget → Camera launched → Photo captured → WorkManager queues analysis → Background processing → Results saved to Health Connect |
+| **Meal Capture** | System Camera Intent → ImageUtils → AnalyseMealWorker → AzureOpenAiApi → MealRepository → Health Connect | User taps widget → Camera launched → Photo captured → WorkManager queues analysis → Background processing → Results saved to Health Connect |
 | **Data Management (List/Edit/Delete)** | MealListScreen → MealListViewModel → MealRepository → HealthConnectManager | ViewModel exposes StateFlow<MealListState> → Screen collects and renders → User actions trigger repository operations → Health Connect updated → Flow emits new state |
 | **Settings & API Key** | SettingsScreen → SettingsViewModel → SecurePreferences (EncryptedSharedPreferences) | User enters API key → ViewModel validates → Encrypted storage → Used by AuthInterceptor in Retrofit |
 
@@ -351,7 +351,7 @@ foodie/
 - **Version:** 2.9.1
 - **Purpose:** Reliable background processing for AI analysis
 - **Workers:**
-    - `AnalyzeMealWorker` - Analyzes photo, calls Azure OpenAI, saves to Health Connect
+    - `AnalyseMealWorker` - Analyses photo, calls Azure OpenAI, saves to Health Connect
 - **Constraints:** NetworkType.CONNECTED
 - **Retry Policy:** Exponential backoff, max 3 retries
 - **Foreground Execution:** `setForegroundAsync()` + notification channel (`meal_analysis`) keep work visible and compliant with Android 13+
@@ -407,7 +407,7 @@ foodie/
   1. Widget/FAB tap triggers camera intent
   2. User captures photo → saved to app cache directory
   3. Uri returned to activity → passed to WorkManager
-  4. WorkManager reads image, analyzes, then deletes file
+  4. WorkManager reads image, analyses, then deletes file
 - **No CameraX needed:** System camera provides fastest launch time
 
 ## Implementation Patterns
@@ -420,7 +420,7 @@ foodie/
 - ViewModels: `MealListViewModel.kt`
 - State classes: `MealListState.kt`
 - Repositories: `MealRepository.kt`
-- Workers: `AnalyzeMealWorker.kt`
+- Workers: `AnalyseMealWorker.kt`
 - Use cases: `CaptureMealUseCase.kt`
 
 **Packages:**
@@ -431,7 +431,7 @@ foodie/
 - Interfaces: Same as implementations, no "I" prefix
 
 **Functions:**
-- camelCase: `getMealHistory()`, `analyzeMeal()`
+- camelCase: `getMealHistory()`, `analyseMeal()`
 - Suspend functions: No special prefix, rely on IDE indicators
 
 **Variables:**
@@ -571,7 +571,7 @@ interface NetworkMonitor {
 }
 
 // Usage in repositories and workers
-class AnalyzeMealWorker @Inject constructor(
+class AnalyseMealWorker @Inject constructor(
     private val networkMonitor: NetworkMonitor,
     private val errorHandler: ErrorHandler
 ) : CoroutineWorker() {
@@ -582,7 +582,7 @@ class AnalyzeMealWorker @Inject constructor(
         }
         
         return try {
-            val response = azureOpenAiApi.analyzeNutrition(...)
+            val response = azureOpenAiApi.analyseNutrition(...)
             Result.success()
         } catch (e: Exception) {
             val errorType = errorHandler.classify(e)
@@ -696,12 +696,12 @@ override suspend fun updateMeal(id: String, calories: Int, description: String):
 
 **Network Error Handling:**
 ```kotlin
-// In AnalyzeMealWorker
+// In AnalyseMealWorker
 override suspend fun doWork(): Result {
     return try {
         val photoUri = inputData.getString(KEY_PHOTO_URI) ?: return Result.failure()
         
-        val response = azureOpenAiApi.analyzeNutrition(
+        val response = azureOpenAiApi.analyseNutrition(
             buildRequest(photoUri)
         )
         
@@ -722,14 +722,14 @@ override suspend fun doWork(): Result {
         Result.success()
         
     } catch (e: IOException) {
-        Timber.e(e, "Network error analyzing meal")
+        Timber.e(e, "Network error analysing meal")
         if (runAttemptCount < 3) {
             Result.retry() // WorkManager will retry with exponential backoff
         } else {
             Result.failure(workDataOf(KEY_ERROR to "Network error after 3 attempts"))
         }
     } catch (e: Exception) {
-        Timber.e(e, "Unexpected error analyzing meal")
+        Timber.e(e, "Unexpected error analysing meal")
         Result.failure(workDataOf(KEY_ERROR to e.message))
     }
 }
@@ -901,9 +901,9 @@ System Camera Intent
     ↓
 Photo saved to cache (app/cache/photos/)
     ↓
-WorkManager.enqueue(AnalyzeMealWorker)
+WorkManager.enqueue(AnalyseMealWorker)
     ↓
-[Background] AnalyzeMealWorker
+[Background] AnalyseMealWorker
     ├─→ Read photo from cache
     ├─→ Base64 encode image
     ├─→ Retrofit call to Azure OpenAI
@@ -933,9 +933,9 @@ System Camera Intent
     ↓
 Photo saved to cache (app/cache/photos/)
     ↓
-WorkManager.enqueue(AnalyzeMealWorker)
+WorkManager.enqueue(AnalyseMealWorker)
     ↓
-[Background] AnalyzeMealWorker
+[Background] AnalyseMealWorker
     ├─→ Read photo from cache
     ├─→ Base64 encode image
     ├─→ Retrofit call to Azure OpenAI (with Structured Outputs)
@@ -994,7 +994,7 @@ Compose UI displays macros
 ```kotlin
 interface AzureOpenAiApi {
     @POST("openai/v1/responses")
-    suspend fun analyzeNutrition(
+    suspend fun analyseNutrition(
         @Body request: AzureResponseRequest
     ): AzureResponseResponse
 }
@@ -1089,7 +1089,7 @@ Content-Type: application/json
       "content": [
         {
           "type": "input_text",
-          "text": "Analyze this meal and estimate calories and macros."
+          "text": "Analyse this meal and estimate calories and macros."
         },
         {
           "type": "input_image",
@@ -1382,11 +1382,11 @@ val constraints = Constraints.Builder()
     .setRequiredNetworkType(NetworkType.CONNECTED)
     .build()
 
-val analyzeWork = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
+val analyseWork = OneTimeWorkRequestBuilder<AnalyseMealWorker>()
     .setConstraints(constraints)
     .setInputData(workDataOf(
-        AnalyzeMealWorker.KEY_PHOTO_URI to photoUri.toString(),
-        AnalyzeMealWorker.KEY_MEAL_ID to mealId
+        AnalyseMealWorker.KEY_PHOTO_URI to photoUri.toString(),
+        AnalyseMealWorker.KEY_MEAL_ID to mealId
     ))
     .setBackoffCriteria(
         BackoffPolicy.EXPONENTIAL,
@@ -1396,9 +1396,9 @@ val analyzeWork = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
     .build()
 
 workManager.enqueueUniqueWork(
-    "analyze_meal_$mealId",
+    "analyse_meal_$mealId",
     ExistingWorkPolicy.REPLACE,
-    analyzeWork
+    analyseWork
 )
 ```
 
@@ -2004,7 +2004,7 @@ adb -s <PIXEL_IP>:5555 install app/build/outputs/apk/debug/app-debug.apk
 Use physical device for:
 - **Camera testing:** Realistic photo capture (emulator uses webcam)
 - **Performance validation:** Real-world speed testing
-- **Home screen widget:** Actual widget behavior with biometric unlock
+- **Home screen widget:** Actual widget behaviour with biometric unlock
 - **Final UAT:** End-to-end user acceptance testing
 
 ```bash
@@ -2135,7 +2135,7 @@ adb shell pm grant com.foodie.app android.permission.health.WRITE_NUTRITION
 - **Justification:** Meets platform compliance without introducing a dedicated `ForegroundService`, keeping ADR-004 core decision intact.
 - **Implications:**
     - Notification channel `meal_analysis` registered in `FoodieApplication` (IMPORTANCE_LOW) to provide silent but visible progress.
-    - AnalyzeMealWorker re-requests foreground state on retries/process restarts, preserving reliability guarantees from WorkManager.
+    - AnalyseMealWorker re-requests foreground state on retries/process restarts, preserving reliability guarantees from WorkManager.
     - Capture flow must request `POST_NOTIFICATIONS` permission before enqueue on Android 13+ to avoid start failures.
 
 ### ADR-005: Health Connect as Single Source of Truth (No Local Database)

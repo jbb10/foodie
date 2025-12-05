@@ -16,7 +16,7 @@ so that I can track my caloric deficit or surplus.
 
 **And** I see "Calories Out: Y kcal" (TDEE)
 
-**And** I see "Deficit/Surplus: Z kcal" (Out - In, with color coding)
+**And** I see "Deficit/Surplus: Z kcal" (Out - In, with colour coding)
 
 **And** deficit shows in green with negative number (e.g., "-500 kcal deficit")
 
@@ -41,7 +41,7 @@ so that I can track my caloric deficit or surplus.
      - Material 3 dashboard patterns: https://m3.material.io/components/cards
   
   2. Validate assumptions:
-     - ✓ Material 3 Card component supports color theming (green deficit, red surplus)
+     - ✓ Material 3 Card component supports colour theming (green deficit, red surplus)
      - ✓ collectAsStateWithLifecycle() provides real-time UI updates when EnergyBalance Flow emits
      - ✓ PullRefreshIndicator integrates with Modifier.pullRefresh() for manual sync
      - ✓ NavGraph can include new Energy Balance route with deep link support
@@ -68,7 +68,7 @@ so that I can track my caloric deficit or surplus.
   - [x] Collect state from ViewModel: `val state by viewModel.state.collectAsState()`
   - [x] Handle state branches: Loading, Error (with retry button), Empty (no meals), Success (show dashboard)
   - [x] Call EnergyBalanceContent() composable to render dashboard data
-  - [x] Ensure screen accepts onNavigateToSettings: () -> Unit parameter for navigation
+  - [x] Ensure screen accepts onNavigateToSettings: () -> Unit parametre for navigation
 
 - [x] **Task 3: Implement EnergyBalanceContent Composable** (AC: #1, #2, #3, #4, #5, #8)
   - [x] Create stateless composable `EnergyBalanceContent(energyBalance, lastUpdated)`
@@ -80,14 +80,14 @@ so that I can track my caloric deficit or surplus.
   - [x] Apply 16.dp padding to Column for screen margins
 
 - [x] **Task 4: Create DeficitSurplusCard Composable** (AC: #3, #4, #5)
-  - [x] Implement Material 3 Card with dynamic containerColor based on isDeficit
-  - [x] Green (MaterialTheme.colorScheme.primaryContainer) for deficit (AC #4)
-  - [x] Red (MaterialTheme.colorScheme.errorContainer) for surplus (AC #5)
+  - [x] Implement Material 3 Card with dynamic containerColour based on isDeficit
+  - [x] Green (MaterialTheme.colourScheme.primaryContainer) for deficit (AC #4)
+  - [x] Red (MaterialTheme.colourScheme.errorContainer) for surplus (AC #5)
   - [x] Display title: "Caloric Deficit" or "Caloric Surplus" based on isDeficit
   - [x] Display deficit/surplus value in displayMedium typography (large, bold)
   - [x] Format: "-500 kcal deficit" for deficit, "+200 kcal surplus" for surplus (AC #4, #5)
   - [x] Use absolute value for number display, negative sign via formattedDeficitSurplus
-  - [x] Center-align all text horizontally
+  - [x] Centre-align all text horizontally
 
 - [x] **Task 5: Create CaloriesSummaryCard Composable** (AC: #1, #2)
   - [x] Implement Material 3 Card with "Daily Summary" header
@@ -102,15 +102,15 @@ so that I can track my caloric deficit or surplus.
   - [x] Call BreakdownRow() for BMR, NEAT (Passive), Active
   - [x] Display each component value: "X kcal" format
   - [x] Divider after breakdown rows
-  - [x] Display formula: "BMR + Passive + Active = TDEE" in center-aligned text
-  - [x] Use Material 3 onSurfaceVariant color for formula text
+  - [x] Display formula: "BMR + Passive + Active = TDEE" in centre-aligned text
+  - [x] Use Material 3 onSurfaceVariant colour for formula text
 
 - [x] **Task 7: Create EmptyState and ErrorState Composables** (AC: #8)
   - [x] Implement EmptyState: Info icon, "Log your first meal to start tracking" text
   - [x] Implement ErrorState: Warning icon, error message text, "Retry" button
   - [x] ErrorState shows "Open Settings" button if showSettingsButton=true
-  - [x] Both states use Material 3 onSurfaceVariant color for text/icons
-  - [x] Center-align content vertically and horizontally
+  - [x] Both states use Material 3 onSurfaceVariant colour for text/icons
+  - [x] Centre-align content vertically and horizontally
   - [x] Apply 32.dp padding to error state for readability
 
 - [x] **Task 8: Create EnergyBalanceDashboardViewModel** (AC: #7)
@@ -269,7 +269,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 **Expected:** Error state with "Grant Health Connect permissions" message and "Open Settings" button
 
-### Expected Behavior
+### Expected Behaviour
 - Dashboard accessible from bottom navigation with single tap
 - Real-time updates when meals logged (no manual refresh needed for new meals)
 - Pull-to-refresh triggers Health Connect re-query (updates NEAT/Active if new data available)
@@ -283,7 +283,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - [ ] Dashboard displays Calories In from today's NutritionRecords
 - [ ] Dashboard displays Calories Out as TDEE (BMR + NEAT + Active)
 - [ ] Deficit/surplus calculation correct: TDEE - Calories In
-- [ ] Color coding correct (green deficit, red surplus)
+- [ ] Colour coding correct (green deficit, red surplus)
 - [ ] TDEE breakdown shows all three components
 - [ ] Real-time update when new meal logged (within 30 seconds of Health Connect save)
 - [ ] Pull-to-refresh works and updates timestamp
@@ -300,7 +300,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 **Material 3 Card Component Patterns:**
 Verified from existing codebase that Material 3 Cards support all dashboard requirements:
 - ✅ `Card` composable from androidx.compose.material3 with CardDefaults for theming
-- ✅ Dynamic `containerColor` via MaterialTheme.colorScheme (primary/primaryContainer for green deficit, error/errorContainer for red surplus)
+- ✅ Dynamic `containerColour` via MaterialTheme.colourScheme (primary/primaryContainer for green deficit, error/errorContainer for red surplus)
 - ✅ Elevated, Filled, and Outlined card types available (we'll use default elevated for dashboard)
 - ✅ Cards used successfully in MealListScreen (line 187+) with proper Material 3 theming
 
@@ -329,7 +329,7 @@ PullToRefreshBox(
 - ✅ Repository.refresh() re-queries Health Connect for latest data
 
 **Navigation Integration:**
-Analyzed NavGraph.kt patterns for adding Energy Balance route:
+Analysed NavGraph.kt patterns for adding Energy Balance route:
 - ✅ Sealed class `Screen` for type-safe routes (define `Screen.EnergyBalance`)
 - ✅ Slide transitions using `slideIntoContainer/slideOutOfContainer` with FastOutSlowInEasing (300ms enter, 250ms exit)
 - ✅ Deep link pattern: `navDeepLink { uriPattern = "foodie://energy-balance" }`
@@ -341,19 +341,19 @@ Confirmed from MealListScreen.kt (lines 165-186):
 ```kotlin
 when {
     state.isLoading -> { /* CircularProgressIndicator */ }
-    state.emptyStateVisible -> { /* Icon + Text centered */ }
+    state.emptyStateVisible -> { /* Icon + Text centreed */ }
     else -> { /* Content */ }
 }
 ```
-- ✅ Empty state: Box with centered Text + Icon, onSurfaceVariant color, 32.dp padding
+- ✅ Empty state: Box with centreed Text + Icon, onSurfaceVariant colour, 32.dp padding
 - ✅ Error state: Show Snackbar with retry action (see MealListScreen lines 93-108)
 - ✅ ProfileNotConfiguredError: Set `showSettingsButton = true` in state to display "Open Settings" button
-- ✅ Loading state: CircularProgressIndicator in centered Box
+- ✅ Loading state: CircularProgressIndicator in centreed Box
 
 **Key Findings:**
 1. All required Compose patterns exist in codebase - no new patterns needed
 2. EnergyBalance domain model (Story 6-5) has `isDeficit` and `formattedDeficitSurplus` computed properties - perfect for UI
-3. Material 3 color scheme provides semantic colors (primary = green, error = red) - no custom colors needed
+3. Material 3 colour scheme provides semantic colours (primary = green, error = red) - no custom colours needed
 4. Bottom nav doesn't exist yet - will create simple bottom nav in MainActivity or NavGraph
 5. PullToRefreshBox is newer Material 3 API (replaces deprecated SwipeRefresh) - confirmed available
 
@@ -398,12 +398,12 @@ init {
 }
 ```
 
-**Material 3 Color Theming:**
-Deficit/surplus color coding uses Material 3 semantic color roles:
-- **Deficit (positive energy balance):** `MaterialTheme.colorScheme.primary` and `primaryContainer` (green in light theme)
-- **Surplus (negative energy balance):** `MaterialTheme.colorScheme.error` and `errorContainer` (red)
+**Material 3 Colour Theming:**
+Deficit/surplus colour coding uses Material 3 semantic colour roles:
+- **Deficit (positive energy balance):** `MaterialTheme.colourScheme.primary` and `primaryContainer` (green in light theme)
+- **Surplus (negative energy balance):** `MaterialTheme.colourScheme.error` and `errorContainer` (red)
 
-This ensures proper theming in both light and dark modes without hardcoded colors.
+This ensures proper theming in both light and dark modes without hardcoded colours.
 
 **Pull-to-Refresh Pattern:**
 Following Compose best practices for manual refresh:
@@ -418,7 +418,7 @@ Box(Modifier.pullRefresh(pullRefreshState)) {
     PullRefreshIndicator(
         refreshing = state.isLoading,
         state = pullRefreshState,
-        modifier = Modifier.align(Alignment.TopCenter)
+        modifier = Modifier.align(Alignment.TopCentre)
     )
 }
 ```
@@ -446,7 +446,7 @@ Box(Modifier.pullRefresh(pullRefreshState)) {
 **Files to Reuse:**
 - `domain/model/EnergyBalance.kt` - Domain model from Story 6-5 (already complete)
 - `data/repository/EnergyBalanceRepository.kt` - Repository interface from Story 6-5
-- `ui/theme/Theme.kt` - Material 3 color scheme for deficit/surplus theming
+- `ui/theme/Theme.kt` - Material 3 colour scheme for deficit/surplus theming
 - `ui/navigation/NavGraph.kt` - Add Energy Balance route with slide transitions
 
 **New Files Required:**
@@ -469,7 +469,7 @@ Box(Modifier.pullRefresh(pullRefreshState)) {
 - Dashboard integrates seamlessly with existing bottom navigation
 - EnergyBalanceRepository already implemented in Story 6-5 (no changes needed)
 - NavGraph extension point for new route (no existing route conflicts)
-- Material 3 theme provides color scheme for deficit/surplus (no custom theming needed)
+- Material 3 theme provides colour scheme for deficit/surplus (no custom theming needed)
 
 ### References
 
@@ -506,7 +506,7 @@ Box(Modifier.pullRefresh(pullRefreshState)) {
 
 2. **Tasks 2-11: UI Implementation (COMPLETED)**
    - Created EnergyBalanceState, EnergyBalanceDashboardViewModel, EnergyBalanceDashboardScreen
-   - Implemented DeficitSurplusCard with color coding (green deficit, red surplus)
+   - Implemented DeficitSurplusCard with colour coding (green deficit, red surplus)
    - Implemented CaloriesSummaryCard and TDEEBreakdownCard
    - Implemented EmptyState and ErrorState composables
    - Added Screen.EnergyBalance route with deep link (foodie://energy-balance)
@@ -528,7 +528,7 @@ Box(Modifier.pullRefresh(pullRefreshState)) {
 - Icons.AutoMirrored.Filled.List used for bottom nav (recommended over deprecated Icons.Filled.List)
 - Simplified UI by removing icons from Calories In/Out and TDEE breakdown rows (cleaner, less visual clutter)
 - Repository doesn't have refresh() method - pull-to-refresh sets isLoading=true, Flow polls automatically every 5 minutes
-- Material 3 color scheme (primary/error) provides semantic deficit/surplus colors without hardcoding
+- Material 3 colour scheme (primary/error) provides semantic deficit/surplus colours without hardcoding
 
 **Challenges Resolved:**
 - Material Icons availability: Many extended icons don't exist in androidx.compose.material.icons.filled
@@ -544,7 +544,7 @@ Box(Modifier.pullRefresh(pullRefreshState)) {
 
 ✅ **Core Implementation:**
 - Energy Balance Dashboard screen with real-time TDEE vs Calories In tracking
-- Material 3 Compose UI with deficit/surplus color coding (green/red)
+- Material 3 Compose UI with deficit/surplus colour coding (green/red)
 - StateFlow-based reactive updates via ViewModel + repository Flow collection
 - Pull-to-refresh support (PullToRefreshBox Material 3 API)
 - Empty state ("Log your first meal") and error state (with retry/open settings)
@@ -552,7 +552,7 @@ Box(Modifier.pullRefresh(pullRefreshState)) {
 
 ✅ **Architecture Quality:**
 - MVVM pattern: Stateful Screen + Stateless Content separation
-- Material 3 theming: Semantic color roles (primary = green deficit, error = red surplus)
+- Material 3 theming: Semantic colour roles (primary = green deficit, error = red surplus)
 - Hilt dependency injection for ViewModel
 - Type-safe navigation with deep link support (foodie://energy-balance)
 - Reused EnergyBalance domain model from Story 6-5 (bmr, neat, activeCalories, tdee, caloriesIn, deficitSurplus)
@@ -601,7 +601,7 @@ Box(Modifier.pullRefresh(pullRefreshState)) {
   - Created from epics.md Story 6.6 definition
   - Included Epic 2 Retrospective mandate: Task 1 documentation research with deliverable checkpoint (Compose dashboard patterns)
   - Referenced Stories 6-5, 5-1, 3-1 learnings: EnergyBalance Flow, Settings screen pattern, Meal list pull-to-refresh
-  - Acceptance criteria derived from tech-spec-epic-6.md (8 ACs covering dashboard display, color coding, navigation, real-time updates)
+  - Acceptance criteria derived from tech-spec-epic-6.md (8 ACs covering dashboard display, colour coding, navigation, real-time updates)
   - Tasks structured to create complete Compose dashboard UI with ViewModel, state management, navigation integration
   - Dev Notes include Material 3 theming, real-time state updates, and pull-to-refresh patterns
   - Added manual testing steps for deficit/surplus validation, real-time updates, empty/error states

@@ -60,7 +60,7 @@ Expected: App installs successfully with no errors.
 - [ ] Widget remains visible on lock screen after placement
 
 **Notes:**  
-_[Record any issues, device-specific behaviors, or observations]_
+_[Record any issues, device-specific behaviours, or observations]_
 
 ---
 
@@ -117,7 +117,7 @@ _[Record any performance observations, app state issues, or timing inconsistenci
 - [ ] Camera permission flow works from locked state (if tested)
 
 **Security Note:**
-This behavior is expected for lock screen widgets with camera access. The app launches in a secure overlay without compromising device security.
+This behaviour is expected for lock screen widgets with camera access. The app launches in a secure overlay without compromising device security.
 
 **Notes:**  
 _[Record any unlock prompts, security warnings, or permission issues]_
@@ -198,7 +198,7 @@ _[Record deep link logs, navigation issues, or routing errors]_
 **Steps:**
 1. View widget on lock screen in good lighting
 2. Compare against design specifications:
-   - App icon present and centered
+   - App icon present and centreed
    - "Log Meal" text visible below icon
    - Minimal size (small lock screen widget size)
    - Material3 styling (if observable)
@@ -336,7 +336,7 @@ _[Any final observations, recommendations, or notes for the development team]_
 - Widget receiver not handling BOOT_COMPLETED intent
 
 **Solutions:**
-1. Check if manufacturer-specific behavior (document in test results)
+1. Check if manufacturer-specific behaviour (document in test results)
 2. Verify widget configuration XML has persistent settings
 3. Add BOOT_COMPLETED receiver if needed (future enhancement)
 4. Test on multiple device manufacturers

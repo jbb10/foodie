@@ -20,9 +20,9 @@ So that I can use the app regardless of visual limitations.
 
 **And** text scales properly with system font size settings
 
-**And** color contrast ratios meet WCAG AA standards (4.5:1 for normal text)
+**And** colour contrast ratios meet WCAG AA standards (4.5:1 for normal text)
 
-**And** important information is not conveyed by color alone
+**And** important information is not conveyed by colour alone
 
 **And** focus order is logical for keyboard/D-pad navigation
 
@@ -42,12 +42,12 @@ So that I can use the app regardless of visual limitations.
   
   2. Review Material Design 3 accessibility guidelines
      - Starting point: https://m3.material.io/foundations/accessibility/overview
-     - Focus: Touch target sizing (48dp minimum), color contrast requirements, text scaling
+     - Focus: Touch target sizing (48dp minimum), colour contrast requirements, text scaling
      - Validate: Material 3 components already accessibility-compliant
   
   3. Review WCAG 2.1 Level AA standards
      - Contrast ratio requirements: 4.5:1 for normal text, 3:1 for large text (18pt+)
-     - Non-color information: Don't rely on color alone to convey meaning
+     - Non-colour information: Don't rely on colour alone to convey meaning
      - Keyboard navigation: All functionality available via keyboard/D-pad
   
   4. Review existing Compose screens for accessibility patterns
@@ -63,7 +63,7 @@ So that I can use the app regardless of visual limitations.
   **Deliverable Checkpoint:** ✅ COMPLETED 2025-11-23
   Document findings in Dev Notes before proceeding to Task 2:
   - [x] Android accessibility API patterns confirmed (Modifier.semantics, contentDescription)
-  - [x] WCAG AA contrast ratios calculated for existing color palette
+  - [x] WCAG AA contrast ratios calculated for existing colour palette
   - [x] Touch target sizing strategy determined (48dp enforcement approach)
   - [x] TalkBack testing methodology established
   - [x] Risks/unknowns flagged for review (e.g., camera screen TalkBack complexity)
@@ -99,15 +99,15 @@ So that I can use the app regardless of visual limitations.
   - [x] Text scaling validated - MaterialTheme.typography used consistently
   - [x] Manual testing with Largest font size deferred to Task 9 testing
 
-- [x] **Task 5: Color Contrast Ratio Validation (WCAG AA)** (AC: #5, #6)
+- [x] **Task 5: Colour Contrast Ratio Validation (WCAG AA)** (AC: #5, #6)
   - [x] Calculate contrast ratios for all text/background combinations:
     - Light theme: onBackground/background = 16.5:1 ✅ (exceeds 4.5:1)
     - Dark theme: onBackground/background = 12.8:1 ✅ (exceeds 4.5:1)
-    - Primary colors: 7.8:1 (light) and 8.2:1 (dark) ✅
-    - Error colors: Meet WCAG AA minimum ✅
+    - Primary colours: 7.8:1 (light) and 8.2:1 (dark) ✅
+    - Error colours: Meet WCAG AA minimum ✅
   - [x] Material 3 palette verified WCAG AA compliant - no changes needed
-  - [x] Information not color-only: Error states use icons + color ✅
-  - [x] Color contrast calculations documented in Dev Notes
+  - [x] Information not colour-only: Error states use icons + colour ✅
+  - [x] Colour contrast calculations documented in Dev Notes
 
 - [x] **Task 6: Logical Focus Order for Keyboard/D-Pad Navigation** (AC: #7)
   - [x] Focus order review:
@@ -193,9 +193,9 @@ So that I can use the app regardless of visual limitations.
     - Buttons should resize to accommodate larger text
   - [ ] Test meal description field with longest possible text at largest font size
 
-- [ ] **Task 5: Color Contrast Ratio Validation (WCAG AA)** (AC: #5, #6)
+- [ ] **Task 5: Colour Contrast Ratio Validation (WCAG AA)** (AC: #5, #6)
   - [ ] Calculate contrast ratios for all text/background combinations:
-    - Use Color.kt palette from Story 5.4
+    - Use Colour.kt palette from Story 5.4
     - Tool: https://webaim.org/resources/contrastchecker/
     - Requirement: 4.5:1 for normal text, 3:1 for large text (18pt+)
   - [ ] Verify existing Material 3 dark/light palettes meet WCAG AA:
@@ -205,14 +205,14 @@ So that I can use the app regardless of visual limitations.
     contrastRatio(md_theme_dark_onSurface, md_theme_dark_surface) >= 4.5:1
     ```
   - [ ] Fix any failing combinations:
-    - Adjust color values in Color.kt
+    - Adjust colour values in Colour.kt
     - Use darker/lighter variants for better contrast
-  - [ ] Ensure information is not color-only:
+  - [ ] Ensure information is not colour-only:
     - Error states: Use icon + red text (not just red)
     - Success states: Use checkmark icon + green text
-    - Status indicators: Use text labels + color
+    - Status indicators: Use text labels + colour
   - [ ] Run Accessibility Scanner to detect contrast failures
-  - [ ] Document color contrast calculations in Dev Notes
+  - [ ] Document colour contrast calculations in Dev Notes
 
 - [ ] **Task 6: Logical Focus Order for Keyboard/D-Pad Navigation** (AC: #7)
   - [ ] Test focus traversal order with D-pad or keyboard (Tab key):
@@ -256,7 +256,7 @@ So that I can use the app regardless of visual limitations.
     - Scenario 3: TalkBack Navigation - Camera Capture Flow
     - Scenario 4: Large Font Size Testing (Largest system font)
     - Scenario 5: Touch Target Validation with Accessibility Scanner
-    - Scenario 6: Color Contrast Visual Inspection (Light + Dark modes)
+    - Scenario 6: Colour Contrast Visual Inspection (Light + Dark modes)
     - Scenario 7: Keyboard/D-Pad Navigation (Optional)
   - [x] Test guide includes:
     - Expected TalkBack announcements for each element
@@ -281,7 +281,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - [ ] All content descriptions added and tested with TalkBack
 - [ ] Minimum 48dp touch targets enforced across all screens
 - [ ] Text scales properly with system font size (tested at Largest setting)
-- [ ] Color contrast meets WCAG AA 4.5:1 for normal text
+- [ ] Colour contrast meets WCAG AA 4.5:1 for normal text
 - [ ] Code is reviewed (manual accessibility testing validated production quality)
 
 ### Testing Requirements
@@ -297,7 +297,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Documentation
 - [ ] Inline code documentation (KDocs) for any accessibility utility functions
 - [ ] Dev Notes include:
-  - WCAG AA contrast ratio calculations for color palette
+  - WCAG AA contrast ratio calculations for colour palette
   - TalkBack testing results and any discovered issues
   - Android Accessibility Scanner report summary
   - Justification for any accessibility exceptions (if applicable)
@@ -314,7 +314,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - **TalkBack Testing Required:** Mandatory - all user flows must be validated with screen reader
 - **Accessibility Scanner Required:** Mandatory - scanner report must show zero critical issues
 - **Manual Testing Required:** Large font size testing, D-pad navigation, visual contrast inspection
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 
 ## User Demo
@@ -380,16 +380,16 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
    - Adjacent icons should have adequate spacing (8dp minimum)
    - No accidental taps on wrong element
 
-**Part 4: Color Contrast Inspection**
+**Part 4: Colour Contrast Inspection**
 1. **Visual Inspection in Light Mode:**
    - Verify all text is clearly readable on light background
    - No low-contrast gray text that's hard to read
 2. **Visual Inspection in Dark Mode:**
    - Verify all text is clearly readable on dark background
    - No bright white text that causes eye strain
-3. **Verify Non-Color Information:**
-   - Error states use icon + red color (not color alone)
-   - Success states use checkmark icon + green color
+3. **Verify Non-Colour Information:**
+   - Error states use icon + red colour (not colour alone)
+   - Success states use checkmark icon + green colour
 
 **Part 5: Keyboard/D-Pad Navigation (if applicable)**
 1. **Connect Bluetooth Keyboard or Use D-Pad:**
@@ -400,17 +400,17 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 3. **Test Focus Order:**
    - MealListScreen: FAB → toolbar → meal entries (top to bottom)
    - SettingsScreen: Back button → preferences (top to bottom)
-4. **Activate with Enter/D-Pad Center:**
+4. **Activate with Enter/D-Pad Centre:**
    - Verify all elements can be activated via keyboard
 
-### Expected Behavior
+### Expected Behaviour
 - All interactive elements announce their purpose with TalkBack
 - Meal entries announce calories, description, and timestamp clearly
 - Edit fields announce label, current value, and input type
 - All text scales properly at Largest font size without clipping
 - Touch targets are minimum 48dp with adequate spacing
 - Text contrast meets WCAG AA 4.5:1 for all text
-- Error states use icon + color (not color alone)
+- Error states use icon + colour (not colour alone)
 - Focus order is logical and all elements are keyboard-accessible
 - Android Accessibility Scanner reports zero critical issues
 
@@ -421,8 +421,8 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - [ ] No text clipping or truncation at large font
 - [ ] Touch targets are minimum 48dp (validated visually or with Inspector)
 - [ ] Adjacent touch targets have 8dp spacing
-- [ ] Color contrast meets WCAG AA 4.5:1 (validated with contrast checker)
-- [ ] Important information not conveyed by color alone (icons + color)
+- [ ] Colour contrast meets WCAG AA 4.5:1 (validated with contrast checker)
+- [ ] Important information not conveyed by colour alone (icons + colour)
 - [ ] Focus order is logical with keyboard/D-pad navigation
 - [ ] Camera capture button easily discoverable with TalkBack
 - [ ] Android Accessibility Scanner reports zero critical issues
@@ -454,11 +454,11 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - **Material 3 Components:** IconButton, FAB, Button already meet 48dp minimum by default
 - **Validation Tools:** Layout Inspector, Android Accessibility Scanner
 
-**3. Color Contrast Standards (developer.android.com/guide/topics/ui/accessibility/apps):**
+**3. Colour Contrast Standards (developer.android.com/guide/topics/ui/accessibility/apps):**
 - **Normal Text (<18pt, or <14pt bold):** Minimum 4.5:1 contrast ratio
 - **Large Text (≥18pt, or ≥14pt bold):** Minimum 3:1 contrast ratio
-- **Validation:** Use online color contrast checkers or Accessibility Scanner app
-- **Material 3 Compliance:** Material Design 3 color schemes automatically meet WCAG AA standards
+- **Validation:** Use online colour contrast checkers or Accessibility Scanner app
+- **Material 3 Compliance:** Material Design 3 colour schemes automatically meet WCAG AA standards
 
 **4. Content Description Best Practices:**
 - **Don't include UI element type:** Say "Submit" not "Submit button" (screen readers announce type automatically)
@@ -466,17 +466,17 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - **Decorative elements:** Set `android:importantForAccessibility="no"` for purely decorative graphics
 - **No descriptions for TextView:** Text content is automatically announced
 
-**WCAG AA Contrast Ratios - Foodie Color Palette Verification:**
-- **Light Theme (Color.kt:31-35):**
+**WCAG AA Contrast Ratios - Foodie Colour Palette Verification:**
+- **Light Theme (Colour.kt:31-35):**
   - `md_theme_light_onBackground` (#191C1A) vs `md_theme_light_background` (#FBFDF9) = **16.5:1** ✅ (far exceeds 4.5:1)
   - `md_theme_light_onSurface` (#191C1A) vs `md_theme_light_surface` (#FBFDF9) = **16.5:1** ✅
   - `md_theme_light_primary` (#006C4C) vs `md_theme_light_background` (#FBFDF9) = **7.8:1** ✅
-- **Dark Theme (Color.kt:64-68):**
+- **Dark Theme (Colour.kt:64-68):**
   - `md_theme_dark_onBackground` (#E1E3DF) vs `md_theme_dark_background` (#191C1A) = **12.8:1** ✅
   - `md_theme_dark_onSurface` (#E1E3DF) vs `md_theme_dark_surface` (#191C1A) = **12.8:1** ✅
   - `md_theme_dark_primary` (#6CDBAC) vs `md_theme_dark_background` (#191C1A) = **8.2:1** ✅
-- **Error Colors:** md_theme_light_error (#BA1A1A) meets 4.5:1, md_theme_dark_error (#FFB4AB) meets 3:1 for large text
-- **Conclusion:** Material 3 palette already WCAG AA compliant - no color changes needed ✅
+- **Error Colours:** md_theme_light_error (#BA1A1A) meets 4.5:1, md_theme_dark_error (#FFB4AB) meets 3:1 for large text
+- **Conclusion:** Material 3 palette already WCAG AA compliant - no colour changes needed ✅
 
 **Touch Target Analysis - Existing Code:**
 - **Material 3 Components:** IconButton (48dp default), FAB (56dp default), Card (full-width >48dp height)
@@ -508,7 +508,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - **Priority:** Fix HIGH severity before story completion, document MEDIUM/LOW for future
 
 **Risks/Unknowns Addressed:**
-- ✅ **Color Contrast:** Material 3 palette exceeds WCAG AA (no changes needed)
+- ✅ **Colour Contrast:** Material 3 palette exceeds WCAG AA (no changes needed)
 - ✅ **Touch Targets:** Material 3 components already 48dp minimum
 - ✅ **Camera TalkBack:** System camera intent handles accessibility automatically
 - ⚠️ **Instrumentation Tests:** Environmental issue from Story 5.1 persists (rely on manual testing)
@@ -525,7 +525,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 **Files to Review/Modify:**
 - All Composable screens: MealListScreen.kt, MealDetailScreen.kt, SettingsScreen.kt
-- Theme files: Color.kt (validate contrast ratios), Theme.kt (ensure typography scaling)
+- Theme files: Colour.kt (validate contrast ratios), Theme.kt (ensure typography scaling)
 - No new repositories needed - purely UI/UX improvements
 
 **Testing Strategy from Story 5.4:**
@@ -535,7 +535,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - Truth library assertions, MockK for mocking (if applicable)
 
 **What's Already Done:**
-- Material Design 3 theme with proper color palette (Story 5.4 - contrast ratios likely already WCAG AA compliant)
+- Material Design 3 theme with proper colour palette (Story 5.4 - contrast ratios likely already WCAG AA compliant)
 - Consistent Compose UI across all screens
 - Settings infrastructure for preference management
 
@@ -543,7 +543,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - Content descriptions for all interactive elements
 - Minimum 48dp touch target enforcement
 - Text scaling validation with MaterialTheme.typography
-- Color contrast ratio validation and fixes
+- Colour contrast ratio validation and fixes
 - Logical focus order for keyboard/D-pad navigation
 - TalkBack support validation across all screens
 - Android Accessibility Scanner validation
@@ -553,7 +553,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - Instrumentation test environmental issue remains (pre-existing from Story 5.1)
 
 **New Patterns from Story 5.4:**
-- Manual test guide format: Scenarios + Expected Behavior + Validation Checklist
+- Manual test guide format: Scenarios + Expected Behaviour + Validation Checklist
 - Evidence-based AC verification with file:line references
 - Compose-only approach avoiding Android framework complexity
 
@@ -571,7 +571,7 @@ Accessibility is primarily manual testing-focused (TalkBack, Accessibility Scann
 **Files to Modify:**
 - `app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt` - Add content descriptions, validate touch targets
 - `app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt` - Add content descriptions, validate text scaling
-- `app/src/main/java/com/foodie/app/ui/theme/Color.kt` - Validate contrast ratios, document calculations
+- `app/src/main/java/com/foodie/app/ui/theme/Colour.kt` - Validate contrast ratios, document calculations
 - `app/src/main/java/com/foodie/app/ui/theme/Theme.kt` - Ensure typography uses MaterialTheme.typography
 
 **No New Files Expected (unless utility helpers created):**
@@ -585,7 +585,7 @@ Accessibility is primarily manual testing-focused (TalkBack, Accessibility Scann
 - [Source: docs/architecture.md#Material-Design-3] - Material 3 accessibility compliance
 - [Android Accessibility Guidelines](https://developer.android.com/guide/topics/ui/accessibility) - Content descriptions, TalkBack support, semantic properties
 - [Material Design 3 Accessibility](https://m3.material.io/foundations/accessibility/overview) - Touch targets, contrast ratios, text scaling
-- [WCAG 2.1 Level AA](https://www.w3.org/WAI/WCAG21/quickref/?currentsidebar=%23col_customize&levels=aa) - Contrast requirements, keyboard navigation, non-color information
+- [WCAG 2.1 Level AA](https://www.w3.org/WAI/WCAG21/quickref/?currentsidebar=%23col_customize&levels=aa) - Contrast requirements, keyboard navigation, non-colour information
 
 ## Dev Agent Record
 
@@ -622,14 +622,14 @@ Accessibility is primarily manual testing-focused (TalkBack, Accessibility Scann
 3. **Text Scaling (AC #4):**
    - Confirmed all text uses MaterialTheme.typography (no hardcoded fontSize values)
    - Large font testing procedure documented in manual test guide (Scenario 4)
-   - Expected behavior: Text scales proportionally, no clipping/truncation
+   - Expected behaviour: Text scales proportionally, no clipping/truncation
 
-4. **Color Contrast (AC #5, #6):**
-   - Material 3 color palette verified WCAG AA compliant:
+4. **Colour Contrast (AC #5, #6):**
+   - Material 3 colour palette verified WCAG AA compliant:
      - Light theme: 16.5:1 contrast ratio (far exceeds 4.5:1 minimum)
      - Dark theme: 12.8:1 contrast ratio (far exceeds 4.5:1 minimum)
-   - No color changes required - palette already accessible
-   - Non-color information: Error states use icons + color (not color alone)
+   - No colour changes required - palette already accessible
+   - Non-colour information: Error states use icons + colour (not colour alone)
 
 5. **Focus Order (AC #7):**
    - Material 3 LazyColumn provides logical top-to-bottom traversal by default
@@ -658,7 +658,7 @@ Accessibility is primarily manual testing-focused (TalkBack, Accessibility Scann
 - TalkBack validation on physical device (all scenarios in test guide)
 - Android Accessibility Scanner execution (expected 0 critical issues)
 - Large font size testing at "Largest" system setting
-- Color contrast visual inspection (light + dark modes)
+- Colour contrast visual inspection (light + dark modes)
 
 **Story Status:** Implementation complete, ready for manual validation and code review.
 
@@ -679,7 +679,7 @@ Accessibility is primarily manual testing-focused (TalkBack, Accessibility Scann
 
 **Created Files:**
 - `docs/testing/manual-test-guide-story-5-5.md`
-  - 7 comprehensive testing scenarios (TalkBack, large font, touch targets, color contrast, keyboard nav)
+  - 7 comprehensive testing scenarios (TalkBack, large font, touch targets, colour contrast, keyboard nav)
   - Expected TalkBack announcements for all interactive elements
   - Accessibility Scanner usage instructions
   - AC verification checklist and issue tracking template
@@ -690,7 +690,7 @@ Accessibility is primarily manual testing-focused (TalkBack, Accessibility Scann
 |------|--------|--------|
 | 2025-11-23 | BMad (SM) | Story created from Epic 5 - Accessibility improvements with TalkBack support, WCAG AA compliance, 48dp touch targets, and text scaling |
 | 2025-11-23 | Amelia (Dev) | Task 1 complete - Documentation research (Android accessibility docs, WCAG standards, Material 3 compliance verified) |
-| 2025-11-23 | Amelia (Dev) | Tasks 2-10 complete - Content descriptions added to MealListScreen and SettingsScreen, touch targets/color contrast/text scaling validated, manual test guide created |
+| 2025-11-23 | Amelia (Dev) | Tasks 2-10 complete - Content descriptions added to MealListScreen and SettingsScreen, touch targets/colour contrast/text scaling validated, manual test guide created |
 | 2025-11-23 | Amelia (Dev) | Implementation complete - All ACs met via code changes + comprehensive manual testing documentation - Ready for code review |
 | 2025-11-23 | BMad (SM) | Senior Developer Review notes appended - Story approved |
 
@@ -708,7 +708,7 @@ Story 5.5 successfully implements accessibility improvements across MealListScre
 
 **Key strengths:**
 - Proper use of `Modifier.semantics(mergeDescendants = true)` for meal cards
-- Material 3 components already meet WCAG AA standards (no color changes needed)
+- Material 3 components already meet WCAG AA standards (no colour changes needed)
 - 360-line manual test guide with 7 comprehensive scenarios
 - Zero custom implementations - leveraged existing Material 3 foundation
 
@@ -731,8 +731,8 @@ Story 5.5 successfully implements accessibility improvements across MealListScre
 | AC-2 | App supports TalkBack screen reader | ✅ IMPLEMENTED | Manual test guide Scenarios 1-3 with expected announcements documented |
 | AC-3 | Touch targets are minimum 48dp (WCAG compliance) | ✅ VERIFIED | Material 3 IconButton 48dp default, Card full-width >48dp height, Dev Notes lines 498-502 |
 | AC-4 | Text scales properly with system font size settings | ✅ VERIFIED | All screens use MaterialTheme.typography, no hardcoded fontSize, Manual test guide Scenario 4 |
-| AC-5 | Color contrast ratios meet WCAG AA standards (4.5:1) | ✅ VERIFIED | Dev Notes lines 462-475: Light 16.5:1, Dark 12.8:1 (far exceeds minimum) |
-| AC-6 | Important information is not conveyed by color alone | ✅ VERIFIED | Error states use icons + color (existing pattern confirmed) |
+| AC-5 | Colour contrast ratios meet WCAG AA standards (4.5:1) | ✅ VERIFIED | Dev Notes lines 462-475: Light 16.5:1, Dark 12.8:1 (far exceeds minimum) |
+| AC-6 | Important information is not conveyed by colour alone | ✅ VERIFIED | Error states use icons + colour (existing pattern confirmed) |
 | AC-7 | Focus order is logical for keyboard/D-pad navigation | ✅ VERIFIED | Material 3 LazyColumn top-to-bottom default, Manual test guide Scenario 7, user validated keyboard nav |
 | AC-8 | Camera capture button is easily discoverable with TalkBack | ✅ IMPLEMENTED | System camera intent handles accessibility (Android platform), Manual test guide Scenario 3 |
 
@@ -746,7 +746,7 @@ Story 5.5 successfully implements accessibility improvements across MealListScre
 | Task 2: Content Descriptions for All Interactive Elements | ✅ Complete | ✅ VERIFIED COMPLETE | MealListScreen.kt:224, 336; SettingsScreen.kt:145, 345-346, 482-483 |
 | Task 3: Minimum Touch Target Sizing (48dp) | ✅ Complete | ✅ VERIFIED COMPLETE | Dev Notes lines 498-502: Material 3 components already 48dp compliant |
 | Task 4: Text Scaling with System Font Size | ✅ Complete | ✅ VERIFIED COMPLETE | All screens use MaterialTheme.typography (verified via code inspection) |
-| Task 5: Color Contrast Ratio Validation (WCAG AA) | ✅ Complete | ✅ VERIFIED COMPLETE | Dev Notes lines 462-475: 16.5:1 (light), 12.8:1 (dark) documented |
+| Task 5: Colour Contrast Ratio Validation (WCAG AA) | ✅ Complete | ✅ VERIFIED COMPLETE | Dev Notes lines 462-475: 16.5:1 (light), 12.8:1 (dark) documented |
 | Task 6: Logical Focus Order for Keyboard/D-Pad Navigation | ✅ Complete | ✅ VERIFIED COMPLETE | Material 3 default order validated, Manual test guide Scenario 7, user tested successfully |
 | Task 7: TalkBack Support and Testing | ✅ Complete | ✅ VERIFIED COMPLETE | Manual test guide created (360 lines), TalkBack validation skipped per user decision (personal app, single user) |
 | Task 8: Accessibility Scanner Tool Validation | ✅ Complete | ✅ VERIFIED COMPLETE | Scanner usage documented in manual test guide, execution skipped per user decision (personal app) |
@@ -786,7 +786,7 @@ Story 5.5 successfully implements accessibility improvements across MealListScre
 **✅ Architecture Document Alignment:**
 - Material Design 3 accessibility features utilized correctly
 - MaterialTheme.typography used for text scaling
-- Color palette already WCAG AA compliant (16.5:1 light, 12.8:1 dark)
+- Colour palette already WCAG AA compliant (16.5:1 light, 12.8:1 dark)
 
 **✅ PRD Requirements (NFR-4: Usability):**
 - Touch targets minimum 48dp ✅ (Material 3 default)
@@ -809,7 +809,7 @@ No security concerns identified. Accessibility improvements are purely UI-focuse
 - ✅ Contrast ratios exceed 4.5:1 minimum (16.5:1 light, 12.8:1 dark)
 - ✅ Touch targets meet 48dp minimum
 - ✅ Text scaling uses MaterialTheme.typography
-- ✅ Information not conveyed by color alone (icons + text + color)
+- ✅ Information not conveyed by colour alone (icons + text + colour)
 
 **References:**
 - [Android Compose Semantics](https://developer.android.com/jetpack/compose/semantics) - Official API documentation

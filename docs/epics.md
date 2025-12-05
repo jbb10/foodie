@@ -111,7 +111,7 @@ So that features can be integrated into a cohesive user flow.
 
 **Prerequisites:** Story 1.1 (project must exist), Story 1.2 (MVVM architecture defined)
 
-**Technical Notes:** Use Jetpack Navigation component. Define navigation graph in XML. Create Fragment or Composable placeholders for each screen. Configure SafeArgs for type-safe navigation parameters. Set up deep link handling for widget → camera flow.
+**Technical Notes:** Use Jetpack Navigation component. Define navigation graph in XML. Create Fragment or Composable placeholders for each screen. Configure SafeArgs for type-safe navigation parametres. Set up deep link handling for widget → camera flow.
 
 ---
 
@@ -171,7 +171,7 @@ So that debugging is efficient and errors are handled gracefully.
 
 ## Epic 2: AI-Powered Meal Capture
 
-**Goal:** Deliver the core "invisible tracking" experience - enable users to snap a photo, have it analyzed by AI, and automatically save to Health Connect in under 5 seconds.
+**Goal:** Deliver the core "invisible tracking" experience - enable users to snap a photo, have it analysed by AI, and automatically save to Health Connect in under 5 seconds.
 
 **Value:** This is the fundamental product innovation. Without this working end-to-end, the app has no value. Proves the central hypothesis that invisible tracking is faster than manual entry.
 
@@ -260,11 +260,11 @@ So that users get automatic nutrition data without manual entry.
 
 **And** the request uses the `model` field to specify the deployment name (e.g., "gpt-4.1")
 
-**And** the request uses `instructions` field for system-level guidance: "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food)."
+**And** the request uses `instructions` field for system-level guidance: "You are a nutrition analysis assistant. Analyse the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food)."
 
 **And** the request uses `input` array with multimodal content containing text prompt and base64 image
 
-**And** the input includes user message with text: "Analyze this meal and estimate total calories." and image type "input_image" with base64 data URL
+**And** the input includes user message with text: "Analyse this meal and estimate total calories." and image type "input_image" with base64 data URL
 
 **And** the response contains `output_text` field with JSON: `{calories: number, description: string}`
 
@@ -276,7 +276,7 @@ So that users get automatic nutrition data without manual entry.
 
 **Prerequisites:** Story 1.1 (networking libraries configured), Story 1.5 (error handling framework exists)
 
-**Technical Notes:** Create AzureOpenAIClient class with analyze() method using Responses API. Use OkHttp or Retrofit for HTTP calls. Endpoint is `https://{resource}.openai.azure.com/openai/v1/responses` (no deployment in path, deployment specified in `model` field). Implement timeout of 15 seconds. Return Result<NutritionData, ApiError>. Test with sample food images. Both API key and base endpoint URL (resource name) must be configured by user in settings. The model/deployment name is specified in the request body `model` field.
+**Technical Notes:** Create AzureOpenAIClient class with analyse() method using Responses API. Use OkHttp or Retrofit for HTTP calls. Endpoint is `https://{resource}.openai.azure.com/openai/v1/responses` (no deployment in path, deployment specified in `model` field). Implement timeout of 15 seconds. Return Result<NutritionData, ApiError>. Test with sample food images. Both API key and base endpoint URL (resource name) must be configured by user in settings. The model/deployment name is specified in the request body `model` field.
 
 ---
 
@@ -408,7 +408,7 @@ So that I can immediately resume what I was doing while knowing progress is happ
 
 **Context:** This story addresses the gap between Epic 2.4's original specification (which required foreground service with notification) and Story 2.5's implementation (which used WorkManager without visible notification). User feedback and Android platform requirements indicate that visible progress feedback improves trust and meets Android 8+ foreground service requirements for long-running background work.
 
-**Technical Notes:** Upgrade AnalyzeMealWorker to use `setForegroundAsync()` with `ForegroundInfo` containing notification. Create notification channel for meal analysis. Handle Android 13+ notification permission requests. Use `NotificationCompat.Builder` for Material You styling. Update notification for major milestones (encoding, API call, saving). Auto-dismiss on success, update with failure messaging on error. Test notification persistence across app process death and WorkManager retry attempts.
+**Technical Notes:** Upgrade AnalyseMealWorker to use `setForegroundAsync()` with `ForegroundInfo` containing notification. Create notification channel for meal analysis. Handle Android 13+ notification permission requests. Use `NotificationCompat.Builder` for Material You styling. Update notification for major milestones (encoding, API call, saving). Auto-dismiss on success, update with failure messaging on error. Test notification persistence across app process death and WorkManager retry attempts.
 
 ---
 
@@ -602,7 +602,7 @@ So that I get immediate feedback instead of waiting for timeouts.
 **When** a photo capture is confirmed
 **Then** the app checks network connectivity before starting background processing
 
-**And** if offline, a notification displays: "No internet - meal saved, will analyze when online"
+**And** if offline, a notification displays: "No internet - meal saved, will analyse when online"
 
 **And** the photo is retained in temporary storage for later processing
 
@@ -896,13 +896,13 @@ So that I can use it comfortably in low-light conditions (late-night meal loggin
 
 **Given** users may prefer dark mode for comfort
 **When** dark mode is enabled (system-wide or in-app)
-**Then** all screens use dark theme colors
+**Then** all screens use dark theme colours
 
 **And** the theme follows Material Design dark theme guidelines
 
 **And** text remains legible with proper contrast ratios
 
-**And** camera preview maintains natural colors (not inverted)
+**And** camera preview maintains natural colours (not inverted)
 
 **And** notifications use dark styling when appropriate
 
@@ -914,7 +914,7 @@ So that I can use it comfortably in low-light conditions (late-night meal loggin
 
 **Prerequisites:** Story 1.1 (project setup), Story 5.1 (settings for theme preference)
 
-**Technical Notes:** Define dark theme in res/values-night/themes.xml. Use Material Design color palette for dark mode. Test all screens in both themes. Use AppCompatDelegate.setDefaultNightMode() for theme switching. Add theme preference to settings. Ensure camera maintains proper exposure in dark mode.
+**Technical Notes:** Define dark theme in res/values-night/themes.xml. Use Material Design colour palette for dark mode. Test all screens in both themes. Use AppCompatDelegate.setDefaultNightMode() for theme switching. Add theme preference to settings. Ensure camera maintains proper exposure in dark mode.
 
 ---
 
@@ -936,9 +936,9 @@ So that I can use the app regardless of visual limitations.
 
 **And** text scales properly with system font size settings
 
-**And** color contrast ratios meet WCAG AA standards (4.5:1 for normal text)
+**And** colour contrast ratios meet WCAG AA standards (4.5:1 for normal text)
 
-**And** important information is not conveyed by color alone
+**And** important information is not conveyed by colour alone
 
 **And** focus order is logical for keyboard/D-pad navigation
 
@@ -1274,7 +1274,7 @@ So that I can track my caloric deficit or surplus.
 
 **And** I see "Calories Out: Y kcal" (TDEE)
 
-**And** I see "Deficit/Surplus: Z kcal" (Out - In, with color coding)
+**And** I see "Deficit/Surplus: Z kcal" (Out - In, with colour coding)
 
 **And** deficit shows in green with negative number (e.g., "-500 kcal deficit")
 
@@ -1292,7 +1292,7 @@ So that I can track my caloric deficit or surplus.
 - Create EnergyBalanceDashboardScreen (Compose)
 - Query today's NutritionRecords from Health Connect for Calories In
 - Display TDEE from EnergyBalanceViewModel for Calories Out
-- Use Material 3 color scheme for deficit (green) vs surplus (red)
+- Use Material 3 colour scheme for deficit (green) vs surplus (red)
 - Implement pull-to-refresh
 
 ---
@@ -1321,14 +1321,14 @@ So that I can track my deficit/surplus trends over time and understand my progre
 
 **And** historical TDEE calculations use that day's user profile (weight, height, age) if available
 
-**And** deficit/surplus color coding applies correctly to historical data (green deficit, red surplus)
+**And** deficit/surplus colour coding applies correctly to historical data (green deficit, red surplus)
 
 **And** empty state shows "No meals logged on this day" when historical Calories In = 0
 
 **Prerequisites:** Story 6.6 (dashboard implementation complete)
 
 **Technical Notes:**
-- Extend EnergyBalanceRepository.getEnergyBalance() to accept LocalDate parameter
+- Extend EnergyBalanceRepository.getEnergyBalance() to accept LocalDate parametre
 - Use Health Connect TimeRangeFilter.between() for date-specific queries
 - Add selectedDate state to DashboardViewModel with prev/next/today methods
 - Persist selectedDate in SavedStateHandle for app lifecycle survival
@@ -1390,7 +1390,7 @@ So that I can ensure proper macronutrient balance for body recomposition.
 
 **Acceptance Criteria:**
 
-**Given** the AI analyzes a food photo
+**Given** the AI analyses a food photo
 **When** the API request is sent
 **Then** the prompt requests macros: `{calories: number, protein: number, carbs: number, fat: number, description: string}`
 

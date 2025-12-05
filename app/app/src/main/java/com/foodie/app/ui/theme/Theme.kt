@@ -91,7 +91,7 @@ private val LightColorScheme = lightColorScheme(
  *
  * Applies Material Design 3 theming with support for:
  * - Light and dark modes (AC-1, AC-2, AC-6)
- * - System theme following (default behavior)
+ * - System theme following (default behaviour)
  * - Dynamic color on Android 12+ (Material You)
  * - Manual theme override via darkTheme parameter (AC-7)
  *

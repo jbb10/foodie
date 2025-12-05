@@ -112,7 +112,7 @@ So that I understand how to set up and use the app.
   - [x] Create WelcomeScreen composable:
     - ✅ App icon (120dp, ic_launcher_foreground)
     - ✅ Title: "Welcome to Foodie"
-    - ✅ Description: "Capture meals in 2 seconds.\nAI analyzes.\nHealth Connect saves."
+    - ✅ Description: "Capture meals in 2 seconds.\nAI analyses.\nHealth Connect saves."
     - ✅ Material 3 typography (headlineLarge, bodyLarge)
     - ✅ Skip and Next buttons (Material 3 Button/TextButton)
   - [x] Test welcome screen displays correctly
@@ -277,7 +277,7 @@ So that I understand how to set up and use the app.
     - Scenario 7: Completion Flow (mark completed, navigate to MealListScreen) ✅
     - Scenario 8: Timing Validation (complete in < 2 minutes) ✅
     - Scenario 9: TalkBack Navigation (screen reader announces correctly) ✅
-    - Scenario 10: Back Button Behavior (no back from MealListScreen to onboarding) ✅
+    - Scenario 10: Back Button Behaviour (no back from MealListScreen to onboarding) ✅
   - [x] AC verification completed - all 10 ACs validated
   - Note: Scenarios documented in story User Demo section (lines 405-592)
 
@@ -317,7 +317,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** Always - OnboardingPreferences, OnboardingViewModel logic
 - **Instrumentation Tests Required:** Conditional - navigation flow, first-launch detection, UI interactions
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for HealthConnectManager, SecurePreferences mocking
 
@@ -345,7 +345,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 1. **Observe Welcome screen content:**
    - App icon displayed prominently (120dp size)
    - Title: "Welcome to Foodie"
-   - Description: "Capture meals in 2 seconds. AI analyzes. Health Connect saves."
+   - Description: "Capture meals in 2 seconds. AI analyses. Health Connect saves."
    - Buttons: "Skip" (left), "Next" (right)
 2. **Expected:** Clear, concise explanation of core concept
 3. **Test Skip:** Tap "Skip" button
@@ -428,7 +428,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 4. **Expected:** All content descriptive, logical focus order, no missing labels
 5. **Test swipe navigation:** Swipe right/left navigates between screens smoothly
 
-### Expected Behavior
+### Expected Behaviour
 - Onboarding appears on first launch only (SharedPreferences flag detection)
 - All 4 screens display with clear, concise content (readable in < 30 seconds each)
 - Skip option available on every screen, immediately completes onboarding
@@ -763,7 +763,7 @@ No significant defects found.
 
 | AC# | Description | Status | Evidence (file:line) |
 |-----|-------------|--------|----------------------|
-| #1 | Welcome screen displays welcome message explaining core concept | ✅ IMPLEMENTED | `OnboardingScreen.kt:180-197` - "Welcome to Foodie" title + "Capture meals in 2 seconds. AI analyzes. Health Connect saves." body text |
+| #1 | Welcome screen displays welcome message explaining core concept | ✅ IMPLEMENTED | `OnboardingScreen.kt:180-197` - "Welcome to Foodie" title + "Capture meals in 2 seconds. AI analyses. Health Connect saves." body text |
 | #2 | User prompted to add home screen widget | ✅ IMPLEMENTED | `OnboardingScreen.kt:233-236` - "Add Home Screen Widget" title with instructions |
 | #3 | Widget instructions: "Long-press home screen → Widgets → Foodie" | ✅ IMPLEMENTED | `OnboardingScreen.kt:245-250` - Exact text match: "Long-press home screen → Widgets → Foodie" |
 | #4 | Health Connect permissions requested with clear rationale | ✅ IMPLEMENTED | `OnboardingScreen.kt:320-326` - "Foodie saves nutrition data to Health Connect for interoperability with other health apps like Google Fit." + Grant Permissions button (line 343) |
@@ -864,7 +864,7 @@ OnboardingViewModelTest (15 tests):
 - Mocks external dependencies (HealthConnectManager, SecurePreferences)
 - Tests both happy paths and error scenarios
 - Verifies state mutations
-- Clear test names describing behavior
+- Clear test names describing behaviour
 
 **Coverage Gaps:**
 - ⚠️ UI tests not implemented (acceptable for Story 5.7 scope - focuses on unit tests)

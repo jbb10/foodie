@@ -128,7 +128,7 @@ If tracking takes cognitive effort or interrupts daily life, adherence collapses
 - Home screen widget for instant camera access
 - Photo capture (single photo per entry)
 - Azure OpenAI API integration with simple structured JSON output: `{calories: number, description: string}`
-- Background processing (snap → pocket phone → AI analyzes)
+- Background processing (snap → pocket phone → AI analyses)
 - Auto-save to Google Health Connect when analysis completes
 - Ephemeral photo storage (delete immediately after extracting data)
 

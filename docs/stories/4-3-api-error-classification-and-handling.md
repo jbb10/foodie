@@ -10,7 +10,7 @@ Status: complete
 | 2025-11-15 | Amelia (Dev Agent) | Implementation complete - NotificationHelper created, error logging enhanced, deep linking added. All ACs satisfied. Manual testing pending. |
 | 2025-11-15 | Amelia (Dev Agent) | **DESIGN DECISION**: Removed network/server error notifications during retry flow. Only AuthError and PermissionDenied show persistent notifications (require user action). Network errors retry transparently in background - aligns with "transparent, easy calorie counting" UX vision. Future: In-app retry UI for failed analyses. |
 | 2025-11-15 | Amelia (Dev Agent) | **CODE REVIEW FIX**: Refactored NotificationHelper to inject ErrorHandler, eliminating duplicate error message logic. Now uses single source of truth (ErrorHandler.getUserMessage()). All tests passing. |
-| 2025-11-16 | Amelia (Dev Agent) | **MANUAL TEST BUG FIX**: Fixed duplicate notifications - AuthError and PermissionDenied now show only persistent notification with action button, not both persistent + standard notification. Moved notifyFailure() call to else branch in AnalyzeMealWorker. |
+| 2025-11-16 | Amelia (Dev Agent) | **MANUAL TEST BUG FIX**: Fixed duplicate notifications - AuthError and PermissionDenied now show only persistent notification with action button, not both persistent + standard notification. Moved notifyFailure() call to else branch in AnalyseMealWorker. |
 | 2025-11-16 | Amelia (Dev Agent) | **MANUAL TEST BUG FIX**: Fixed widget-first flow bypassing Health Connect permission checks. Created reusable HealthConnectPermissionGate component that gates any screen requiring HC access. Component shows OS dialog → education screen on denial → retry capability. |
 | 2025-11-16 | Amelia (Dev Agent) | **MANUAL TEST BUG FIX**: Fixed photo deletion on errors preventing retry. Photos now only deleted on successful HC save or NoFoodDetected error. All other errors retain photo for future retry attempts. |
 | 2025-11-16 | Amelia (Dev Agent) | Manual testing scenarios 1-2 completed successfully. All bug fixes deployed and verified on physical device. Story complete. |
@@ -55,8 +55,8 @@ So that I understand what happened and how to fix it.
      - File: `app/src/main/java/com/foodie/app/domain/error/ErrorType.kt`
      - Focus: getUserMessage() method, error message templates, notification content generation
   
-  2. Review AnalyzeMealWorker error handling from Story 4-2
-     - File: `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+  2. Review AnalyseMealWorker error handling from Story 4-2
+     - File: `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
      - Focus: How errors are currently handled, notification update mechanism
   
   3. Review notification infrastructure from Story 2-8
@@ -85,7 +85,7 @@ So that I understand what happened and how to fix it.
   ⚠️ Do NOT proceed to implementation tasks until research checkpoint is complete
 
 - [x] **Task 2: Enhance Error Message Display in Worker** (AC: #1-5, #8)
-  - [x] Open `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+  - [x] Open `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
   - [x] Locate error handling blocks (network errors, HTTP errors, parse errors)
   - [x] Replace generic error messages with ErrorHandler.getUserMessage(errorType)
   - [x] Ensure each error type uses appropriate message template:
@@ -108,7 +108,7 @@ So that I understand what happened and how to fix it.
   - [x] Configure notification channel: "meal_analysis_errors" with importance DEFAULT
 
 - [x] **Task 4: Enhance Logging with Full Error Context** (AC: #7)
-  - [x] Update error handling blocks in AnalyzeMealWorker to log comprehensive context
+  - [x] Update error handling blocks in AnalyseMealWorker to log comprehensive context
   - [x] Log pattern: `Timber.e(exception, "Error type: ${errorType}, Attempt: ${runAttemptCount}, Photo: ${photoUri}")`
   - [x] Include HTTP status code, response body (truncated), and error classification in logs
   - [x] Add structured logging for retry decisions: `Timber.w("Error classified as ${errorType}, retryable=${isRetryable}")`
@@ -122,7 +122,7 @@ So that I understand what happened and how to fix it.
   - [ ] Add retry action button to SnackBar when error is retryable
   - [ ] Open `app/src/main/java/com/foodie/app/ui/screens/settings/SettingsViewModel.kt`
   - [ ] Update API key validation error messages using ErrorHandler
-  **Note:** SettingsScreen will be implemented in Story 5.1. Error messages already flow through ErrorHandler in AnalyzeMealWorker and notifications.
+  **Note:** SettingsScreen will be implemented in Story 5.1. Error messages already flow through ErrorHandler in AnalyseMealWorker and notifications.
 
 - [x] **Task 6: Implement Settings Navigation from Notification** (AC: #8)
   - [x] Create PendingIntent for SettingsScreen in NotificationHelper
@@ -142,10 +142,10 @@ So that I understand what happened and how to fix it.
 
 - [ ] **Task 8: Integration Tests for Error Notification Flow** (AC: #8) **[COMBINED WITH TASK 9 - MANUAL TESTING]**
   - [ ] Create instrumentation test: `ErrorNotificationTest.kt`
-  - [ ] Mock AnalyzeMealWorker to throw AuthError, verify persistent notification shown
+  - [ ] Mock AnalyseMealWorker to throw AuthError, verify persistent notification shown
   - [ ] Mock NetworkError (after retry exhaustion), verify "Retry" action appears in notification
   - [ ] Tap "Open Settings" action, verify SettingsScreen launches
-  - [ ] Tap "Retry" action, verify WorkManager re-enqueues AnalyzeMealWorker
+  - [ ] Tap "Retry" action, verify WorkManager re-enqueues AnalyseMealWorker
   - [ ] Verify notification channel "meal_analysis_errors" is created
   **Note:** Notification action button testing requires physical device/emulator interaction. Combined with manual testing in Task 9.
 
@@ -196,8 +196,8 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 ### Testing Standards Summary:
 - **Unit Tests Required:** All ErrorHandler.getUserMessage() mappings, notification content generation
-- **Instrumentation Tests Required:** Persistent notification display, action button behavior, deep linking to settings
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Instrumentation Tests Required:** Persistent notification display, action button behaviour, deep linking to settings
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use MockK for mocking ErrorHandler, WorkManager, notification dependencies
 
@@ -235,7 +235,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 3. **Verify Retry:** Automatic retry happens without user intervention
 4. **Validation:** User understands error is temporary and system is handling it
 
-### Expected Behavior
+### Expected Behaviour
 - All error messages are user-friendly (no technical jargon)
 - Persistent notifications appear for errors requiring user action
 - Action buttons launch correct screens (Settings, Retry)
@@ -288,7 +288,7 @@ After user testing, we simplified the notification strategy to align with the ap
 
 - **Network/Server Errors:** NO persistent notifications during retry. These errors retry automatically in the background (exponential backoff: 1s, 2s, 4s). User only sees final failure notification if all retries exhausted.
   - Rationale: User doesn't need to know about transient network issues if they resolve automatically
-  - Foreground notification disappears when Worker stops (WorkManager behavior)
+  - Foreground notification disappears when Worker stops (WorkManager behaviour)
   - Analysis completes transparently when network restored
 
 - **Critical Errors (AuthError, PermissionDenied):** Persistent notifications with action buttons. These require user intervention to fix.
@@ -338,14 +338,14 @@ override fun onCreate(savedInstanceState: Bundle?) {
 - `app/src/androidTest/java/com/foodie/app/ui/ErrorNotificationTest.kt` - Integration tests for notification flow
 
 **Files to Modify:**
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Update error handling to use ErrorHandler.getUserMessage()
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Update error handling to use ErrorHandler.getUserMessage()
 - `app/src/main/java/com/foodie/app/data/worker/MealAnalysisForegroundNotifier.kt` - Add error message display to notification
 - `app/src/main/java/com/foodie/app/ui/screens/meallist/MealListViewModel.kt` - Update error state handling
 - `app/src/main/java/com/foodie/app/MainActivity.kt` - Handle deep link actions from notifications
 
 **Dependencies from Previous Stories:**
 - Story 4-1: ErrorHandler, ErrorType, NetworkMonitor
-- Story 4-2: AnalyzeMealWorker retry logic, notification updates
+- Story 4-2: AnalyseMealWorker retry logic, notification updates
 - Story 2-8: MealAnalysisForegroundNotifier, notification channel setup
 
 ### Learnings from Previous Story
@@ -367,7 +367,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
 - Retry decision: `errorHandler.isRetryable(errorType)`
 
 **Integration Points:**
-- AnalyzeMealWorker already uses ErrorHandler for classification and retry logic
+- AnalyseMealWorker already uses ErrorHandler for classification and retry logic
 - MealAnalysisForegroundNotifier already creates notification with custom messages
 - Need to extend notification with action buttons for critical errors
 - Need to create NotificationHelper for persistent notifications (separate from foreground service notification)
@@ -377,7 +377,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
 ### References
 
 - [ErrorHandler Implementation](stories/4-1-network-error-handling-infrastructure.md) - Error classification and message generation patterns
-- [AnalyzeMealWorker Retry Logic](stories/4-2-api-retry-logic-with-exponential-backoff.md) - Retry integration with ErrorHandler
+- [AnalyseMealWorker Retry Logic](stories/4-2-api-retry-logic-with-exponential-backoff.md) - Retry integration with ErrorHandler
 - [Epic 4 Tech Spec](tech-spec-epic-4.md) - Comprehensive error handling architecture
 - [Android Notifications Guide](https://developer.android.com/develop/ui/views/notifications) - Notification best practices and action buttons
 - [Deep Linking Guide](https://developer.android.com/training/app-links/deep-linking) - Deep link patterns for navigation
@@ -407,15 +407,15 @@ Claude Sonnet 4.5 (Amelia - Developer Agent) - 2025-11-15
 - isRetryable() correctly classifies retryable (NetworkError, ServerError) vs non-retryable (AuthError, RateLimitError, ParseError) (AC #6)
 - getNotificationContent() already exists with NotificationContent factory methods
 
-✅ **AnalyzeMealWorker Integration**
-- Location: `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+✅ **AnalyseMealWorker Integration**
+- Location: `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
 - Already uses ErrorHandler.classify() and getUserMessage() in doWork() (lines 308-350)
 - Current implementation: errorHandler.getUserMessage(errorType) passed to notifyFailure()
 - Enhancement needed: Add comprehensive logging with full error context (AC #7)
 
 ✅ **MealAnalysisForegroundNotifier Review**
 - Location: `app/src/main/java/com/foodie/app/data/worker/foreground/MealAnalysisForegroundNotifier.kt`
-- createFailureNotification() accepts String errorReason parameter
+- createFailureNotification() accepts String errorReason parametre
 - Currently NO action buttons on failure notifications
 - Need to enhance: Add action buttons based on error type (AC #8)
 
@@ -433,7 +433,7 @@ Claude Sonnet 4.5 (Amelia - Developer Agent) - 2025-11-15
 
 **Implementation Plan:**
 1. Create NotificationHelper utility for persistent notifications with action buttons
-2. Update AnalyzeMealWorker error handling to add comprehensive logging
+2. Update AnalyseMealWorker error handling to add comprehensive logging
 3. Enhance MealAnalysisForegroundNotifier OR use NotificationHelper for error notifications
 4. Update MainActivity to handle "com.foodie.app.OPEN_SETTINGS" intent action
 5. Write unit tests for ErrorHandler message mappings
@@ -460,17 +460,17 @@ Claude Sonnet 4.5 (Amelia - Developer Agent) - 2025-11-15
 **Implementation Summary:**
 - Enhanced error handling infrastructure with user-facing error notifications and actionable guidance
 - Created NotificationHelper utility for persistent error notifications with action buttons
-- Integrated ErrorHandler messages throughout AnalyzeMealWorker with comprehensive logging
+- Integrated ErrorHandler messages throughout AnalyseMealWorker with comprehensive logging
 - Implemented deep linking for Settings and Permissions navigation from notifications
 - All 8 acceptance criteria satisfied (AC #1-8)
 
 **Key Accomplishments:**
-1. **Error Message Display (AC #1-5):** ErrorHandler.getUserMessage() provides all required user-friendly messages. Integrated into AnalyzeMealWorker notification flow.
+1. **Error Message Display (AC #1-5):** ErrorHandler.getUserMessage() provides all required user-friendly messages. Integrated into AnalyseMealWorker notification flow.
 2. **Error Classification (AC #6):** ErrorHandler.classify() correctly maps exceptions to ErrorType. Unit tests verify all classifications (NetworkError, AuthError, ServerError, RateLimitError, ParseError).
-3. **Comprehensive Logging (AC #7):** Enhanced AnalyzeMealWorker logging with full error context (errorType, attempt count, photoUri, timestamp). Sensitive data never logged.
+3. **Comprehensive Logging (AC #7):** Enhanced AnalyseMealWorker logging with full error context (errorType, attempt count, photoUri, timestamp). Sensitive data never logged.
 4. **Persistent Notifications (AC #8):** NotificationHelper shows actionable notifications for critical errors:
    - AuthError → "Open Settings" button (deep links to MainActivity with OPEN_SETTINGS action)
-   - NetworkError (exhausted) → "Retry" button (re-enqueues AnalyzeMealWorker via BroadcastReceiver)
+   - NetworkError (exhausted) → "Retry" button (re-enqueues AnalyseMealWorker via BroadcastReceiver)
    - PermissionDenied → "Grant Access" button (launches Health Connect permission flow)
 
 **Files Created:**
@@ -478,7 +478,7 @@ Claude Sonnet 4.5 (Amelia - Developer Agent) - 2025-11-15
 - `app/src/main/java/com/foodie/app/util/RetryAnalysisBroadcastReceiver.kt` - Handles retry action from notifications (72 lines)
 
 **Files Modified:**
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Enhanced error logging, integrated NotificationHelper
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Enhanced error logging, integrated NotificationHelper
 - `app/src/main/java/com/foodie/app/MainActivity.kt` - Added deep link handling for OPEN_SETTINGS and GRANT_PERMISSIONS actions
 - `app/src/main/res/values/strings.xml` - Added error notification titles and action button labels
 - `app/src/main/AndroidManifest.xml` - Registered RetryAnalysisBroadcastReceiver
@@ -516,7 +516,7 @@ Claude Sonnet 4.5 (Amelia - Developer Agent) - 2025-11-15
 - `app/src/main/java/com/foodie/app/util/RetryAnalysisBroadcastReceiver.kt` - Broadcast receiver for retry analysis action
 
 **Modified Files:**
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Enhanced error logging, integrated NotificationHelper
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Enhanced error logging, integrated NotificationHelper
 - `app/src/main/java/com/foodie/app/MainActivity.kt` - Deep link handling for OPEN_SETTINGS and GRANT_PERMISSIONS
 - `app/src/main/res/values/strings.xml` - Error notification titles and action labels
 - `app/src/main/AndroidManifest.xml` - Registered RetryAnalysisBroadcastReceiver
@@ -575,7 +575,7 @@ Story 4.3 implements comprehensive error classification and user-facing error me
 2. **[MEDIUM] Manual testing incomplete but story marked review-ready (Task 9)**
    - **Location:** Dev Notes, Task 9
    - **Issue:** Dev Notes state "Manual testing will be performed on physical device" but story status is "review"
-   - **Impact:** Cannot validate notification action button behavior, deep linking UX, or critical error notification flow
+   - **Impact:** Cannot validate notification action button behaviour, deep linking UX, or critical error notification flow
    - **Recommendation:** Either complete manual testing and document results, or explicitly mark DoD manual testing item as blocked/deferred
 
 **LOW Severity:**
@@ -587,7 +587,7 @@ Story 4.3 implements comprehensive error classification and user-facing error me
    - **Recommendation:** Show generic error notification without retry button as fallback
 
 4. **[LOW] Design decision to skip notifications for network/server errors during retry**
-   - **Location:** `AnalyzeMealWorker.kt:350-357`, Dev Notes "Design Decision - Transparent Retry UX"
+   - **Location:** `AnalyseMealWorker.kt:350-357`, Dev Notes "Design Decision - Transparent Retry UX"
    - **Note:** Intentional design decision documented in Dev Notes ("transparent, easy calorie counting" UX vision)
    - **Recommendation:** Validate with user testing that silent retry doesn't confuse users who expect feedback
 
@@ -600,9 +600,9 @@ Story 4.3 implements comprehensive error classification and user-facing error me
 | **#3** | Server errors (5xx) show: "Service temporarily unavailable. Will retry automatically." | ✅ **IMPLEMENTED** | `ErrorHandler.kt:159` - getUserMessage() for ServerError |
 | **#4** | Rate limit errors (429) show: "Too many requests. Please wait a moment." | ✅ **IMPLEMENTED** | `ErrorHandler.kt:165-171` - getUserMessage() for RateLimitError with dynamic retry time |
 | **#5** | Invalid response format shows: "Unexpected response from AI service." | ✅ **IMPLEMENTED** | `ErrorHandler.kt:174` - getUserMessage() for ParseError |
-| **#6** | Each error type triggers appropriate handling (retry for 5xx, don't retry for 4xx) | ✅ **IMPLEMENTED** | `AnalyzeMealWorker.kt:315-339` - errorHandler.isRetryable() determines retry strategy, retryable errors return Result.retry(), non-retryable delete photo and fail |
-| **#7** | Errors are logged with full context for debugging | ✅ **IMPLEMENTED** | `AnalyzeMealWorker.kt:308-314` - Timber.tag(TAG).e() with errorType, retryable, photoUri, timestamp, attempt count |
-| **#8** | Critical errors show persistent notifications requiring user action | ✅ **IMPLEMENTED** | `NotificationHelper.kt:91-131` - showErrorNotification() with action buttons (Settings, Retry, Grant Access)<br>`AnalyzeMealWorker.kt:350-357` - Calls NotificationHelper for AuthError and PermissionDenied |
+| **#6** | Each error type triggers appropriate handling (retry for 5xx, don't retry for 4xx) | ✅ **IMPLEMENTED** | `AnalyseMealWorker.kt:315-339` - errorHandler.isRetryable() determines retry strategy, retryable errors return Result.retry(), non-retryable delete photo and fail |
+| **#7** | Errors are logged with full context for debugging | ✅ **IMPLEMENTED** | `AnalyseMealWorker.kt:308-314` - Timber.tag(TAG).e() with errorType, retryable, photoUri, timestamp, attempt count |
+| **#8** | Critical errors show persistent notifications requiring user action | ✅ **IMPLEMENTED** | `NotificationHelper.kt:91-131` - showErrorNotification() with action buttons (Settings, Retry, Grant Access)<br>`AnalyseMealWorker.kt:350-357` - Calls NotificationHelper for AuthError and PermissionDenied |
 
 **Summary:** 8 of 8 acceptance criteria fully implemented ✅
 
@@ -611,9 +611,9 @@ Story 4.3 implements comprehensive error classification and user-facing error me
 | Task | Marked As | Verified As | Evidence |
 |------|-----------|-------------|----------|
 | **Task 1:** Documentation Research | ✅ Complete | ✅ **VERIFIED COMPLETE** | Dev Notes "Task 1: Documentation Research Findings" section, ErrorHandler messages validated against ACs #1-5 |
-| **Task 2:** Enhance Error Messages | ✅ Complete | ✅ **VERIFIED COMPLETE** | `AnalyzeMealWorker.kt:312` - errorHandler.getUserMessage(errorType) passed to notifyFailure() |
-| **Task 3:** Persistent Notifications | ✅ Complete | ✅ **VERIFIED COMPLETE** | `NotificationHelper.kt:1-358` created with action buttons, `AnalyzeMealWorker.kt:350-357` shows notifications for AuthError/PermissionDenied |
-| **Task 4:** Enhance Logging | ✅ Complete | ✅ **VERIFIED COMPLETE** | `AnalyzeMealWorker.kt:308-314` - comprehensive error logging with errorType, retryable, photoUri, timestamp |
+| **Task 2:** Enhance Error Messages | ✅ Complete | ✅ **VERIFIED COMPLETE** | `AnalyseMealWorker.kt:312` - errorHandler.getUserMessage(errorType) passed to notifyFailure() |
+| **Task 3:** Persistent Notifications | ✅ Complete | ✅ **VERIFIED COMPLETE** | `NotificationHelper.kt:1-358` created with action buttons, `AnalyseMealWorker.kt:350-357` shows notifications for AuthError/PermissionDenied |
+| **Task 4:** Enhance Logging | ✅ Complete | ✅ **VERIFIED COMPLETE** | `AnalyseMealWorker.kt:308-314` - comprehensive error logging with errorType, retryable, photoUri, timestamp |
 | **Task 5:** UI Error Handling | ⬜ Incomplete | ✅ **CORRECTLY MARKED** | Deferred to Story 5.1 (Settings Screen), documented in Dev Notes |
 | **Task 6:** Settings Navigation | ✅ Complete | ✅ **VERIFIED COMPLETE** | `MainActivity.kt:104-110` handles OPEN_SETTINGS deep link action<br>`NotificationHelper.kt:164-174` creates Settings PendingIntent |
 | **Task 7:** Classification Tests | ✅ Complete | ✅ **VERIFIED COMPLETE** | `ErrorHandlerTest.kt:1-615` - 30+ tests covering all error classifications, verified passing via test run |
@@ -647,7 +647,7 @@ Story 4.3 implements comprehensive error classification and user-facing error me
 
 **Clean Architecture:** ✅ **COMPLIANT**
 - Domain Layer: ErrorHandler (Story 4.1, reused correctly)
-- Data Layer: AnalyzeMealWorker (error handling enhanced)
+- Data Layer: AnalyseMealWorker (error handling enhanced)
 - Utility Layer: NotificationHelper (new, appropriate layer for UI utilities)
 
 **MVVM Pattern:** ✅ **COMPLIANT**
@@ -655,7 +655,7 @@ Story 4.3 implements comprehensive error classification and user-facing error me
 
 **Dependency Injection:** ✅ **COMPLIANT**
 - NotificationHelper: `@Singleton` with `@ApplicationContext` injection
-- AnalyzeMealWorker: `@HiltWorker` with constructor injection of NotificationHelper
+- AnalyseMealWorker: `@HiltWorker` with constructor injection of NotificationHelper
 - RetryAnalysisBroadcastReceiver: BroadcastReceiver (no DI needed, uses WorkManager.getInstance())
 
 **Constraints Compliance:**
@@ -718,7 +718,7 @@ Story 4.3 implements comprehensive error classification and user-facing error me
 
 - [x] **[Med]** Complete manual testing on physical device or update DoD to mark manual testing as deferred (Finding #2, Task 9) ✅ COMPLETE
   - Test invalid API key → verify "Open Settings" notification and action button functionality ✅ Verified - single persistent notification with action button
-  - Test network timeout → verify retry flow and notification behavior ✅ Verified - scenarios 1-2 complete
+  - Test network timeout → verify retry flow and notification behaviour ✅ Verified - scenarios 1-2 complete
   - Additional bugs found and fixed: duplicate notifications, widget-first permission bypass, photo deletion on errors
   - All fixes deployed and verified on physical device
 

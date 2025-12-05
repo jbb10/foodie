@@ -75,12 +75,12 @@ All fields typed with validation rules specified (lines 142-148).
 
 **Evidence:** Lines 388-515 provide complete interface specifications:
 
-- **EnergyBalanceRepository Interface** (lines 388-425): 6 methods with kdoc, parameters, return types
+- **EnergyBalanceRepository Interface** (lines 388-425): 6 methods with kdoc, parametres, return types
 - **UserProfileRepository Interface** (lines 427-458): 4 methods with full signatures
-- **HealthConnectDataSource Extensions** (lines 460-502): 10 methods with parameter types and return values
+- **HealthConnectDataSource Extensions** (lines 460-502): 10 methods with parametre types and return values
 - **Error Types** (lines 504-515): Complete sealed class hierarchy
 
-All methods include documentation, parameter types, and return types.
+All methods include documentation, parametre types, and return types.
 
 ---
 
@@ -118,7 +118,7 @@ All dependencies include exact version numbers where applicable.
 
 - Story 6.1, AC#1: "Settings screen displays fields for Sex (Male/Female), Age (years), Weight (kg), Height (cm)" - specific UI elements, verifiable
 - Story 6.2, AC#2: "Males: BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age_years) + 5" - exact formula, calculable
-- Story 6.6, AC#4: "Deficit shows in green with negative number format: '-500 kcal deficit'" - specific format and color, testable
+- Story 6.6, AC#4: "Deficit shows in green with negative number format: '-500 kcal deficit'" - specific format and colour, testable
 
 All 43 ACs follow SMART criteria (Specific, Measurable, Achievable, Relevant, Testable).
 
@@ -204,7 +204,7 @@ None - tech spec meets all quality standards.
 
 3. ✅ **UI implementation included:** Full Compose code snippets added for EnergyBalanceDashboardScreen including:
    - Main screen scaffold with pull-to-refresh
-   - DeficitSurplusCard with color-coded deficit/surplus display
+   - DeficitSurplusCard with colour-coded deficit/surplus display
    - CaloriesSummaryCard showing Calories In/Out
    - TDEEBreakdownCard with formula visualization
    - EmptyState and ErrorState composables

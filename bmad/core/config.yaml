@@ -4,6 +4,6 @@
 # Date: 2025-11-07T20:33:38.978Z
 
 user_name: BMad
-communication_language: English
-document_output_language: English
+communication_language: British English
+document_output_language: British English
 output_folder: '{project-root}/docs'

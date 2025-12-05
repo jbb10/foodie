@@ -39,7 +39,7 @@ So that storage doesn't accumulate indefinitely from failed analyses.
 ### Already Implemented (70% Complete)
 
 ✅ **Smart Photo Deletion Logic** (Bug Fix #3 - 2025-11-16)
-- Location: `AnalyzeMealWorker.kt:245-260, 295-305`
+- Location: `AnalyseMealWorker.kt:245-260, 295-305`
 - Photos deleted on successful Health Connect save ✅
 - Photos deleted on NoFoodDetected error (non-retryable) ✅
 - Photos RETAINED on retryable errors (enables manual retry) ✅
@@ -258,18 +258,18 @@ This story adds automated cleanup for stale photos that remain after failed anal
 
 ⚠️ **Test Execution Status**
 - Main code compiles successfully (assembleDebug: SUCCESS)
-- Pre-existing test compilation errors FIXED (6 files updated with correct constructor parameters)
+- Pre-existing test compilation errors FIXED (6 files updated with correct constructor parametres)
 - All test files now compile successfully (compileDebugAndroidTestKotlin: SUCCESS)
 - Test execution blocked by Hilt code generation issue (DaggerDefault_HiltComponents_SingletonC not found)
 - Issue appears to be Hilt-related build cache corruption - requires further investigation
 - Recommendation: Run tests individually or after full clean build to resolve Hilt generation issue
 
 **Pre-existing Test Errors Fixed:**
-- NutritionAnalysisRepositoryImplIntegrationTest.kt: Added missing `context` parameter
-- AnalyzeMealWorkerForegroundTest.kt: Added missing `networkMonitor`, `errorHandler`, `notificationHelper` parameters and mocks
-- HealthConnectHiltTest.kt: Added missing `healthConnectManager` parameter
-- DeepLinkTest.kt: Added missing `healthConnectManager` injection and parameter
-- NavGraphTest.kt: Added missing `healthConnectManager` injection and parameter
+- NutritionAnalysisRepositoryImplIntegrationTest.kt: Added missing `context` parametre
+- AnalyseMealWorkerForegroundTest.kt: Added missing `networkMonitor`, `errorHandler`, `notificationHelper` parametres and mocks
+- HealthConnectHiltTest.kt: Added missing `healthConnectManager` parametre
+- DeepLinkTest.kt: Added missing `healthConnectManager` injection and parametre
+- NavGraphTest.kt: Added missing `healthConnectManager` injection and parametre
 
 **Manual Testing Plan** (Task 9):
 Since automated tests cannot run due to pre-existing errors, manual testing should verify:

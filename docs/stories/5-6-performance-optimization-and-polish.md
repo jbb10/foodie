@@ -45,7 +45,7 @@ So that the experience meets the "invisible tracking" promise.
   2. Review Jetpack Compose performance guidelines
      - Starting point: https://developer.android.com/jetpack/compose/performance
      - Focus: Recomposition optimization, remember vs derivedStateOf, key usage
-     - Stability: Stable types for parameters, avoid unstable lambdas in recomposition scope
+     - Stability: Stable types for parametres, avoid unstable lambdas in recomposition scope
   
   3. Review ProGuard/R8 optimization
      - Starting point: https://developer.android.com/build/shrink-code
@@ -108,7 +108,7 @@ So that the experience meets the "invisible tracking" promise.
     }
     ```
   - [x] Optimize MealEntryCard composable:
-    - Ensure meal parameter is stable (immutable data class)
+    - Ensure meal parametre is stable (immutable data class)
     - Use `remember` for derived values computed from meal data
     - Avoid lambda allocations in recomposition scope
   - [x] Implement efficient date header grouping:
@@ -142,7 +142,7 @@ So that the experience meets the "invisible tracking" promise.
     - Use `viewModelScope` for coroutines (auto-cancellation on clear)
     - Cancel long-running operations in `onCleared()`
   - [x] Optimize WorkManager memory usage:
-    - Verify AnalyzeMealWorker cleans up photo file after processing
+    - Verify AnalyseMealWorker cleans up photo file after processing
     - Check for bitmap leaks during base64 encoding (ensure recycled)
   - [ ] Fix any leaks detected:
     - Activity leaks: Remove static references, use ApplicationContext
@@ -176,13 +176,13 @@ So that the experience meets the "invisible tracking" promise.
 
 - [x] **Task 7: Battery Impact Optimization** (AC: #6)
   - [x] Note: Primary battery usage is WorkManager during meal analysis
-  - [x] Review AnalyzeMealWorker efficiency from Story 2.5/2.8:
+  - [x] Review AnalyseMealWorker efficiency from Story 2.5/2.8:
     - Verify photo deleted immediately after processing
     - Check notification updates are minimal (only on state changes)
     - Ensure network call timeout prevents hanging work (15s max)
   - [x] Optimize WorkManager constraints:
     - Current: No network constraints (runs on any network)
-    - Consider: Require unmetered network for large uploads (optional setting)
+    - Consider: Require unmetreed network for large uploads (optional setting)
   - [x] Verify no background work when app idle:
     - PhotoCleanupWorker runs once daily at 3am (acceptable)
     - No polling or periodic sync (Health Connect is single source of truth)
@@ -190,7 +190,7 @@ So that the experience meets the "invisible tracking" promise.
     ```bash
     adb bugreport > bugreport.zip
     # Upload to https://bathist.ef.lc/
-    # Analyze Foodie app battery consumption over 24 hours with 3-5 captures
+    # Analyse Foodie app battery consumption over 24 hours with 3-5 captures
     ```
   - [ ] Target: Negligible battery impact for 3-5 captures per day
   - [ ] Document findings: Estimated battery % per capture
@@ -219,7 +219,7 @@ So that the experience meets the "invisible tracking" promise.
     ```proguard
     # Retrofit
     -keepattributes Signature, InnerClasses, EnclosingMethod
-    -keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
+    -keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParametreAnnotations
     -keepclassmembers,allowshrinking,allowobfuscation interface * {
         @retrofit2.http.* <methods>;
     }
@@ -242,15 +242,15 @@ So that the experience meets the "invisible tracking" promise.
   - [x] Optimize image assets:
     - Convert PNG to WebP where applicable
     - Use vector drawables (XML) for icons instead of rasterized PNGs
-  - [x] Analyze APK with APK Analyzer:
-    - Build → Analyze APK in Android Studio
+  - [x] Analyse APK with APK Analyser:
+    - Build → Analyse APK in Android Studio
     - Identify large dependencies or resources
     - Consider removing unused libraries
   - [x] Validate: Release APK < 10MB after all optimizations
 
 - [x] **Task 9: Compose Performance Optimization** (AC: #1, #2)
   - [x] Audit all Composable functions for stability:
-    - Ensure all parameters are stable types (primitives, data classes, enums)
+    - Ensure all parametres are stable types (primitives, data classes, enums)
     - Avoid unstable types like lambdas without `remember`
     - Use `@Stable` annotation where appropriate
   - [x] Optimize expensive computations:
@@ -305,7 +305,7 @@ So that the experience meets the "invisible tracking" promise.
     - GPU Rendering Profile interpretation
     - Layout Inspector recomposition counts
     - Battery Historian analysis steps
-    - APK Analyzer usage
+    - APK Analyser usage
   - [x] Define baseline vs optimized metrics comparison table
   - [x] Add AC verification checklist mapping each AC to test scenario
 
@@ -367,7 +367,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - **Performance Profiling Required:** Mandatory - Android Profiler, GPU Rendering Profile, LeakCanary, Battery Historian
 - **Manual Testing Required:** All 8 scenarios in manual test guide (launch time, scrolling, memory, battery, APK size, animations)
 - **Test Environment:** Mid-range device (Samsung A53 or equivalent) to avoid masking issues on flagship devices
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 
 ## User Demo
@@ -446,8 +446,8 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
    ls -lh app/build/outputs/apk/release/app-release.apk
    ```
 2. **Expected:** File size < 10MB (e.g., 8.2 MB)
-3. **Open APK Analyzer:**
-   - Build → Analyze APK → Select app-release.apk
+3. **Open APK Analyser:**
+   - Build → Analyse APK → Select app-release.apk
    - Verify resources shrunk, code optimized
 4. **Expected:** Minimal APK size without unnecessary resources
 
@@ -460,12 +460,12 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
      adb bugreport > bugreport.zip
      ```
    - Upload to https://bathist.ef.lc/
-2. **Analyze Foodie battery consumption:**
+2. **Analyse Foodie battery consumption:**
    - Look for Foodie in app battery usage
    - Check wake locks, network usage during meal analysis
 3. **Expected:** Negligible battery impact (< 2% over 24 hours with 5 captures)
 
-### Expected Behavior
+### Expected Behaviour
 - Cold app launch completes in ≤ 2 seconds
 - All screen transitions render at 60fps (green bars below 16ms line)
 - List scrolling with 50+ entries is buttery smooth, no jank
@@ -650,7 +650,7 @@ Performance optimization is data-driven: measure baseline → identify bottlenec
 - `app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailScreen.kt` - Optimize Compose stability
 - `app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt` - Add smooth transition animations
 - `app/src/main/java/com/foodie/app/ui/components/MealEntryCard.kt` - Optimize recomposition scope with remember
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Review notification update frequency
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Review notification update frequency
 
 **No New Files Expected:**
 - Performance optimization is configuration + code refinement, not new features
@@ -731,7 +731,7 @@ App already performing well above target metrics. Optimizations focused on:
    - Added `remember(meal.timestamp)` to MealEntryCard
    - Caches formatted timestamp to prevent DateTimeFormatter calls on every recomposition
    - LazyColumn keys already optimal: `key = { meal -> meal.id }`
-   - All composable parameters are stable types (MealEntry is immutable data class)
+   - All composable parametres are stable types (MealEntry is immutable data class)
 
 4. **Navigation Animations (Task 2)**:
    - Verified existing implementation already optimal
@@ -742,7 +742,7 @@ App already performing well above target metrics. Optimizations focused on:
 
 5. **Manual Test Guide Created (Task 10)**:
    - Comprehensive 8-scenario test guide: `docs/testing/manual-test-guide-story-5-6.md`
-   - Tool usage instructions: Android Profiler, GPU Rendering Profile, Battery Historian, APK Analyzer
+   - Tool usage instructions: Android Profiler, GPU Rendering Profile, Battery Historian, APK Analyser
    - Baseline vs optimized metrics comparison table
    - AC verification checklist mapping
 

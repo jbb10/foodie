@@ -85,7 +85,7 @@ This is the core hypothesis - can invisible tracking actually work in real life?
 - Home screen widget for quick camera access (requires device unlock with biometric for fast access)
 - Single photo capture per meal entry
 - Azure OpenAI GPT-4.1 API integration with structured JSON output: `{calories: number, description: string}`
-- Background processing: snap → pocket phone → AI analyzes → auto-save
+- Background processing: snap → pocket phone → AI analyses → auto-save
 - Automatic save to Google Health Connect when analysis completes
 - Ephemeral photo storage: delete immediately after extracting caloric data
 
@@ -198,7 +198,7 @@ This is the core hypothesis - can invisible tracking actually work in real life?
 **Permission Handling:**
 - Request camera permission on first widget activation
 - Request Health Connect permissions on first app launch
-- Clear permission rationale: "Foodie needs camera access to analyze your meals and Health Connect access to save your nutrition data locally on your device."
+- Clear permission rationale: "Foodie needs camera access to analyse your meals and Health Connect access to save your nutrition data locally on your device."
 - Graceful degradation: App unusable without required permissions (core functionality depends on them)
 
 ### Home Screen Widget Specification
@@ -209,7 +209,7 @@ This is the core hypothesis - can invisible tracking actually work in real life?
 - Minimal UI: App icon + "Log Meal" text
 - Size: Standard small widget (2x1 or 2x2 grid cells)
 
-**Widget Behavior:**
+**Widget Behaviour:**
 - Tap → Immediate camera launch (after device unlock if locked)
 - Photo capture → Return to home screen (or previous app)
 - Background processing begins automatically
@@ -227,7 +227,7 @@ Android does not support third-party lock screen widgets on phones. Lock screen 
 - Android 12+ widget API using Jetpack Glance
 - Use Glance composables for widget UI (modern Compose-like API)
 - `PendingIntent` to launch camera activity directly via deep link
-- Consider `CameraX` library for consistent camera behavior
+- Consider `CameraX` library for consistent camera behaviour
 - Widget updates not needed (static "Log Meal" button)
 - Widget configured for home screen placement only
 
@@ -237,7 +237,7 @@ Android does not support third-party lock screen widgets on phones. Lock screen 
 - Use built-in Android camera intent (system camera app)
 - Leverage stock camera UI if it meets speed and usability requirements
 - Full-screen camera view (maximize food visibility)
-- Auto-focus on center (food typically centered in frame)
+- Auto-focus on centre (food typically centreed in frame)
 - Flash: User-controlled via system camera (auto-flash often inaccurate for food)
 
 **Photo Specifications:**
@@ -280,7 +280,7 @@ Walking with plate while taking single-handed photos often results in blurry/sha
 - Battery optimization: Use WorkManager for deferred processing if immediate retry fails
 
 **Error Handling:**
-- Network unavailable: Show persistent notification "Meal photo saved, will analyze when online"
+- Network unavailable: Show persistent notification "Meal photo saved, will analyse when online"
 - API failure: Retry up to 3 times with exponential backoff
 - After 3 failed retries: Show error notification with manual retry option
 - Health Connect unavailable: Log error, prompt user to enable Health Connect
@@ -311,14 +311,14 @@ Content-Type: application/json
 
 {
   "model": "gpt-4.1",
-  "instructions": "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).",
+  "instructions": "You are a nutrition analysis assistant. Analyse the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).",
   "input": [
     {
       "role": "user",
       "content": [
         {
           "type": "input_text",
-          "text": "Analyze this meal and estimate total calories."
+          "text": "Analyse this meal and estimate total calories."
         },
         {
           "type": "input_image",
@@ -422,7 +422,7 @@ Health Connect stores ALL data - no local database needed. The `NutritionRecord.
 
 ### Offline Capability (Deferred to V2.0)
 
-**V1.0 Behavior:**
+**V1.0 Behaviour:**
 - Requires network connectivity for AI analysis
 - Show error notification if offline: "No internet - meal not logged. Retry when online?"
 - Manual retry button in notification
@@ -494,7 +494,7 @@ Users trust the AI estimates but have full visibility and control. Evening revie
 **Minimalist Interface:**
 - Clean white/dark backgrounds
 - High contrast for outdoor visibility (bright sunlight use case)
-- Monochrome color scheme (focus on data, not decoration)
+- Monochrome colour scheme (focus on data, not decoration)
 - System fonts (San Francisco UI on Android)
 
 **Data Presentation:**
@@ -566,9 +566,9 @@ Android does not support third-party lock screen widgets on phones. Lock screen 
 
 ### FR-3: AI Nutrition Analysis
 
-**Requirement:** Analyze food photos using Azure OpenAI to extract calorie count and description
+**Requirement:** Analyse food photos using Azure OpenAI to extract calorie count and description
 
-**User Story:** As a user, I want the app to automatically analyze my food photo and estimate calories so I don't have to manually look up or guess the calorie content.
+**User Story:** As a user, I want the app to automatically analyse my food photo and estimate calories so I don't have to manually look up or guess the calorie content.
 
 **Acceptance Criteria:**
 - Send photo to Azure OpenAI GPT-4.1 API after capture
@@ -581,12 +581,12 @@ Android does not support third-party lock screen widgets on phones. Lock screen 
 
 **System Prompt:**
 ```
-You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).
+You are a nutrition analysis assistant. Analyse the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).
 ```
 
 **User Prompt:**
 ```
-Analyze this meal and estimate total calories.
+Analyse this meal and estimate total calories.
 ```
 
 **Technical Notes:**
@@ -741,7 +741,7 @@ Captured: Nov 7, 2025 at 12:30 PM
 
 **Acceptance Criteria:**
 - Detect network unavailability before API call
-- Show notification: "No internet - meal saved, will analyze when online"
+- Show notification: "No internet - meal saved, will analyse when online"
 - Retry API call up to 3 times with exponential backoff (1s, 2s, 4s delays)
 - After 3 failures: Show persistent notification "Meal analysis failed. Tap to retry manually."
 - Manual retry button in notification re-triggers API call
@@ -948,7 +948,7 @@ The entire product value hinges on being faster than manual entry (30+ seconds).
 - JSON response parsing (calories + description)
 - Error handling for API failures
 
-**Milestone:** Photo successfully analyzed by AI, calories extracted
+**Milestone:** Photo successfully analysed by AI, calories extracted
 
 **Success Criteria:**
 - API call completes in < 10 seconds
@@ -1092,7 +1092,7 @@ The entire product value hinges on being faster than manual entry (30+ seconds).
 ### Network & API
 
 **Edge Case:** No network connectivity
-- **Handling:** Queue photo locally, show notification "Will analyze when online", retry on network restore
+- **Handling:** Queue photo locally, show notification "Will analyse when online", retry on network restore
 
 **Edge Case:** Azure OpenAI API is down or rate-limited
 - **Handling:** Retry with exponential backoff, manual retry button after 3 failures

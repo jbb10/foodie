@@ -37,6 +37,7 @@ package com.foodie.app.domain.exception
  *
  * @param message Optional custom message from the AI explaining what was detected instead
  */
-class NoFoodDetectedException(
-    message: String = "No food detected in the image",
-) : Exception(message)
+/**
+ * Exception thrown when the AI detects no food in the analysed image.
+ */
+class NoFoodDetectedException(message: String) : Exception(message)

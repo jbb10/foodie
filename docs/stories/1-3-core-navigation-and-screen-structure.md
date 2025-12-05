@@ -21,7 +21,7 @@ So that features can be integrated into a cohesive user flow.
 - [x] **Task 1: Create navigation routes and sealed class** (AC: #1)
   - [x] Create `ui/navigation/Screen.kt` sealed class defining all app routes
   - [x] Define routes: `MealList` (home), `MealDetail/{mealId}` (edit), `Settings`
-  - [x] Add `createRoute()` helper methods for routes with parameters (mealId)
+  - [x] Add `createRoute()` helper methods for routes with parametres (mealId)
   - [x] Write unit tests verifying route string generation
 
 - [x] **Task 2: Implement navigation graph** (AC: #1, #5)
@@ -42,7 +42,7 @@ So that features can be integrated into a cohesive user flow.
 
 - [x] **Task 4: Create MealDetail screen placeholder** (AC: #3, #4)
   - [x] Create `ui/screens/mealdetail/MealDetailScreen.kt` composable
-  - [x] Extract `mealId` parameter from `NavBackStackEntry` arguments
+  - [x] Extract `mealId` parametre from `NavBackStackEntry` arguments
   - [x] Implement placeholder UI: Scaffold with TopAppBar (title: "Edit Meal", navigation icon: back arrow), Text displaying "Editing meal: {mealId}")
   - [x] Add navigation callback: `onNavigateBack: () -> Unit`
   - [x] Wire back arrow to `onNavigateBack` callback
@@ -77,7 +77,7 @@ So that features can be integrated into a cohesive user flow.
   - [x] Verify deep link launches app to MealList screen (test via adb command)
   - [x] Document deep link usage for future widget implementation (Epic 2)
 
-- [x] **Task 9: Test back stack behavior** (AC: #4)
+- [x] **Task 9: Test back stack behaviour** (AC: #4)
   - [x] Write instrumentation test: Launch app → Tap meal (navigate to Detail) → Press back → Verify returns to List
   - [x] Write instrumentation test: Launch app → Navigate to Settings → Press back → Verify returns to List
   - [x] Write instrumentation test: Launch app → Detail → Settings → Back → Back → Verify returns to List then exits app
@@ -117,7 +117,7 @@ NavHost (rememberNavController)
 
 **Key Design Decisions:**
 - **Single Activity Architecture**: MainActivity hosts NavHost, all screens are Composables (no Fragments)
-- **Type-Safe Navigation**: Sealed class routes prevent typos, createRoute() helpers for parameterized routes
+- **Type-Safe Navigation**: Sealed class routes prevent typos, createRoute() helpers for parametreized routes
 - **Unidirectional Data Flow**: Screens receive callbacks (events up), not NavController (prevents tight coupling)
 - **Deep Link Support**: `foodie://home` deep link prepared for lock screen widget (Epic 2, Story 2.1)
 
@@ -134,7 +134,7 @@ This story builds on the MVVM architecture foundation established in Story 1.2. 
 
 **Testing Patterns - APPLY:**
 - Truth assertions for readable tests
-- Test naming: `methodName should behavior when condition`
+- Test naming: `methodName should behaviour when condition`
 - Compose UI testing with `createComposeRule()`, `onNodeWithText()`, `performClick()`
 - Navigation testing with `TestNavHostController` for instrumentation tests
 
@@ -220,13 +220,13 @@ Per Architecture Document, Foodie uses **Jetpack Navigation Compose** with singl
 
 1. **Screen Composables Receive Callbacks** (not NavController)
    - Screens don't know about navigation implementation
-   - Callbacks defined in screen parameters: `onNavigateBack`, `onMealClick`, etc.
+   - Callbacks defined in screen parametres: `onNavigateBack`, `onMealClick`, etc.
    - NavGraph wires callbacks to actual navigation actions
    - Benefit: Screens are testable in isolation with `@Preview`
 
 2. **Type-Safe Routes with Sealed Class**
    - Prevents string typo errors
-   - Compile-time safety for route parameters
+   - Compile-time safety for route parametres
    - Helper methods (`createRoute()`) encapsulate route construction
 
 3. **Deep Linking for Widget Integration**
@@ -247,7 +247,7 @@ Per Architecture Document, Foodie uses **Jetpack Navigation Compose** with singl
 1. **Navigation Graph Tests** (instrumentation)
    - Verify all destinations configured correctly
    - Test navigation actions (click meal → navigates to detail)
-   - Test back stack behavior (detail → back → list)
+   - Test back stack behaviour (detail → back → list)
 
 2. **Screen Rendering Tests** (instrumentation)
    - Each screen renders without crashes
@@ -327,7 +327,7 @@ fun navGraph_navigateToMealDetail_displaysCorrectMealId() {
 - Deep link `foodie://home` can be tested via adb: `adb shell am start -W -a android.intent.action.VIEW -d "foodie://home" com.foodie.app`
 - Lock screen widget (Story 2.1) will use this deep link to launch app
 
-**Back Stack Behavior:**
+**Back Stack Behaviour:**
 - MealList is `startDestination` (root of back stack)
 - Pressing back on MealList exits app (expected)
 - MealDetail and Settings push onto back stack, pressing back returns to MealList
@@ -363,7 +363,7 @@ Successfully implemented complete navigation infrastructure for the Foodie app u
 2. **Complete NavGraph** - Configured all three screen destinations (MealList, MealDetail, Settings) with proper navigation actions, deep linking, and back stack handling
 3. **Placeholder Screens** - Implemented all three screens following Material3 design patterns with proper callbacks for testability
 4. **Deep Link Integration** - Configured `foodie://home` deep link in NavGraph and AndroidManifest for future widget support (Epic 2)
-5. **Comprehensive Testing** - Created unit tests for route generation and instrumentation tests for navigation flows, screen rendering, and back stack behavior
+5. **Comprehensive Testing** - Created unit tests for route generation and instrumentation tests for navigation flows, screen rendering, and back stack behaviour
 6. **Documentation** - Updated app README with navigation architecture guide, screen addition workflow, and deep link configuration
 
 **Technical Highlights:**
@@ -449,7 +449,7 @@ Story 1.3 successfully implements the complete navigation infrastructure for the
 | AC #1 | Navigation component configured with navigation graph | ✅ IMPLEMENTED | `ui/navigation/NavGraph.kt:38-84` - Complete NavHost configuration with all three composable destinations, proper arguments, and deep linking |
 | AC #2 | Main activity hosts navigation controller | ✅ IMPLEMENTED | `MainActivity.kt:25-29` - MainActivity.setContent calls NavGraph() within FoodieTheme wrapper, following single-activity pattern |
 | AC #3 | Placeholder screens exist for List View, Edit Screen, Settings Screen | ✅ IMPLEMENTED | MealListScreen.kt:45-103, MealDetailScreen.kt:31-67, SettingsScreen.kt:31-67 - All three screens implemented with Scaffold, TopAppBar, proper callbacks |
-| AC #4 | Navigation between screens works with proper back stack handling | ✅ IMPLEMENTED | NavGraph.kt:51-53,70-72,78-80 - All callbacks wired to navigate/popBackStack. NavGraphTest.kt:117-145 verifies back stack behavior |
+| AC #4 | Navigation between screens works with proper back stack handling | ✅ IMPLEMENTED | NavGraph.kt:51-53,70-72,78-80 - All callbacks wired to navigate/popBackStack. NavGraphTest.kt:117-145 verifies back stack behaviour |
 | AC #5 | Deep linking configured for widget intents | ✅ IMPLEMENTED | NavGraph.kt:48-50 (foodie://home deep link), AndroidManifest.xml:42-47 (intent-filter with scheme/host) |
 
 **Summary:** 5 of 5 acceptance criteria fully implemented ✅
@@ -464,7 +464,7 @@ Story 1.3 successfully implements the complete navigation infrastructure for the
 | Task 2 subtasks (6 total) | ✅ Complete | ✅ VERIFIED | Deep link at NavGraph.kt:48-50, instrumentation tests at NavGraphTest.kt:40-180 |
 | Task 3: Create MealList screen placeholder | ✅ Complete | ✅ VERIFIED | MealListScreen.kt:45-181 - Scaffold with TopAppBar, FAB, LazyColumn with test data, callbacks, @Preview |
 | Task 3 subtasks (6 total) | ✅ Complete | ✅ VERIFIED | Test data at MealListScreen.kt:56-80, UI tests at MealListScreenTest.kt:21-107 |
-| Task 4: Create MealDetail screen placeholder | ✅ Complete | ✅ VERIFIED | MealDetailScreen.kt:31-78 - mealId parameter extraction, Scaffold with back navigation, @Preview |
+| Task 4: Create MealDetail screen placeholder | ✅ Complete | ✅ VERIFIED | MealDetailScreen.kt:31-78 - mealId parametre extraction, Scaffold with back navigation, @Preview |
 | Task 4 subtasks (7 total) | ✅ Complete | ✅ VERIFIED | mealId extraction at NavGraph.kt:69, back navigation at MealDetailScreen.kt:43-47 |
 | Task 5: Create Settings screen placeholder | ✅ Complete | ✅ VERIFIED | SettingsScreen.kt:31-78 - Scaffold with TopAppBar, back navigation, @Preview |
 | Task 5 subtasks (6 total) | ✅ Complete | ✅ VERIFIED | Back arrow at SettingsScreen.kt:43-47, UI tests at SettingsScreenTest.kt |
@@ -474,7 +474,7 @@ Story 1.3 successfully implements the complete navigation infrastructure for the
 | Task 7 subtasks (5 total) | ✅ Complete | ✅ VERIFIED | NavGraphTest.kt:79-115 tests all navigation actions |
 | Task 8: Configure deep linking for widget | ✅ Complete | ✅ VERIFIED | NavGraph.kt:48-50 (navDeepLink), AndroidManifest.xml:42-47 (intent-filter) |
 | Task 8 subtasks (5 total) | ✅ Complete | ✅ VERIFIED | Documentation in README.md lines 170-220 |
-| Task 9: Test back stack behavior | ✅ Complete | ✅ VERIFIED | NavGraphTest.kt:117-145 - Tests for Detail→back→List, Settings→back→List, multi-screen navigation |
+| Task 9: Test back stack behaviour | ✅ Complete | ✅ VERIFIED | NavGraphTest.kt:117-145 - Tests for Detail→back→List, Settings→back→List, multi-screen navigation |
 | Task 9 subtasks (4 total) | ✅ Complete | ✅ VERIFIED | All back stack tests passing |
 | Task 10: Add temporary test data to MealList | ✅ Complete | ✅ VERIFIED | MealListScreen.kt:56-80 - 4 hardcoded MealEntry items with comment noting replacement in Epic 3 |
 | Task 10 subtasks (4 total) | ✅ Complete | ✅ VERIFIED | LazyColumn at MealListScreen.kt:104-116, clickable items at MealListItem.kt:129-154 |
@@ -499,7 +499,7 @@ Story 1.3 successfully implements the complete navigation infrastructure for the
 - ✅ TestNavHostController used correctly for navigation testing
 - ✅ Compose UI testing patterns followed (createComposeRule, onNodeWithText, performClick)
 - ✅ Proper test isolation (each test sets up own compose content)
-- ✅ Meaningful test names following "should behavior when condition" pattern
+- ✅ Meaningful test names following "should behaviour when condition" pattern
 - ✅ Edge cases covered (special characters in mealId, multiple navigation paths)
 
 **Coverage by AC:**
@@ -524,13 +524,13 @@ Story 1.3 successfully implements the complete navigation infrastructure for the
 
 2. **Type-Safe Navigation** (architecture.md:Navigation-Configuration)
    - ✅ Sealed class routes prevent string typos
-   - ✅ createRoute() helpers for parameterized routes
+   - ✅ createRoute() helpers for parametreized routes
    - Evidence: Screen.kt:22-42, usage in NavGraph.kt:51-53
 
 3. **Unidirectional Data Flow** (architecture.md:Implementation-Patterns)
    - ✅ Screens receive callbacks (events up), not NavController
    - ✅ NavGraph wires callbacks to actual navigation
-   - Evidence: MealListScreen.kt parameters, NavGraph.kt:51-53
+   - Evidence: MealListScreen.kt parametres, NavGraph.kt:51-53
 
 4. **Material3 Design System** (architecture.md:Technology-Stack)
    - ✅ Scaffold structure in all screens
@@ -557,7 +557,7 @@ No security concerns identified. This story implements UI navigation only (no da
 
 **Security observations:**
 - Deep link `foodie://home` is safe (navigates to public screen)
-- No user data exposed in navigation parameters (only meal IDs)
+- No user data exposed in navigation parametres (only meal IDs)
 - No authentication/authorization needed at this stage
 
 **Future consideration (Epic 2+):**

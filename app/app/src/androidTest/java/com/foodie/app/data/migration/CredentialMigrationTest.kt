@@ -27,7 +27,7 @@ import org.junit.Test
  *
  * Architecture:
  * - Uses real SecurePreferences with EncryptedSharedPreferences
- * - Mocks BuildConfig behavior via test SharedPreferences
+ * - Mocks BuildConfig behaviour via test SharedPreferences
  * - Validates migration flag persistence
  * - Ensures idempotent migration (safe to run multiple times)
  *

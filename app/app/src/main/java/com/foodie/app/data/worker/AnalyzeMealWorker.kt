@@ -26,12 +26,12 @@ import java.time.Instant
 import timber.log.Timber
 
 /**
- * Background worker for analyzing meal photos and saving nutrition data to Health Connect.
+ * Background worker for analysing meal photos and saving nutrition data to Health Connect.
  *
  * Orchestrates the complete processing flow:
  * 1. Read photo URI and timestamp from input data
  * 2. Call Azure OpenAI API via NutritionAnalysisRepository
- * 3. Save analyzed nutrition data to Health Connect
+ * 3. Save analysed nutrition data to Health Connect
  * 4. Delete temporary photo file
  * 5. Handle errors with retry logic (exponential backoff)
  *

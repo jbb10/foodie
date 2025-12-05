@@ -95,7 +95,7 @@
 
 **Evidence:**
 - Dual storage pattern: lines 720-828 (complete Room schema + Health Connect integration)
-- Background processing: lines 600-700 (AnalyzeMealWorker implementation pattern)
+- Background processing: lines 600-700 (AnalyseMealWorker implementation pattern)
 
 #### Pattern Documentation Quality ✓ PASS (for documented patterns)
 - ✓ Pattern names clear: "Dual Storage", "Background AI Analysis", "Result Wrapper"

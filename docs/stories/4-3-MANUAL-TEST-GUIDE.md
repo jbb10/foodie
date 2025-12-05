@@ -107,7 +107,7 @@
 - When Worker detects no network, it returns `Result.retry()`
 - WorkManager removes foreground notification when Worker stops executing
 - **Error notification persists** to give user visibility and control
-- This is expected Android WorkManager behavior
+- This is expected Android WorkManager behaviour
 
 **Actual Result:**
 - [ ] PASS / [ ] FAIL
@@ -211,8 +211,8 @@
 **Monitor all error scenarios:**
 
 ```bash
-# Terminal 1: Monitor AnalyzeMealWorker errors
-adb logcat | grep -E "(AnalyzeMealWorker|NotificationHelper|RetryAnalysis)"
+# Terminal 1: Monitor AnalyseMealWorker errors
+adb logcat | grep -E "(AnalyseMealWorker|NotificationHelper|RetryAnalysis)"
 
 # Terminal 2: Monitor error classifications
 adb logcat | grep -E "(ErrorHandler|classify|getUserMessage)"
@@ -254,7 +254,7 @@ adb shell dumpsys notification --noredact | grep -A 20 "com.foodie.app"
 adb shell service call notification 1
 
 # Monitor WorkManager
-adb logcat | grep -E "WM-WorkSpec|AnalyzeMealWorker"
+adb logcat | grep -E "WM-WorkSpec|AnalyseMealWorker"
 
 # Check notification channels
 adb shell dumpsys notification | grep -A 5 "meal_analysis"
@@ -290,7 +290,7 @@ adb shell am start -n com.foodie.app/.MainActivity
 - [ ] All critical error messages display correctly
 - [ ] All action buttons function as expected
 - [ ] Deep linking works for Settings and Permissions
-- [ ] No crashes or unexpected behavior
+- [ ] No crashes or unexpected behaviour
 - [ ] Ready for code review
 
 ---

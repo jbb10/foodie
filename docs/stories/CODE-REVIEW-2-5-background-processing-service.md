@@ -45,11 +45,11 @@ Per review instructions: **ZERO TOLERANCE** for lazy validation. Every acceptanc
 **Lines:** 184-213
 
 ```kotlin
-val workRequest = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
+val workRequest = OneTimeWorkRequestBuilder<AnalyseMealWorker>()
     .setInputData(
         workDataOf(
-            AnalyzeMealWorker.KEY_PHOTO_URI to photoUri.toString(),
-            AnalyzeMealWorker.KEY_TIMESTAMP to timestamp.epochSecond
+            AnalyseMealWorker.KEY_PHOTO_URI to photoUri.toString(),
+            AnalyseMealWorker.KEY_TIMESTAMP to timestamp.epochSecond
         )
     )
     .setConstraints(
@@ -61,14 +61,14 @@ val workRequest = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
         BackoffPolicy.EXPONENTIAL,
         1, TimeUnit.SECONDS
     )
-    .addTag("analyze_meal")
+    .addTag("analyse_meal")
     .build()
 
 workManager.enqueue(workRequest)  // ✅ Job enqueued
 ```
 
 **Validation:**
-- ✅ WorkManager job created using `OneTimeWorkRequestBuilder<AnalyzeMealWorker>()`
+- ✅ WorkManager job created using `OneTimeWorkRequestBuilder<AnalyseMealWorker>()`
 - ✅ Network constraint set: `NetworkType.CONNECTED`
 - ✅ Job enqueued after photo capture in `onUsePhoto()` method
 - ✅ Exponential backoff configured (1s initial delay)
@@ -93,7 +93,7 @@ processedPhotoUri = null
 ```
 
 **File:** `/app/app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoScreen.kt`  
-**Implied behavior:** UI handles `BackgroundProcessingStarted` state by allowing user to return
+**Implied behaviour:** UI handles `BackgroundProcessingStarted` state by allowing user to return
 
 **Validation:**
 - ✅ State transitions to `BackgroundProcessingStarted` immediately after enqueuing work
@@ -109,13 +109,13 @@ processedPhotoUri = null
 
 **Evidence:**
 
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`  
 **Lines:** 136-141
 
 ```kotlin
 // Call API for nutrition analysis
 val apiStartTime = System.currentTimeMillis()
-val apiResult = nutritionAnalysisRepository.analyzePhoto(photoUri)  // ✅ API call
+val apiResult = nutritionAnalysisRepository.analysePhoto(photoUri)  // ✅ API call
 val apiDuration = System.currentTimeMillis() - apiStartTime
 
 Timber.tag(TAG).d("API call completed in ${apiDuration}ms")
@@ -125,9 +125,9 @@ Timber.tag(TAG).d("API call completed in ${apiDuration}ms")
 
 ```kotlin
 @HiltWorker
-class AnalyzeMealWorker @AssistedInject constructor(
+class AnalyseMealWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
-    @Assisted private val workerParams: WorkerParameters,
+    @Assisted private val workerParams: WorkerParametres,
     private val nutritionAnalysisRepository: NutritionAnalysisRepository,  // ✅ Injected
     private val healthConnectManager: HealthConnectManager,
     private val photoManager: PhotoManager
@@ -135,7 +135,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
 ```
 
 **Validation:**
-- ✅ Worker calls `nutritionAnalysisRepository.analyzePhoto(photoUri)`
+- ✅ Worker calls `nutritionAnalysisRepository.analysePhoto(photoUri)`
 - ✅ Photo URI passed from WorkManager input data (extracted line 119: `val photoUri = photoUriString.toUri()`)
 - ✅ Repository injected via Hilt constructor injection
 - ✅ API call result captured in `apiResult` variable
@@ -188,7 +188,7 @@ Timber.d("WorkManager initialized with HiltWorkerFactory")
 
 **Validation:**
 - ✅ WorkManager properly initialized in Application class
-- ✅ WorkManager persists work across app termination (built-in WorkManager behavior)
+- ✅ WorkManager persists work across app termination (built-in WorkManager behaviour)
 - ✅ Configuration uses HiltWorkerFactory for dependency injection
 - ✅ Singleton scoping ensures single WorkManager instance
 
@@ -202,7 +202,7 @@ Timber.d("WorkManager initialized with HiltWorkerFactory")
 
 **Evidence:**
 
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`  
 **Lines:** 108, 136-141, 160-165, 173-181
 
 ```kotlin
@@ -213,7 +213,7 @@ override suspend fun doWork(): androidx.work.ListenableWorker.Result {
     
     // Call API for nutrition analysis
     val apiStartTime = System.currentTimeMillis()
-    val apiResult = nutritionAnalysisRepository.analyzePhoto(photoUri)
+    val apiResult = nutritionAnalysisRepository.analysePhoto(photoUri)
     val apiDuration = System.currentTimeMillis() - apiStartTime  // ✅ API duration tracked
     
     // ...
@@ -263,7 +263,7 @@ override suspend fun doWork(): androidx.work.ListenableWorker.Result {
 
 **Evidence:**
 
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`  
 **Lines:** 166-172
 
 ```kotlin
@@ -302,7 +302,7 @@ if (deleted) {
 )
 ```
 
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`  
 **Lines:** 88-92
 
 ```kotlin
@@ -342,7 +342,7 @@ if (runAttemptCount + 1 >= MAX_ATTEMPTS) {
 
 **Evidence:**
 
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`  
 **Lines:** 88-92 (KDoc)
 
 ```kotlin
@@ -391,7 +391,7 @@ private const val MAX_ATTEMPTS = 4
 
 **Evidence:**
 
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`  
 **Lines:** 239-263
 
 ```kotlin
@@ -459,7 +459,7 @@ is ApiResult.Error -> {
 
 **Evidence:**
 
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt**  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt**  
 **Lines:** 249-254 (KDoc)
 
 ```kotlin
@@ -512,7 +512,7 @@ private fun isRetryableError(exception: Throwable): Boolean {
 
 **Evidence:**
 
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`  
 **Lines:** 206-214
 
 ```kotlin
@@ -663,19 +663,19 @@ Tests verify `provideWorkManagerConfiguration` and `provideWorkManager` methods 
 
 ---
 
-### Task 2: Create AnalyzeMealWorker ✅ **COMPLETE**
+### Task 2: Create AnalyseMealWorker ✅ **COMPLETE**
 
 **Subtasks:**
 
-- [x] Create `AnalyzeMealWorker` in `data/worker/` package extending `CoroutineWorker`
+- [x] Create `AnalyseMealWorker` in `data/worker/` package extending `CoroutineWorker`
 
 **Evidence:**  
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`  
 **Lines:** 69-74
 
 ```kotlin
 @HiltWorker
-class AnalyzeMealWorker @AssistedInject constructor(
+class AnalyseMealWorker @AssistedInject constructor(
     // ...
 ) : CoroutineWorker(appContext, workerParams)
 ```
@@ -691,9 +691,9 @@ class AnalyzeMealWorker @AssistedInject constructor(
 
 ```kotlin
 @HiltWorker
-class AnalyzeMealWorker @AssistedInject constructor(
+class AnalyseMealWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
-    @Assisted private val workerParams: WorkerParameters,
+    @Assisted private val workerParams: WorkerParametres,
     private val nutritionAnalysisRepository: NutritionAnalysisRepository,
     private val healthConnectManager: HealthConnectManager,
     private val photoManager: PhotoManager
@@ -707,7 +707,7 @@ class AnalyzeMealWorker @AssistedInject constructor(
 
 ```kotlin
 companion object {
-    private const val TAG = "AnalyzeMealWorker"
+    private const val TAG = "AnalyseMealWorker"
     
     const val KEY_PHOTO_URI = "photo_uri"
     const val KEY_TIMESTAMP = "timestamp"
@@ -767,11 +767,11 @@ class CapturePhotoViewModel @Inject constructor(
 **Lines:** 180-205 (Inside `onUsePhoto()` method)
 
 ```kotlin
-val workRequest = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
+val workRequest = OneTimeWorkRequestBuilder<AnalyseMealWorker>()
     .setInputData(...)
     .setConstraints(...)
     .setBackoffCriteria(...)
-    .addTag("analyze_meal")
+    .addTag("analyse_meal")
     .build()
 ```
 
@@ -846,10 +846,10 @@ All requirements verified:
   - Initial delay: 1 second ✅
   - Note about delay sequence documented in worker KDoc ✅
 
-- [x] In `AnalyzeMealWorker.doWork()`, implement retry decision logic
+- [x] In `AnalyseMealWorker.doWork()`, implement retry decision logic
 
 **Evidence:**  
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`  
 **Lines:** 200-227
 
 Retry decision logic:
@@ -881,7 +881,7 @@ All requirements:
   - Delete photo: Line 212 ✅
   - Return failure: Line 213 ✅
 
-- [ ] Write integration test for retry behavior
+- [ ] Write integration test for retry behaviour
 
 **Status:** ⚠️ **INCOMPLETE**
 
@@ -894,7 +894,7 @@ All requirements:
 - [x] Document retry strategy in KDocs with error classification table
 
 **Evidence:**  
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`  
 **Lines:** 27-31 (Retry Strategy section)  
 **Lines:** 241-254 (Error classification in `isRetryableError()` KDoc)
 
@@ -919,7 +919,7 @@ Story file line 298 confirms method exists with signature:
 - [x] Worker integration confirmed with proper error handling
 
 **Evidence:**  
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`  
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`  
 **Lines:** 153-162, 183-190
 
 Health Connect integration:
@@ -942,10 +942,10 @@ Health Connect integration:
 
 **Evidence:** Story file line 307.
 
-- [x] Update `AnalyzeMealWorker.doWork()` to call deletePhoto
+- [x] Update `AnalyseMealWorker.doWork()` to call deletePhoto
 
 **Evidence:**  
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
 
 All cleanup scenarios verified:
   - After successful HC save: Lines 166-172
@@ -967,10 +967,10 @@ All cleanup scenarios verified:
 
 **Subtasks:**
 
-- [x] Add performance logging to `AnalyzeMealWorker.doWork()`
+- [x] Add performance logging to `AnalyseMealWorker.doWork()`
 
 **Evidence:**  
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
 
 All metrics tracked:
   - Record start time: Line 108
@@ -996,7 +996,7 @@ All metrics tracked:
 - [x] Implement comprehensive error handling in worker
 
 **Evidence:**  
-**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt**
+**File:** `/app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt**
 
 All error types handled:
   - **Network Errors:** Lines 254-256 (`IOException`, `SocketTimeoutException` → retry)
@@ -1029,11 +1029,11 @@ All context included:
 
 **Subtasks:**
 
-- [ ] Create `AnalyzeMealWorkerIntegrationTest` in `androidTest/`
+- [ ] Create `AnalyseMealWorkerIntegrationTest` in `androidTest/`
 
 **Status:** ❌ **NOT DONE**
 
-**Evidence:** File search returned no results for `AnalyzeMealWorkerTest.kt`.
+**Evidence:** File search returned no results for `AnalyseMealWorkerTest.kt`.
 
 - [ ] Use `TestListenableWorkerBuilder` for worker testing
 - [ ] Test success scenario
@@ -1079,7 +1079,7 @@ Comprehensive documentation:
   - Performance targets
   - Memory management
 
-- [ ] Update README if background processing behavior needs explanation
+- [ ] Update README if background processing behaviour needs explanation
 
 **Status:** ✅ **COMPLETE**
 
@@ -1217,10 +1217,10 @@ Search result (lines 800-1091 of README.md) shows Background Processing section 
 **Unit Tests:**
 - ✅ WorkManagerModuleTest exists
 - ✅ CapturePhotoViewModelTest updated with WorkManager mock
-- ❌ AnalyzeMealWorkerTest does NOT exist (file search returned no results)
+- ❌ AnalyseMealWorkerTest does NOT exist (file search returned no results)
 
 **Integration Tests:**
-- ❌ AnalyzeMealWorkerIntegrationTest does NOT exist
+- ❌ AnalyseMealWorkerIntegrationTest does NOT exist
 - ❌ No androidTest/ worker tests found
 
 **Justification from Story:**
@@ -1241,7 +1241,7 @@ Search result (lines 800-1091 of README.md) shows Background Processing section 
 ✅ **EXCELLENT**
 
 1. **KDoc Coverage:**
-   - AnalyzeMealWorker: 49 lines of class KDoc (architecture, retry strategy, performance targets, usage example)
+   - AnalyseMealWorker: 49 lines of class KDoc (architecture, retry strategy, performance targets, usage example)
    - All public methods documented
    - Error classification documented in `isRetryableError()` method
 
@@ -1321,7 +1321,7 @@ WorkManager caches configuration in SQLite database. Once initialized with defau
   - WorkManagerModuleTest exists ✅
   - PhotoManager.deletePhoto() tested (inherited from Story 2-3) ✅
   - HealthConnectManager.insertNutritionRecord() tested (inherited from Story 1-4) ✅
-  - ⚠️ AnalyzeMealWorker unit tests missing (no file found)
+  - ⚠️ AnalyseMealWorker unit tests missing (no file found)
 
 - ✅ **All unit tests passing** - BUILD SUCCESSFUL, 187 tests, 0 failures
 
@@ -1336,11 +1336,11 @@ WorkManager caches configuration in SQLite database. Once initialized with defau
 ### Documentation
 
 - ✅ Inline code documentation (KDocs) added for WorkManager configuration, worker implementation, retry logic
-  - AnalyzeMealWorker: 49-line class KDoc
+  - AnalyseMealWorker: 49-line class KDoc
   - All public methods documented
   - Error classification documented
 
-- ✅ README updated with background processing behavior explanation
+- ✅ README updated with background processing behaviour explanation
   - Background Processing section: 150+ lines
   - Architecture, retry logic, debugging guide included
 
@@ -1374,18 +1374,18 @@ All acceptance criteria verified with explicit file:line evidence. All tasks mar
 
 ### MEDIUM Severity Findings
 
-**Finding M1: AnalyzeMealWorker Unit Tests Missing**
+**Finding M1: AnalyseMealWorker Unit Tests Missing**
 
-**Description:** No unit test file found for `AnalyzeMealWorker.kt` despite Task 2 being marked complete.
+**Description:** No unit test file found for `AnalyseMealWorker.kt` despite Task 2 being marked complete.
 
 **Impact:** Worker logic untested with mocked dependencies. Integration relies on manual testing.
 
 **Evidence:**
-- File search for `**/AnalyzeMealWorkerTest.kt` returned no results
+- File search for `**/AnalyseMealWorkerTest.kt` returned no results
 - Task 2 checklist shows test subtask marked complete (line 238)
 
 **Recommendation:**
-- Create unit tests for AnalyzeMealWorker with mocked dependencies
+- Create unit tests for AnalyseMealWorker with mocked dependencies
 - Test scenarios: success, retry, max retries, non-retryable error, SecurityException
 - Use `TestListenableWorkerBuilder` for worker testing
 
@@ -1437,7 +1437,7 @@ All acceptance criteria verified with explicit file:line evidence. All tasks mar
 **Description:** `isRetryableError()` method includes commented pattern for HTTP 5xx handling.
 
 **Evidence:**
-- File: `AnalyzeMealWorker.kt`, lines 256-257
+- File: `AnalyseMealWorker.kt`, lines 256-257
 
 ```kotlin
 // Add HttpException check if using Retrofit/OkHttp
@@ -1474,7 +1474,7 @@ All acceptance criteria verified with explicit file:line evidence. All tasks mar
 - NONE - Story ready for "done" status as-is
 
 **Recommended Follow-up Work (Future Stories):**
-1. Create AnalyzeMealWorker unit tests with mocked dependencies
+1. Create AnalyseMealWorker unit tests with mocked dependencies
 2. Perform device validation after clearing app data
 3. Add HttpException handling if repository doesn't wrap errors
 4. Consider integration tests if manual testing reveals issues
@@ -1492,7 +1492,7 @@ All acceptance criteria verified with explicit file:line evidence. All tasks mar
 - ✅ Security best practices followed
 
 **Areas for Improvement (Optional):**
-- ⚠️ Add AnalyzeMealWorker unit tests for better code coverage
+- ⚠️ Add AnalyseMealWorker unit tests for better code coverage
 - ⚠️ Consider uncommenting HttpException handling pattern
 - ⚠️ Add integration tests if time permits (not blocking)
 

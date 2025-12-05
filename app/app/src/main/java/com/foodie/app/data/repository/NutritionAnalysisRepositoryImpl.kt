@@ -79,7 +79,7 @@ class NutritionAnalysisRepositoryImpl @Inject constructor(
             Timber.tag(TAG).e(e, "Failed to load prompt from assets, using fallback")
             // Fallback prompt in case asset file is missing
             """You are a nutrition analysis assistant.
-Analyze the image and determine if it contains food.
+Analyse the image and determine if it contains food.
 
 If NO FOOD is detected (e.g., empty plate, non-food objects, scenery, documents, people, pets, etc.):
 Return: {"hasFood": false, "reason": "brief explanation of what was detected instead"}
@@ -113,7 +113,7 @@ Return only the JSON object, no other text."""
      */
     override suspend fun analyzePhoto(photoUri: Uri): Result<NutritionData> {
         try {
-            Timber.tag(TAG).d("Analyzing photo: $photoUri")
+            Timber.tag(TAG).d("Analysing photo: $photoUri")
 
             // Step 1: Encode photo to base64 data URL
             val base64DataUrl = try {
@@ -148,7 +148,7 @@ Return only the JSON object, no other text."""
                     InputMessage(
                         role = "user",
                         content = listOf(
-                            ContentItem.TextContent(text = "Analyze this meal and estimate the total calories and macros (protein, carbs, fat)."),
+                            ContentItem.TextContent(text = "Analyse this meal and estimate the total calories and macros (protein, carbs, fat)."),
                             ContentItem.ImageContent(imageUrl = base64DataUrl),
                         ),
                     ),
@@ -252,11 +252,11 @@ Return only the JSON object, no other text."""
                 )
             }
 
-            Timber.tag(TAG).d("Successfully analyzed nutrition: $nutritionData")
+            Timber.tag(TAG).d("Successfully analysed nutrition: $nutritionData")
             return Result.Success(nutritionData)
         } catch (e: Exception) {
             // Catch-all for unexpected errors
-            Timber.tag(TAG).e(e, "Unexpected error analyzing photo")
+            Timber.tag(TAG).e(e, "Unexpected error analysing photo")
             return Result.Error(
                 exception = e,
                 message = "Unexpected error: ${e.message}",

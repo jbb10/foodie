@@ -48,7 +48,7 @@ Debug and release can coexist if you want to test changes without losing your pr
 
 ### Azure OpenAI Setup
 
-The app requires Azure OpenAI credentials to analyze meal photos and estimate calories:
+The app requires Azure OpenAI credentials to analyse meal photos and estimate calories:
 
 1. **Copy the template:**
    ```bash
@@ -326,7 +326,7 @@ Android does not support third-party lock screen widgets on phones. Lock screen 
 are limited to system apps only (camera, torch, wallet, etc.). Home screen widgets provide
 the best quick-access experience for third-party apps.
 
-### Back Stack Behavior
+### Back Stack Behaviour
 
 - **MealList** is the start destination (root of back stack)
   - Pressing back on MealList exits the app
@@ -723,9 +723,9 @@ CapturePhotoViewModel
 WorkManager
     │ schedules with constraints
     ▼
-AnalyzeMealWorker (CoroutineWorker)
+AnalyseMealWorker (CoroutineWorker)
     │
-    ├──▶ NutritionAnalysisRepository.analyzePhoto()
+    ├──▶ NutritionAnalysisRepository.analysePhoto()
     │       │
     │       └──▶ Azure OpenAI API
     │
@@ -736,13 +736,13 @@ AnalyzeMealWorker (CoroutineWorker)
     └──▶ PhotoManager.deletePhoto()
 ```
 
-### Worker: AnalyzeMealWorker
+### Worker: AnalyseMealWorker
 
-**Location:** `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+**Location:** `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
 
 Coordinates the complete meal photo processing workflow:
 
-1. **Photo Analysis**: Calls Azure OpenAI Vision API to analyze meal photo
+1. **Photo Analysis**: Calls Azure OpenAI Vision API to analyse meal photo
 2. **Health Connect Save**: Stores nutrition data in Health Connect
 3. **Photo Cleanup**: Deletes temporary photo file after successful processing
 4. **Performance Monitoring**: Logs API duration, HC save duration, and total time (warns if >20s)
@@ -759,7 +759,7 @@ Coordinates the complete meal photo processing workflow:
 
 ```kotlin
 // In CapturePhotoViewModel.onUsePhoto()
-val workRequest = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
+val workRequest = OneTimeWorkRequestBuilder<AnalyseMealWorker>()
     .setInputData(
         workDataOf(
             KEY_PHOTO_URI to photoUri.toString(),
@@ -779,7 +779,7 @@ val workRequest = OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
     .build()
 
 workManager.enqueueUniqueWork(
-    "analyze_meal_$timestamp",
+    "analyse_meal_$timestamp",
     ExistingWorkPolicy.KEEP,
     workRequest
 )
@@ -833,17 +833,17 @@ After 4 attempts, worker returns `Result.failure()` and photo is deleted.
 
 ### Testing
 
-**Unit Tests:** `app/src/test/java/com/foodie/app/data/worker/AnalyzeMealWorkerTest.kt`
+**Unit Tests:** `app/src/test/java/com/foodie/app/data/worker/AnalyseMealWorkerTest.kt`
 
 - Mock NutritionAnalysisRepository, HealthConnectManager, PhotoManager
 - Test success path, retry logic, error handling, photo cleanup
 - Verify logging and performance monitoring
 
-**Integration Tests:** `app/src/androidTest/java/com/foodie/app/data/worker/AnalyzeMealWorkerIntegrationTest.kt`
+**Integration Tests:** `app/src/androidTest/java/com/foodie/app/data/worker/AnalyseMealWorkerIntegrationTest.kt`
 
 - Use `TestListenableWorkerBuilder` from WorkManager testing library
 - Test worker execution with real WorkManager context
-- Verify retry behavior with exponential backoff
+- Verify retry behaviour with exponential backoff
 - Test timeout scenarios and constraint enforcement
 
 **Running Tests:**
@@ -875,10 +875,10 @@ Run `make help` to see all available commands.
 
 ### Debugging
 
-**Logs:** Filter by `AnalyzeMealWorker` tag
+**Logs:** Filter by `AnalyseMealWorker` tag
 
 ```bash
-adb logcat -s AnalyzeMealWorker
+adb logcat -s AnalyseMealWorker
 ```
 
 **Key Log Messages:**
@@ -887,14 +887,14 @@ adb logcat -s AnalyzeMealWorker
 - `Health Connect save completed in <ms>ms`
 - `Total processing time: <ms>ms` (WARNING if >20s)
 - `Photo deleted successfully` / `Failed to delete photo`
-- `Error analyzing meal: <message>` (on retryable errors)
+- `Error analysing meal: <message>` (on retryable errors)
 - `Non-retryable error, failing worker: <message>` (on permanent failures)
 
 **WorkManager Inspection:**
 
 ```kotlin
 // Check work status in debug mode
-val workInfos = workManager.getWorkInfosForUniqueWork("analyze_meal_$timestamp").get()
+val workInfos = workManager.getWorkInfosForUniqueWork("analyse_meal_$timestamp").get()
 workInfos.forEach { workInfo ->
     Timber.d("Work status: ${workInfo.state}")
 }
@@ -1042,7 +1042,7 @@ fun `constructor should throw exception when calories is less than 1`() {
 
 ### Repository Tests
 
-Mock data sources and verify behavior:
+Mock data sources and verify behaviour:
 
 ```kotlin
 @Test
@@ -1109,7 +1109,7 @@ class MyViewModelTest {
 ### Test Naming Convention
 
 ```
-methodName should expectedBehavior when condition
+methodName should expectedBehaviour when condition
 ```
 
 Examples:
@@ -1152,6 +1152,70 @@ Examples:
 - Ignore exceptions (always handle and log)
 - Put Android dependencies in domain layer
 - Create ViewModels manually (use Hilt injection)
+
+---
+
+## Debugging & Logs
+
+### Persistent Logging
+
+The app uses **persistent file logging** in debug builds to capture logs even when your phone isn't connected to your development machine. This enables debugging production issues that occur hours or days before you can investigate.
+
+**How it works:**
+- All `Timber` logs are written to `/data/data/com.foodie.app/files/foodie_logs.txt`
+- Logs persist across app restarts and device reboots
+- Rolling 20MB buffer keeps approximately 24-48 hours of usage
+- Only available in debug builds (not release)
+
+**Pulling logs from device:**
+
+```bash
+# Pull persistent app logs (days/weeks of history)
+make pull-app-logs
+
+# Pull recent logcat buffer (last few minutes)
+make pull-logs
+
+# Pull only errors/warnings from logcat
+make pull-errors
+
+# Pull persistent logs + display preview for LLM analysis
+make analyze-logs
+```
+
+**Manual log extraction:**
+```bash
+# Direct ADB pull
+adb pull /data/data/com.foodie.app/files/foodie_logs.txt logs/
+
+# View log file
+cat logs/foodie_logs.txt | grep "E/" | tail -50  # Last 50 errors
+cat logs/foodie_logs.txt | grep "EnergyBalance"  # Energy calculation logs
+```
+
+**Log format:**
+```
+MM-dd HH:mm:ss.SSS LEVEL/Tag: message
+12-04 09:36:51.328 I/HealthConnect: Total calories burned: 2737.02 kcal
+12-04 09:36:51.335 E/EnergyBalanceRepository: Failed to calculate NEAT
+    java.lang.IllegalStateException: Permission denied
+        at com.foodie.app.data.repository.EnergyBalanceRepositoryImpl.calculateNEAT(...)
+```
+
+**Use cases:**
+- Bug happened during the day → plug in phone in evening → `make pull-app-logs`
+- LLM agent debugging workflow → `make analyze-logs` → agent reads file and fixes code
+- Intermittent issues → logs captured automatically, pull whenever convenient
+
+**Performance:**
+- Minimal overhead (~1-2ms per log line)
+- 20MB rolling buffer prevents unbounded growth
+- File I/O is synchronous but fast (no app responsiveness impact)
+
+**Privacy:**
+- Logs only stored on your device (never uploaded)
+- Only accessible via ADB (requires USB debugging enabled)
+- Automatically excluded from git (`.gitignore`)
 
 ---
 

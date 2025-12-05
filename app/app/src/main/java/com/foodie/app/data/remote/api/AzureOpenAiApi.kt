@@ -9,7 +9,7 @@ import retrofit2.http.POST
  * Retrofit API interface for Azure OpenAI Responses API with multimodal vision support.
  *
  * This interface defines the contract for communicating with Azure OpenAI Service
- * to analyze food photos and extract nutrition data (calories + description).
+ * to analyse food photos and extract nutrition data (calories + description).
  *
  * **Endpoint Structure:**
  * - Base URL: `https://{your-resource-name}.openai.azure.com/`
@@ -37,7 +37,7 @@ import retrofit2.http.POST
  */
 interface AzureOpenAiApi {
     /**
-     * Analyzes a meal photo using Azure OpenAI's multimodal vision capabilities.
+     * Analyses a meal photo using Azure OpenAI's multimodal vision capabilities.
      *
      * Sends a food photo (base64-encoded) with a prompt to the AI model and
      * receives structured nutrition data (calories + description) in the response.
@@ -46,12 +46,12 @@ interface AzureOpenAiApi {
      * ```json
      * {
      *   "model": "gpt-4.1",
-     *   "instructions": "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).",
+     *   "instructions": "You are a nutrition analysis assistant. Analyse the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).",
      *   "input": [
      *     {
      *       "role": "user",
      *       "content": [
-     *         { "type": "input_text", "text": "Analyze this meal and estimate total calories." },
+     *         { "type": "input_text", "text": "Analyse this meal and estimate total calories." },
      *         { "type": "input_image", "image_url": "data:image/jpeg;base64,..." }
      *       ]
      *     }

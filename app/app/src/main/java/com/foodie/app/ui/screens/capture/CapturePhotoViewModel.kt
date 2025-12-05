@@ -7,9 +7,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.BackoffPolicy
-import androidx.work.Constraints
-import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.foodie.app.data.local.cache.PhotoManager
@@ -334,20 +333,20 @@ class CapturePhotoViewModel @Inject constructor(
                         AnalyzeMealWorker.KEY_TIMESTAMP to timestamp.epochSecond,
                     ),
                 )
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build(),
-                )
+                // No network constraint - worker checks network internally and retries if needed
+                // Constraint was causing delays when phone enters Doze mode or WorkManager throttles
                 .setBackoffCriteria(
                     BackoffPolicy.EXPONENTIAL,
                     1,
                     TimeUnit.SECONDS,
                 )
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .addTag("analyze_meal")
                 .build()
 
             workManager.enqueue(workRequest)
+
+            Timber.tag(TAG).d("Work enqueued immediately (no constraints), worker will start ASAP")
 
             val elapsed = System.currentTimeMillis() - screenLaunchTime
             Timber.tag(TAG).i(

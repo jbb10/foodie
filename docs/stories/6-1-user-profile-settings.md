@@ -49,7 +49,7 @@ So that the app can accurately calculate my Basal Metabolic Rate (BMR) for energ
   1. **Review Health Connect WeightRecord and HeightRecord APIs**
      - Starting point (use fetch tool): https://developer.android.com/health-and-fitness/guides/health-connect/develop/read-write-data
      - Focus: Query latest weight/height records, insert timestamped records with metadata
-     - Validation: Confirm Weight uses Mass.kilograms(), Height uses Length.meters()
+     - Validation: Confirm Weight uses Mass.kilograms(), Height uses Length.metres()
      - Verify: DataOrigin metadata pattern from existing HealthConnectManager.kt
   
   2. **Review existing SecurePreferences and SharedPreferences patterns**
@@ -83,7 +83,7 @@ So that the app can accurately calculate my Basal Metabolic Rate (BMR) for energ
   **Deliverable Checkpoint:** ✅ REQUIRED
   
   Document findings in Dev Notes before proceeding to Task 2:
-  - [ ] Health Connect Weight/Height record patterns confirmed (Mass.kilograms, Length.meters)
+  - [ ] Health Connect Weight/Height record patterns confirmed (Mass.kilograms, Length.metres)
   - [ ] SharedPreferences vs SecurePreferences decision documented (use standard for sex/age)
   - [ ] SettingsScreen extension strategy defined (add "User Profile" category)
   - [ ] ViewModel state management pattern understood (StateFlow, init{} loading)
@@ -237,7 +237,7 @@ So that the app can accurately calculate my Basal Metabolic Rate (BMR) for energ
         }
         return try {
             val record = HeightRecord(
-                height = Length.meters(heightCm / 100.0), // Convert cm to meters
+                height = Length.metres(heightCm / 100.0), // Convert cm to metres
                 time = timestamp,
                 zoneOffset = ZoneOffset.systemDefault(),
                 metadata = Metadata(dataOrigin = DataOrigin("com.foodie.app"))
@@ -263,7 +263,7 @@ So that the app can accurately calculate my Basal Metabolic Rate (BMR) for energ
     - queryLatestWeight returns most recent record
     - queryLatestHeight returns most recent record
     - insertWeight creates timestamped record with correct metadata
-    - insertHeight converts cm to meters correctly
+    - insertHeight converts cm to metres correctly
     - Permission checks return null/error when denied
   - [ ] Run tests: `./gradlew test --tests HealthConnectManagerTest`
 
@@ -381,7 +381,7 @@ So that the app can accurately calculate my Basal Metabolic Rate (BMR) for energ
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 4.dp)
                 .clickable { showSexDialog = true },
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+            border = BorderStroke(1.dp, MaterialTheme.colourScheme.outline)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -391,12 +391,12 @@ So that the app can accurately calculate my Basal Metabolic Rate (BMR) for energ
                 Text(
                     text = state.editableSex?.name ?: "Not set",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    colour = MaterialTheme.colourScheme.onSurfaceVariant
                 )
                 Text(
                     text = "Used for BMR calculation",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    colour = MaterialTheme.colourScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
         }
@@ -416,7 +416,7 @@ So that the app can accurately calculate my Basal Metabolic Rate (BMR) for energ
                                         showSexDialog = false
                                     }
                                     .padding(vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CentreVertically
                             ) {
                                 RadioButton(
                                     selected = state.editableSex == sex,
@@ -658,7 +658,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:**
 - **Unit Tests Required:** Yes - validation logic, repository, HC manager, ViewModel
 - **Instrumentation Tests Required:** No - UI already covered by SettingsScreenTest from Epic 5
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
 
@@ -714,7 +714,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 6. Navigate to Height data
 7. **Expected:** New HeightRecord entry with 165 cm, source "Foodie", timestamp matching save time
 
-### Expected Behavior
+### Expected Behaviour
 - User profile fields display clearly with helper text explaining BMR usage
 - Weight and height pre-populate from Health Connect when available
 - Sex selection uses Material 3 dialog with radio buttons
@@ -741,7 +741,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 **Health Connect WeightRecord and HeightRecord APIs:**
 ✓ Confirmed from HealthConnectManager.kt: Pattern is ReadRecordsRequest with recordType, TimeRangeFilter, pageSize=1, ascendingOrder=false for latest record query
-✓ Weight uses Mass.kilograms(), Height uses Length.meters() (requires conversion from cm: heightCm / 100.0)
+✓ Weight uses Mass.kilograms(), Height uses Length.metres() (requires conversion from cm: heightCm / 100.0)
 ✓ Insert pattern: Record with time (Instant), zoneOffset (ZoneOffset.systemDefault()), metadata (Metadata with DataOrigin)
 ✓ Permission checks before operations: hasPermission() returns bool, SecurityException on write if denied
 
@@ -779,7 +779,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - Health Connect pre-population requires READ permissions checked BEFORE query (avoid crash)
 - Track data source in state: weightSourcedFromHC/heightSourcedFromHC flags control whether save writes to HC
 - Two-way sync pattern: READ from HC on load (pre-populate), WRITE only when user explicitly edits (avoid data pollution)
-- Unit conversion correctness: cm (domain model) → meters (Health Connect) = heightCm / 100.0
+- Unit conversion correctness: cm (domain model) → metres (Health Connect) = heightCm / 100.0
 - Timestamp preservation: Instant.now() for new records, ZoneOffset.systemDefault() for zoned timestamps
 
 ### Epic 6 Context
@@ -832,7 +832,7 @@ Story 5.9 completed systematic SonarQube technical debt resolution, achieving Se
 
 **Code Quality Patterns:**
 - Cognitive complexity must stay < 15 per method (extract helpers for complex logic)
-- No unused imports, parameters, or dead code
+- No unused imports, parametres, or dead code
 - Consistent naming conventions (test files can use descriptive names with spaces)
 - String literal duplication acceptable in tests for clarity
 
@@ -929,7 +929,7 @@ Claude Sonnet 4.5 (Dev Agent - Amelia)
 - Health Connect integration validated via unit tests and API pattern review
 
 **Task 1: Documentation Research** ✅
-- Reviewed HC WeightRecord/HeightRecord APIs: Confirmed Mass.kilograms(), Length.meters() patterns
+- Reviewed HC WeightRecord/HeightRecord APIs: Confirmed Mass.kilograms(), Length.metres() patterns
 - Reviewed existing HealthConnectManager patterns: Used TimeRangeFilter.between(EPOCH, now+60s) and Metadata.autoRecorded()
 - Decision: Use standard SharedPreferences for sex/age (not sensitive data)
 - Reviewed SettingsScreen Material 3 patterns: OutlinedTextField, validation, SnackbarHostState
@@ -952,7 +952,7 @@ Claude Sonnet 4.5 (Dev Agent - Amelia)
 - Added queryLatestWeight(): WeightRecord? using TimeRangeFilter.between(EPOCH, now+60s)
 - Added queryLatestHeight(): HeightRecord? with same pattern
 - Added insertWeight(weightKg, timestamp): Result<Unit> with Mass.kilograms()
-- Added insertHeight(heightCm, timestamp): Result<Unit> with cm→meters conversion (heightCm/100.0)
+- Added insertHeight(heightCm, timestamp): Result<Unit> with cm→metres conversion (heightCm/100.0)
 - Updated REQUIRED_PERMISSIONS to include READ_WEIGHT, WRITE_WEIGHT, READ_HEIGHT, WRITE_HEIGHT
 - Updated HealthConnectManagerTest to assert 6 permissions instead of 2
 
@@ -993,14 +993,14 @@ Claude Sonnet 4.5 (Dev Agent - Amelia)
 - **400 tests passing** (baseline 387 + 13 new UserProfile tests)
 - New tests: UserProfileTest.kt with 13 validation boundary tests
 - Updated tests: HealthConnectManagerTest (permission count 2→6), OnboardingViewModelTest (permission set expanded)
-- Updated SettingsViewModel test mocks: Added userProfileRepository parameter to all test files (Test, ApiConfigTest, ThemeTest)
+- Updated SettingsViewModel test mocks: Added userProfileRepository parametre to all test files (Test, ApiConfigTest, ThemeTest)
 - Zero test regressions - all existing tests passing
 - Test execution time: ~10-12 seconds
 
 **Implementation Challenges & Solutions:**
 1. Health Connect TimeRangeFilter API: Discovered .none() doesn't exist, used .between(EPOCH, now+60s) pattern from nutrition code
 2. Metadata constructor private: Used Metadata.autoRecorded(device) factory method pattern
-3. SettingsScreen composable ViewModel access: Passed callbacks through parameters instead of accessing ViewModel in nested composables
+3. SettingsScreen composable ViewModel access: Passed callbacks through parametres instead of accessing ViewModel in nested composables
 4. Test failures: Updated all SettingsViewModel test files with userProfileRepository mock after constructor signature change
 5. Permission test failures: Updated HealthConnectManagerTest and OnboardingViewModelTest to expect 6 permissions instead of 2
 
@@ -1032,9 +1032,9 @@ Claude Sonnet 4.5 (Dev Agent - Amelia)
 5. `di/RepositoryModule.kt` - Added UserProfileRepository binding
 6. `data/local/healthconnect/HealthConnectManagerTest.kt` - Updated permission assertions (2→6 permissions)
 7. `ui/screens/onboarding/OnboardingViewModelTest.kt` - Updated permission grant test set (added weight/height permissions)
-8. `ui/screens/settings/SettingsViewModelTest.kt` - Added userProfileRepository mock parameter
-9. `ui/screens/settings/SettingsViewModelApiConfigTest.kt` - Added userProfileRepository mock parameter
-10. `ui/screens/settings/SettingsViewModelThemeTest.kt` - Added userProfileRepository mock parameter
+8. `ui/screens/settings/SettingsViewModelTest.kt` - Added userProfileRepository mock parametre
+9. `ui/screens/settings/SettingsViewModelApiConfigTest.kt` - Added userProfileRepository mock parametre
+10. `ui/screens/settings/SettingsViewModelThemeTest.kt` - Added userProfileRepository mock parametre
 
 ### File List
 
@@ -1069,7 +1069,7 @@ Claude Sonnet 4.5 (Dev Agent - Amelia)
   - Updated HealthConnectManagerTest and OnboardingViewModelTest to assert 6 permissions instead of 2
   - Updated all SettingsViewModel test files (Test, ApiConfigTest, ThemeTest) with userProfileRepository mock
   - Fixed Health Connect API patterns: TimeRangeFilter.between(EPOCH, now+60s), Metadata.autoRecorded()
-  - Fixed Compose callback passing: Added profile callbacks to SettingsContent parameters
+  - Fixed Compose callback passing: Added profile callbacks to SettingsContent parametres
   - All 400 unit tests passing (+13 new tests from UserProfile validation)
   - Deferred Task 8 (manual testing) to QA phase due to physical device requirement
 - **Test Results:** 400 tests passing, zero regressions
@@ -1175,7 +1175,7 @@ Story 6.1 User Profile Settings is **APPROVED** for completion. All acceptance c
 **Updated Tests (Epic 5 baseline):**
 - `HealthConnectManagerTest.kt` - Updated permission assertions from 2 to 6 permissions
 - `OnboardingViewModelTest.kt` - Updated permission grant test to include weight/height permissions
-- `SettingsViewModelTest.kt`, `SettingsViewModelApiConfigTest.kt`, `SettingsViewModelThemeTest.kt` - Added `userProfileRepository` mock parameter
+- `SettingsViewModelTest.kt`, `SettingsViewModelApiConfigTest.kt`, `SettingsViewModelThemeTest.kt` - Added `userProfileRepository` mock parametre
 
 **Test Quality:** Excellent use of Truth library assertions, clear test naming, comprehensive boundary testing
 
@@ -1201,14 +1201,14 @@ All 6 manual test scenarios executed and PASSED on Pixel 8 Pro Android 16:
 - ✅ Health Connect as single source of truth for weight/height (READ for pre-population, WRITE for user edits)
 - ✅ SharedPreferences for non-health data (sex, birthDate) - appropriate choice, no encryption overhead
 - ✅ Selective HC writes: `writeWeightToHC`/`writeHeightToHC` flags prevent pollution of HC with redundant entries
-- ✅ Data source tracking: `weightSourcedFromHC`/`heightSourcedFromHC` flags control write behavior
+- ✅ Data source tracking: `weightSourcedFromHC`/`heightSourcedFromHC` flags control write behaviour
 - ✅ Permission-aware operations: `hasPermission()` checks before query/insert, graceful degradation on denial
 - ✅ Reactive state management: `StateFlow<SettingsState>` exposure, `Flow<UserProfile?>` from repository
 
 **Code Quality:**
 - ✅ KDoc comments on all public APIs (UserProfile, UserProfileRepository methods, HealthConnectManager extensions)
 - ✅ Input validation at domain layer: `UserProfile.validate()` returns `Result<Unit>` with specific error messages
-- ✅ Unit conversion correctness: Height stored as cm in domain model, converted to meters for Health Connect (`heightCm / 100.0`)
+- ✅ Unit conversion correctness: Height stored as cm in domain model, converted to metres for Health Connect (`heightCm / 100.0`)
 - ✅ Timestamp preservation: `Instant.now()` for new records, `ZoneOffset.systemDefault()` for zoned timestamps
 - ✅ Error handling: `Result<T>` pattern, `SecurityException` for permissions, `ValidationError` for domain validation
 - ✅ Cognitive complexity < 15: Methods well-factored (SonarQube requirement met)
@@ -1238,7 +1238,7 @@ All 6 manual test scenarios executed and PASSED on Pixel 8 Pro Android 16:
 - ✅ Input validation: All user inputs validated at domain layer (`UserProfile.validate()`) before storage
 - ✅ No hardcoded secrets: API keys stored in SecurePreferences (Epic 5 pattern), not in user profile code
 - ✅ Health Connect metadata: Proper DataOrigin attribution (`com.foodie.app`) for data provenance
-- ✅ No SQL injection risks: Health Connect SDK handles query parameterization
+- ✅ No SQL injection risks: Health Connect SDK handles query parametreization
 - ✅ No XSS risks: Compose Text composables handle text rendering safely
 
 **Privacy Considerations:**

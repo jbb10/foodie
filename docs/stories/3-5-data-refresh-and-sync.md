@@ -82,7 +82,7 @@ The implementation leverages the existing `GetMealHistoryUseCase` and `MealRepos
 4. Validate assumptions:
    - ✓ Confirm `LaunchedEffect(lifecycle.currentState)` triggers on RESUMED state
    - ✓ Verify pull-to-refresh doesn't conflict with scroll gestures
-   - ✓ Understand StateFlow behavior during background/foreground transitions
+   - ✓ Understand StateFlow behaviour during background/foreground transitions
    - ✓ Confirm scroll position is preserved after state updates
 
 5. Identify constraints:
@@ -146,7 +146,7 @@ Document findings in Dev Notes before proceeding to Task 2:
   - [x] Create meal via Foodie widget (background WorkManager)
   - [x] Return to Foodie list screen
   - [x] Verify new entry appears without manual refresh
-  - [x] Document cross-app sync behavior in Dev Notes
+  - [x] Document cross-app sync behaviour in Dev Notes
 
 - [x] **Task 7: Performance Validation** (AC: #7)
   - [x] Measure pull-to-refresh completion time
@@ -202,7 +202,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** Yes - Lifecycle logic, refresh event handling, error scenarios
 - **Instrumentation Tests Required:** Yes - Compose UI interactions (pull-to-refresh), lifecycle transitions
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
 
@@ -255,9 +255,9 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 9. Tap "Retry" in Foodie
 10. **Expected:** Refresh succeeds, list updates
 
-### Expected Behavior
+### Expected Behaviour
 - Automatic refresh happens seamlessly when returning to app
-- Pull-to-refresh gesture feels native (Material 3 behavior)
+- Pull-to-refresh gesture feels native (Material 3 behaviour)
 - Loading indicator is visible but non-intrusive
 - Scroll position never resets unexpectedly
 - Errors don't clear existing data (graceful degradation)
@@ -323,7 +323,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 **Test Files to Create/Modify:**
 - `app/app/src/test/java/com/foodie/app/ui/screens/meallist/MealListViewModelTest.kt` - Add refresh tests
 - Compose UI test for pull-to-refresh gesture (extend existing test file or create new)
-- Integration test for cross-app sync behavior (Health Connect write from external source → Foodie refresh)
+- Integration test for cross-app sync behaviour (Health Connect write from external source → Foodie refresh)
 
 ### Technical Implementation Notes
 
@@ -358,7 +358,7 @@ Box(modifier = Modifier.pullRefresh(
     PullRefreshIndicator(
         refreshing = state.isRefreshing,
         state = pullRefreshState,
-        modifier = Modifier.align(Alignment.TopCenter)
+        modifier = Modifier.align(Alignment.TopCentre)
     )
 }
 ```
@@ -441,7 +441,7 @@ LazyColumn(state = listState) {
 // In MealListScreen
 state.error?.let { errorMessage ->
     Snackbar(
-        modifier = Modifier.align(Alignment.BottomCenter),
+        modifier = Modifier.align(Alignment.BottomCentre),
         action = {
             TextButton(onClick = { viewModel.refresh() }) {
                 Text("Retry")
@@ -537,7 +537,7 @@ Research findings documented 2025-11-12:
 - Added `LaunchedEffect` with `repeatOnLifecycle(Lifecycle.State.STARTED)` to detect app resume
 - Lifecycle refresh skips initial composition, only triggers on return from background
 - Uses correct import: `androidx.lifecycle.compose.LocalLifecycleOwner` (not deprecated platform version)
-- Unit tests added for refresh behavior and performance validation
+- Unit tests added for refresh behaviour and performance validation
 - All unit tests passing (19 tests in MealListViewModelTest)
 
 ### Completion Notes List
@@ -625,7 +625,7 @@ Research findings documented 2025-11-12:
 **Files Modified:**
 - `app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt` - Lifecycle refresh logic
 - `app/app/src/test/java/com/foodie/app/ui/screens/meallist/MealListViewModelTest.kt` - 4 new unit tests
-- `app/app/src/androidTest/java/com/foodie/app/ui/screens/meallist/MealListScreenTest.kt` - Fixed parameter signatures
+- `app/app/src/androidTest/java/com/foodie/app/ui/screens/meallist/MealListScreenTest.kt` - Fixed parametre signatures
 - `app/app/src/androidTest/java/com/foodie/app/di/HealthConnectHiltTest.kt` - Added DeleteMealEntryUseCase injection
 
 **Acceptance Criteria Verification:**
@@ -642,7 +642,7 @@ Research findings documented 2025-11-12:
 
 **Modified Files:**
 - `app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt` - Added lifecycle-aware refresh with `LaunchedEffect` and `repeatOnLifecycle`, updated import for `LocalLifecycleOwner` to use non-deprecated version from `androidx.lifecycle.compose`
-- `app/app/src/test/java/com/foodie/app/ui/screens/meallist/MealListViewModelTest.kt` - Added 4 new unit tests for lifecycle refresh behavior and performance validation
+- `app/app/src/test/java/com/foodie/app/ui/screens/meallist/MealListViewModelTest.kt` - Added 4 new unit tests for lifecycle refresh behaviour and performance validation
 
 **No New Files Created** - All functionality implemented in existing files. Pull-to-refresh UI (`PullToRefreshBox`), state management (`isRefreshing` flag), and error handling already implemented in previous stories.
 

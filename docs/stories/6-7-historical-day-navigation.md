@@ -28,7 +28,7 @@ So that I can track my deficit/surplus trends over time and understand my progre
 
 **And** if no historical weight exists for that date, current user profile weight is used (graceful fallback)
 
-**And** deficit/surplus color coding applies correctly to historical data (green deficit, red surplus)
+**And** deficit/surplus colour coding applies correctly to historical data (green deficit, red surplus)
 
 **And** empty state shows "No meals logged on this day" when historical Calories In = 0
 
@@ -48,8 +48,8 @@ So that I can track my deficit/surplus trends over time and understand my progre
   
   2. Review existing codebase patterns:
      - ✓ Check HealthConnectManager.kt for existing TimeRangeFilter usage
-     - ✓ Check EnergyBalanceRepository for date parameter support
-     - ✓ Analyze DashboardViewModel state management for date selection
+     - ✓ Check EnergyBalanceRepository for date parametre support
+     - ✓ Analyse DashboardViewModel state management for date selection
      - ✓ Review Material 3 date navigation patterns (IconButton, DatePicker)
   
   3. Validate assumptions:
@@ -72,7 +72,7 @@ So that I can track my deficit/surplus trends over time and understand my progre
   - [x] Historical weight strategy decided: Query weight up to selected date, fallback to current weight
   - [x] Performance requirements validated (< 500ms data fetch including historical weight query)
 
-- [x] **Task 2: Extend EnergyBalanceRepository with Date Parameter** (AC: #3, #7)
+- [x] **Task 2: Extend EnergyBalanceRepository with Date Parametre** (AC: #3, #7)
   - [x] Modify `data/repository/EnergyBalanceRepositoryImpl.kt`:
     - Current method: `fun getEnergyBalance(): Flow<Result<EnergyBalance>>`
     - New method: `fun getEnergyBalance(date: LocalDate = LocalDate.now()): Flow<Result<EnergyBalance>>`
@@ -85,7 +85,7 @@ So that I can track my deficit/surplus trends over time and understand my progre
     - Pass timeRange to all Health Connect queries (queryNutritionRecords, querySteps, queryActiveCalories)
     - Query historical weight for BMR calculation (see Task 7)
   - [x] Write unit tests:
-    - getEnergyBalance with default date (today) matches existing behavior
+    - getEnergyBalance with default date (today) matches existing behaviour
     - getEnergyBalance with historical date (e.g., 7 days ago) queries correct TimeRangeFilter
     - Historical date with no meals returns EnergyBalance with caloriesIn = 0
     - Historical date uses historical weight for BMR when available
@@ -140,7 +140,7 @@ So that I can track my deficit/surplus trends over time and understand my progre
 - [x] **Task 5: Update Empty State for Historical Days** (AC: #9)
   - [x] Modify EmptyState composable in EnergyBalanceDashboardScreen.kt:
     - Current: "Log your first meal to start tracking"
-    - New: Accept parameter `isHistoricalDate: Boolean`
+    - New: Accept parametre `isHistoricalDate: Boolean`
     - Display: "No meals logged on this day" if isHistoricalDate
     - Display: "Log your first meal to start tracking" if !isHistoricalDate (today)
   - [x] Pass isHistoricalDate from EnergyBalanceDashboardScreen:
@@ -177,7 +177,7 @@ So that I can track my deficit/surplus trends over time and understand my progre
         return response.records.firstOrNull()
     }
     ```
-  - [x] Modify EnergyBalanceRepository.calculateBMR() to accept optional weight parameter
+  - [x] Modify EnergyBalanceRepository.calculateBMR() to accept optional weight parametre
   - [x] In getEnergyBalance(date), query historical weight for that date:
     ```kotlin
     val historicalWeight = healthConnectManager.queryWeightForDate(date)
@@ -219,7 +219,7 @@ So that I can track my deficit/surplus trends over time and understand my progre
   - [x] Test Case 3: Today button navigates to today, hides when already on today ✅
   - [x] Test Case 4: Date label shows "Today", "Yesterday", or formatted date correctly ✅
   - [x] Test Case 5: Empty state shows "No meals logged on this day" for historical dates ✅
-  - [x] Test Case 6: Deficit/surplus color coding applies to historical data (verified via visual inspection in manual testing) ✅
+  - [x] Test Case 6: Deficit/surplus colour coding applies to historical data (verified via visual inspection in manual testing) ✅
   - [x] Use Compose UI test harness with mocked repository ✅
   - [x] Run tests: `./gradlew connectedAndroidTest` (requires physical device/emulator) - Deferred to Task 10 manual testing ✅
 
@@ -262,7 +262,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - [x] Story status updated to "done" (all testing complete, all ACs verified)
 
 ### Testing Standards Summary:
-- **Unit Tests Required:** Yes, for ViewModel date navigation logic and repository date parameter
+- **Unit Tests Required:** Yes, for ViewModel date navigation logic and repository date parametre
 - **Instrumentation Tests Required:** Yes, for date navigation UI and historical data display
 - **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult`
 - **Assertion Library:** Truth library
@@ -287,7 +287,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 3. Tap "Previous Day" button (left arrow)
 4. Verify date label updates to "Yesterday"
 5. Verify all metrics update: Calories In, TDEE, Deficit/Surplus
-6. Verify deficit/surplus color coding matches yesterday's actual balance
+6. Verify deficit/surplus colour coding matches yesterday's actual balance
 
 **Expected:** Dashboard displays yesterday's complete energy balance data
 
@@ -337,14 +337,14 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 **Expected:** Selected date persists when app is backgrounded and resumed
 
-### Expected Behavior
+### Expected Behaviour
 - Date navigation is instant (< 100ms UI update)
 - Historical data queries complete within 500ms
 - "Previous Day" button always enabled (can navigate to any past date)
 - "Next Day" button disabled when viewing today
 - "Today" button visible only when viewing historical date
 - Date label displays "Today", "Yesterday", or formatted date (e.g., "Wednesday, Nov 27, 2025")
-- Deficit/surplus color coding (green/red) applies correctly to all historical dates
+- Deficit/surplus colour coding (green/red) applies correctly to all historical dates
 - Empty state shows different message for historical dates vs today
 - TDEE calculation uses current user profile (BMR) with historical activity data (NEAT, Active)
 - Selected date persists across app backgrounding
@@ -372,7 +372,7 @@ All 6 test scenarios passed successfully on physical device. Historical day navi
 
 **Historical Weight Tracking Complexity Assessment:**
 
-After analyzing the existing `queryLatestWeight()` implementation in `HealthConnectManager.kt`, historical weight tracking is **SIMPLE** to implement:
+After analysing the existing `queryLatestWeight()` implementation in `HealthConnectManager.kt`, historical weight tracking is **SIMPLE** to implement:
 
 **Existing Pattern (lines 289-325):**
 ```kotlin
@@ -450,7 +450,7 @@ Claude Sonnet 4.5 (GitHub Copilot)
    - Falls back to null if no weight found
    - Pattern identical to existing queryLatestWeight() method
 
-2. Extended EnergyBalanceRepository interface with date parameter (EnergyBalanceRepository.kt:259)
+2. Extended EnergyBalanceRepository interface with date parametre (EnergyBalanceRepository.kt:259)
    - Signature: `fun getEnergyBalance(date: LocalDate = LocalDate.now()): Flow<Result<EnergyBalance>>`
    - Defaults to today for backward compatibility
 
@@ -477,12 +477,12 @@ Claude Sonnet 4.5 (GitHub Copilot)
    - Icons: Icons.AutoMirrored.Filled.ArrowBack/ArrowForward for accessibility
 
 7. Updated EmptyState for historical dates (EnergyBalanceDashboardScreen.kt:573-604)
-   - Parameter: `isHistoricalDate: Boolean`
+   - Parametre: `isHistoricalDate: Boolean`
    - Message: "No meals logged on this day" (historical) vs "Log your first meal to start tracking" (today)
 
 8. Fixed existing unit tests (EnergyBalanceDashboardViewModelTest.kt)
    - Added SavedStateHandle to test setup
-   - Updated all getEnergyBalance() mocks to include LocalDate.now() parameter
+   - Updated all getEnergyBalance() mocks to include LocalDate.now() parametre
    - All 6 existing tests passing (465 total tests in project)
 
 **Key Architecture Decisions:**
@@ -534,12 +534,12 @@ _None - all functionality added to existing files_
 
 **MODIFIED Files:**
 1. `app/app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt` - Added queryWeightForDate method (lines 329-375)
-2. `app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt` - Extended getEnergyBalance signature with date parameter (line 259)
+2. `app/app/src/main/java/com/foodie/app/domain/repository/EnergyBalanceRepository.kt` - Extended getEnergyBalance signature with date parametre (line 259)
 3. `app/app/src/main/java/com/foodie/app/data/repository/EnergyBalanceRepositoryImpl.kt` - Implemented date-based queries and calculateEnergyBalanceForDate (lines 439-601)
 4. `app/app/src/main/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceState.kt` - Added selectedDate field (line 36)
 5. `app/app/src/main/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardViewModel.kt` - Added SavedStateHandle, date navigation methods (lines 27-203)
 6. `app/app/src/main/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardScreen.kt` - Added DateNavigationRow, updated EmptyState (lines 1-21 imports, 494-604 components)
-7. `app/app/src/test/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardViewModelTest.kt` - Updated tests for SavedStateHandle and date parameter
+7. `app/app/src/test/java/com/foodie/app/ui/screens/energybalance/EnergyBalanceDashboardViewModelTest.kt` - Updated tests for SavedStateHandle and date parametre
 8. `docs/sprint-status.yaml` - Updated story status to in-progress
 
 ## Change Log
@@ -547,7 +547,7 @@ _None - all functionality added to existing files_
 - **2025-11-30**: Story COMPLETE - Task 10 manual testing passed (all 6 scenarios)
   - Manual testing completed on physical device
   - All date navigation scenarios verified: yesterday nav, multi-day nav, empty state, today button, persistence, edge cases
-  - Historical data display accurate: Calories In, TDEE components, deficit/surplus color coding
+  - Historical data display accurate: Calories In, TDEE components, deficit/surplus colour coding
   - Performance validated: Historical queries < 500ms, UI transitions < 100ms
   - SavedStateHandle persistence confirmed: selectedDate survives app backgrounding
   - All 10 acceptance criteria verified with evidence
@@ -566,7 +566,7 @@ _None - all functionality added to existing files_
 
 - **2025-11-29**: Core implementation completed (Tasks 1-7)
   - Added queryWeightForDate() to HealthConnectManager for historical BMR accuracy
-  - Extended EnergyBalanceRepository.getEnergyBalance() with date parameter (defaults to today)
+  - Extended EnergyBalanceRepository.getEnergyBalance() with date parametre (defaults to today)
   - Implemented calculateEnergyBalanceForDate() for one-shot historical queries
   - Historical dates use single emission Flow, today uses reactive polling
   - Added selectedDate field to EnergyBalanceState with SavedStateHandle persistence
@@ -582,7 +582,7 @@ _None - all functionality added to existing files_
   - Story 6-7 replaces redundant "Weight/Height Health Connect Sync" (already implemented in Story 6-1)
   - Core scope: Previous/Next day navigation buttons, "Today" quick navigation, date label, historical data display
   - Deferred: Calendar picker for arbitrary date selection (can add in future story if needed)
-  - Technical approach: Extend getEnergyBalance() with LocalDate parameter, add selectedDate state to ViewModel
+  - Technical approach: Extend getEnergyBalance() with LocalDate parametre, add selectedDate state to ViewModel
   - Historical BMR strategy: UPDATED - Query historical weight for accurate BMR (complexity assessment: SIMPLE)
   - Persistence strategy: SavedStateHandle for selectedDate to survive app backgrounding
   - Acceptance criteria cover: date navigation buttons (9 ACs), historical data accuracy, empty state messaging, date persistence

@@ -190,7 +190,7 @@ fun WelcomeScreen(
 
         // Core concept explanation
         Text(
-            text = "Capture meals in 2 seconds.\nAI analyzes.\nHealth Connect saves.",
+            text = "Capture meals in 2 seconds.\nAI analyses.\nHealth Connect saves.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             lineHeight = 28.sp,

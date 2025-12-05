@@ -20,11 +20,11 @@ So that users get automatic nutrition data without manual entry.
 
 4. **And** the request uses the `model` field to specify the deployment name (e.g., "gpt-4.1")
 
-5. **And** the request uses `instructions` field for system-level guidance: "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food)."
+5. **And** the request uses `instructions` field for system-level guidance: "You are a nutrition analysis assistant. Analyse the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food)."
 
 6. **And** the request uses `input` array with multimodal content containing text prompt and base64 image
 
-7. **And** the input includes user message with text: "Analyze this meal and estimate total calories." and image type "input_image" with base64 data URL
+7. **And** the input includes user message with text: "Analyse this meal and estimate total calories." and image type "input_image" with base64 data URL
 
 8. **And** the response contains `output_text` field with JSON: `{calories: number, description: string}`
 
@@ -58,7 +58,7 @@ So that users get automatic nutrition data without manual entry.
 - [ ] **Task 2: Implement Retrofit API Interface** (AC: #2, #3, #4)
   - [ ] Create `AzureOpenAiApi` interface in `data/remote/api/`
   - [ ] Define `@POST("openai/v1/responses")` endpoint
-  - [ ] Method: `suspend fun analyzeNutrition(@Body request: AzureResponseRequest): AzureResponseResponse`
+  - [ ] Method: `suspend fun analyseNutrition(@Body request: AzureResponseRequest): AzureResponseResponse`
   - [ ] Create `AuthInterceptor` in `data/remote/interceptor/`
     - [ ] Inject SecurePreferences via Hilt
     - [ ] Add `api-key` header (NOT `Authorization: Bearer`)
@@ -85,15 +85,15 @@ So that users get automatic nutrition data without manual entry.
 
 - [ ] **Task 4: Implement NutritionAnalysisRepository** (AC: #1, #5-10)
   - [ ] Create `NutritionAnalysisRepository` interface in `domain/repository/`
-    - [ ] Method: `suspend fun analyzePhoto(photoUri: Uri): Result<NutritionData>`
+    - [ ] Method: `suspend fun analysePhoto(photoUri: Uri): Result<NutritionData>`
   - [ ] Create `NutritionAnalysisRepositoryImpl` in `data/repository/`
     - [ ] Inject `AzureOpenAiApi` and `ImageUtils` via Hilt
-    - [ ] Implement `analyzePhoto()`:
+    - [ ] Implement `analysePhoto()`:
       - [ ] Load image from URI using `ImageUtils.encodeImageToBase64()`
       - [ ] Build `AzureResponseRequest` with model "gpt-4.1" (or from config)
       - [ ] Set `instructions` with system guidance
       - [ ] Create `InputItem` with text prompt and base64 image
-      - [ ] Call `AzureOpenAiApi.analyzeNutrition(request)`
+      - [ ] Call `AzureOpenAiApi.analyseNutrition(request)`
       - [ ] Parse `response.output_text` as JSON to `ApiNutritionResponse`
       - [ ] Validate calories in 1..5000 range
       - [ ] Map to `NutritionData` domain model
@@ -238,7 +238,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
    - Parsed NutritionData domain model
    - Total API call duration (< 10 seconds typical)
 
-### Expected Behavior
+### Expected Behaviour
 - API requests formatted correctly with multimodal input (text + image)
 - Authentication header `api-key` added automatically
 - API responses parsed successfully to NutritionData
@@ -272,14 +272,14 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ```json
 {
   "model": "gpt-4.1",
-  "instructions": "You are a nutrition analysis assistant. Analyze the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).",
+  "instructions": "You are a nutrition analysis assistant. Analyse the food image and return ONLY a JSON object with two fields: calories (number) and description (string describing the food).",
   "input": [
     {
       "role": "user",
       "content": [
         {
           "type": "input_text",
-          "text": "Analyze this meal and estimate total calories."
+          "text": "Analyse this meal and estimate total calories."
         },
         {
           "type": "input_image",
@@ -516,7 +516,7 @@ This story involves **Azure OpenAI Responses API** which has extensive, multi-la
    - Validation: Calories 1-5000, description max 200 characters
 
 3. **Architecture API Integration** - [Source: docs/architecture.md#Azure-OpenAI-API]
-   - Retrofit interface: `AzureOpenAiApi` with `analyzeNutrition()` method
+   - Retrofit interface: `AzureOpenAiApi` with `analyseNutrition()` method
    - AuthInterceptor: API key injection in headers
    - Repository pattern: NutritionAnalysisRepository wraps API calls
    - Error handling: Network errors retryable, parse errors non-retryable

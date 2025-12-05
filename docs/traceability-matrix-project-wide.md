@@ -4,7 +4,7 @@
 **Scope:** Epics 1-6 (All Completed Work)  
 **Date:** 2025-11-29  
 **Evaluator:** TEA (Test Architect Agent)  
-**Stories Analyzed:** 40 completed stories  
+**Stories Analysed:** 40 completed stories  
 **Test Methods:** 609 across 82 test files
 
 ---
@@ -578,7 +578,7 @@ fun configure_api_key_enables_meal_analysis() {
 }
 ```
 
-**Impact if not fixed:** Users may configure API incorrectly → photos analyzed with wrong endpoint → failures.
+**Impact if not fixed:** Users may configure API incorrectly → photos analysed with wrong endpoint → failures.
 
 ---
 
@@ -615,8 +615,8 @@ fun dashboard_shows_accurate_calorie_balance_with_real_data() {
     // Deficit = TDEE - Calories In = 2115 - 2000 = 115
     onView(withId(R.id.deficitValue)).check(matches(withText("-115 kcal deficit")))
     
-    // Color should be green (deficit)
-    // Verify card background color
+    // Colour should be green (deficit)
+    // Verify card background colour
 }
 ```
 
@@ -703,7 +703,7 @@ fun api_failure_shows_notification_with_retry_action() {
     mockWebServer.enqueue(MockResponse().setResponseCode(200).setBody(validResponse))
     
     // Then: Analysis completes, meal appears in list
-    onView(withText("Analyzed Meal")).check(matches(isDisplayed()))
+    onView(withText("Analysed Meal")).check(matches(isDisplayed()))
 }
 ```
 
@@ -770,15 +770,15 @@ fun theme_preference_persists_across_app_restarts() {
     onView(withText("Theme")).perform(click())
     onView(withText("Dark")).perform(click())
     
-    // Then: UI switches to dark theme (verify background color)
-    onView(withId(R.id.root)).check(matches(hasBackgroundColor(darkThemeColor)))
+    // Then: UI switches to dark theme (verify background colour)
+    onView(withId(R.id.root)).check(matches(hasBackgroundColour(darkThemeColour)))
     
     // When: User force-stops and relaunches app
     pressBack() // Exit app
     ActivityScenario.launch<MainActivity>() // Relaunch
     
     // Then: App still in dark mode
-    onView(withId(R.id.root)).check(matches(hasBackgroundColor(darkThemeColor)))
+    onView(withId(R.id.root)).check(matches(hasBackgroundColour(darkThemeColour)))
 }
 ```
 

@@ -250,7 +250,7 @@ Document findings in Dev Notes before proceeding to Task 2:
   - [ ] Step 7: Manual verification of empty list
 - [ ] Add clear console output for each step
   - [ ] Print PASS/FAIL status
-  - [ ] Use colors (green/red) if supported
+  - [ ] Use colours (green/red) if supported
   - [ ] Exit with code 0 on success, non-zero on failure
 - [ ] Add usage instructions in script comments
 - [ ] Test script end-to-end on emulator
@@ -280,7 +280,7 @@ Document findings in Dev Notes before proceeding to Task 2:
   - [ ] **Purpose**: Testing tool for E2E test determinism
   - [ ] **Installation**: Build and install steps
   - [ ] **ADB Commands**: Complete reference with examples
-    - [ ] WRITE_NUTRITION with all parameters
+    - [ ] WRITE_NUTRITION with all parametres
     - [ ] DELETE_ALL_NUTRITION
     - [ ] Timestamp format explanation
   - [ ] **Verification**: How to run verify-seeder.sh
@@ -430,7 +430,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
    - Show summary output
    - **Expected**: Tests run in isolation with clean state
 
-### Expected Behavior
+### Expected Behaviour
 - **No UI interaction required**: All operations happen via ADB commands
 - **Immediate sync**: Seeded data appears in Foodie app within 1-2 seconds
 - **Clean slate**: DELETE_ALL_NUTRITION ensures deterministic starting point

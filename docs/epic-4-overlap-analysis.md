@@ -2,7 +2,7 @@
 
 **Date:** 2025-11-16
 **Author:** John (Product Manager)
-**Purpose:** Analyze work completed in Story 4.3 that may overlap with remaining Epic 4 stories
+**Purpose:** Analyse work completed in Story 4.3 that may overlap with remaining Epic 4 stories
 
 ---
 
@@ -54,7 +54,7 @@ Acceptance Criteria:
 
 ✅ **IMPLEMENTED:**
 1. **Smart Photo Deletion Logic** (Bug Fix #3 - 2025-11-16)
-   - Location: `AnalyzeMealWorker.kt:245-260, 295-305`
+   - Location: `AnalyseMealWorker.kt:245-260, 295-305`
    - Photos deleted on successful Health Connect save (AC #1) ✅
    - Photos deleted on NoFoodDetected error (non-retryable)
    - Photos RETAINED on all other errors (enables retry) ✅
@@ -194,20 +194,20 @@ Acceptance Criteria:
 
 3. **RetryAnalysisBroadcastReceiver** (AC #5, #6, #9)
    - Location: `app/src/main/java/com/foodie/app/util/RetryAnalysisBroadcastReceiver.kt` (72 lines)
-   - Enqueues new AnalyzeMealWorker with same photo URI ✅
+   - Enqueues new AnalyseMealWorker with same photo URI ✅
    - Cancels persistent notification before retry ✅
    - Uses WorkManager.enqueueUniqueWork() ✅
 
 4. **Notification Replacement** (AC #6)
    - RetryBroadcastReceiver cancels persistent notification
-   - AnalyzeMealWorker shows foreground "Analyzing meal..." notification when work starts ✅
+   - AnalyseMealWorker shows foreground "Analyzing meal..." notification when work starts ✅
 
 5. **Photo Reuse for Retry** (AC #7)
    - Same photoUri passed through intent extras
    - Photo retained from original failure (Story 4.3 bug fix) ✅
 
 6. **Successful Retry Flow** (AC #8)
-   - Normal AnalyzeMealWorker flow: save to HC, delete photo, dismiss notification ✅
+   - Normal AnalyseMealWorker flow: save to HC, delete photo, dismiss notification ✅
 
 7. **Failed Retry Cycle** (AC #9)
    - New WorkRequest starts fresh retry counter (runAttemptCount = 0)
@@ -386,7 +386,7 @@ Story 4.7 was fully implemented during Story 4.3 bug fixes and manual testing:
 **Implementation:**
 - NotificationHelper.kt: Persistent error notifications with retry action
 - RetryAnalysisBroadcastReceiver.kt: Handles retry button tap, enqueues new work
-- AnalyzeMealWorker.kt: Integrated NotificationHelper for error notifications
+- AnalyseMealWorker.kt: Integrated NotificationHelper for error notifications
 
 **Manual Testing:** All scenarios verified on physical device (2025-11-16)
 ```
@@ -424,5 +424,5 @@ Story 4.7 was fully implemented during Story 4.3 bug fixes and manual testing:
 - May want product owner review of retention strategy before implementing 4.4
 
 **MITIGATION:**
-- Document current photo retention behavior in architecture.md
+- Document current photo retention behaviour in architecture.md
 - Get sign-off on 24-hour cleanup approach before Story 4.4 implementation

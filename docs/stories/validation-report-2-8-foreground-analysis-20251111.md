@@ -72,7 +72,7 @@ Story 2.8 was created to address a gap in the original Epic 2.4 specification - 
 [Source: docs/stories/2-7-end-to-end-capture-flow-integration.md#Completion-Notes]
 ```
 
-**Impact:** Developers lack critical context about the current state of AnalyzeMealWorker, recent changes to capture flow, and the relationship between Story 2.8 and the incomplete physical device testing from Story 2-7.
+**Impact:** Developers lack critical context about the current state of AnalyseMealWorker, recent changes to capture flow, and the relationship between Story 2.8 and the incomplete physical device testing from Story 2-7.
 
 **Recommendation:** Add "Learnings from Previous Story" subsection to Dev Notes immediately.
 
@@ -117,7 +117,7 @@ Story 2.8 was created to address a gap in the original Epic 2.4 specification - 
    - Context: Addresses gap from original Story 2.4 specification
 
 2. **Tech Spec Epic 2 - Background Processing Module** - [Source: docs/tech-spec-epic-2.md#Background-Processing-Module]
-   - AnalyzeMealWorker implementation details (lines 180-220)
+   - AnalyseMealWorker implementation details (lines 180-220)
    - WorkManager configuration with network constraints and retry policy
    - Note: Current spec specifies "no foreground service needed" - Story 2.8 updates this
 
@@ -132,7 +132,7 @@ Story 2.8 was created to address a gap in the original Epic 2.4 specification - 
 
 5. **Story 2-7 Completion Notes** - [Source: docs/stories/2-7-end-to-end-capture-flow-integration.md#Completion-Notes]
    - WorkManager job enqueue validated on emulator
-   - AnalyzeMealWorker execution confirmed
+   - AnalyseMealWorker execution confirmed
    - Gap: No user-visible notification during processing identified
 ```
 
@@ -163,7 +163,7 @@ app/src/main/java/com/foodie/app/
 │
 ├── data/
 │   ├── worker/
-│   │   ├── AnalyzeMealWorker.kt         # MODIFIED: Add setForegroundAsync()
+│   │   ├── AnalyseMealWorker.kt         # MODIFIED: Add setForegroundAsync()
 │   │   └── foreground/                  # NEW DIRECTORY
 │   │       └── MealAnalysisForegroundNotifier.kt  # NEW: Notification builder
 │
@@ -171,7 +171,7 @@ app/src/main/java/com/foodie/app/
 ```
 
 **Key Files to Modify:**
-- `AnalyzeMealWorker.kt` - Inject MealAnalysisForegroundNotifier, call setForegroundAsync()
+- `AnalyseMealWorker.kt` - Inject MealAnalysisForegroundNotifier, call setForegroundAsync()
 - `FoodieApplication.kt` - Create notification channel on app start (API 26+)
 - `CapturePhotoViewModel.kt` - Check notification permission before enqueuing work (Android 13+)
 
@@ -209,7 +209,7 @@ Starting Points:
 
 **BEFORE IMPLEMENTATION: Research Android Foreground Service Requirements**
 
-Use Playwright MCP to fetch and analyze official documentation:
+Use Playwright MCP to fetch and analyse official documentation:
 
 1. **WorkManager Foreground Execution** (Primary source)
    - URL: https://developer.android.com/topic/libraries/architecture/workmanager/advanced/long-running
@@ -218,7 +218,7 @@ Use Playwright MCP to fetch and analyze official documentation:
 
 2. **Android Notification Permission (Android 13+)**
    - URL: https://developer.android.com/develop/ui/views/notifications/notification-permission
-   - Focus: Runtime permission request flow, fallback behavior
+   - Focus: Runtime permission request flow, fallback behaviour
    - Extract: Permission request patterns, UX best practices
 
 3. **Foreground Service Restrictions (Android 8+)**
@@ -313,7 +313,7 @@ Story 2.8 in epics.md specifies 9 acceptance criteria. Story file contains 9 ACs
 2. AC#2: ✅ Testable (user can return to previous app), Specific (no blocking UI), Atomic
 3. AC#3: ✅ Testable (API called with photo), Specific (Azure OpenAI), Atomic
 4. AC#4: ✅ Testable (notification components), Specific (icon, text, permission), Atomic
-5. AC#5: ✅ Testable (auto-dismiss), Specific (success/failure behavior), Atomic
+5. AC#5: ✅ Testable (auto-dismiss), Specific (success/failure behaviour), Atomic
 6. AC#6: ✅ Testable (<15s timing), Specific (measurable), Atomic
 7. AC#7: ✅ Testable (photo deletion), Specific (success or retry exhaustion), Atomic
 8. AC#8: ✅ Testable (notification survives death), Specific (WorkManager reschedule), Atomic
@@ -408,7 +408,7 @@ Story 2.8 in epics.md specifies 9 acceptance criteria. Story file contains 9 ACs
 
 2. **Add "Project Structure Notes" Section** (MAJOR)
    - Document new `data/worker/foreground/` directory
-   - List files to modify: AnalyzeMealWorker.kt, FoodieApplication.kt, CapturePhotoViewModel.kt
+   - List files to modify: AnalyseMealWorker.kt, FoodieApplication.kt, CapturePhotoViewModel.kt
    - Cite unified-project-structure.md
 
 3. **Improve References Section Citations** (MAJOR)

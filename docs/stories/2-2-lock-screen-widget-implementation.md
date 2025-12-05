@@ -64,7 +64,7 @@ so that I can capture my meal in under 5 seconds with minimal friction.
   - [x] Manual test: Verify widget tap launches camera in < 3 seconds (with unlock)
   - [x] Manual test: Test with biometric unlock for optimal speed
   - [x] Manual test: Reboot device and verify widget persists and remains functional
-  - [x] Document widget behavior and performance on home screen
+  - [x] Document widget behaviour and performance on home screen
 
 - [x] **Task 5: Documentation and Integration Verification** (AC: All)
   - [x] Update README with widget installation instructions
@@ -110,7 +110,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** Widget configuration, PendingIntent creation logic
 - **Instrumentation Tests Required:** Widget UI rendering, deep link navigation flow
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
 
@@ -144,7 +144,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
    - Verify widget still appears on home screen
    - Tap widget to verify it still launches camera
 
-### Expected Behavior
+### Expected Behaviour
 - Widget appears on home screen with clear "Log Meal" label and app icon
 - Tapping widget launches camera after device unlock
 - Total time from device wake to camera ready: < 3 seconds with biometric unlock
@@ -185,7 +185,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 **Testing Strategy:**
 - Unit tests: Widget configuration, PendingIntent creation
 - Instrumentation tests: Widget rendering, deep link navigation (use ComposeTestActivity pattern from Story 2-1)
-- Manual tests: Home screen behavior, reboot persistence, launch timing with biometric unlock
+- Manual tests: Home screen behaviour, reboot persistence, launch timing with biometric unlock
 
 **Platform Limitation Discovered:**
 - Android does not support third-party lock screen widgets on phones (system apps only)
@@ -321,7 +321,7 @@ Result: BUILD SUCCESSFUL ✅
 **Testing Approach:**
 - Instrumentation tests created (5 test methods covering intent configuration, deep links, receiver setup)
 - Unit tests abandoned due to Android framework dependencies (Uri, Intent require runtime)
-- Manual testing completed (home screen behavior, ~2-3 second timing with biometric unlock, reboot persistence)
+- Manual testing completed (home screen behaviour, ~2-3 second timing with biometric unlock, reboot persistence)
 - Automated tests verify configuration correctness, manual tests verified UX requirements
 
 **Architecture Decisions:**
@@ -438,7 +438,7 @@ The home screen widget implementation demonstrates **excellent technical executi
 
 2. **[Low] Manual testing documentation complete but not executed**
    - **Location:** docs/stories/2-2-manual-testing-guide.md
-   - **Impact:** Critical UX requirements (< 3 seconds with biometric unlock, home screen behavior) validated on Pixel 8 Pro
+   - **Impact:** Critical UX requirements (< 3 seconds with biometric unlock, home screen behaviour) validated on Pixel 8 Pro
    - **Status:** ✅ COMPLETED - All manual tests executed successfully
 
 ### Test Coverage and Gaps
@@ -489,7 +489,7 @@ The home screen widget implementation demonstrates **excellent technical executi
 - [Android Widgets Guide](https://developer.android.com/develop/ui/views/appwidgets/overview)
 - [Jetpack Glance](https://developer.android.com/jetpack/androidx/releases/glance)
 - [Lock Screen Widgets (Android 12+)](https://developer.android.com/guide/topics/appwidgets/overview#lock-screen)
-- [PendingIntent Security](https://developer.android.com/about/versions/12/behavior-changes-12#pending-intent-mutability)
+- [PendingIntent Security](https://developer.android.com/about/versions/12/behaviour-changes-12#pending-intent-mutability)
 
 ### Action Items
 

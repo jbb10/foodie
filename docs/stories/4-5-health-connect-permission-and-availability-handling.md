@@ -7,7 +7,7 @@ Status: done
 | Date | Author | Change |
 |------|--------|--------|
 | 2025-11-16 | BMad (PM) | Story revised based on Story 4.3 overlap analysis - 60% already implemented, focus on HC availability |
-| 2025-11-16 | BMad (Dev) | Completed implementation - Added HealthConnectStatus enum, MainActivity.onResume() lifecycle checks, HealthConnectPermissionGate availability gate, AnalyzeMealWorker HC checks, 4 integration tests - All 7 ACs verified |
+| 2025-11-16 | BMad (Dev) | Completed implementation - Added HealthConnectStatus enum, MainActivity.onResume() lifecycle checks, HealthConnectPermissionGate availability gate, AnalyseMealWorker HC checks, 4 integration tests - All 7 ACs verified |
 | 2025-11-16 | BMad (Reviewer) | Code review complete - APPROVED - All 7 ACs implemented, all 11 tasks verified, 0 blocking issues - Production-ready |
 
 ## Story
@@ -139,7 +139,7 @@ This story focuses on:
   - [x] Allow user to proceed to permission check once available
 
 - [x] **Task 8: Error Messaging for HC Operations** (AC: #4)
-  - [x] Update AnalyzeMealWorker error handling
+  - [x] Update AnalyseMealWorker error handling
   - [x] If HC unavailable during save operation, classify as HealthConnectUnavailable error
   - [x] ErrorHandler.getUserMessage() should return: "Health Connect is required for nutrition tracking"
   - [x] Show persistent notification with "Install Health Connect" action (links to Play Store)
@@ -218,7 +218,7 @@ This story adds Health Connect availability detection and installation guidance.
 
 **Task 1: Documentation Research - Complete**
 - ✅ Reviewed Health Connect SDK documentation
-- ✅ Analyzed HealthConnectManager implementation (line 66: `isAvailable()` already exists)
+- ✅ Analysed HealthConnectManager implementation (line 66: `isAvailable()` already exists)
 - ✅ Reviewed HealthConnectUnavailableDialog (Play Store intent with fallback already implemented)
 - ✅ Reviewed MainActivity (HC availability check on launch exists, but no `onResume()` re-check)
 
@@ -232,7 +232,7 @@ This story adds Health Connect availability detection and installation guidance.
 1. Add `HealthConnectStatus` enum and `getHealthConnectStatus()` method to HealthConnectManager
 2. Add `onResume()` override to MainActivity for permission/availability re-check
 3. Integrate HealthConnectUnavailableDialog into HealthConnectPermissionGate flow (check availability before permissions)
-4. Add error handling in AnalyzeMealWorker for HC unavailable
+4. Add error handling in AnalyseMealWorker for HC unavailable
 5. Write comprehensive tests
 
 **Task 2-8: Implementation - Complete**
@@ -242,7 +242,7 @@ This story adds Health Connect availability detection and installation guidance.
 - ✅ Task 5 already implemented (MainActivity checks availability on launch)
 - ✅ Added `MainActivity.onResume()` lifecycle re-check
 - ✅ Updated `HealthConnectPermissionGate` to check availability before permissions
-- ✅ Added HC unavailable check in AnalyzeMealWorker with proper error notification
+- ✅ Added HC unavailable check in AnalyseMealWorker with proper error notification
 - ✅ ErrorType.HealthConnectUnavailable already exists from prior work
 
 **Task 9-10: Testing - Complete**
@@ -268,14 +268,14 @@ This story completed the Health Connect availability handling that was 60% imple
 - `HealthConnectManager.kt`: Added `HealthConnectStatus` enum and `getHealthConnectStatus()` method
 - `MainActivity.kt`: Added `onResume()` override for lifecycle re-checks
 - `HealthConnectPermissionFlow.kt`: Added availability check before permission request
-- `AnalyzeMealWorker.kt`: Added HC availability check before save operations
+- `AnalyseMealWorker.kt`: Added HC availability check before save operations
 - `HealthConnectIntegrationTest.kt`: Added 4 new tests for status checking
 
 **Files Modified:**
 - app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt
 - app/src/main/java/com/foodie/app/MainActivity.kt
 - app/src/main/java/com/foodie/app/ui/components/HealthConnectPermissionFlow.kt
-- app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt
+- app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt
 - app/src/androidTest/java/com/foodie/app/data/healthconnect/HealthConnectIntegrationTest.kt
 
 **Test Coverage:**
@@ -336,7 +336,7 @@ Story 4.5 successfully completes the Health Connect availability handling infras
 | AC#1 | HC not installed message with Play Store link | ✅ IMPLEMENTED | HealthConnectUnavailableDialog.kt:25-29 |
 | AC#2 | Play Store opens to HC app page | ✅ IMPLEMENTED | HealthConnectUnavailableDialog.kt:33-40 |
 | AC#3 | App re-checks availability after Play Store return | ✅ IMPLEMENTED | HealthConnectPermissionFlow.kt:109 |
-| AC#4 | Clear error message if HC unavailable | ✅ IMPLEMENTED | ErrorHandler.kt:147, AnalyzeMealWorker.kt:288 |
+| AC#4 | Clear error message if HC unavailable | ✅ IMPLEMENTED | ErrorHandler.kt:147, AnalyseMealWorker.kt:288 |
 | AC#5 | Lifecycle checks on MainActivity.onResume() | ✅ IMPLEMENTED | MainActivity.kt:173-189 |
 | AC#6 | Permission re-request on revocation | ✅ IMPLEMENTED | MainActivity.kt:180-186, HealthConnectPermissionFlow.kt:57-75 |
 | AC#7 | Graceful handling if install declined | ✅ IMPLEMENTED | HealthConnectUnavailableDialog.kt:61, HealthConnectPermissionFlow.kt:109 |
@@ -354,7 +354,7 @@ Story 4.5 successfully completes the Health Connect availability handling infras
 | Task 5: Availability Check on Launch | ✅ Complete | ✅ VERIFIED | MainActivity.kt:116-142 |
 | Task 6: Lifecycle Re-Check | ✅ Complete | ✅ VERIFIED | MainActivity.kt:173-189 |
 | Task 7: Permission Flow Update | ✅ Complete | ✅ VERIFIED | HealthConnectPermissionFlow.kt:57-75, 99-112 |
-| Task 8: Error Messaging | ✅ Complete | ✅ VERIFIED | AnalyzeMealWorker.kt:245-250 |
+| Task 8: Error Messaging | ✅ Complete | ✅ VERIFIED | AnalyseMealWorker.kt:245-250 |
 | Task 9: Unit Tests | ✅ Complete | ✅ VERIFIED | HealthConnectIntegrationTest.kt:183-230 |
 | Task 10: Integration Tests | ✅ Complete | ✅ VERIFIED | HealthConnectIntegrationTest.kt:183-230 |
 | Task 11: Manual Testing | ✅ Complete | ⚠️ DEFERRED | Acceptable - automated tests cover core functionality |

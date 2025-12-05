@@ -152,7 +152,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 **From Story 2.8 (Status: done)**
 
-- **Foreground Service:** The `AnalyzeMealWorker` now runs as a foreground service using `setForegroundAsync()`, providing a visible notification to the user during AI analysis. This improves transparency and trust.
+- **Foreground Service:** The `AnalyseMealWorker` now runs as a foreground service using `setForegroundAsync()`, providing a visible notification to the user during AI analysis. This improves transparency and trust.
 - **Notification Handling:** A `MealAnalysisForegroundNotifier` was created to manage notification creation and updates. The app now correctly handles Android 13+ notification permissions.
 - **Key Takeaway:** The background processing infrastructure is robust and provides user feedback. This story (3.1) will be the first to consume the data produced by that system.
 
@@ -374,7 +374,7 @@ The implementation demonstrates solid MVVM architecture and comprehensive testin
 - [ ] No dedicated unit test for `GetMealHistoryUseCase` (relying on integration via ViewModel tests)
 - [ ] No performance test for AC #5 (500ms load time requirement)
 - [ ] No test for date sorting edge case (dates beyond Yesterday)
-- [ ] No test verifying Flow completion/cancellation behavior
+- [ ] No test verifying Flow completion/cancellation behaviour
 
 ### Architectural Alignment
 
@@ -453,7 +453,7 @@ The implementation demonstrates solid MVVM architecture and comprehensive testin
 
 - [ ] [Med] Create unit test file for `GetMealHistoryUseCase` [file: new test file needed]
   - Test that use case correctly delegates to repository
-  - Verify Flow emission behavior
+  - Verify Flow emission behaviour
 
 - [ ] [Low] Move empty state message to string resources [file: MealListScreen.kt:131]
   ```xml
@@ -569,7 +569,7 @@ This story delivers the first major review feature for Foodie users. All manual 
 - **App Bar**: "Foodie" title with settings icon ✅
 - **List Items**: Card-based design with meal details ✅
 - **Pull-to-Refresh**: Material 3 swipe gesture with loading indicator ✅
-- **Empty State**: Centered message with helpful instruction ✅
+- **Empty State**: Centreed message with helpful instruction ✅
 
 ### ⚠️ Known Limitations (Coming in Future Stories) - ✅ VERIFIED
 

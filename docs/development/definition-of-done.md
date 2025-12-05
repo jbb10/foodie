@@ -26,7 +26,7 @@ This document defines the quality standards and completion criteria that **MUST*
   - Null safety patterns (safe calls, elvis operators used appropriately)
   - Coroutine patterns for async operations
   - Naming conventions (camelCase functions, PascalCase classes)
-  - No unused imports, parameters, or dead code
+  - No unused imports, parametres, or dead code
 - [ ] **No code duplication** (extract common logic to shared utilities/helpers)
 - [ ] **Cognitive complexity manageable** (methods <15 complexity threshold)
 - [ ] **Security best practices applied:**
@@ -123,7 +123,7 @@ From Epic 5 Retrospective (BMad, Project Lead):
   - Null safety and boundary conditions tested
 - [ ] **Test naming conventions followed:**
   - Pattern: `methodName_whenCondition_thenExpectedResult` OR
-  - Pattern: `feature should behavior when condition` (descriptive with spaces - Android convention)
+  - Pattern: `feature should behaviour when condition` (descriptive with spaces - Android convention)
 - [ ] **Test execution time remains fast** (< 60 seconds for full suite)
   - Optimize slow tests (mock expensive operations, avoid Thread.sleep)
 - [ ] **Assertion library used correctly:**

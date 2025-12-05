@@ -83,7 +83,7 @@ This story involves Azure OpenAI Responses API integration which has extensive, 
 
 **First Tasks Include Basic WorkManager Configuration:**
 
-This story begins with WorkManager module setup to establish the foundation before implementing AnalyzeMealWorker. This ensures:
+This story begins with WorkManager module setup to establish the foundation before implementing AnalyseMealWorker. This ensures:
 
 1. **Dependencies Ready**: WorkManager properly injected via Hilt
 2. **Configuration Established**: Constraints, backoff policy, retry logic configured

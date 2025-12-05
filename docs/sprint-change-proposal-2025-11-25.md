@@ -550,7 +550,7 @@ So that I can track my caloric deficit or surplus.
 
 **And** I see "Calories Out: Y kcal" (TDEE)
 
-**And** I see "Deficit/Surplus: Z kcal" (Out - In, with color coding)
+**And** I see "Deficit/Surplus: Z kcal" (Out - In, with colour coding)
 
 **And** deficit shows in green with negative number (e.g., "-500 kcal deficit")
 
@@ -568,7 +568,7 @@ So that I can track my caloric deficit or surplus.
 - Create EnergyBalanceDashboardScreen (Compose)
 - Query today's NutritionRecords from Health Connect for Calories In
 - Display TDEE from EnergyBalanceViewModel for Calories Out
-- Use Material 3 color scheme for deficit (green) vs surplus (red)
+- Use Material 3 colour scheme for deficit (green) vs surplus (red)
 - Implement pull-to-refresh
 
 ---
@@ -629,7 +629,7 @@ So that I can ensure proper macronutrient balance for body recomposition.
 
 **Acceptance Criteria:**
 
-**Given** the AI analyzes a food photo
+**Given** the AI analyses a food photo
 **When** the API request is sent
 **Then** the prompt requests macros: `{calories: number, protein: number, carbs: number, fat: number, description: string}`
 

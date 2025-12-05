@@ -21,9 +21,9 @@
 
 ## Root Cause
 
-**WorkManager Foreground Notification Behavior:**
+**WorkManager Foreground Notification Behaviour:**
 
-When `AnalyzeMealWorker` detects no network connectivity:
+When `AnalyseMealWorker` detects no network connectivity:
 1. Worker calls `networkMonitor.checkConnectivity()` → returns `false`
 2. Worker returns `Result.retry()` to schedule retry when network restored
 3. **WorkManager removes foreground notification when Worker stops executing**
@@ -74,7 +74,7 @@ if (!networkMonitor.checkConnectivity()) {
 - Gives users instant feedback and manual retry option
 - Notification persists even when Worker stops (waiting for automatic retry)
 
-## Expected Behavior After Fix
+## Expected Behaviour After Fix
 
 **User Experience:**
 1. User captures photo → "Analyzing your meal..." appears
@@ -97,14 +97,14 @@ if (!networkMonitor.checkConnectivity()) {
 
 ## Files Modified
 
-1. **AnalyzeMealWorker.kt** - Two locations updated:
+1. **AnalyseMealWorker.kt** - Two locations updated:
    - Network connectivity check (lines ~195-215): Show notification on first network failure
    - API error handling (lines ~320-360): Show notification immediately for retryable errors (NetworkError, ServerError)
 
 2. **4-3-MANUAL-TEST-GUIDE.md** - Updated Scenario 2:
    - Documented expected foreground notification disappearance
    - Updated expected timeline (immediate notification, not 30s wait)
-   - Explained WorkManager behavior
+   - Explained WorkManager behaviour
 
 3. **4-3-api-error-classification-and-handling.md** - Updated Change Log:
    - Documented bug fix and resolution
@@ -137,8 +137,8 @@ if (!networkMonitor.checkConnectivity()) {
    - Don't wait for retry exhaustion to show errors
    - Provide immediate feedback + manual retry option
 
-3. **Testing Physical Device Behavior:**
-   - Emulator network simulation may not match real device behavior
+3. **Testing Physical Device Behaviour:**
+   - Emulator network simulation may not match real device behaviour
    - Foreground notification lifecycle easier to observe on physical device
    - Airplane mode testing reveals edge cases
 

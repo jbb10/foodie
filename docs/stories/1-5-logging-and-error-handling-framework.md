@@ -69,8 +69,8 @@ So that debugging is efficient and errors are handled gracefully.
 
 - [x] **Task 6: Wrap future Azure OpenAI API operations** (AC: #5)
   - [x] Create placeholder `NutritionAnalysisRepository.kt` interface in `domain/repository/` (if not exists)
-  - [x] Create `NutritionAnalysisRepositoryImpl.kt` in `data/repository/` with analyzePhoto() stub
-  - [x] Add `runCatchingResult` wrapper to analyzePhoto() method (placeholder implementation)
+  - [x] Create `NutritionAnalysisRepositoryImpl.kt` in `data/repository/` with analysePhoto() stub
+  - [x] Add `runCatchingResult` wrapper to analysePhoto() method (placeholder implementation)
   - [x] Map HTTP errors to user-friendly messages using `toUserMessage()`
   - [x] Add Timber logging with ERROR level for API failures
   - [x] Add timeout exception handling with friendly message
@@ -150,7 +150,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 **Testing Standards Summary:**
 - **Unit Tests Required:** Always, for any story with business logic or data handling
 - **Instrumentation Tests Required:** Conditional - only for UI flows, platform integration, or E2E scenarios
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
 
@@ -569,7 +569,7 @@ Implementation completed in single session on 2025-11-09.
 - Implemented `ReleaseTree` for production logging (ERROR/WARN only)
 - Updated `FoodieApplication` to configure Timber with DebugTree (debug) and ReleaseTree (release)
 - All logging functions use class-specific tags for easy filtering
-- Added MockK dependency for testing Timber behavior
+- Added MockK dependency for testing Timber behaviour
 - Unit tests verify ReleaseTree filters DEBUG/INFO logs in production
 
 ✅ **Result<T> Extensions (Task 2)**
@@ -693,7 +693,7 @@ Implementation completed in single session on 2025-11-09.
 - **ReleaseTree**: Filters to ERROR and WARN only in production (lines 11-23)
 - **Extension Functions**: `logDebug()`, `logInfo()`, `logWarn()`, `logError()` (lines 32-68)
 - **Configuration**: `FoodieApplication.kt` properly plants DebugTree (debug) and ReleaseTree (release) (lines 13-17)
-- **Tests**: `LoggerTest.kt` verifies all log levels and ReleaseTree filtering behavior
+- **Tests**: `LoggerTest.kt` verifies all log levels and ReleaseTree filtering behaviour
 
 **Validation**: PASS - All four log levels implemented with proper production safety
 

@@ -9,7 +9,7 @@ Status: Draft
 
 ## Overview
 
-Epic 2 delivers the core "invisible tracking" innovation that defines the Foodie value proposition: enabling users to capture, analyze, and save meal nutrition data in under 5 seconds with minimal friction. This epic implements the complete end-to-end flow from home screen widget activation through AI-powered nutrition analysis to automatic Health Connect storage, all happening in the background while users continue with their activities.
+Epic 2 delivers the core "invisible tracking" innovation that defines the Foodie value proposition: enabling users to capture, analyse, and save meal nutrition data in under 5 seconds with minimal friction. This epic implements the complete end-to-end flow from home screen widget activation through AI-powered nutrition analysis to automatic Health Connect storage, all happening in the background while users continue with their activities.
 
 The epic builds on the foundation established in Epic 1 (MVVM architecture, Health Connect integration, error handling framework) and introduces the three critical technical integrations: Android home screen widget with Jetpack Glance for quick camera access, Azure OpenAI Responses API for multimodal image analysis, and WorkManager for reliable background processing with retry logic. Success is measured by the speed validation criterion: average capture time ≤ 5 seconds from widget tap to photo confirmation.
 
@@ -53,13 +53,13 @@ This epic implements the AI-powered capture flow layer defined in the Architectu
 
 **Data Layer (data/ package):**
 - **Remote Data Source:** `AzureOpenAiApi` Retrofit interface calling Azure OpenAI Responses API endpoint with multimodal vision request
-- **Worker:** `AnalyzeMealWorker` coordinating photo → API → Health Connect → cleanup flow using WorkManager constraints
+- **Worker:** `AnalyseMealWorker` coordinating photo → API → Health Connect → cleanup flow using WorkManager constraints
 - **Repository:** `NutritionAnalysisRepository` implementing domain interface, wrapping API calls and error handling
 - **Health Connect:** Extends `HealthConnectManager` from Epic 1 with nutrition record insertion using both `energy` and `name` fields
 
 **Dependency Injection (di/ package):**
 - `NetworkModule` provides configured Retrofit instance with Azure OpenAI base URL from SecurePreferences (API key + endpoint injected via `AuthInterceptor`)
-- `WorkManagerModule` provides `HiltWorkerFactory` for dependency injection into `AnalyzeMealWorker`
+- `WorkManagerModule` provides `HiltWorkerFactory` for dependency injection into `AnalyseMealWorker`
 
 **Technology Stack Integration:**
 - **WorkManager 2.9.1:** Background processing with network constraints, exponential backoff, and zero foreground service overhead
@@ -113,13 +113,13 @@ Navigation uses Jetpack Navigation Compose with deep link routes. Widget `Pendin
 
 | Component | Responsibility | Execution Context | Constraints | Retry Policy |
 |-----------|----------------|-------------------|-------------|--------------|
-| `AnalyzeMealWorker` (CoroutineWorker) | Orchestrate photo → API → Health Connect → cleanup | WorkManager background thread | NetworkType.CONNECTED | Exponential backoff, max 3 retries (1s, 2s, 4s delays) |
+| `AnalyseMealWorker` (CoroutineWorker) | Orchestrate photo → API → Health Connect → cleanup | WorkManager background thread | NetworkType.CONNECTED | Exponential backoff, max 3 retries (1s, 2s, 4s delays) |
 | `WorkManagerModule` (Hilt DI) | Configure WorkManager with HiltWorkerFactory | Application onCreate() | None | N/A |
 
 **Worker Responsibilities:**
 1. Read photo URI from WorkManager input data
 2. Load and base64-encode image
-3. Call `NutritionAnalysisRepository.analyzePhoto()`
+3. Call `NutritionAnalysisRepository.analysePhoto()`
 4. Parse API response to extract calories + description
 5. Validate nutrition data (calories in 1..5000 range)
 6. Save to Health Connect via `HealthConnectManager.insertNutritionRecord()`
@@ -245,7 +245,7 @@ data class ApiNutritionResponse(
 )
 ```
 
-**WorkManager Data Keys (data/worker/AnalyzeMealWorker.kt):**
+**WorkManager Data Keys (data/worker/AnalyseMealWorker.kt):**
 
 ```kotlin
 object WorkerKeys {
@@ -320,7 +320,7 @@ class AuthInterceptor @Inject constructor(
 // data/remote/api/AzureOpenAiApi.kt
 interface AzureOpenAiApi {
     @POST("openai/v1/responses")
-    suspend fun analyzeNutrition(
+    suspend fun analyseNutrition(
         @Body request: AzureResponseRequest
     ): AzureResponseResponse
 }
@@ -335,7 +335,7 @@ class NutritionAnalysisRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : NutritionAnalysisRepository {
     
-    override suspend fun analyzePhoto(photoUri: Uri): Result<NutritionData> {
+    override suspend fun analysePhoto(photoUri: Uri): Result<NutritionData> {
         return try {
             // Load and encode image
             val base64Image = imageUtils.encodeImageToBase64(photoUri)
@@ -350,7 +350,7 @@ class NutritionAnalysisRepositoryImpl @Inject constructor(
                         content = listOf(
                             ContentItem(
                                 type = "input_text",
-                                text = "Analyze this meal and estimate total calories."
+                                text = "Analyse this meal and estimate total calories."
                             ),
                             ContentItem(
                                 type = "input_image",
@@ -362,7 +362,7 @@ class NutritionAnalysisRepositoryImpl @Inject constructor(
             )
             
             // Call API
-            val response = azureOpenAiApi.analyzeNutrition(request)
+            val response = azureOpenAiApi.analyseNutrition(request)
             
             // Parse output_text as JSON
             val nutritionData = parseNutritionResponse(response.output_text)
@@ -370,13 +370,13 @@ class NutritionAnalysisRepositoryImpl @Inject constructor(
             Result.success(nutritionData)
             
         } catch (e: IOException) {
-            Timber.e(e, "Network error analyzing photo")
+            Timber.e(e, "Network error analysing photo")
             Result.error(e, "Network error - will retry")
         } catch (e: JsonSyntaxException) {
             Timber.e(e, "Failed to parse API response")
             Result.error(e, "Invalid response format")
         } catch (e: Exception) {
-            Timber.e(e, "Unexpected error analyzing photo")
+            Timber.e(e, "Unexpected error analysing photo")
             Result.error(e, e.message ?: "Unknown error")
         }
     }
@@ -392,7 +392,7 @@ class NutritionAnalysisRepositoryImpl @Inject constructor(
     
     companion object {
         private const val SYSTEM_INSTRUCTIONS = 
-            "You are a nutrition analysis assistant. Analyze the food image and " +
+            "You are a nutrition analysis assistant. Analyse the food image and " +
             "return ONLY a JSON object with two fields: calories (number) and " +
             "description (string describing the food)."
     }
@@ -437,7 +437,7 @@ suspend fun HealthConnectManager.insertNutritionWithDescription(
     ↓
 [CameraActivity] Enqueues WorkManager job:
     │             WorkManager.enqueue(
-    │                 OneTimeWorkRequestBuilder<AnalyzeMealWorker>()
+    │                 OneTimeWorkRequestBuilder<AnalyseMealWorker>()
     │                     .setInputData(workDataOf(
     │                         KEY_PHOTO_URI to photoUri.toString(),
     │                         KEY_TIMESTAMP to timestamp.epochSecond
@@ -449,23 +449,23 @@ suspend fun HealthConnectManager.insertNutritionWithDescription(
     ↓
 [CameraActivity] Finishes, user returns to previous activity (or lock screen)
     ↓
-[WorkManager] Schedules AnalyzeMealWorker when network available
+[WorkManager] Schedules AnalyseMealWorker when network available
     ↓
 ═══════════════════════════════════════════════════════════════════
-[Background Thread] AnalyzeMealWorker.doWork()
+[Background Thread] AnalyseMealWorker.doWork()
 ═══════════════════════════════════════════════════════════════════
     ↓
 [Worker] Reads photo URI from input data
     ↓
 [Worker] Loads photo file, validates exists
     ↓
-[Worker] Calls NutritionAnalysisRepository.analyzePhoto(uri)
+[Worker] Calls NutritionAnalysisRepository.analysePhoto(uri)
     ↓
 [Repository] Base64-encodes image via ImageUtils
     ↓
 [Repository] Builds AzureResponseRequest with multimodal input
     ↓
-[Repository] Calls AzureOpenAiApi.analyzeNutrition(request)
+[Repository] Calls AzureOpenAiApi.analyseNutrition(request)
     ↓
 [Retrofit + OkHttp] 
     │ AuthInterceptor adds api-key header
@@ -690,7 +690,7 @@ Timber.i("Health Connect record created: $recordId")
 
 | Dependency | Version | Purpose | Epic 2 Usage |
 |------------|---------|---------|--------------|
-| `androidx.work:work-runtime-ktx` | 2.9.1 | WorkManager for background processing | AnalyzeMealWorker execution with retry logic |
+| `androidx.work:work-runtime-ktx` | 2.9.1 | WorkManager for background processing | AnalyseMealWorker execution with retry logic |
 | `com.squareup.retrofit2:retrofit` | 2.11.0 | HTTP client for REST APIs | Azure OpenAI API calls |
 | `com.squareup.retrofit2:converter-gson` | 2.11.0 | JSON serialization/deserialization | API request/response parsing |
 | `com.squareup.okhttp3:okhttp` | 4.12.0 | HTTP client foundation | Network communication |
@@ -875,7 +875,7 @@ NavHost(navController, startDestination = "home") {
 - Deep link from widget PendingIntent works correctly
 - Deep link from external source (ADB test, browser) works correctly
 - Navigation back stack preserved correctly (back button returns to previous screen)
-- Deep link parameter validation prevents invalid routes
+- Deep link parametre validation prevents invalid routes
 - Deep link error handling provides user feedback for malformed URIs
 
 ## Traceability Mapping
@@ -885,7 +885,7 @@ NavHost(navController, startDestination = "home") {
 | **AC-1: Home Screen Widget** | Services and Modules → Home Screen Widget Module, Workflows → Deep Link Navigation | MealCaptureWidget (GlanceAppWidget), MealCaptureWidgetReceiver, PendingIntent with foodie://capture deep link | Unit test: Widget configuration, deep link URI construction<br>Integration test: Widget tap triggers CameraActivity launch<br>Performance test: Measure launch time on mid-range device |
 | **AC-2: Photo Capture** | Services and Modules → Camera Module, Data Models → WorkManager Data Keys | CameraActivity, System Camera Intent (ACTION_IMAGE_CAPTURE), ImageUtils (compression), File storage in cache/photos/ | Unit test: Image compression to 2MP + 80% JPEG quality<br>Integration test: Camera intent launch and result handling<br>Manual test: One-handed operation with thumb, retake functionality |
 | **AC-3: Azure OpenAI API** | APIs and Interfaces → Azure OpenAI Integration, Data Models → API DTOs | AzureOpenAiApi (Retrofit), AuthInterceptor, NutritionAnalysisRepository, Gson parser | Unit test: Request body serialization, response parsing, validation logic<br>Integration test: Mock API responses for success/error scenarios<br>Contract test: Verify API request format matches Azure OpenAI spec |
-| **AC-4: Background Processing** | Services and Modules → Background Processing Module, Workflows → Complete End-to-End Flow | AnalyzeMealWorker, WorkManager with constraints and backoff policy, NutritionAnalysisRepository | Unit test: Worker logic with mocked repository and Health Connect<br>Integration test: WorkManager execution with network constraint<br>Retry test: Simulate network failures, verify exponential backoff |
+| **AC-4: Background Processing** | Services and Modules → Background Processing Module, Workflows → Complete End-to-End Flow | AnalyseMealWorker, WorkManager with constraints and backoff policy, NutritionAnalysisRepository | Unit test: Worker logic with mocked repository and Health Connect<br>Integration test: WorkManager execution with network constraint<br>Retry test: Simulate network failures, verify exponential backoff |
 | **AC-5: Health Connect Save** | APIs and Interfaces → Health Connect Extension, Data Models → NutritionData | HealthConnectManager.insertNutritionRecord(), NutritionRecord with energy + name fields | Unit test: NutritionRecord creation with correct field values<br>Integration test: Insert and query from Health Connect SDK<br>Verification: Check data in Google Fit app |
 | **AC-6: End-to-End Integration** | Workflows → Complete End-to-End Flow (all sections) | All components integrated: Widget → Camera → Worker → API → Health Connect | End-to-end test: Full flow with real API calls (using test API key)<br>Performance test: Measure total time from widget tap to HC save<br>Manual test: Real-world usage with actual food photos, one-handed operation |
 | **AC-7: Deep Linking** | System Architecture Alignment → Deep Linking Architecture, Workflows → Deep Link Navigation | NavGraph with deep link routes, MainActivity intent filters, NavController | Unit test: Deep link URI parsing and route matching<br>Integration test: Navigate via deep link from various app states<br>ADB test: `adb shell am start -d "foodie://capture"` |
@@ -900,7 +900,7 @@ NavHost(navController, startDestination = "home") {
 | FR-4: Background Processing | AC-4 | Fully implemented in Story 2.4 |
 | FR-5: Health Connect Data Storage | AC-5 | Fully implemented in Story 2.5 |
 | NFR-1: Performance (Speed) | AC-6 (timing requirements) | Validated in Story 2.6 integration testing |
-| NFR-2: Reliability (Retry Logic) | AC-4 (retry behavior) | Implemented in Story 2.4 |
+| NFR-2: Reliability (Retry Logic) | AC-4 (retry behaviour) | Implemented in Story 2.4 |
 | NFR-3: Security (API Key) | AC-3 (SecurePreferences) | Uses Epic 1 infrastructure |
 
 ## Risks, Assumptions, Open Questions
@@ -922,7 +922,7 @@ NavHost(navController, startDestination = "home") {
 **R-3: AI Accuracy Variance on Unusual Foods**
 - **Risk:** Azure OpenAI may return inaccurate calorie estimates for uncommon foods, mixed dishes, or poor quality photos
 - **Impact:** User loses trust in AI estimates, increases manual corrections (edit frequency)
-- **Mitigation:** Accept variance as expected behavior (per PRD: "trust-based validation"), provide easy edit capability in Epic 3
+- **Mitigation:** Accept variance as expected behaviour (per PRD: "trust-based validation"), provide easy edit capability in Epic 3
 - **Contingency:** Future V2.0 could add confidence scores, allow user to flag inaccurate estimates for retraining
 
 **R-4: Health Connect Availability on Older Devices**
@@ -934,7 +934,7 @@ NavHost(navController, startDestination = "home") {
 **R-5: WorkManager Execution Delays on Battery Saver**
 - **Risk:** Aggressive battery saver settings may delay WorkManager execution beyond 15-second target
 - **Impact:** User doesn't see immediate background processing, may think app failed
-- **Mitigation:** Document expected behavior in user guidance, WorkManager guarantees eventual execution
+- **Mitigation:** Document expected behaviour in user guidance, WorkManager guarantees eventual execution
 - **Contingency:** Epic 4 adds foreground notification showing "Analyzing meal..." with progress indication
 
 **R-6: Photo Compression Quality Loss**
@@ -1003,7 +1003,7 @@ NavHost(navController, startDestination = "home") {
 
 **Data Layer:**
 - `NutritionAnalysisRepositoryTest`: Mock Retrofit API, test request building, response parsing, error handling, validation logic
-- `AnalyzeMealWorkerTest`: Mock repository and Health Connect, test doWork() flow, retry logic, photo cleanup
+- `AnalyseMealWorkerTest`: Mock repository and Health Connect, test doWork() flow, retry logic, photo cleanup
 - `ImageUtilsTest`: Test base64 encoding, image compression to 2MP + 80% JPEG, memory management
 
 **Domain Layer:**
@@ -1027,7 +1027,7 @@ NavHost(navController, startDestination = "home") {
 - Use test doubles for Health Connect SDK (avoid real Health Connect dependency in CI)
 
 **WorkManager Integration:**
-- `AnalyzeMealWorkerIntegrationTest`: Enqueue worker with test constraints, verify execution when network available, test retry behavior
+- `AnalyseMealWorkerIntegrationTest`: Enqueue worker with test constraints, verify execution when network available, test retry behaviour
 
 **Coverage Target:** 70%+ for integration points (API, Health Connect, WorkManager)
 
@@ -1067,7 +1067,7 @@ NavHost(navController, startDestination = "home") {
 **Regression Testing:**
 - Re-run Epic 1 tests to ensure foundation not broken (Health Connect CRUD, error handling, logging)
 - Verify navigation back stack correct after widget deep link
-- Test app behavior after device reboot (widget remains functional, pending WorkManager jobs resume)
+- Test app behaviour after device reboot (widget remains functional, pending WorkManager jobs resume)
 
 **Test Automation Strategy:**
 - Unit tests: Run on every commit (CI pipeline)

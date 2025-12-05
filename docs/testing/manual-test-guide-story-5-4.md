@@ -16,7 +16,7 @@
 
 ## Test Scenarios
 
-### Scenario 1: System Theme Following (Default Behavior)
+### Scenario 1: System Theme Following (Default Behaviour)
 
 **Objective:** Verify app follows device system dark mode toggle by default (AC-6)
 
@@ -27,15 +27,15 @@
 4. Navigate to Settings → Theme preference
 5. Verify "System Default" is selected
 6. Navigate to Meal List screen
-7. Observe app color scheme (should be light)
+7. Observe app colour scheme (should be light)
 8. Device Settings → Display → Dark theme: ON (dark mode)
 9. Return to Foodie app (don't close)
-10. Observe app color scheme (should switch to dark automatically)
+10. Observe app colour scheme (should switch to dark automatically)
 
 **Expected Results:**
 - Fresh install defaults to "System Default" theme (AC-8)
-- App displays light colors when system dark mode OFF
-- App switches to dark colors when system dark mode ON
+- App displays light colours when system dark mode OFF
+- App switches to dark colours when system dark mode ON
 - Theme change is smooth with no flicker or crash
 
 **Variations:**
@@ -55,14 +55,14 @@
 4. Select "Light" option (tap radio button)
 5. Observe immediate theme change in Settings screen
 6. Navigate to Meal List screen
-7. Observe colors (should be light despite system being dark)
+7. Observe colours (should be light despite system being dark)
 8. Device Settings → Display → Dark theme: OFF then ON
 9. Return to Foodie app
 10. Verify app remains in light mode (does not follow system)
 
 **Expected Results:**
 - Light mode radio button selected in Settings
-- App displays light color palette (white/light backgrounds, dark text)
+- App displays light colour palette (white/light backgrounds, dark text)
 - Light mode persists even when system is in dark mode
 - Theme selection overrides system preference (AC-7)
 
@@ -79,14 +79,14 @@
 4. Select "Dark" option (tap radio button)
 5. Observe immediate theme change in Settings screen
 6. Navigate to Meal List screen
-7. Observe colors (should be dark despite system being light)
+7. Observe colours (should be dark despite system being light)
 8. Device Settings → Display → Dark theme: ON then OFF
 9. Return to Foodie app
 10. Verify app remains in dark mode (does not follow system)
 
 **Expected Results:**
 - Dark mode radio button selected in Settings
-- App displays dark color palette (dark backgrounds, light text)
+- App displays dark colour palette (dark backgrounds, light text)
 - Dark mode persists even when system is in light mode
 - Theme selection overrides system preference (AC-7)
 
@@ -104,7 +104,7 @@
 5. Reopen Foodie app
 6. Navigate to Settings → Theme preference
 7. Verify "Dark" is still selected
-8. Verify app displays dark colors
+8. Verify app displays dark colours
 9. Change theme to "Light"
 10. Close and reopen app
 11. Verify "Light" persists
@@ -124,29 +124,29 @@
 **Steps:**
 1. Set app theme to "Dark" in Settings
 2. Navigate to Meal List screen
-   - Verify dark background color
+   - Verify dark background colour
    - Verify light text on dark backgrounds (meal entry cards)
-   - Verify FAB uses dark theme primary color
-   - Verify toolbar/navigation bar uses dark theme colors
+   - Verify FAB uses dark theme primary colour
+   - Verify toolbar/navigation bar uses dark theme colours
 3. Tap a meal entry to open Meal Detail screen
    - Verify dark background
    - Verify light text for meal name, calories, nutrients
    - Verify edit fields have proper contrast
-   - Verify save button uses dark theme primary color
+   - Verify save button uses dark theme primary colour
 4. Navigate to Settings screen
    - Verify dark background
    - Verify preference items have light text
    - Verify section headers visible
    - Verify API configuration fields have proper contrast
 5. Return to Meal List, tap FAB to capture meal
-6. On capture screen (if custom), verify dark colors
+6. On capture screen (if custom), verify dark colours
 7. Verify no screens have white backgrounds in dark mode
 
 **Expected Results:**
-- All screens use dark theme colors (dark backgrounds, light text) (AC-1)
+- All screens use dark theme colours (dark backgrounds, light text) (AC-1)
 - Text remains legible with proper contrast in all screens (AC-3)
-- No hardcoded white/light colors break dark theme
-- Material 3 color scheme applied consistently
+- No hardcoded white/light colours break dark theme
+- Material 3 colour scheme applied consistently
 
 ---
 
@@ -156,7 +156,7 @@
 
 **Tools Required:**
 - Android Accessibility Scanner (install from Play Store)
-- Or Chrome DevTools for color contrast checking
+- Or Chrome DevTools for colour contrast checking
 
 **Steps:**
 1. Install Android Accessibility Scanner
@@ -177,32 +177,32 @@
 - Dark mode: All text meets 4.5:1 contrast ratio (WCAG AA) (AC-3)
 - Accessibility Scanner reports zero contrast issues
 - Body text, headers, button text all have sufficient contrast
-- OnSurface/OnBackground colors provide proper readability
+- OnSurface/OnBackground colours provide proper readability
 
 ---
 
-### Scenario 7: Camera Preview Natural Colors
+### Scenario 7: Camera Preview Natural Colours
 
-**Objective:** Verify camera preview maintains natural colors in dark mode (AC-4)
+**Objective:** Verify camera preview maintains natural colours in dark mode (AC-4)
 
 **Steps:**
 1. Set app theme to "Dark"
 2. Navigate to Meal List screen
 3. Tap FAB to launch camera capture
-4. Point camera at a colorful object (e.g., red apple, green salad)
+4. Point camera at a colourful object (e.g., red apple, green salad)
 5. Observe camera preview in real-time
-6. Verify colors appear natural (not dark-tinted)
+6. Verify colours appear natural (not dark-tinted)
 7. Capture photo
-8. Verify preview image shows natural colors
+8. Verify preview image shows natural colours
 9. Repeat test in Light mode for comparison
 
 **Expected Results:**
-- Camera preview shows natural colors regardless of app theme (AC-4)
+- Camera preview shows natural colours regardless of app theme (AC-4)
 - Dark mode does NOT apply dark filter/tint to camera preview
-- System camera intent handles color rendering automatically
-- Captured photo colors match real-world colors
+- System camera intent handles colour rendering automatically
+- Captured photo colours match real-world colours
 
-**Note:** This test uses system camera intent from Story 2.3, which maintains natural colors automatically. No code changes were needed for AC-4.
+**Note:** This test uses system camera intent from Story 2.3, which maintains natural colours automatically. No code changes were needed for AC-4.
 
 ---
 
@@ -238,30 +238,30 @@
 
 **Objective:** Verify dark theme follows Material Design 3 guidelines (AC-2)
 
-**Reference:** https://m3.material.io/styles/color/dark-theme/overview
+**Reference:** https://m3.material.io/styles/colour/dark-theme/overview
 
 **Steps:**
 1. Set app theme to "Dark"
 2. Navigate to Meal List screen
-3. Verify background color is near-black (#191C1A or similar)
-4. Verify primary color uses lighter tint (green family: #6CDBAC)
-5. Verify surface colors have slight elevation contrast
-6. Verify error colors are readable (light red on dark)
+3. Verify background colour is near-black (#191C1A or similar)
+4. Verify primary colour uses lighter tint (green family: #6CDBAC)
+5. Verify surface colours have slight elevation contrast
+6. Verify error colours are readable (light red on dark)
 7. Compare dark palette to Material 3 dark theme guidelines
-8. Check that light theme uses darker primary color (#006C4C)
+8. Check that light theme uses darker primary colour (#006C4C)
 
 **Expected Results:**
-- Dark theme uses Material 3 recommended dark color palette (AC-2)
+- Dark theme uses Material 3 recommended dark colour palette (AC-2)
 - Background is true dark (#191C1A) suitable for OLED displays
-- Primary color is light tint (#6CDBAC) for dark backgrounds
+- Primary colour is light tint (#6CDBAC) for dark backgrounds
 - Surface elevation uses Material 3 recommended contrast
-- Color palette follows green theme (food/health focus)
+- Colour palette follows green theme (food/health focus)
 
 **Material 3 Checklist:**
 - [ ] Dark background (#191C1A)
 - [ ] Light primary on dark (#6CDBAC)
 - [ ] Surface variant for elevation
-- [ ] Error colors readable (#FFB4AB on dark)
+- [ ] Error colours readable (#FFB4AB on dark)
 - [ ] Contrast ratios meet WCAG AA
 
 ---
@@ -319,25 +319,25 @@
 
 ---
 
-### Edge Case 3: Dark Mode with Dynamic Color (Android 12+)
+### Edge Case 3: Dark Mode with Dynamic Colour (Android 12+)
 
-**Objective:** Verify dynamic color (Material You) works with dark mode
+**Objective:** Verify dynamic colour (Material You) works with dark mode
 
-**Requires:** Android 12+ device with wallpaper-based color theming enabled
+**Requires:** Android 12+ device with wallpaper-based colour theming enabled
 
 **Steps:**
-1. Device Settings → Wallpaper & style → Enable themed icons/colors
+1. Device Settings → Wallpaper & style → Enable themed icons/colours
 2. Open Foodie app with theme set to "Dark"
-3. Verify app uses dynamic dark color scheme (matches wallpaper colors)
-4. Change device wallpaper to different color palette
-5. Verify app dynamically adjusts dark colors
+3. Verify app uses dynamic dark colour scheme (matches wallpaper colours)
+4. Change device wallpaper to different colour palette
+5. Verify app dynamically adjusts dark colours
 
 **Expected:** 
-- Android 12+ uses dynamic dark color scheme when available
-- Android 11 and below use static dark palette from Color.kt
+- Android 12+ uses dynamic dark colour scheme when available
+- Android 11 and below use static dark palette from Colour.kt
 - Fallback to static palette works correctly
 
-**Note:** Dynamic color feature in Theme.kt (line 47-50) provides this automatically.
+**Note:** Dynamic colour feature in Theme.kt (line 47-50) provides this automatically.
 
 ---
 
@@ -359,10 +359,10 @@
 Complete the following checklist after running all test scenarios:
 
 ### Acceptance Criteria Validation
-- [ ] **AC-1:** All screens use dark theme colors in dark mode (Scenario 5)
+- [ ] **AC-1:** All screens use dark theme colours in dark mode (Scenario 5)
 - [ ] **AC-2:** Theme follows Material Design 3 dark theme guidelines (Scenario 9)
 - [ ] **AC-3:** Text remains legible with proper contrast ratios (Scenario 6)
-- [ ] **AC-4:** Camera preview maintains natural colors (Scenario 7)
+- [ ] **AC-4:** Camera preview maintains natural colours (Scenario 7)
 - [ ] **AC-5:** Notifications use dark styling when appropriate (Scenario 8)
 - [ ] **AC-6:** App respects system dark mode setting (Scenario 1)
 - [ ] **AC-7:** In-app theme selector works: System Default, Light, Dark (Scenarios 2, 3)
@@ -380,7 +380,7 @@ Complete the following checklist after running all test scenarios:
 - [ ] Screenshots captured for both light and dark modes (optional, for documentation)
 - [ ] Tested on multiple Android versions (10, 11, 12, 13, 14)
 - [ ] Tested on both OLED and LCD displays (true black vs backlit dark)
-- [ ] Material 3 color palette verified against design guidelines
+- [ ] Material 3 colour palette verified against design guidelines
 
 ---
 
@@ -406,10 +406,10 @@ Complete the following checklist after running all test scenarios:
 
 ## Appendix: Known Limitations
 
-1. **Dynamic Color (Material You):** Only available on Android 12+. Android 11 and below use static color palette from Color.kt.
+1. **Dynamic Colour (Material You):** Only available on Android 12+. Android 11 and below use static colour palette from Colour.kt.
 2. **Instrumentation Tests:** Project-wide environmental issue prevents UI instrumentation tests. Manual testing is primary validation method.
-3. **Notification Dark Mode:** Android system handles notification theming automatically for Material-styled notifications. App does not control notification colors directly.
-4. **Camera Colors:** System camera intent (Story 2.3) maintains natural colors automatically. No app-level customization possible.
+3. **Notification Dark Mode:** Android system handles notification theming automatically for Material-styled notifications. App does not control notification colours directly.
+4. **Camera Colours:** System camera intent (Story 2.3) maintains natural colours automatically. No app-level customization possible.
 
 ---
 

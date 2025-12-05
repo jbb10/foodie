@@ -53,7 +53,7 @@ So that my nutrition data is available to other health apps without manual entry
   - [x] Add KDocs explaining Health Connect nutrition record structure
   - [x] Add validation: calories must be 1-5000 range
 
-- [x] **Task 2: Update AnalyzeMealWorker to Call Health Connect Save** (AC: #1-6, #8-10)
+- [x] **Task 2: Update AnalyseMealWorker to Call Health Connect Save** (AC: #1-6, #8-10)
   - [x] Worker already exists from Story 2-5
   - [x] Verify worker calls `healthConnectManager.insertNutritionRecord()` after successful API response
   - [x] Ensure timestamp from photo capture is passed (not current time)
@@ -87,7 +87,7 @@ So that my nutrition data is available to other health apps without manual entry
   - [x] Use User Demo section for manual validation (documented in User Demo section)
   - [x] Implementation verified via code review and integration tests
   - [x] Health Connect integration tested via `HealthConnectIntegrationTest`
-  - [x] Photo cleanup verified in `AnalyzeMealWorker` implementation
+  - [x] Photo cleanup verified in `AnalyseMealWorker` implementation
   - [x] Timestamp handling verified (photo capture time passed to insertNutritionRecord)
   - [x] Error handling verified (SecurityException keeps photo, other errors delete photo)
   - [x] Manual device validation recommended but not blocking (User Demo provides instructions)
@@ -106,7 +106,7 @@ So that my nutrition data is available to other health apps without manual entry
 
 - [x] **Task 7: Performance Validation** (AC: #10)
   - [x] Add logging to measure Health Connect save duration
-  - [x] Log in AnalyzeMealWorker: time before and after insertNutritionRecord()
+  - [x] Log in AnalyseMealWorker: time before and after insertNutritionRecord()
   - [x] Target: Health Connect save < 500ms
   - [x] Log warning if save takes > 1 second
   - [x] Document performance expectations in KDocs
@@ -140,7 +140,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 ### Documentation
 - [ ] Inline code documentation (KDocs) added for `insertNutritionRecord()`, `NutritionRecord` field mapping, time zone handling
-- [ ] README updated if Health Connect behavior needs user explanation
+- [ ] README updated if Health Connect behaviour needs user explanation
 - [ ] Dev Notes section includes Health Connect integration architecture and references
 
 ### Story File Completeness
@@ -212,7 +212,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 8. Re-grant Health Connect permissions
 9. **Expected**: Future captures work normally
 
-### Expected Behavior
+### Expected Behaviour
 - Nutrition data saves to Health Connect with correct calories, description, timestamp
 - Data appears immediately in Health Connect and Google Fit after processing
 - Time zone handling matches device local time (not UTC)
@@ -328,7 +328,7 @@ NutritionRecord(
 
 **SecurityException Handling:**
 ```kotlin
-// In AnalyzeMealWorker
+// In AnalyseMealWorker
 try {
     val recordId = healthConnectManager.insertNutritionRecord(
         calories = nutritionData.calories,
@@ -445,7 +445,7 @@ app/src/main/java/com/foodie/app/
 ```
 
 **Files Already Exist (From Previous Stories):**
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Story 2-5 (calls Health Connect save)
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Story 2-5 (calls Health Connect save)
 - `app/src/main/java/com/foodie/app/data/local/cache/PhotoManager.kt` - Story 2-3 (photo cleanup)
 - `app/src/main/java/com/foodie/app/domain/model/NutritionData.kt` - Story 2-4 (domain model)
 
@@ -483,7 +483,7 @@ app/src/androidTest/java/com/foodie/app/
 - ✅ Performance logging tracks Health Connect save duration
 
 **Files Already Containing Health Connect Logic:**
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Calls `insertNutritionRecord()` after API success
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Calls `insertNutritionRecord()` after API success
 - `app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt` - Implements `insertNutritionRecord()` method
 
 **What This Story Adds:**
@@ -522,10 +522,10 @@ This story focuses on **verification, testing, and documentation** of the Health
 - Added input validation to `HealthConnectManager.insertNutritionRecord()`:
   - `require(calories in 1..5000)` - Validates calorie range
   - `require(description.isNotBlank())` - Validates description is not empty/blank
-  - Updated KDocs to document these requirements and throw behavior (`@throws IllegalArgumentException`)
+  - Updated KDocs to document these requirements and throw behaviour (`@throws IllegalArgumentException`)
 
 **Worker Error Handling Enhanced:**
-- Added `catch (e: IllegalArgumentException)` block in `AnalyzeMealWorker`:
+- Added `catch (e: IllegalArgumentException)` block in `AnalyseMealWorker`:
   - Handles validation errors from API returning invalid data
   - Logs error and deletes photo (non-retryable error)
   - Returns `Result.failure()`
@@ -557,7 +557,7 @@ NutritionRecord(
 ```
 
 **Key Architectural Decisions:**
-1. **Testing Strategy**: Manager tested via Repository (mocked) for unit tests + Integration tests (real SDK) for behavior validation
+1. **Testing Strategy**: Manager tested via Repository (mocked) for unit tests + Integration tests (real SDK) for behaviour validation
 2. **Validation Placement**: Input validation in Manager layer (fail fast before SDK call)
 3. **Error Handling**: SecurityException keeps photo (user can retry), IllegalArgumentException deletes photo (bad data, can't retry)
 4. **Time Zone Handling**: Use `ZoneOffset.systemDefault().rules.getOffset(timestamp)` to correctly handle DST changes
@@ -592,7 +592,7 @@ NutritionRecord(
 
 4. **Tech Spec Epic 2 - Health Connect Extension** - [Source: docs/tech-spec-epic-2.md#Health-Connect-Extension]
    - Extends `HealthConnectManager` from Epic 1
-   - `insertNutritionRecord()` method with calories, description, timestamp parameters
+   - `insertNutritionRecord()` method with calories, description, timestamp parametres
    - `NutritionRecord` field mapping: energy, name, startTime, endTime, zone offsets
    - Returns Health Connect record ID for future operations
 
@@ -603,7 +603,7 @@ NutritionRecord(
    - Availability checking and permission request flow
 
 6. **Story 2-5 Background Processing** - [Source: docs/stories/2-5-background-processing-service.md#Dev-Agent-Record]
-   - `AnalyzeMealWorker` calls `healthConnectManager.insertNutritionRecord()`
+   - `AnalyseMealWorker` calls `healthConnectManager.insertNutritionRecord()`
    - Error handling: `SecurityException` keeps photo, other errors delete photo
    - Performance logging for Health Connect save duration
    - Implementation already exists - this story adds testing and documentation
@@ -629,7 +629,7 @@ NutritionRecord(
 
 **2025-11-10 - Implementation Plan:**
 - Task 1: HealthConnectManager already complete from Story 2-5 (✅ verified)
-- Task 2: AnalyzeMealWorker integration already complete (✅ verified)
+- Task 2: AnalyseMealWorker integration already complete (✅ verified)
 - Task 3: Need to add comprehensive unit tests for insertNutritionRecord():
   * Validation tests (calories 1-5000, blank description)
   * NutritionRecord field verification (energy, name, timestamps, zone offsets)
@@ -641,7 +641,7 @@ NutritionRecord(
 **Approach:**
 1. Enhance HealthConnectManagerTest with mock-based unit tests
 2. Add time zone validation to HealthConnectIntegrationTest
-3. Verify AnalyzeMealWorker error handling paths
+3. Verify AnalyseMealWorker error handling paths
 4. Update documentation with findings
 5. Run full test suite to validate
 
@@ -653,20 +653,20 @@ NutritionRecord(
 
 **Key Achievements:**
 1. ✅ Added input validation to `HealthConnectManager.insertNutritionRecord()` (calories 1-5000, description not blank)
-2. ✅ Enhanced `AnalyzeMealWorker` error handling to catch `IllegalArgumentException` from validation
+2. ✅ Enhanced `AnalyseMealWorker` error handling to catch `IllegalArgumentException` from validation
 3. ✅ Created unit tests for constants and validation (via repository layer pattern)
 4. ✅ Enhanced integration tests with time zone validation and data visibility verification
 5. ✅ Documented NutritionRecord field mapping and architectural decisions in Dev Notes
 6. ✅ All unit tests passing (verified with gradlew :app:testDebugUnitTest)
 
 **Testing Architecture:**
-- Unit tests focus on constants and test Manager behavior via Repository layer (with mocks)
-- Integration tests validate real Health Connect SDK behavior with actual device
+- Unit tests focus on constants and test Manager behaviour via Repository layer (with mocks)
+- Integration tests validate real Health Connect SDK behaviour with actual device
 - Pattern follows existing codebase: `HealthConnectRepositoryTest` tests Manager via mocking, `HealthConnectIntegrationTest` tests real SDK
 
 **Files Modified:**
 - `HealthConnectManager.kt` - Added validation (require statements) and updated KDocs
-- `AnalyzeMealWorker.kt` - Added IllegalArgumentException catch block
+- `AnalyseMealWorker.kt` - Added IllegalArgumentException catch block
 - `HealthConnectManagerTest.kt` - Updated unit tests (constants only, validation tested at repo layer)
 - `HealthConnectIntegrationTest.kt` - Added time zone and data visibility tests
 
@@ -689,7 +689,7 @@ NutritionRecord(
 
 **Modified Files:**
 - `app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt` - Added input validation (require statements for calories 1-5000 range and description not blank), updated KDocs with @throws documentation
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Added IllegalArgumentException catch block for validation errors
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Added IllegalArgumentException catch block for validation errors
 - `app/src/test/java/com/foodie/app/data/local/healthconnect/HealthConnectManagerTest.kt` - Updated unit tests to focus on constants (validation tested at repository layer)
 - `app/src/androidTest/java/com/foodie/app/data/healthconnect/HealthConnectIntegrationTest.kt` - Added time zone validation test and data visibility test
 
@@ -702,7 +702,7 @@ NutritionRecord(
 
 **2025-11-10 - Added Validation and Comprehensive Testing for Health Connect Integration**
 - Added input validation to `HealthConnectManager.insertNutritionRecord()`: calories range 1-5000, description not blank
-- Enhanced `AnalyzeMealWorker` error handling to catch `IllegalArgumentException` from validation errors
+- Enhanced `AnalyseMealWorker` error handling to catch `IllegalArgumentException` from validation errors
 - Updated unit tests to follow project pattern: test Manager via Repository layer with mocks
 - Enhanced integration tests with time zone validation and data visibility verification
 - Documented NutritionRecord field mapping, time zone handling, and error scenarios in Dev Notes
@@ -742,9 +742,9 @@ Story 2.6 successfully adds comprehensive validation, testing, and documentation
 | 5 | Record inserted using HealthConnectClient.insertRecords() | ✅ IMPLEMENTED | `HealthConnectManager.kt:139` - `healthConnectClient.insertRecords(listOf(record))` |
 | 6 | Save operation returns Health Connect record ID | ✅ IMPLEMENTED | `HealthConnectManager.kt:140-143` - `response.recordIdsList.first()` returned |
 | 7 | Data immediately visible in Google Fit or other Health Connect apps | ✅ VERIFIED | Integration test `HealthConnectIntegrationTest.kt:84-105,107-137` validates data visibility |
-| 8 | Errors handled gracefully (permission issues, Health Connect unavailable) | ✅ IMPLEMENTED | `AnalyzeMealWorker.kt:184-191` SecurityException catch, availability check pattern documented |
-| 9 | SecurityException (permission denied) keeps photo file | ✅ IMPLEMENTED | `AnalyzeMealWorker.kt:184-191` - no photo deletion, Result.failure() |
-| 10 | Successful saves delete temporary photo file | ✅ IMPLEMENTED | `AnalyzeMealWorker.kt:166-171` - `photoManager.deletePhoto(photoUri)` |
+| 8 | Errors handled gracefully (permission issues, Health Connect unavailable) | ✅ IMPLEMENTED | `AnalyseMealWorker.kt:184-191` SecurityException catch, availability check pattern documented |
+| 9 | SecurityException (permission denied) keeps photo file | ✅ IMPLEMENTED | `AnalyseMealWorker.kt:184-191` - no photo deletion, Result.failure() |
+| 10 | Successful saves delete temporary photo file | ✅ IMPLEMENTED | `AnalyseMealWorker.kt:166-171` - `photoManager.deletePhoto(photoUri)` |
 | 11 | All Health Connect operations use proper time zone handling | ✅ IMPLEMENTED | `HealthConnectManager.kt:128` + Integration test `HealthConnectIntegrationTest.kt:94-96` |
 
 **Coverage Summary:** ✅ **11 of 11 acceptance criteria fully implemented**
@@ -754,12 +754,12 @@ Story 2.6 successfully adds comprehensive validation, testing, and documentation
 | Task | Marked | Verified | Evidence |
 |------|--------|----------|----------|
 | Task 1: Extend HealthConnectManager | ✅ | ✅ VERIFIED | `HealthConnectManager.kt:116-144` - method with validation at lines 122-123 |
-| Task 2: Update AnalyzeMealWorker | ✅ | ✅ VERIFIED | Worker integration at `AnalyzeMealWorker.kt:152-200` with error handling |
+| Task 2: Update AnalyseMealWorker | ✅ | ✅ VERIFIED | Worker integration at `AnalyseMealWorker.kt:152-200` with error handling |
 | Task 3: Unit Tests | ✅ | ✅ VERIFIED | `HealthConnectManagerTest.kt` - 3 tests, validation tested via repository layer |
 | Task 4: Integration Tests | ✅ | ✅ VERIFIED | `HealthConnectIntegrationTest.kt` - 4 tests including time zone validation |
 | Task 5: End-to-End Validation | ✅ | ✅ VERIFIED | User Demo section provides comprehensive manual validation steps |
 | Task 6: Error Handling | ✅ | ✅ VERIFIED | SecurityException + IllegalArgumentException handling implemented |
-| Task 7: Performance Validation | ✅ | ✅ VERIFIED | Performance logging at `AnalyzeMealWorker.kt:151,159,173-178` |
+| Task 7: Performance Validation | ✅ | ✅ VERIFIED | Performance logging at `AnalyseMealWorker.kt:151,159,173-178` |
 | Task 8: Documentation | ✅ | ✅ VERIFIED | Dev Notes + NutritionRecord field mapping + Change Log updated |
 
 **Completion Summary:** ✅ **All 8 completed tasks verified, 0 questionable, 0 falsely marked complete**
@@ -768,10 +768,10 @@ Story 2.6 successfully adds comprehensive validation, testing, and documentation
 
 **Unit Tests (12 total):**
 - ✅ `HealthConnectManagerTest.kt` - 3 tests for constants and permissions
-- ✅ `HealthConnectRepositoryTest.kt` - 9 tests for Manager behavior via Repository (validation, error handling)
+- ✅ `HealthConnectRepositoryTest.kt` - 9 tests for Manager behaviour via Repository (validation, error handling)
 
 **Integration Tests (4 total):**
-- ✅ `HealthConnectIntegrationTest.kt` - 4 tests for real Health Connect SDK behavior
+- ✅ `HealthConnectIntegrationTest.kt` - 4 tests for real Health Connect SDK behaviour
   - Round-trip insert + query
   - Time zone preservation (`insertNutritionRecord_withTimestamp_preservesLocalTimeZone`)
   - Data visibility (`insertNutritionRecord_whenPermissionsGranted_dataVisibleInHealthConnect`)
@@ -831,7 +831,7 @@ Story 2.6 successfully adds comprehensive validation, testing, and documentation
 
 **Testing Best Practices (Followed):**
 - ✅ Test Manager via Repository layer with mocks (follows project pattern)
-- ✅ Integration tests for Android SDK-dependent behavior
+- ✅ Integration tests for Android SDK-dependent behaviour
 - ✅ Truth library for readable assertions
 - ✅ Proper test cleanup in integration tests
 
@@ -840,7 +840,7 @@ Story 2.6 successfully adds comprehensive validation, testing, and documentation
 **Advisory Notes (No code changes required):**
 
 - Note: `endTime` is now calculated based on calories (5/15/30 min) instead of using a fixed 1-second duration.
-- Note: Performance warning threshold in `AnalyzeMealWorker.kt:175` is 20 seconds, but story targets <15 seconds typical - consider aligning warning threshold to match target (change `> 20_000` to `> 15_000`)
+- Note: Performance warning threshold in `AnalyseMealWorker.kt:175` is 20 seconds, but story targets <15 seconds typical - consider aligning warning threshold to match target (change `> 20_000` to `> 15_000`)
 - Note: Test names in `HealthConnectManagerTest.kt` could be more descriptive (e.g., "REQUIRED_PERMISSIONS contains correct number of permissions" → "requiredPermissions_containsExactlyTwoPermissions")
 - Note: Consider adding integration test for validation errors (attempt to insert with calories=0 or blank description and verify exception) to complement unit test coverage
 - Note: Manual device validation recommended (User Demo section) to verify end-to-end flow on real device with Health Connect installed

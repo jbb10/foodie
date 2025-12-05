@@ -204,7 +204,7 @@ Have ready:
 
 **Expected Results:**
 - ✅ Snackbar appears with error message: "Error: Invalid API key"
-- ✅ Snackbar uses error color scheme (red/warning color)
+- ✅ Snackbar uses error colour scheme (red/warning colour)
 - ✅ Logcat shows HTTP 401 or 403 response
 - ✅ App does not crash
 
@@ -244,7 +244,7 @@ Have ready:
 2. Leave API Key field blank
 3. Enter valid Endpoint and Model
 4. Tap "Save Configuration"
-5. Observe behavior
+5. Observe behaviour
 
 **Expected Results:**
 - ✅ Snackbar shows error: "API key required"
@@ -501,7 +501,7 @@ Have ready:
 3. Enable airplane mode on device
 4. Tap "Test Connection"
 5. Wait for timeout (30-60 seconds)
-6. Observe behavior
+6. Observe behaviour
 
 **Expected Results:**
 - ✅ Loading indicator shows during wait

@@ -21,7 +21,7 @@ import timber.log.Timber
  * }
  * ```
  *
- * All ViewModels should extend this class to ensure consistent behavior and
+ * All ViewModels should extend this class to ensure consistent behaviour and
  * make future architectural changes easier to propagate.
  */
 abstract class BaseViewModel : ViewModel() {

@@ -8,6 +8,7 @@ import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.HeightRecord
 import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.StepsRecord
+import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
@@ -72,6 +73,7 @@ class HealthConnectManager @Inject constructor(
             "android.permission.health.WRITE_HEIGHT",
             "android.permission.health.READ_STEPS",
             "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+            "android.permission.health.READ_TOTAL_CALORIES_BURNED",
         )
     }
 
@@ -857,6 +859,68 @@ class HealthConnectManager @Inject constructor(
             val activeCalories = queryActiveCalories(startOfDay, now)
             emit(activeCalories)
             delay(5.minutes)
+        }
+    }
+
+    /**
+     * Queries total calories burned from Health Connect within a time range.
+     *
+     * **What is TotalCaloriesBurned:**
+     * TotalCaloriesBurnedRecord represents ALL energy expenditure from all sources:
+     * - BMR (Basal Metabolic Rate)
+     * - NEAT (Non-Exercise Activity Thermogenesis - passive movement)
+     * - Active Exercise (structured workouts)
+     *
+     * Health Connect automatically aggregates data from multiple sources (Garmin, Google Fit, etc.)
+     * into a single merged stream.
+     *
+     * **Algorithm Foundation:**
+     * This is the "Total" component in the equation:
+     * rawPassive = TotalHC - bmrElapsed - ActiveHC
+     *
+     * **Permission Check:**
+     * - Throws SecurityException if READ_TOTAL_CALORIES_BURNED permission not granted
+     * - Caller should catch SecurityException and return appropriate error type
+     *
+     * **Use Cases:**
+     * - Enhanced NEAT calculation (Story 7.2)
+     * - TDEE validation and telemetry
+     *
+     * @param startTime Start of the query time range (inclusive)
+     * @param endTime End of the query time range (inclusive)
+     * @return Total calories burned in kcal, or 0.0 if no data exists
+     * @throws SecurityException if READ_TOTAL_CALORIES_BURNED permission not granted
+     */
+    suspend fun queryTotalCaloriesBurned(startTime: Instant, endTime: Instant): Double {
+        Timber.tag(TAG).d("Querying total calories burned: $startTime to $endTime")
+
+        // Check permissions before query
+        val hasPermission = healthConnectClient.permissionController.getGrantedPermissions()
+            .contains("android.permission.health.READ_TOTAL_CALORIES_BURNED")
+
+        if (!hasPermission) {
+            Timber.tag(TAG).e("READ_TOTAL_CALORIES_BURNED permission denied")
+            throw SecurityException("READ_TOTAL_CALORIES_BURNED permission denied")
+        }
+
+        return try {
+            val response = healthConnectClient.aggregate(
+                AggregateRequest(
+                    metrics = setOf(TotalCaloriesBurnedRecord.ENERGY_TOTAL),
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
+                ),
+            )
+
+            val totalEnergy = response[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories ?: 0.0
+
+            Timber.tag(TAG).i("Total calories burned: $totalEnergy kcal")
+            totalEnergy
+        } catch (e: SecurityException) {
+            Timber.tag(TAG).e(e, "Permission denied querying total calories burned")
+            throw e
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to query total calories burned, returning 0.0")
+            0.0
         }
     }
 }

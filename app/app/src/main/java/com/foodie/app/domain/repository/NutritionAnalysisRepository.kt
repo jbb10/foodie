@@ -10,7 +10,7 @@ import com.foodie.app.util.Result
  * This is a placeholder interface for Epic 2 implementation. The actual Azure OpenAI
  * integration will be implemented when the AI-powered meal capture feature is developed.
  *
- * Expected behavior:
+ * Expected behaviour:
  * - Accept a photo URI (from camera or gallery)
  * - Send to Azure OpenAI for analysis
  * - Parse the response into structured NutritionData
@@ -18,7 +18,7 @@ import com.foodie.app.util.Result
  */
 interface NutritionAnalysisRepository {
     /**
-     * Analyzes a meal photo using Azure OpenAI vision capabilities.
+     * Analyses a meal photo using Azure OpenAI vision capabilities.
      *
      * This method will be implemented in Epic 2. It should:
      * 1. Read the image from the URI

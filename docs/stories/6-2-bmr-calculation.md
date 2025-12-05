@@ -98,7 +98,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 1. Run `./gradlew test --tests EnergyBalanceRepositoryTest`
 2. Verify all tests pass
 
-### Expected Behavior
+### Expected Behaviour
 - Tests confirm correct BMR values for various profiles
 
 ### Validation Checklist
@@ -155,7 +155,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - 19 new unit tests (100% coverage of BMR calculation logic)
 - All boundary values tested (age: 13-120, weight: 30-300kg, height: 100-250cm)
 - All validation error cases tested
-- Reactive flow behavior tested
+- Reactive flow behaviour tested
 - 419 total tests passing (400 baseline + 19 new)
 - Zero test regressions
 
@@ -175,7 +175,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
     - Health Connect integration validated via unit tests and API pattern review
 
 - **Task 1: Documentation Research** ✅
-    - Reviewed HC WeightRecord/HeightRecord APIs: Confirmed Mass.kilograms(), Length.meters() patterns
+    - Reviewed HC WeightRecord/HeightRecord APIs: Confirmed Mass.kilograms(), Length.metres() patterns
     - Reviewed existing HealthConnectManager patterns: Used TimeRangeFilter.between(EPOCH, now+60s) and Metadata.autoRecorded()
     - Decision: Use standard SharedPreferences for sex/age (not sensitive data)
     - Reviewed SettingsScreen Material 3 patterns: OutlinedTextField, validation, SnackbarHostState
@@ -198,7 +198,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
     - Added queryLatestWeight(): WeightRecord? using TimeRangeFilter.between(EPOCH, now+60s)
     - Added queryLatestHeight(): HeightRecord? with same pattern
     - Added insertWeight(weightKg, timestamp): Result<Unit> with Mass.kilograms()
-    - Added insertHeight(heightCm, timestamp): Result<Unit> with cm→meters conversion (heightCm/100.0)
+    - Added insertHeight(heightCm, timestamp): Result<Unit> with cm→metres conversion (heightCm/100.0)
     - Updated REQUIRED_PERMISSIONS to include READ_WEIGHT, WRITE_WEIGHT, READ_HEIGHT, WRITE_HEIGHT
     - Updated HealthConnectManagerTest to assert 6 permissions instead of 2
 
@@ -239,7 +239,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
     - **400 tests passing** (baseline 387 + 13 new UserProfile tests)
     - New tests: UserProfileTest.kt with 13 validation boundary tests
     - Updated tests: HealthConnectManagerTest (permission count 2→6), OnboardingViewModelTest (permission set expanded)
-    - Updated SettingsViewModel test mocks: Added userProfileRepository parameter to all test files (Test, ApiConfigTest, ThemeTest)
+    - Updated SettingsViewModel test mocks: Added userProfileRepository parametre to all test files (Test, ApiConfigTest, ThemeTest)
     - Zero test regressions - all existing tests passing
     - Test execution time: ~10-12 seconds
 
@@ -361,7 +361,7 @@ Story 6.2 implements Basal Metabolic Rate (BMR) calculation using the scientific
 **Coverage by Acceptance Criteria:**
 - ✅ AC1-3 (Formula correctness): 4 tests verify male/female formulas and known test cases
 - ✅ AC4 (Return type): All tests verify `Result<Double>` type safety
-- ✅ AC5 (Reactive flow): 3 tests verify Flow behavior, profile updates, null handling
+- ✅ AC5 (Reactive flow): 3 tests verify Flow behaviour, profile updates, null handling
 - ✅ AC6 (Error handling): 6 boundary tests cover all validation error cases
 - ✅ AC7 (Known test cases): 2 tests verify exact calculations against documented inputs
 

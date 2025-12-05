@@ -11,7 +11,7 @@ Status: Draft
 
 Epic 4 transforms the Foodie application from a functional prototype into a production-ready tool by implementing comprehensive error handling, network resilience, and graceful degradation patterns. This epic ensures the core meal capture flow works reliably in real-world conditions including poor network connectivity, API failures, permission revocations, and resource constraints.
 
-The epic delivers a robust application that never loses user data, provides clear feedback during error conditions, automatically retries transient failures, and guides users to resolution when manual intervention is required. All critical paths are hardened with retry logic, validation, and fallback behaviors that maintain the sub-5-second capture experience promise even when operating at the limits of network or system resources.
+The epic delivers a robust application that never loses user data, provides clear feedback during error conditions, automatically retries transient failures, and guides users to resolution when manual intervention is required. All critical paths are hardened with retry logic, validation, and fallback behaviours that maintain the sub-5-second capture experience promise even when operating at the limits of network or system resources.
 
 ## Objectives and Scope
 
@@ -49,7 +49,7 @@ This epic enhances the existing architecture established in Epic 1 with reliabil
 
 **Enhanced Components:**
 
-**AnalyzeMealWorker** (data/worker/)
+**AnalyseMealWorker** (data/worker/)
 - Adds network connectivity check before API calls
 - Implements exponential backoff retry policy (WorkManager configuration)
 - Classifies API errors into retryable vs non-retryable categories
@@ -67,7 +67,7 @@ This epic enhances the existing architecture established in Epic 1 with reliabil
 **NetworkMonitor** (data/network/)
 - Purpose: Centralized network connectivity detection
 - Responsibilities: Monitor network state, expose connectivity Flow
-- Integration: Injected into AnalyzeMealWorker via Hilt
+- Integration: Injected into AnalyseMealWorker via Hilt
 
 **ErrorHandler** (domain/error/)
 - Purpose: Map exceptions to user-friendly error messages
@@ -219,7 +219,7 @@ enum class NetworkType {
 }
 ```
 
-**Enhanced AnalyzeMealWorker Flow:**
+**Enhanced AnalyseMealWorker Flow:**
 
 ```kotlin
 override suspend fun doWork(): Result {
@@ -240,7 +240,7 @@ override suspend fun doWork(): Result {
     
     // 3. Call Azure OpenAI API
     val apiResult = try {
-        azureOpenAiApi.analyzeNutrition(buildRequest(photoBytes))
+        azureOpenAiApi.analyseNutrition(buildRequest(photoBytes))
     } catch (e: IOException) {
         return handleNetworkError(e)
     } catch (e: HttpException) {
@@ -275,7 +275,7 @@ override suspend fun doWork(): Result {
 }
 
 private fun handleNetworkError(e: IOException): Result {
-    Timber.e(e, "Network error analyzing meal")
+    Timber.e(e, "Network error analysing meal")
     return if (runAttemptCount < MAX_RETRIES) {
         updateNotification("Retrying analysis... (${runAttemptCount + 1}/$MAX_RETRIES)")
         Result.retry()
@@ -409,7 +409,7 @@ class HealthConnectRepositoryImpl @Inject constructor(
 
 ```
 1. User confirms photo capture
-   └─> WorkManager enqueues AnalyzeMealWorker
+   └─> WorkManager enqueues AnalyseMealWorker
 
 2. Worker checks network connectivity
    ├─> Connected: Proceed to API call
@@ -662,15 +662,15 @@ Timber.i("PhotoCleanup: Scanned ${fileCount} photos, deleted ${deletedCount} orp
 
 | Acceptance Criteria | Spec Section | Component | Test Approach |
 |---------------------|--------------|-----------|---------------|
-| AC-1: Network Detection | Workflows and Sequencing | NetworkMonitor, AnalyzeMealWorker | Unit test: Mock NetworkMonitor.isConnected = false, verify retry scheduled |
-| AC-2: Exponential Backoff | APIs and Interfaces (AnalyzeMealWorker) | AnalyzeMealWorker, WorkManager | Instrumentation test: Trigger retries, verify delay timing |
-| AC-3: Retry Exhaustion | APIs and Interfaces (handleNetworkError) | AnalyzeMealWorker, NotificationManager | Unit test: runAttemptCount = 4, verify persistent notification shown |
+| AC-1: Network Detection | Workflows and Sequencing | NetworkMonitor, AnalyseMealWorker | Unit test: Mock NetworkMonitor.isConnected = false, verify retry scheduled |
+| AC-2: Exponential Backoff | APIs and Interfaces (AnalyseMealWorker) | AnalyseMealWorker, WorkManager | Instrumentation test: Trigger retries, verify delay timing |
+| AC-3: Retry Exhaustion | APIs and Interfaces (handleNetworkError) | AnalyseMealWorker, NotificationManager | Unit test: runAttemptCount = 4, verify persistent notification shown |
 | AC-4: Error Classification | Data Models (ErrorType) | ErrorHandler | Unit test: Map various exceptions to ErrorType, verify classification |
 | AC-5: User Messages | ErrorHandler.getUserMessage() | ErrorHandler | Unit test: Verify each ErrorType returns correct user-facing message |
-| AC-6: Photo Retention | APIs and Interfaces (AnalyzeMealWorker) | AnalyzeMealWorker | Unit test: Verify photo deletion logic based on success/failure/retry |
+| AC-6: Photo Retention | APIs and Interfaces (AnalyseMealWorker) | AnalyseMealWorker | Unit test: Verify photo deletion logic based on success/failure/retry |
 | AC-7: Photo Cleanup | PhotoCleanupWorker | PhotoCleanupWorker | Instrumentation test: Create old photos, run worker, verify deletion |
 | AC-8: Permission Validation | HealthConnectRepository | HealthConnectRepository | Unit test: Mock hasPermissions() = false, verify Result.Error returned |
-| AC-9: HC Availability | HealthConnectRepository | HealthConnectManager | Instrumentation test: Check isAvailable(), verify fallback behavior |
+| AC-9: HC Availability | HealthConnectRepository | HealthConnectManager | Instrumentation test: Check isAvailable(), verify fallback behaviour |
 | AC-10: Graceful Degradation | All components | ErrorHandler, ViewModels | Manual test: Trigger each failure mode, verify user guidance |
 
 ## Risks, Assumptions, Open Questions
@@ -782,7 +782,7 @@ Timber.i("PhotoCleanup: Scanned ${fileCount} photos, deleted ${deletedCount} orp
 - `testIsRetryableNetworkError()` - Verify NetworkError is retryable
 - `testIsRetryableAuthError()` - Verify AuthError is non-retryable
 
-**AnalyzeMealWorker Tests:**
+**AnalyseMealWorker Tests:**
 - `testNetworkCheckBeforeApiCall()` - Verify network checked, retry scheduled if offline
 - `testExponentialBackoffRetry()` - Verify retry delays: 0s, 1s, 2s, 4s
 - `testRetryExhaustion()` - After 4 attempts, verify persistent notification shown
@@ -799,7 +799,7 @@ Timber.i("PhotoCleanup: Scanned ${fileCount} photos, deleted ${deletedCount} orp
 
 ### Instrumentation Tests (50%+ Coverage)
 
-**AnalyzeMealWorker Integration Tests:**
+**AnalyseMealWorker Integration Tests:**
 - `testNetworkFailureTriggersRetry()` - Mock network failure, verify WorkManager reschedules
 - `testRetryDelayTiming()` - Measure actual retry delays, assert within expected range
 - `testPhotoCleanupAfter24Hours()` - Create old photo, run worker, verify deletion
@@ -888,7 +888,7 @@ androidTestImplementation(libs.androidx.work.testing)
 ### Integration Points
 
 **WorkManager Integration:**
-- Configure BackoffPolicy.EXPONENTIAL in AnalyzeMealWorker
+- Configure BackoffPolicy.EXPONENTIAL in AnalyseMealWorker
 - Set Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED)
 - Use setExpedited() for time-sensitive retries (Android 12+)
 

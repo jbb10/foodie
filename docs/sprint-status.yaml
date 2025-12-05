@@ -108,7 +108,7 @@ development_status:
   # Epic 7: Enhanced Nutrition Tracking
   epic-7: contexted  # Tech spec created 2025-11-30 - Macros tracking (protein/carbs/fat), barcode scanning via ML Kit + OpenFoodFacts, offline photo queuing with encryption
   7-1-macros-tracking-protein-carbs-fat: review  # ✅ REVIEW 2025-12-04 - All tests passing (508 unit + 126 instrumentation), Quality Gate passed, manual testing complete, ready for code review
-  7-2-enhanced-passive-calorie-calculation: drafted  # ⚠️ HIGH PRIORITY - Next story to work on. Replaces legacy step-based NEAT with HC Total Calories stream.
+  7-2-enhanced-passive-calorie-calculation: done  # ✅ APPROVED 2025-12-04 - TotalCaloriesBurned algorithm implemented, all 9 ACs verified, 11 tests passing (506 total, 0 regressions), code quality excellent, production-ready
   7-3-barcode-scanning-integration: backlog
   7-4-offline-photo-queuing: backlog
   epic-7-retrospective: optional

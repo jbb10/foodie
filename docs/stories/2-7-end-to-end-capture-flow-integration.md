@@ -39,7 +39,7 @@ So that I can track meals in under 5 seconds without any friction.
   - [x] Verify camera activity launches system camera intent
   - [x] Verify photo confirmation navigates back or finishes activity
   - [x] Verify WorkManager job is enqueued on photo confirmation
-  - [x] Verify AnalyzeMealWorker executes with correct photo URI
+  - [x] Verify AnalyseMealWorker executes with correct photo URI
   - [x] Verify Health Connect record is created with correct data
   - [x] Verify photo file is deleted from cache after success
   - [x] Review all integration points in existing code
@@ -139,7 +139,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - **Integration Tests Required:** Only if new integration points added
 - **Manual Testing Required:** YES - Complete end-to-end flow validation on physical device with actual food photos
 - **Performance Measurement Required:** YES - Measure and document timing at each flow step
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 
 ## User Demo
@@ -225,7 +225,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 5. Enable airplane mode, capture photo
 6. **Expected**: WorkManager defers processing until network available (no crash)
 
-### Expected Behavior
+### Expected Behaviour
 - Complete flow from widget tap to photo confirmation < 5 seconds
 - Background processing completes in < 15 seconds typical
 - Haptic feedback confirms photo capture
@@ -263,7 +263,7 @@ This is an **integration validation story** - it does not introduce new code or 
 **Components Being Integrated:**
 - Home screen widget (Story 2-2) → Deep linking (Story 2-0)
 - Camera activity (Story 2-3) → Photo capture and confirmation
-- AnalyzeMealWorker (Story 2-5) → Background processing orchestration
+- AnalyseMealWorker (Story 2-5) → Background processing orchestration
 - Azure OpenAI API client (Story 2-4) → Nutrition analysis
 - Health Connect integration (Story 2-6) → Data persistence
 - Photo cleanup logic (Story 2-5) → Temporary file management
@@ -305,7 +305,7 @@ This is an **integration validation story** - it does not introduce new code or 
 └─────────────────────────────────────────────────────────────────┘
     │
     ├─ WorkManager Enqueue
-    │   └─ AnalyzeMealWorker with photo URI + timestamp
+    │   └─ AnalyseMealWorker with photo URI + timestamp
     │   └─ Constraints: NetworkType.CONNECTED
     │
     ├─ API Call (< 10 seconds)
@@ -377,10 +377,10 @@ if (showCheckmark) {
     Icon(
         imageVector = Icons.Default.CheckCircle,
         contentDescription = "Photo confirmed",
-        tint = Color.Green,
+        tint = Colour.Green,
         modifier = Modifier
             .size(64.dp)
-            .align(Alignment.Center)
+            .align(Alignment.Centre)
             .alpha(animateFloatAsState(if (showCheckmark) 1f else 0f).value)
     )
 }
@@ -389,7 +389,7 @@ if (showCheckmark) {
 **Performance Logging Pattern:**
 
 ```kotlin
-// AnalyzeMealWorker.kt - measure total background processing
+// AnalyseMealWorker.kt - measure total background processing
 val startTime = System.currentTimeMillis()
 
 // ... perform work ...
@@ -413,7 +413,7 @@ app/src/main/java/com/foodie/app/
 │           └── CapturePhotoScreen.kt  # Add haptic feedback + visual checkmark
 └── data/
     └── worker/
-        └── AnalyzeMealWorker.kt  # Add performance logging (may already exist)
+        └── AnalyseMealWorker.kt  # Add performance logging (may already exist)
 ```
 
 **Files Already Exist (No Changes Expected):**
@@ -441,7 +441,7 @@ This is an integration validation story - no new classes, repositories, or modul
 
 **Files Containing Health Connect Logic:**
 - `app/src/main/java/com/foodie/app/data/local/healthconnect/HealthConnectManager.kt` - insertNutritionRecord() method
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Calls insertNutritionRecord() after API success
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Calls insertNutritionRecord() after API success
 
 **Key Implementation Details:**
 - `NutritionRecord` uses `energy` field for calories (via `Energy.kilocalories()`)
@@ -526,7 +526,7 @@ This story validates the **complete end-to-end flow** from widget to Health Conn
    - Photo saved to cache: {cacheDir}/photos/meal_{timestamp}.jpg
 
 8. **Story 2-5 Background Processing Service** - [Source: docs/stories/2-5-background-processing-service.md]
-   - AnalyzeMealWorker orchestrates: photo → API → Health Connect → cleanup
+   - AnalyseMealWorker orchestrates: photo → API → Health Connect → cleanup
    - WorkManager with network constraints, exponential backoff retry
    - Performance logging for total processing duration
 
@@ -566,15 +566,15 @@ GitHub Copilot (Amelia - Developer Agent)
 - Deep Link → Camera: `NavGraph` routes deep link to `CapturePhotoScreen`
 - Camera → System Intent: `CapturePhotoScreen` launches `ActivityResultContracts.TakePicture()`
 - Photo Capture → Processing: `CapturePhotoViewModel.onPhotoCaptured()` triggers `photoManager.resizeAndCompress()`
-- Preview → Background Processing: `PreviewScreen` "Use Photo" button → `onUsePhoto()` → enqueues `AnalyzeMealWorker`
-- Background Worker → API: `AnalyzeMealWorker.doWork()` calls `nutritionAnalysisRepository.analyzePhoto()`
+- Preview → Background Processing: `PreviewScreen` "Use Photo" button → `onUsePhoto()` → enqueues `AnalyseMealWorker`
+- Background Worker → API: `AnalyseMealWorker.doWork()` calls `nutritionAnalysisRepository.analysePhoto()`
 - API Success → Health Connect: Worker calls `healthConnectManager.insertNutritionRecord()`
 - Health Connect Success → Cleanup: Worker calls `photoManager.deletePhoto()`
 
 **Performance Logging Added:**
 - `CapturePhotoViewModel.init`: Records screen launch timestamp
 - `CapturePhotoViewModel.prepareForCapture()`: Logs time from screen launch to camera ready (target: <500ms)
-- `AnalyzeMealWorker.doWork()`: Existing logging for API duration, Health Connect save duration, and total processing time
+- `AnalyseMealWorker.doWork()`: Existing logging for API duration, Health Connect save duration, and total processing time
 
 **Testing Status:**
 - ✅ Unit tests: All passing (`./gradlew test` - 0 failures)
@@ -601,12 +601,12 @@ Tasks 5-8 require physical device testing which cannot be completed in this envi
    - System camera intent launch via `ActivityResultContracts.TakePicture()`
    - Photo processing (2MP resize, 80% JPEG) via `PhotoManager`
    - WorkManager job enqueue in `CapturePhotoViewModel.onUsePhoto()`
-   - Background processing orchestration in `AnalyzeMealWorker` (photo → API → Health Connect → cleanup)
+   - Background processing orchestration in `AnalyseMealWorker` (photo → API → Health Connect → cleanup)
    - Error handling and retry logic (exponential backoff, max 4 attempts)
 
 2. ✅ **Task 2 - Performance Logging**: Added timing measurements at key integration points:
    - `CapturePhotoViewModel`: Tracks screen launch time and logs camera ready duration (target: <500ms)
-   - `AnalyzeMealWorker`: Existing comprehensive performance logging (API call duration, Health Connect save time, total processing time)
+   - `AnalyseMealWorker`: Existing comprehensive performance logging (API call duration, Health Connect save time, total processing time)
    - Warning logs when timing targets exceeded
 
 3. ✅ **Task 3 - Haptic Feedback (AC#8)**: Implemented physical confirmation on photo capture:
@@ -630,7 +630,7 @@ Tasks 5-8 require physical device testing which cannot be completed in this envi
    - ✅ Preview screen with Retake/Use Photo buttons
    - ✅ Visual checkmark animation on "Use Photo" tap (AC#9)
    - ✅ WorkManager job enqueued successfully (AC#3)
-   - ✅ AnalyzeMealWorker execution started
+   - ✅ AnalyseMealWorker execution started
    - ✅ API call attempted (2 seconds - within 10s target)
    - ✅ Health Connect integration confirmed (test entry appeared in HC app - AC#5)
    - ❌ API returned empty response (no Azure OpenAI API key configured)

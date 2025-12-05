@@ -64,7 +64,7 @@ So that I'm never left wondering what's happening.
      - Link: https://developer.android.com/develop/ui/views/notifications/notification-permission
   
   5. Review existing error handling
-     - Files to check: ErrorHandler.kt, AnalyzeMealWorker.kt, NotificationHelper.kt
+     - Files to check: ErrorHandler.kt, AnalyseMealWorker.kt, NotificationHelper.kt
      - Verify: Which edge cases are already covered from Stories 4.1-4.5 and 4.7
   
   6. Validate assumptions:
@@ -103,7 +103,7 @@ So that I'm never left wondering what's happening.
   - [ ] Test with empty API key configuration
 
 - [x] **Task 4: Invalid API Response Handling** (AC: #3)
-  - [ ] Review existing ParseError handling in AnalyzeMealWorker
+  - [ ] Review existing ParseError handling in AnalyseMealWorker
   - [ ] Detect non-JSON responses from Azure OpenAI (catch JsonSyntaxException)
   - [ ] Classify as ErrorType.ParseError
   - [ ] Show persistent notification with error message
@@ -155,9 +155,9 @@ So that I'm never left wondering what's happening.
   - [ ] Verify all exceptions result in user-visible feedback (notification, dialog, or toast)
   - [ ] Critical paths to check:
     - Photo capture (CapturePhotoViewModel)
-    - API call (AnalyzeMealWorker)
+    - API call (AnalyseMealWorker)
     - Health Connect save (HealthConnectRepository)
-    - Photo deletion (AnalyzeMealWorker)
+    - Photo deletion (AnalyseMealWorker)
     - WorkManager enqueue (CapturePhotoViewModel)
   - [ ] Document any gaps found and create follow-up tasks
 
@@ -211,7 +211,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** Storage space calculations, permission state checks, haptic feedback triggers
 - **Instrumentation Tests Required:** Permission flows, notification display, storage error handling, haptic feedback (on device)
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for dependency mocking in unit tests
 
@@ -267,7 +267,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 29. Grant permission
 30. Capture photo and verify analysis notification appears
 
-### Expected Behavior
+### Expected Behaviour
 - All error conditions show clear, actionable messages
 - Settings links navigate directly to correct system settings page
 - Haptic feedback confirms successful actions
@@ -606,7 +606,7 @@ Claude Sonnet 4.5
 - ✅ All 8 acceptance criteria verified:
   - AC#1: Camera permission denial → Settings link (PermissionDeniedScreen)
   - AC#2: API key missing → Settings message (ErrorType.ApiKeyMissing)
-  - AC#3: Invalid API response → Parse error (existing AnalyzeMealWorker handling)
+  - AC#3: Invalid API response → Parse error (existing AnalyseMealWorker handling)
   - AC#4: Storage full → Error dialog (StorageFullScreen)
   - AC#5: Notifications dismissible (NotificationHelper.isOngoing = false for errors)
   - AC#6: Android 13+ notification permission (existing MainActivity implementation)
@@ -690,12 +690,12 @@ Story 4.6 implements comprehensive graceful degradation and user feedback mechan
 |-----|-------------|--------|----------|
 | **AC#1** | Camera permission denied shows: "Camera access required for meal tracking" with settings link | ✅ **IMPLEMENTED** | `CapturePhotoScreen.kt:234-243` - PermissionDeniedScreen composable with settings intent<br>`CapturePhotoScreen.kt:236-238` - Settings intent: `Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply { data = Uri.fromParts("package", context.packageName, null) }`<br>`strings.xml:22-23` - Message: "Camera access is needed to photograph meals. Please grant permission in app settings."<br>`ErrorHandler.kt:186-187` - getUserMessage returns "Camera access required for meal tracking" |
 | **AC#2** | API key missing shows: "Configure Azure OpenAI key in Settings" | ✅ **IMPLEMENTED** | `ErrorType.kt:161-170` - ApiKeyMissing data object<br>`ErrorHandler.kt:189-190` - getUserMessage returns "Configure Azure OpenAI key in Settings"<br>`ErrorHandler.kt:283-289` - getNotificationContent creates notification with "Open Settings" action<br>`ErrorHandlerTest.kt` - 3 tests verify ApiKeyMissing classification, message, and retryability |
-| **AC#3** | Invalid API response (non-JSON) shows error and offers manual entry option | ✅ **IMPLEMENTED** | `AnalyzeMealWorker.kt:281-302` - Existing ParseError handling catches JsonSyntaxException<br>`ErrorHandler.kt:113-116` - JsonSyntaxException → ErrorType.ParseError<br>`ErrorHandler.kt:177` - getUserMessage returns "Unexpected response from AI service."<br>`AnalyzeMealWorker.kt:292, 302` - All catch blocks call notifyFailure(e.message)<br>**Note:** Manual entry UI deferred for future (mentioned in Dev Notes as out of scope) |
+| **AC#3** | Invalid API response (non-JSON) shows error and offers manual entry option | ✅ **IMPLEMENTED** | `AnalyseMealWorker.kt:281-302` - Existing ParseError handling catches JsonSyntaxException<br>`ErrorHandler.kt:113-116` - JsonSyntaxException → ErrorType.ParseError<br>`ErrorHandler.kt:177` - getUserMessage returns "Unexpected response from AI service."<br>`AnalyseMealWorker.kt:292, 302` - All catch blocks call notifyFailure(e.message)<br>**Note:** Manual entry UI deferred for future (mentioned in Dev Notes as out of scope) |
 | **AC#4** | Extremely low storage shows: "Storage full. Free up space to continue." | ✅ **IMPLEMENTED** | `StorageUtil.kt:1-94` - Complete implementation with StatFs API<br>`StorageUtil.kt:58-78` - hasEnoughStorage() checks >= 10MB threshold<br>`CapturePhotoViewModel.kt:148-153` - Storage check before photo capture<br>`CapturePhotoScreen.kt:253-258` - StorageFullScreen composable<br>`strings.xml:32-33` - Message: "Storage full. Free up space to continue."<br>`StorageUtilTest.kt` - 8 tests verify storage checks with edge cases |
 | **AC#5** | All notifications are dismissible but persistent for errors requiring action | ✅ **IMPLEMENTED** | `ErrorHandler.kt:245-335` - All error notifications use isOngoing = false (dismissible)<br>`NotificationHelper.kt` - NotificationContent.isOngoing property controls dismissibility<br>`MealAnalysisForegroundNotifier.kt` - Foreground service notification uses setOngoing(true) for analysis progress<br>**Evidence:** All error notifications in ErrorHandler.getNotificationContent() return isOngoing = false |
 | **AC#6** | Foreground service notification handles Android 13+ permissions | ✅ **IMPLEMENTED** | `MainActivity.kt:54-87` - POST_NOTIFICATIONS permission request on first launch<br>`MainActivity.kt:79` - `checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)`<br>`MainActivity.kt:84-85` - `requestNotificationPermission.launch(POST_NOTIFICATIONS)`<br>`AndroidManifest.xml` - POST_NOTIFICATIONS permission declared<br>**Evidence:** Verified existing implementation, no new work needed for this story |
 | **AC#7** | Haptic feedback and visual cues confirm successful operations | ✅ **IMPLEMENTED** | `CapturePhotoScreen.kt:91` - Haptic feedback: `hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)`<br>`PreviewScreen.kt:56-105` - Visual checkmark animation (700ms delay, CheckCircle icon)<br>`PreviewScreen.kt:73-76` - Fade animation: `animateFloatAsState` with 200ms tween<br>**Evidence:** Verified existing implementations from prior stories (Story 2.7 for visual cues) |
-| **AC#8** | No silent failures occur (user always gets feedback) | ✅ **IMPLEMENTED** | `AnalyzeMealWorker.kt:117-130, 281-387` - All 7 catch blocks log (Timber.e/w) AND call notifyFailure()<br>`CapturePhotoViewModel.kt` - All error states update _state.value (UI feedback)<br>`ErrorHandler.kt` - All error types have getUserMessage() and getNotificationContent()<br>**Audit Evidence:** Verified all critical paths (photo capture, API call, HC save, photo deletion, WorkManager enqueue) |
+| **AC#8** | No silent failures occur (user always gets feedback) | ✅ **IMPLEMENTED** | `AnalyseMealWorker.kt:117-130, 281-387` - All 7 catch blocks log (Timber.e/w) AND call notifyFailure()<br>`CapturePhotoViewModel.kt` - All error states update _state.value (UI feedback)<br>`ErrorHandler.kt` - All error types have getUserMessage() and getNotificationContent()<br>**Audit Evidence:** Verified all critical paths (photo capture, API call, HC save, photo deletion, WorkManager enqueue) |
 
 **Summary:** **8 of 8 acceptance criteria fully implemented** ✅
 
@@ -706,13 +706,13 @@ Story 4.6 implements comprehensive graceful degradation and user feedback mechan
 | **Task 1: Documentation Research** | ✅ Complete | ✅ **VERIFIED** | Dev Notes contain research findings for camera permissions, storage checks, haptic feedback, notification permissions, existing error handling, and validated assumptions |
 | **Task 2: Camera Permission Denial** | ✅ Complete | ✅ **VERIFIED** | `CapturePhotoScreen.kt:234-243` - PermissionDeniedScreen with settings intent pattern from Story 4.5<br>`ErrorType.kt:152-160` - CameraPermissionDenied data object |
 | **Task 3: API Key Missing Detection** | ✅ Complete | ✅ **VERIFIED** | `ErrorType.kt:161-170` - ApiKeyMissing data object<br>`ErrorHandler.kt:189-190` - User message: "Configure Azure OpenAI key in Settings" |
-| **Task 4: Invalid API Response** | ✅ Complete | ✅ **VERIFIED** | Verified existing implementation in `AnalyzeMealWorker.kt:281-302` - JsonSyntaxException caught and classified as ParseError |
+| **Task 4: Invalid API Response** | ✅ Complete | ✅ **VERIFIED** | Verified existing implementation in `AnalyseMealWorker.kt:281-302` - JsonSyntaxException caught and classified as ParseError |
 | **Task 5: Storage Space Check** | ✅ Complete | ✅ **VERIFIED** | `StorageUtil.kt` - Complete class with checkAvailableStorageMB() and hasEnoughStorage()<br>`CapturePhotoViewModel.kt:148-153` - Integration before photo capture<br>`CapturePhotoScreen.kt:455-485` - StorageFullScreen composable |
 | **Task 6: Notification Dismissibility** | ✅ Complete | ✅ **VERIFIED** | Verified `ErrorHandler.kt` and `NotificationHelper.kt` - All error notifications use isOngoing = false, foreground service uses isOngoing = true |
 | **Task 7: Android 13+ Notification** | ✅ Complete | ✅ **VERIFIED** | Verified existing `MainActivity.kt:54-87` - POST_NOTIFICATIONS requested on first launch for Android 13+ |
 | **Task 8: Haptic Feedback** | ✅ Complete | ✅ **VERIFIED** | Verified existing `CapturePhotoScreen.kt:91` - Haptic feedback on photo capture (no new implementation needed) |
 | **Task 9: Visual Cues** | ✅ Complete | ✅ **VERIFIED** | Verified existing `PreviewScreen.kt:56-105` - Checkmark animation (700ms, CheckCircle icon, fade-in/out) |
-| **Task 10: Silent Failure Audit** | ✅ Complete | ✅ **VERIFIED** | Audited `AnalyzeMealWorker.kt` - All 7 catch blocks log (Timber.e) AND call notifyFailure()<br>Verified all critical paths surface user feedback |
+| **Task 10: Silent Failure Audit** | ✅ Complete | ✅ **VERIFIED** | Audited `AnalyseMealWorker.kt` - All 7 catch blocks log (Timber.e) AND call notifyFailure()<br>Verified all critical paths surface user feedback |
 | **Task 11: Integration Testing** | ✅ Complete | ✅ **VERIFIED** | `CapturePhotoEdgeCasesTest.kt` - 5 instrumentation tests created (Hilt issue noted, not blocking) |
 | **Task 12: Manual Device Testing** | ✅ Complete | ⚠️ **DEFERRED** | Documented justification: "acceptable given strong unit test coverage"<br>**Note:** This is acceptable for review approval - can be performed during QA phase |
 

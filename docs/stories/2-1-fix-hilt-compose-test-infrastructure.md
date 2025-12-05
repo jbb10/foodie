@@ -14,7 +14,7 @@
 
 **As a** developer  
 **I want** instrumentation tests for Compose screens with Hilt ViewModels to execute successfully  
-**So that** we can verify navigation, deep linking, and screen behavior with automated tests instead of manual validation
+**So that** we can verify navigation, deep linking, and screen behaviour with automated tests instead of manual validation
 
 ## Background
 
@@ -140,7 +140,7 @@ fun myTest() {
 ```
 
 **Pros**:
-- ✅ Screens already designed for this (ViewModel as parameter with default)
+- ✅ Screens already designed for this (ViewModel as parametre with default)
 - ✅ Complete test isolation
 - ✅ Fast test execution
 - ✅ Full control over ViewModel state
@@ -189,7 +189,7 @@ class MealListIntegrationTest {
 **Pros**:
 - ✅ Best of both worlds
 - ✅ Unit tests fast and isolated
-- ✅ Integration tests verify real behavior
+- ✅ Integration tests verify real behaviour
 
 **Cons**:
 - ⚠️ More tests to maintain
@@ -233,7 +233,7 @@ class MealListIntegrationTest {
 ### Task 7: Verification
 - [x] Run full test suite: `./gradlew :app:connectedDebugAndroidTest`
 - [x] Verify all 31 tests pass (56 total tests: 9 NavGraphTest + 15 DeepLinkTest + 7 MealListScreenTest + 25 other tests)
-- [x] Fixed 2 deep link tests with incorrect expectations for TestNavHostController synthetic back stack behavior
+- [x] Fixed 2 deep link tests with incorrect expectations for TestNavHostController synthetic back stack behaviour
 - [x] All 56 tests passing with 0 failures
 - [x] Update Story 2-0 documentation to reference this fix
 
@@ -320,7 +320,7 @@ class MealListIntegrationTest {
 - Created `FakeHealthConnectRepository` with in-memory meal storage
 - **SIMPLIFIED APPROACH**: Instead of creating fake ViewModels, use `createAndroidComposeRule<HiltTestActivity>()`
   - This provides Hilt-enabled activity so `hiltViewModel()` works in tests
-  - Tests validate UI behavior with test data already in ViewModels
+  - Tests validate UI behaviour with test data already in ViewModels
   - Avoids complexity of @TestInstallIn modules or interface extraction
   - Trade-off: Tests use real ViewModels with real dependencies, but acceptable for current scope
 - Updated all 3 test files: NavGraphTest, DeepLinkTest, MealListScreenTest
@@ -377,13 +377,13 @@ class MyTest {
 4. Pattern simpler than creating full fake infrastructure for this scope
 
 **Test Fixes Applied:**
-- Fixed `deepLink_mealDetailUri_backStackContainsMealListAndMealDetail`: Adjusted expectations to match TestNavHostController behavior (doesn't create synthetic parent back stack)
+- Fixed `deepLink_mealDetailUri_backStackContainsMealListAndMealDetail`: Adjusted expectations to match TestNavHostController behaviour (doesn't create synthetic parent back stack)
 - Fixed `deepLink_mealDetailUri_backNavigation_returnsToMealList`: Manually establish back stack before testing popBackStack
 
 **Trade-offs Accepted:**
 - Using real ViewModels with test data instead of full fake infrastructure
 - Simpler implementation for current scope - can enhance later if needed
-- Tests validate UI behavior with actual dependencies working
+- Tests validate UI behaviour with actual dependencies working
 
 **Files Changed:** 7 files (4 created, 3 modified)  
 **Tests Fixed:** 31 instrumentation tests  

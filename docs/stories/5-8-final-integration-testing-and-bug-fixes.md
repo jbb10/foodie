@@ -187,7 +187,7 @@ So that the MVP is stable and ready for daily use.
   
   - [ ] **Battery Usage:**
     - [ ] Profile typical usage (3-5 captures per day over 24 hours)
-    - [ ] Use Battery Historian to analyze WorkManager impact
+    - [ ] Use Battery Historian to analyse WorkManager impact
     - [ ] Verify background processing doesn't drain battery excessively
     - [ ] Target: < 5% battery usage per day with typical usage
 
@@ -211,7 +211,7 @@ So that the MVP is stable and ready for daily use.
   
   - [ ] **Target API 35 (Android 15.0) Validation:**
     - [ ] Test on latest Android emulator or Pixel device
-    - [ ] Verify new Android 15 behaviors don't break app
+    - [ ] Verify new Android 15 behaviours don't break app
     - [ ] Confirm notification permission flow (Android 13+)
     - [ ] Validate predictive back gesture (Android 14+)
 
@@ -226,7 +226,7 @@ So that the MVP is stable and ready for daily use.
     - Clear reproduction steps
     - Screenshots or screen recordings
     - Device and Android version information
-    - Expected behavior vs actual behavior
+    - Expected behaviour vs actual behaviour
   - [ ] Prioritize critical and major bugs for immediate fix
   - [ ] Document known issues with workarounds:
     - Create KNOWN_ISSUES.md file if needed
@@ -453,7 +453,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
    - Settings and theme work correctly
    - No device-specific crashes or errors
 
-### Expected Behavior
+### Expected Behaviour
 - First-launch onboarding completes in < 2 minutes with clear guidance
 - Complete capture flow (widget → photo → background analysis → HC save) works in < 20 seconds total
 - Meal list loads instantly (< 500ms), displays all entries correctly
@@ -489,7 +489,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 **Research Completed:**
 - ✅ Android Testing Documentation reviewed (https://developer.android.com/training/testing)
-- ✅ Epic 1-4 retrospectives analyzed for known issues and patterns
+- ✅ Epic 1-4 retrospectives analysed for known issues and patterns
 - ✅ Current test status verified: All unit tests passing (280+ tests)
 - ✅ Multi-device testing methodology defined
 - ✅ Edge case matrix created covering network, permissions, storage, battery scenarios
@@ -611,7 +611,7 @@ Story 5.7 completed the 4-screen first-launch onboarding flow using Compose Hori
   - Test files: `OnboardingPreferencesTest.kt:1-86`, `OnboardingViewModelTest.kt:1-210`
   - Coverage: First-launch detection, state management, permission flows, API configuration status
 - **Manual testing scenarios:** All 10 scenarios documented in User Demo section (lines 405-592) ✅
-  - Scenarios: First launch detection, welcome screen, widget instructions, HC permissions, settings prompt, skip functionality, completion flow, timing validation, TalkBack navigation, back button behavior
+  - Scenarios: First launch detection, welcome screen, widget instructions, HC permissions, settings prompt, skip functionality, completion flow, timing validation, TalkBack navigation, back button behaviour
 
 **Integration Points for Story 5.8:**
 - **NavGraph conditional routing:** `NavGraph.kt:76-80` checks `onboardingPreferences.isOnboardingCompleted()`
@@ -720,7 +720,7 @@ Claude Sonnet 4.5 (via GitHub Copilot)
 **✅ Tasks 1-2 Automated Completion (2025-11-23):**
 - Task 1: Documentation research completed
   - Android Testing documentation reviewed
-  - Epic 1-4 retrospectives analyzed (known issues catalog compiled)
+  - Epic 1-4 retrospectives analysed (known issues catalog compiled)
   - Test infrastructure status verified (280+ unit tests passing, 31 instrumentation tests failing)
   - Multi-device strategy defined, edge case matrix created
   - Performance validation criteria documented
@@ -743,7 +743,7 @@ Tasks 3-10 require hands-on manual testing with physical devices and cannot be a
 - Task 10: Production readiness checklist (final verification)
 
 **Recommendation:**
-BMad should execute the manual testing tasks using the comprehensive test plan document created. The test plan provides detailed checklists, expected behaviors, and documentation templates for bug tracking and results recording.
+BMad should execute the manual testing tasks using the comprehensive test plan document created. The test plan provides detailed checklists, expected behaviours, and documentation templates for bug tracking and results recording.
 
 ### Completion Notes List
 
@@ -756,7 +756,7 @@ BMad should execute the manual testing tasks using the comprehensive test plan d
 
 **Task 1 Completed (2025-11-23):**
 - ✅ Android Testing Documentation researched (https://developer.android.com/training/testing)
-- ✅ Epic 1-4 retrospectives analyzed for known issues catalog
+- ✅ Epic 1-4 retrospectives analysed for known issues catalog
 - ✅ Current test status verified: All 280+ unit tests passing
 - ✅ Multi-device testing methodology defined (Pixel 8 Pro + secondary device + emulators)
 - ✅ Edge case matrix finalized (network, permissions, storage, battery scenarios)
@@ -817,7 +817,7 @@ BMad should execute the manual testing tasks using the comprehensive test plan d
 - **Changes:**
   - Completed Task 1: Documentation research and integration testing best practices
     - Researched Android Testing documentation
-    - Analyzed Epic 1-4 retrospectives for known issues catalog
+    - Analysed Epic 1-4 retrospectives for known issues catalog
     - Verified current test status: 280+ unit tests passing
     - Defined multi-device testing strategy
     - Created edge case test matrix

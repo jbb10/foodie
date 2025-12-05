@@ -8,13 +8,13 @@
 
 ## Overview
 
-Enhanced the AI nutrition analysis system to detect when users capture photos that don't contain food (e.g., documents, scenery, empty plates, etc.) and provide appropriate user feedback instead of attempting to analyze non-food content.
+Enhanced the AI nutrition analysis system to detect when users capture photos that don't contain food (e.g., documents, scenery, empty plates, etc.) and provide appropriate user feedback instead of attempting to analyse non-food content.
 
 ---
 
 ## Problem Statement
 
-Previously, the AI would attempt to analyze any photo, potentially returning nonsensical calorie estimates for non-food images. This could happen when:
+Previously, the AI would attempt to analyse any photo, potentially returning nonsensical calorie estimates for non-food images. This could happen when:
 - User accidentally triggers the widget
 - User takes a photo of the wrong subject
 - Camera captures an empty plate or table
@@ -51,7 +51,7 @@ Updated the system instructions to explicitly ask the AI to detect food presence
 **New Prompt:**
 ```
 You are a nutrition analysis assistant. 
-Analyze the image and determine if it contains food.
+Analyse the image and determine if it contains food.
 
 If NO FOOD is detected:
 Return: {"hasFood": false, "reason": "brief explanation"}
@@ -115,7 +115,7 @@ data class ApiNutritionResponse(
 
 ### 4. **Repository Logic Update**
 
-Enhanced `NutritionAnalysisRepositoryImpl.analyzePhoto()` to check for no-food responses.
+Enhanced `NutritionAnalysisRepositoryImpl.analysePhoto()` to check for no-food responses.
 
 **File:** `/app/src/main/java/com/foodie/app/data/repository/NutritionAnalysisRepositoryImpl.kt`
 
@@ -140,16 +140,16 @@ val nutritionData = NutritionData(
 
 **Error Handling:**
 - Returns `Result.Error` with `NoFoodDetectedException`
-- Logs warning (not error) since this is expected behavior
+- Logs warning (not error) since this is expected behaviour
 - Carries AI's explanation to user
 
 ---
 
 ### 5. **Worker Handling**
 
-Updated `AnalyzeMealWorker` to handle `NoFoodDetectedException` as a special case.
+Updated `AnalyseMealWorker` to handle `NoFoodDetectedException` as a special case.
 
-**File:** `/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+**File:** `/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
 
 **New Logic:**
 ```kotlin
@@ -168,7 +168,7 @@ is ApiResult.Error -> {
 }
 ```
 
-**Behavior:**
+**Behaviour:**
 - ✅ Delete photo immediately (no retry)
 - ✅ Show user-friendly notification
 - ✅ Log as warning (not error)
@@ -189,22 +189,22 @@ is ApiResult.Error -> {
 
 Added 3 new test cases:
 
-1. **`analyzePhoto_whenNoFoodDetected_thenReturnsNoFoodDetectedException`**
+1. **`analysePhoto_whenNoFoodDetected_thenReturnsNoFoodDetectedException`**
    - Simulates AI response: `{"hasFood": false, "reason": "Image shows a document, not food"}`
    - Verifies `Result.Error` with `NoFoodDetectedException`
    - Verifies error message matches AI's reason
 
-2. **`analyzePhoto_whenEmptyPlate_thenReturnsNoFoodDetectedException`**
+2. **`analysePhoto_whenEmptyPlate_thenReturnsNoFoodDetectedException`**
    - Simulates AI response: `{"hasFood": false, "reason": "Empty plate with no food visible"}`
    - Verifies exception type and message
 
-3. **`analyzePhoto_whenSceneryPhoto_thenReturnsNoFoodDetectedException`**
+3. **`analysePhoto_whenSceneryPhoto_thenReturnsNoFoodDetectedException`**
    - Simulates AI response: `{"hasFood": false, "reason": "Image shows outdoor scenery, not food"}`
    - Verifies exception type and message
 
 ### Worker Tests
 
-**File:** `/app/src/androidTest/java/com/foodie/app/data/worker/AnalyzeMealWorkerForegroundTest.kt`
+**File:** `/app/src/androidTest/java/com/foodie/app/data/worker/AnalyseMealWorkerForegroundTest.kt`
 
 Added 1 new test case:
 
@@ -217,7 +217,7 @@ Added 1 new test case:
 
 ### Updated Existing Test
 
-**Modified:** `analyzePhoto_whenValidResponse_thenReturnsNutritionData`
+**Modified:** `analysePhoto_whenValidResponse_thenReturnsNutritionData`
 - Updated mock response to include `"hasFood": true` field
 - Ensures backward compatibility with new DTO structure
 
@@ -255,7 +255,7 @@ Added 1 new test case:
    - Added Step 6: Check for no-food response
    - Updated Step 7: Handle nullable fields
 
-3. `/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+3. `/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
    - Added import for `NoFoodDetectedException`
    - Added special handling in error branch for no-food case
    - Shows user-friendly notification
@@ -264,7 +264,7 @@ Added 1 new test case:
    - Updated existing test mock response to include `hasFood: true`
    - Added 3 new test cases for no-food scenarios
 
-5. `/app/src/androidTest/java/com/foodie/app/data/worker/AnalyzeMealWorkerForegroundTest.kt`
+5. `/app/src/androidTest/java/com/foodie/app/data/worker/AnalyseMealWorkerForegroundTest.kt`
    - Added import for `NoFoodDetectedException`
    - Added 1 new test case for worker no-food handling
 
@@ -282,7 +282,7 @@ Added 1 new test case:
 
 ### Before (Problem)
 1. User accidentally captures photo of document
-2. AI attempts to analyze document as food
+2. AI attempts to analyse document as food
 3. Returns nonsensical result (e.g., "50 calories, paper with text")
 4. Saves to Health Connect
 5. User confused by incorrect data
@@ -359,7 +359,7 @@ Added 1 new test case:
    - ✅ **Empty table** → Should show "No food detected" notification
    - ✅ **Landscape/scenery** → Should show "No food detected" notification
    - ✅ **Person's face** → Should show "No food detected" notification
-   - ✅ **Actual food** → Should analyze and save successfully
+   - ✅ **Actual food** → Should analyse and save successfully
 
 4. Verify photo is deleted in all cases (check app's photo cache directory)
 5. Verify nothing saved to Health Connect for non-food cases
@@ -372,7 +372,7 @@ Added 1 new test case:
 
 # Run worker tests (requires emulator/device)
 ./gradlew :app:connectedDebugAndroidTest \
-  --tests "*AnalyzeMealWorkerForegroundTest*"
+  --tests "*AnalyseMealWorkerForegroundTest*"
 ```
 
 ---

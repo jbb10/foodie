@@ -215,7 +215,7 @@ adb logcat | grep "model"
 **Steps:** Disable wifi/mobile data mid-test  
 **Expected:** "Connection failed. Check internet." error message
 
-### EC4: Model Field Focus/Blur Behavior
+### EC4: Model Field Focus/Blur Behaviour
 **Steps:** Tap into model field, then tap out without changing value  
 **Expected:** No unintended state changes, description remains visible
 
@@ -235,7 +235,7 @@ adb logcat | grep "model"
 
 ## Notes / Issues Found
 
-_Use this space to document any bugs, unexpected behavior, or suggestions for improvement:_
+_Use this space to document any bugs, unexpected behaviour, or suggestions for improvement:_
 
 ---
 

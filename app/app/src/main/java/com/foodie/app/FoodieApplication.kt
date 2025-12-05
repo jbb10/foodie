@@ -10,6 +10,7 @@ import androidx.work.WorkManager
 import com.foodie.app.data.local.preferences.SecurePreferences
 import com.foodie.app.data.worker.PhotoCleanupWorker
 import com.foodie.app.data.worker.foreground.MealAnalysisNotificationSpec
+import com.foodie.app.util.FileLoggingTree
 import com.foodie.app.util.ReleaseTree
 import dagger.hilt.android.HiltAndroidApp
 import java.time.Duration
@@ -47,6 +48,7 @@ class FoodieApplication : Application(), Configuration.Provider {
         // Initialize Timber for logging
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
+            Timber.plant(FileLoggingTree(this)) // Persist logs to file for debugging
         } else {
             Timber.plant(ReleaseTree())
         }

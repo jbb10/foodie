@@ -130,7 +130,7 @@ Order matters! Hilt must initialize before Compose.
 
 ## Screen Design for Testability
 
-Screens should accept ViewModel as a parameter with `hiltViewModel()` as default:
+Screens should accept ViewModel as a parametre with `hiltViewModel()` as default:
 
 ```kotlin
 @Composable

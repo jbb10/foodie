@@ -49,11 +49,11 @@ So that I can easily retry the analysis without recapturing the photo.
 ✅ **AC #1:** Persistent notification after retry exhaustion - `NotificationHelper.kt:91-131`  
 ✅ **AC #2:** Notification body shows error category - Uses `ErrorHandler.getUserMessage(errorType)`  
 ✅ **AC #3:** "Retry" action button included - `NotificationHelper.kt:189-198`  
-✅ **AC #4:** Notification remains until dismissed or retry succeeds - Android notification behavior  
+✅ **AC #4:** Notification remains until dismissed or retry succeeds - Android notification behaviour  
 ✅ **AC #5:** Retry button creates new WorkManager task - `RetryAnalysisBroadcastReceiver.kt:42-59`  
 ✅ **AC #6:** Notification replaced with foreground notification - Receiver cancels notification, Worker shows foreground  
 ✅ **AC #7:** Same photo used for retry - photoUri passed via intent extras  
-✅ **AC #8:** Successful retry completes normally - Standard AnalyzeMealWorker flow  
+✅ **AC #8:** Successful retry completes normally - Standard AnalyseMealWorker flow  
 ✅ **AC #9:** Failed retry repeats cycle - Fresh retry counter, exponential backoff applies  
 
 ### Implementation Files
@@ -67,11 +67,11 @@ So that I can easily retry the analysis without recapturing the photo.
 - `app/src/main/java/com/foodie/app/util/RetryAnalysisBroadcastReceiver.kt` (72 lines)
   - Handles retry button tap from notification
   - Extracts photoUri and errorType from intent extras
-  - Enqueues new AnalyzeMealWorker with `WorkManager.enqueueUniqueWork()`
+  - Enqueues new AnalyseMealWorker with `WorkManager.enqueueUniqueWork()`
   - Cancels persistent notification before retry
 
 **Modified Files:**
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
   - Integrated NotificationHelper for error notifications
   - Shows persistent notification for AuthError and PermissionDenied errors
   - Retains photo on retryable errors (enables manual retry)
@@ -140,7 +140,7 @@ None - All acceptance criteria fully satisfied and verified.
      - Focus: addAction() API, PendingIntent configuration for WorkManager
   
   2. Review WorkManager enqueue from BroadcastReceiver pattern
-     - File: Review existing AnalyzeMealWorker enqueue logic in CapturePhotoViewModel
+     - File: Review existing AnalyseMealWorker enqueue logic in CapturePhotoViewModel
      - Focus: How to enqueue WorkRequest with same photo URI from notification action
   
   3. Review notification channels and persistence
@@ -189,14 +189,14 @@ None - All acceptance criteria fully satisfied and verified.
 - [ ] **Task 4: Implement RetryBroadcastReceiver** (AC: #5, #6)
   - [ ] Create `data/worker/RetryBroadcastReceiver` extending BroadcastReceiver
   - [ ] Extract photo URI from intent extras in onReceive()
-  - [ ] Enqueue AnalyzeMealWorker using WorkManager.getInstance().enqueueUniqueWork()
+  - [ ] Enqueue AnalyseMealWorker using WorkManager.getInstance().enqueueUniqueWork()
   - [ ] Use same WorkRequest configuration as CapturePhotoViewModel (BackoffPolicy, constraints)
   - [ ] Cancel the persistent notification after enqueueing work
   - [ ] Log retry action: `Timber.i("Manual retry initiated for photo: $photoUri")`
   - [ ] Register receiver in AndroidManifest.xml
 
-- [ ] **Task 5: Update AnalyzeMealWorker Retry Exhaustion Logic** (AC: #1, #2, #7)
-  - [ ] Modify retry exhaustion handling in AnalyzeMealWorker.doWork()
+- [ ] **Task 5: Update AnalyseMealWorker Retry Exhaustion Logic** (AC: #1, #2, #7)
+  - [ ] Modify retry exhaustion handling in AnalyseMealWorker.doWork()
   - [ ] When runAttemptCount + 1 >= MAX_ATTEMPTS and error is retryable:
     - Do NOT delete photo (retain for manual retry)
     - Get ErrorType from errorHandler.classify(exception)
@@ -210,7 +210,7 @@ None - All acceptance criteria fully satisfied and verified.
 - [ ] **Task 6: Handle Notification Replacement on Retry** (AC: #6)
   - [ ] In RetryBroadcastReceiver.onReceive(), cancel persistent error notification before enqueueing work
   - [ ] Use NotificationManager.cancel(PERSISTENT_ERROR_NOTIFICATION_ID)
-  - [ ] AnalyzeMealWorker will show foreground analysis notification when work starts
+  - [ ] AnalyseMealWorker will show foreground analysis notification when work starts
   - [ ] Verify notification IDs don't conflict (use different ID for persistent vs foreground)
 
 - [ ] **Task 7: Implement Retry Cycle Logic** (AC: #8, #9)
@@ -287,7 +287,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 ### Testing Standards Summary:
 - **Unit Tests Required:** Notification builder, error category mapping, photo retention, PendingIntent configuration
 - **Instrumentation Tests Required:** Notification action tap, WorkManager enqueue, retry cycle, notification replacement
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use MockK for mocking NotificationManager, WorkManager, dependencies
 
@@ -312,7 +312,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 8. **Verify Success:** After retry succeeds, notification dismisses and data appears in meal list
 9. **Verify Photo Deleted:** Photo should be deleted after successful manual retry
 
-### Expected Behavior
+### Expected Behaviour
 - Persistent notification appears after 4 failed automatic retry attempts
 - Notification body shows specific error category (Network problem, Service unavailable, etc.)
 - "Retry" button triggers new analysis attempt
@@ -341,7 +341,7 @@ Implement persistent notification with manual retry button when automatic retrie
 **Key Components:**
 1. **MealAnalysisForegroundNotifier**: Add `createPersistentErrorNotification()` method
 2. **RetryBroadcastReceiver**: Handle notification action tap, enqueue WorkManager task
-3. **AnalyzeMealWorker**: Update retry exhaustion logic to show persistent notification
+3. **AnalyseMealWorker**: Update retry exhaustion logic to show persistent notification
 4. **ErrorHandler/Mapper**: Map ErrorType to user-friendly category strings
 
 **Notification Architecture:**
@@ -358,9 +358,9 @@ Implement persistent notification with manual retry button when automatic retrie
 2. User taps "Retry" button
    └─> RetryBroadcastReceiver.onReceive()
    └─> Cancel persistent notification
-   └─> Enqueue AnalyzeMealWorker with same photo URI
+   └─> Enqueue AnalyseMealWorker with same photo URI
    
-3. AnalyzeMealWorker starts
+3. AnalyseMealWorker starts
    └─> Show foreground notification "Analyzing meal..."
    └─> Attempt 1, 2, 3, 4 with exponential backoff
    
@@ -402,19 +402,19 @@ Implement persistent notification with manual retry button when automatic retrie
 
 **Modified Files:**
 - `app/src/main/java/com/foodie/app/ui/notifications/MealAnalysisForegroundNotifier.kt` - Add createPersistentErrorNotification()
-- `app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Update retry exhaustion to show persistent notification
+- `app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Update retry exhaustion to show persistent notification
 - `app/src/main/AndroidManifest.xml` - Register RetryBroadcastReceiver
 
 **Dependencies from Previous Stories:**
 - Story 4-1: ErrorHandler, ErrorType (for error classification)
-- Story 4-2: AnalyzeMealWorker retry logic, NetworkMonitor (retry foundation)
+- Story 4-2: AnalyseMealWorker retry logic, NetworkMonitor (retry foundation)
 - Story 2-8: MealAnalysisForegroundNotifier (notification infrastructure)
 
 ### Learnings from Previous Stories
 
 **From Story 4-2 (API Retry Logic with Exponential Backoff) (Status: done)**
 
-- **Retry Exhaustion Logic**: `runAttemptCount + 1 >= MAX_ATTEMPTS` at `AnalyzeMealWorker.kt:197,314` - modify to show persistent notification instead of immediate failure
+- **Retry Exhaustion Logic**: `runAttemptCount + 1 >= MAX_ATTEMPTS` at `AnalyseMealWorker.kt:197,314` - modify to show persistent notification instead of immediate failure
 - **Photo Retention**: Photos already retained during retries, just need to extend retention after exhaustion for retryable errors
 - **ErrorHandler Integration**: Use `errorHandler.classify(exception)` and `errorHandler.isRetryable(errorType)` to determine if persistent notification should have retry button
 - **Notification Updates**: Already using `setForeground(foregroundNotifier.createForegroundInfo())` - add persistent notification creation method

@@ -183,6 +183,7 @@ class OnboardingViewModelTest {
             "android.permission.health.WRITE_HEIGHT",
             "android.permission.health.READ_STEPS",
             "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+            "android.permission.health.READ_TOTAL_CALORIES_BURNED",
         )
 
         // When: Handle permission result

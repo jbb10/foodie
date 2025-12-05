@@ -11,7 +11,7 @@ Status: Draft
 
 Epic 5 completes the Foodie MVP by implementing essential user configuration capabilities and production-ready polish features. This epic transforms the application from a hardcoded prototype into a customizable, accessible, and professional user experience through a comprehensive settings system, secure API credential management, dark mode support, accessibility improvements, performance optimizations, and guided onboarding.
 
-The core value proposition centers on enabling users to securely configure their Azure OpenAI credentials through the Settings screen (migrating from BuildConfig hardcoded values to encrypted runtime storage), while simultaneously delivering UX refinements that make the app feel polished and production-ready. This epic bridges the gap between functional implementation (Epics 1-4) and a deployable product suitable for daily personal use.
+The core value proposition centres on enabling users to securely configure their Azure OpenAI credentials through the Settings screen (migrating from BuildConfig hardcoded values to encrypted runtime storage), while simultaneously delivering UX refinements that make the app feel polished and production-ready. This epic bridges the gap between functional implementation (Epics 1-4) and a deployable product suitable for daily personal use.
 
 ## Objectives and Scope
 
@@ -30,7 +30,7 @@ The core value proposition centers on enabling users to securely configure their
 - Advanced settings features: custom retry counts, network quality thresholds, batch processing configuration (V2.0+)
 - Analytics dashboard or calorie tracking insights within the app (V2.0+)
 - Multi-user support or cloud sync of settings (client-only architecture maintained)
-- Custom theme builder or color palette selection beyond light/dark modes
+- Custom theme builder or colour palette selection beyond light/dark modes
 - Accessibility features beyond WCAG AA standards (AAA standards deferred to V2.0)
 - Automated performance regression testing infrastructure
 - In-app help system or interactive tutorials beyond first-launch onboarding
@@ -74,14 +74,14 @@ Epic 5 builds upon the established MVVM architecture from Epic 1, introducing Se
 - Maintains compatibility with existing Responses API implementation from Epic 2
 
 **Theme Configuration** (ui/theme/)
-- Extends Material Design 3 theme with dark color palette (values-night/themes.xml)
+- Extends Material Design 3 theme with dark colour palette (values-night/themes.xml)
 - AppCompatDelegate integration for runtime theme switching
 - Theme preference stored in standard SharedPreferences
 
 **All Composable Screens**
 - Enhanced with contentDescription attributes for accessibility
 - Minimum 48dp touch targets enforced via layout constraints
-- Dynamic color support for system theme following
+- Dynamic colour support for system theme following
 
 **Architectural Patterns:**
 
@@ -104,7 +104,7 @@ User selects theme preference in Settings
 → SettingsViewModel updates SharedPreferences
 → AppCompatDelegate.setDefaultNightMode(mode)
 → Activity recreates with new theme
-→ All Compose screens reactively apply theme colors
+→ All Compose screens reactively apply theme colours
 ```
 
 **Test Connection Validation:**
@@ -334,7 +334,7 @@ interface SecurePreferencesManager {
 interface AzureOpenAiApi {
     // Existing method from Epic 2
     @POST("openai/v1/responses")
-    suspend fun analyzeNutrition(@Body request: NutritionAnalysisRequest): NutritionAnalysisResponse
+    suspend fun analyseNutrition(@Body request: NutritionAnalysisRequest): NutritionAnalysisResponse
     
     // New method for Story 5.2 - Test Connection
     @POST("openai/v1/responses")
@@ -411,7 +411,7 @@ interface ThemeManager {
 3. ThemeManager applies theme:
    → AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_YES)
    → Activity recreates with new theme
-   → All Compose screens reactively apply dark color palette
+   → All Compose screens reactively apply dark colour palette
    
 4. Theme persists across app restarts:
    → FoodieApplication.onCreate() reads pref_theme_mode
@@ -427,7 +427,7 @@ interface ThemeManager {
 
 2. Onboarding Screen 1 - Welcome:
    → Title: "Welcome to Foodie"
-   → Body: "Capture meals in 2 seconds. AI analyzes. Health Connect saves."
+   → Body: "Capture meals in 2 seconds. AI analyses. Health Connect saves."
    → Buttons: [Skip] [Next]
    
 3. Onboarding Screen 2 - Widget Setup:
@@ -498,7 +498,7 @@ interface ThemeManager {
 5. Contrast ratio validation:
    → Run Accessibility Scanner tool
    → Verify all text meets WCAG AA 4.5:1 ratio
-   → Fix any flagged issues (adjust colors, increase font weight)
+   → Fix any flagged issues (adjust colours, increase font weight)
 ```
 
 ## Non-Functional Requirements
@@ -514,7 +514,7 @@ interface ThemeManager {
 **Dark Mode Rendering:**
 - Theme application at app startup: < 100ms overhead (no noticeable delay)
 - No frame drops during theme switching (maintain 60fps during activity recreation)
-- Dynamic color calculation cached to avoid repeated computation
+- Dynamic colour calculation cached to avoid repeated computation
 
 **Accessibility Performance:**
 - TalkBack focus navigation: < 100ms between element focus changes
@@ -874,10 +874,10 @@ class FoodieApplication : Application() {
 7. Model selection defaults to "gpt-4.1" for new installations
 
 **Story 5.4: Dark Mode Support**
-1. All screens use dark theme colors when dark mode enabled
+1. All screens use dark theme colours when dark mode enabled
 2. Theme follows Material Design 3 dark theme guidelines (values-night/themes.xml)
 3. Text maintains proper contrast ratios (WCAG AA 4.5:1 minimum)
-4. Camera preview maintains natural colors (not inverted)
+4. Camera preview maintains natural colours (not inverted)
 5. Notifications use dark styling when appropriate
 6. App respects system dark mode setting
 7. In-app theme selector: "System Default", "Light", "Dark" in Settings
@@ -888,8 +888,8 @@ class FoodieApplication : Application() {
 2. App supports TalkBack screen reader with logical announcement order
 3. Touch targets minimum 48dp (WCAG compliance)
 4. Text scales properly with system font size settings
-5. Color contrast ratios meet WCAG AA standards (4.5:1 for normal text)
-6. Important information not conveyed by color alone
+5. Colour contrast ratios meet WCAG AA standards (4.5:1 for normal text)
+6. Important information not conveyed by colour alone
 7. Focus order logical for keyboard/D-pad navigation
 8. Camera capture button easily discoverable with TalkBack
 9. Accessibility Scanner reports zero critical issues
@@ -959,9 +959,9 @@ class FoodieApplication : Application() {
 | 5.3-6 | Model Selection | Selection stored persistently | SharedPreferences pref_azure_model | Unit Test |
 | 5.3-7 | Model Selection | Defaults to gpt-4.1 | defaultValue in preferences.xml | Manual |
 | 5.4-1 | Dark Mode | All screens use dark theme | Material3 theme, values-night/themes.xml | Visual QA |
-| 5.4-2 | Dark Mode | Material Design 3 compliance | Dark color palette definitions | Visual QA |
-| 5.4-3 | Dark Mode | Proper text contrast ratios | Color definitions, Accessibility Scanner | Tool-based |
-| 5.4-4 | Dark Mode | Camera maintains natural colors | Camera preview not inverted | Manual |
+| 5.4-2 | Dark Mode | Material Design 3 compliance | Dark colour palette definitions | Visual QA |
+| 5.4-3 | Dark Mode | Proper text contrast ratios | Colour definitions, Accessibility Scanner | Tool-based |
+| 5.4-4 | Dark Mode | Camera maintains natural colours | Camera preview not inverted | Manual |
 | 5.4-5 | Dark Mode | Dark notifications | Notification styling | Manual |
 | 5.4-6 | Dark Mode | Respects system setting | AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM | Manual |
 | 5.4-7 | Dark Mode | In-app theme selector | ListPreference pref_theme_mode | Manual |
@@ -970,8 +970,8 @@ class FoodieApplication : Application() {
 | 5.5-2 | Accessibility | TalkBack support | Screen reader navigation | Manual |
 | 5.5-3 | Accessibility | 48dp touch targets minimum | Layout constraints, Modifier.size() | Tool-based |
 | 5.5-4 | Accessibility | Text scales with system font | sp units for text sizes | Manual |
-| 5.5-5 | Accessibility | WCAG AA contrast ratios | Color values, Accessibility Scanner | Tool-based |
-| 5.5-6 | Accessibility | No color-only information | Visual + text labels | Visual QA |
+| 5.5-5 | Accessibility | WCAG AA contrast ratios | Colour values, Accessibility Scanner | Tool-based |
+| 5.5-6 | Accessibility | No colour-only information | Visual + text labels | Visual QA |
 | 5.5-7 | Accessibility | Logical focus order | Tab navigation testing | Manual |
 | 5.5-8 | Accessibility | Camera button TalkBack | contentDescription on camera trigger | TalkBack Test |
 | 5.5-9 | Accessibility | Zero critical scanner issues | Accessibility Scanner report | Tool-based |
@@ -1032,7 +1032,7 @@ class FoodieApplication : Application() {
 
 **R4: Onboarding Abandonment (Medium)**
 - Risk: Users skip onboarding and don't configure API credentials
-- Impact: App unusable without API key (cannot analyze meals)
+- Impact: App unusable without API key (cannot analyse meals)
 - Mitigation: Allow skipping but show prominent "Configure Settings" message on first capture attempt
 - Design: Keep onboarding minimal (< 2 minutes) to reduce abandonment
 - Likelihood: Medium (users often skip onboarding flows)
@@ -1045,10 +1045,10 @@ class FoodieApplication : Application() {
 - Likelihood: Low (ErrorHandler already classifies errors correctly)
 
 **R6: Dark Mode Contrast Issues (Low)**
-- Risk: Some color combinations may not meet WCAG AA standards in dark mode
+- Risk: Some colour combinations may not meet WCAG AA standards in dark mode
 - Impact: Accessibility Scanner flags issues, text hard to read for some users
-- Mitigation: Test with Accessibility Scanner, iterate on color palette before release
-- Tools: Use Material Design 3 recommended dark colors (already validated)
+- Mitigation: Test with Accessibility Scanner, iterate on colour palette before release
+- Tools: Use Material Design 3 recommended dark colours (already validated)
 - Likelihood: Low (Material 3 provides compliant defaults)
 
 **Assumptions:**
@@ -1226,7 +1226,7 @@ Test Case: Custom model name supported
 Test Case: Dark theme applied system-wide
 - Given: User selects "Dark" in Settings
 - When: Activity recreates
-- Then: All screens render with dark color palette
+- Then: All screens render with dark colour palette
 - Verify: MealListScreen, SettingsScreen, EditScreen all dark
 
 Test Case: Theme persists across restarts
@@ -1237,7 +1237,7 @@ Test Case: Theme persists across restarts
 Test Case: Camera preview not inverted
 - Given: Dark theme enabled
 - When: User opens camera for meal capture
-- Then: Camera preview shows natural colors (not dark-inverted)
+- Then: Camera preview shows natural colours (not dark-inverted)
 ```
 
 **Story 5.5 - Accessibility:**

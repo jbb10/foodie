@@ -175,7 +175,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 
 ### Testing Standards Summary:
 - **Unit Tests Required:** All NetworkMonitor methods, all ErrorHandler classification logic, performance validation
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use Mockito/Mockito-Kotlin for ConnectivityManager, HttpException mocking
 - **Performance Testing:** Use System.nanoTime() or JUnit benchmarking to verify < 50ms and < 10ms requirements
@@ -203,7 +203,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - Performance tests use multiple iterations to measure consistent timing
 
 **Integration Notes:**
-- NetworkMonitor will be injected into AnalyzeMealWorker (Story 4-2)
+- NetworkMonitor will be injected into AnalyseMealWorker (Story 4-2)
 - ErrorHandler will be used by all repositories (HealthConnectRepository, etc.)
 - NotificationContent will be consumed by NotificationManager wrapper
 - ErrorType sealed class becomes standard error return type across app (Result<T, ErrorType>)
@@ -257,7 +257,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 **Integration Readiness:**
 - NetworkMonitor injectable via Hilt (@Singleton bound in AppModule)
 - ErrorHandler injectable via Hilt (@Singleton constructor injection)
-- Ready for Story 4-2 (AnalyzeMealWorker retry logic) integration
+- Ready for Story 4-2 (AnalyseMealWorker retry logic) integration
 - Ready for Story 4-3 (HealthConnectRepository error handling) integration
 
 **Performance Validation:**
@@ -400,7 +400,7 @@ Story 4-1 delivers a robust, well-tested network monitoring and error classifica
 - Note: Document integration pattern in Epic 4 tech spec for Stories 4-2 and 4-3
 
 **Integration Checklist for Stories 4-2 and 4-3:**
-- [ ] Story 4-2: Inject NetworkMonitor into AnalyzeMealWorker
+- [ ] Story 4-2: Inject NetworkMonitor into AnalyseMealWorker
 - [ ] Story 4-2: Call `networkMonitor.checkConnectivity()` before API calls
 - [ ] Story 4-2: Use `errorHandler.classify()` for retry strategy
 - [ ] Story 4-3: Inject ErrorHandler into HealthConnectRepository

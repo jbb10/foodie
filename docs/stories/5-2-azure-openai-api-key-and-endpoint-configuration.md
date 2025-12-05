@@ -319,7 +319,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
 - **Unit Tests Required:** SecurePreferencesManager (encryption/decryption), SettingsViewModel (API config save/test), ApiConfiguration (validation logic)
 - **Instrumentation Tests Required:** Settings UI credential entry, test connection flow, masked API key display
 - **Integration Tests Required:** BuildConfig migration (first launch, subsequent launches, failure scenarios)
-- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behavior when condition`
+- **Test Naming Convention:** `methodName_whenCondition_thenExpectedResult` or `feature should behaviour when condition`
 - **Assertion Library:** Truth library for readable assertions (`assertThat(x).isEqualTo(y)`)
 - **Mocking:** Use MockK for PreferencesRepository, Retrofit API mocking
 
@@ -388,7 +388,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
    - Tap "Test Connection"
    - Verify error: "API key required"
 
-### Expected Behavior
+### Expected Behaviour
 - API key stored encrypted, never visible in full after entry
 - Endpoint and model stored in standard SharedPreferences
 - Test connection validates complete configuration with actual API call
@@ -635,7 +635,7 @@ N/A - Build successful, unit tests passing
 
 **Key Architectural Decisions:**
 - Reused existing SecurePreferences class (refactored from BuildConfig → EncryptedSharedPreferences) instead of creating new SecurePreferencesManager
-- Test connection uses existing AzureOpenAiApi.analyzeNutrition() with minimal request (no new endpoint needed)
+- Test connection uses existing AzureOpenAiApi.analyseNutrition() with minimal request (no new endpoint needed)
 - Validation in domain layer (ApiConfiguration.validate()) keeps ViewModel thin
 - Error classification reuses Epic 4 patterns (HttpException mapping)
 
@@ -804,7 +804,7 @@ The implementation quality is high - this is purely a test coverage blocker that
 #### **Code Changes Required:**
 
 - [ ] **[High]** Create `SecurePreferencesTest.kt` with minimum 5 unit tests (Task 11) [file: app/src/test/java/com/foodie/app/data/local/preferences/SecurePreferencesTest.kt]  
-  Tests must cover: encryption success, decryption success, key deletion, hasApiKey() behavior, encryption failure fallback
+  Tests must cover: encryption success, decryption success, key deletion, hasApiKey() behaviour, encryption failure fallback
 
 - [ ] **[Med]** Add `setAzureOpenAiEndpoint()` and `setAzureOpenAiModelName()` to SecurePreferences (M1) [file: SecurePreferences.kt:150+]  
   Consistency with setAzureOpenAiApiKey() pattern

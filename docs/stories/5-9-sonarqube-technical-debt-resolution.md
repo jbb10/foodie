@@ -40,7 +40,7 @@ So that the codebase remains maintainable and AI-driven development can continue
 
   **Completed Research:**
   1. Review SonarQube documentation for Android/Kotlin projects
-     - Starting point: Fetch this website: https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/languages/kotlin/
+     - Starting point: Fetch this website: https://docs.sonarsource.com/sonarqube/latest/analysing-source-code/languages/kotlin/
      - Focus: Issue severity definitions (BLOCKER/CRITICAL/MAJOR), common Kotlin antipatterns
      - Tools: SonarLint IDE integration, SonarQube MCP server integration
   
@@ -110,7 +110,7 @@ So that the codebase remains maintainable and AI-driven development can continue
   - [x] Retrieve BLOCKER issues from SonarQube
   - [x] For each BLOCKER issue:
     - [x] Read issue description and affected code location
-    - [x] Analyze root cause and impact
+    - [x] Analyse root cause and impact
     - [x] Implement fix following project patterns (MVVM, Result<T>, etc.)
     - [x] Run affected unit tests: `./gradlew test --tests [TestClassName]`
     - [x] Verify fix resolves issue without introducing new problems
@@ -131,7 +131,7 @@ So that the codebase remains maintainable and AI-driven development can continue
     2. **SettingsScreen.kt** (kotlin:S3776: complexity 26 → <15) - ✅ CLOSED
        - Extracted 4 helper composables (InitializeEditStateFromViewModel, HandleSnackbarMessages, SettingsScaffold, SettingsContent)
        - Tests: 387/387 passing
-    3. **AnalyzeMealWorker.kt** (kotlin:S3776: complexity 32 → <15) - ✅ CLOSED
+    3. **AnalyseMealWorker.kt** (kotlin:S3776: complexity 32 → <15) - ✅ CLOSED
        - Extracted 13 helper methods from doWork()
        - Tests: 387/387 passing
     4. **CapturePhotoScreen.kt** (kotlin:S3776: complexity 20 → <15) - ✅ CLOSED
@@ -171,7 +171,7 @@ So that the codebase remains maintainable and AI-driven development can continue
 - [x] **Task 5: Resolve MAJOR Severity Issues** - ✅ **COMPLETE** (AC: #3, #5, #7, #8)
   - [x] Retrieve MAJOR issues from SonarQube (34 total)
   - [x] Prioritize by impact:
-    - High-impact bugs (data corruption, incorrect behavior)
+    - High-impact bugs (data corruption, incorrect behaviour)
     - Code complexity issues (cyclomatic complexity, cognitive complexity)
     - Duplicate code blocks
     - Incorrect API usage patterns
@@ -198,7 +198,7 @@ So that the codebase remains maintainable and AI-driven development can continue
   - [x] Focus on high-impact maintainability improvements:
     - Duplicate code blocks (extracted via cognitive complexity refactoring)
     - Complex methods (all 6 cognitive complexity issues fixed)
-    - Dead code (unused imports, functions, parameters - all fixed)
+    - Dead code (unused imports, functions, parametres - all fixed)
     - Inconsistent naming conventions (evaluated)
   - [x] Apply refactoring patterns:
     - Extract method for complex logic ✅ (6 cognitive complexity fixes)
@@ -404,7 +404,7 @@ This story is considered COMPLETE only when ALL of the following are satisfied:
    - Build release APK: `./gradlew assembleRelease`
    - **Expected:** Zero build errors, same APK size, no performance regressions
 
-### Expected Behavior
+### Expected Behaviour
 - **User-facing:** Zero functional changes - app behaves identically to pre-fix version
 - **Developer-facing:** Significantly cleaner codebase with improved SonarQube metrics
 - **Security:** No token exposure, credentials secured in EncryptedSharedPreferences
@@ -458,18 +458,18 @@ Successfully queried SonarQube MCP server for project "Foodie" and retrieved com
 
 **2. SonarQube Kotlin Analysis Documentation Review:**
 
-Reviewed SonarQube Kotlin documentation (https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/languages/kotlin/):
+Reviewed SonarQube Kotlin documentation (https://docs.sonarsource.com/sonarqube/latest/analysing-source-code/languages/kotlin/):
 - ✅ Kotlin 2.2 fully supported (project uses 2.2.21)
 - ✅ Auto-detects dependencies when using Gradle (no manual sonar.java.libraries needed)
 - ✅ Kotlin source version can be specified via sonar.kotlin.source.version (currently using default)
 - ✅ Skips unchanged files in PRs by default for optimization
-- ✅ Supports external analyzer reports (AndroidLint, Detekt, Ktlint)
+- ✅ Supports external analyser reports (AndroidLint, Detekt, Ktlint)
 
 **3. Android Code Quality Guidelines Understanding:**
 
 - **Test Naming Conventions:** Kotlin/Android projects often use descriptive test names with spaces for readability
   - SonarQube rule kotlin:S100 enforces camelCase function names (^[a-zA-Z][a-zA-Z0-9]*$)
-  - Conflicts with common Android test naming pattern: "function name should behavior when condition"
+  - Conflicts with common Android test naming pattern: "function name should behaviour when condition"
   - Epic 5 Retrospective insight: 580+ test naming issues are not bugs, but convention preference
   - **Decision:** DEFER kotlin:S100 issues for test files - these are intentional naming choices for test readability
 
@@ -537,7 +537,7 @@ All 6 required research areas completed:
 
 **Key Decision: Test Naming Convention DEFERRAL**
 
-After analyzing 716 issues, 580 are test function naming violations (kotlin:S100). These violations are INTENTIONAL:
+After analysing 716 issues, 580 are test function naming violations (kotlin:S100). These violations are INTENTIONAL:
 - Android/Kotlin test community convention: descriptive names with spaces
 - Improves test readability: "saveApiConfiguration validatesInputs" vs "saveApiConfigurationValidatesInputs"
 - Zero functional impact - purely stylistic preference
@@ -590,7 +590,7 @@ Proceeding to Task 2: Complete Issue Inventory Documentation...
 
 **Cognitive Complexity (5 remaining):**
 - `SettingsScreen.kt` - Complexity 26 → Target <15 - PENDING
-- `AnalyzeMealWorker.kt` - Complexity 32 → Target <15 - PENDING  
+- `AnalyseMealWorker.kt` - Complexity 32 → Target <15 - PENDING  
 - `CapturePhotoScreen.kt` - Complexity 20 → Target <15 - PENDING
 - `MealListScreen.kt` - Complexity 28 → Target <15 - PENDING
 - `MealDetailScreen.kt` - Complexity 20 → Target <15 - PENDING
@@ -606,7 +606,7 @@ Proceeding to Task 2: Complete Issue Inventory Documentation...
 
 **Next Actions:**
 1. ~~Fix SettingsScreen.kt cognitive complexity~~ ✅ COMPLETE
-2. Fix AnalyzeMealWorker.kt cognitive complexity (32 → <15)
+2. Fix AnalyseMealWorker.kt cognitive complexity (32 → <15)
 3. Fix CapturePhotoScreen.kt cognitive complexity (20 → <15)
 4. Fix MealListScreen.kt cognitive complexity (28 → <15)
 5. Fix MealDetailScreen.kt cognitive complexity (20 → <15)
@@ -634,8 +634,8 @@ Proceeding to Task 2: Complete Issue Inventory Documentation...
 - **Build Status:** ✅ SUCCESS (16s)
 - **SonarQube Validation:** CLOSED ✅
 
-**3. AnalyzeMealWorker.kt - Cognitive Complexity 32 → RESOLVED ✅**
-- **File:** `app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt`
+**3. AnalyseMealWorker.kt - Cognitive Complexity 32 → RESOLVED ✅**
+- **File:** `app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt`
 - **Issue:** kotlin:S3776 - Cognitive complexity 32 (allowed: 15)
 - **SonarQube Status:** CLOSED ✅
 - **Root Cause:** Complex doWork() method with nested error handling, API calls, HC permission checks, data saving
@@ -686,12 +686,12 @@ Proceeding to Task 2: Complete Issue Inventory Documentation...
 **MAJOR Issues Fixed (27 total):**
 
 **Session 1 (10 fixes - manual implementation):**
-1. **MealListScreen.kt:121** - kotlin:S107 - Too many parameters (9→4 via MealListCallbacks data class) ✅ CLOSED
-2. **ErrorHandler.kt:352** - kotlin:S1172 - Removed unused exception parameter ✅ CLOSED
+1. **MealListScreen.kt:121** - kotlin:S107 - Too many parametres (9→4 via MealListCallbacks data class) ✅ CLOSED
+2. **ErrorHandler.kt:352** - kotlin:S1172 - Removed unused exception parametre ✅ CLOSED
 3. **MealDetailViewModel.kt:202** - kotlin:S6619 - Removed useless elvis operator ✅ CLOSED
-4. **AnalyzeMealWorker.kt:217** - kotlin:S6510 - Consolidated return-if expression ✅ CLOSED
+4. **AnalyseMealWorker.kt:217** - kotlin:S6510 - Consolidated return-if expression ✅ CLOSED
 5. **MealDetailViewModel.kt:157** - kotlin:S6619 - Removed useless elvis operator ✅ CLOSED
-6. **AnalyzeMealWorker.kt:393** - kotlin:S6510 - Consolidated return-if expression ✅ CLOSED
+6. **AnalyseMealWorker.kt:393** - kotlin:S6510 - Consolidated return-if expression ✅ CLOSED
 7. **NavGraph.kt:236** - kotlin:S1172 - Changed unused lambda param to `_` ✅ CLOSED
 8. **CapturePhotoScreen.kt:172** - kotlin:S108 - Replaced empty block with comment ✅ CLOSED
 9. **CapturePhotoViewModel.kt:413** - kotlin:S6532 - Changed throw to error() ✅ CLOSED
@@ -701,9 +701,9 @@ Proceeding to Task 2: Complete Issue Inventory Documentation...
 11-17. **CredentialMigrationTest.kt** - kotlin:S1066 - Merged 7 nested if statements ✅ CLOSED
 18-20. **MainActivity.kt:71, 74, 93** - kotlin:S6615 - Removed 3 unused variable assignments ✅ CLOSED
 21. **CapturePhotoScreen.kt:162** - kotlin:S6531 - Removed useless cast ✅ CLOSED
-22. **SettingsScreen.kt:219** - kotlin:S107 - Reduced parameters (11→7) ✅ CLOSED
-23. **SettingsScreen.kt:138** - kotlin:S1172 - Removed unused function parameters ✅ CLOSED
-24-25. **MainActivity.kt:128, 181** - kotlin:S1172 - Removed 2 unused function parameters ✅ CLOSED
+22. **SettingsScreen.kt:219** - kotlin:S107 - Reduced parametres (11→7) ✅ CLOSED
+23. **SettingsScreen.kt:138** - kotlin:S1172 - Removed unused function parametres ✅ CLOSED
+24-25. **MainActivity.kt:128, 181** - kotlin:S1172 - Removed 2 unused function parametres ✅ CLOSED
 26. **CapturePhotoScreen.kt:198** - kotlin:S1172 - Changed unused lambda param to `_` ✅ CLOSED
 27. **backup_rules.xml** - xml:S125 - Removed commented-out code ✅ CLOSED
 
@@ -738,7 +738,7 @@ Proceeding to Task 2: Complete Issue Inventory Documentation...
    - **Decision:** Keep as-is, this is standard Hilt DI pattern
    - **Status:** OPEN (architectural)
 7. **NutritionAnalysisRepository.kt:19** - kotlin:S6517 "Make interface functional"
-   - **Justification:** Repository interface with multiple methods (analyzePhoto, saveAnalysis, etc.)
+   - **Justification:** Repository interface with multiple methods (analysePhoto, saveAnalysis, etc.)
    - **Decision:** Keep as-is, this is domain layer interface pattern
    - **Status:** OPEN (architectural)
 
@@ -770,11 +770,11 @@ Proceeding to Task 2: Complete Issue Inventory Documentation...
 
 **Code Smell Resolution:**
 1. **Complex methods (cognitive complexity > 15):** ✅ Fixed all 6 issues
-   - MainActivity.kt, SettingsScreen.kt, AnalyzeMealWorker.kt
+   - MainActivity.kt, SettingsScreen.kt, AnalyseMealWorker.kt
    - CapturePhotoScreen.kt, MealListScreen.kt, MealDetailScreen.kt
-2. **Dead code (unused imports, parameters):** ✅ Fixed all instances
+2. **Dead code (unused imports, parametres):** ✅ Fixed all instances
    - Removed unused imports across 10+ files
-   - Removed unused function parameters (7 instances)
+   - Removed unused function parametres (7 instances)
 3. **Duplicate code blocks:** ✅ Addressed via extraction patterns
    - Helper composables for UI logic
    - Helper methods for Worker logic
@@ -823,8 +823,8 @@ Proceeding to Task 2: Complete Issue Inventory Documentation...
 
 **Total Issues Fixed:**
 - **87 violations resolved:** 1 BLOCKER + 59 CRITICAL + 27 MAJOR
-- **Cognitive complexity:** 6 files refactored (MainActivity, SettingsScreen, AnalyzeMealWorker, CapturePhotoScreen, MealListScreen, MealDetailScreen)
-- **Dead code:** 10+ unused imports, 7 unused parameters
+- **Cognitive complexity:** 6 files refactored (MainActivity, SettingsScreen, AnalyseMealWorker, CapturePhotoScreen, MealListScreen, MealDetailScreen)
+- **Dead code:** 10+ unused imports, 7 unused parametres
 - **Code quality patterns:** Consolidated returns, removed useless elvis, changed throw to error()
 
 **Remaining Issues (Intentional):**
@@ -963,7 +963,7 @@ All technical implementation details and patterns are derived from the following
 - [Source: docs/architecture.md#Secure-Storage] - Android Keystore encryption patterns
 
 **Android Platform Best Practices:**
-- SonarQube for Android/Kotlin: https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/languages/kotlin/
+- SonarQube for Android/Kotlin: https://docs.sonarsource.com/sonarqube/latest/analysing-source-code/languages/kotlin/
 - Android Lint documentation: https://developer.android.com/studio/write/lint
 - Kotlin coding conventions: https://kotlinlang.org/docs/coding-conventions.html
 - Material Design accessibility: https://m3.material.io/foundations/accessible-design/overview
@@ -1004,7 +1004,7 @@ After completing all 9 tasks in Story 5-9 and achieving SonarQube quality gates 
    - Pattern: Tests insert test record to verify WRITE_NUTRITION permission, gracefully skip if denied
    - Tests Fixed: 4 (now skip appropriately)
 
-5. **AnalyzeMealWorkerForegroundTest.kt** - Mock setup + deletion verification
+5. **AnalyseMealWorkerForegroundTest.kt** - Mock setup + deletion verification
    - Issue 1: `healthConnectManager.isAvailable()` is suspend function but mocked with `every{}` instead of `coEvery{}`
    - Issue 2: Photo deletion verification incorrect for error cases
    - Fix: Changed to `coEvery{}` for suspend function, adjusted `deletePhoto` verification (exactly 1 for success, 0 for NoFoodDetected/errors)
@@ -1012,7 +1012,7 @@ After completing all 9 tasks in Story 5-9 and achieving SonarQube quality gates 
 
 **Phase 2: API Breaking Changes (19 → 8 failures)**  
 6. **MealListScreenTest.kt** - Story 5-1 API refactoring
-   - Issue 1: MealListScreen changed from individual callback parameters to `MealListCallbacks` data class
+   - Issue 1: MealListScreen changed from individual callback parametres to `MealListCallbacks` data class
    - Issue 2: Settings button `contentDescription` mismatch ("Settings" vs "Open Settings")
    - Issue 3: Long-press test used gesture instead of controlled state
    - Fix 1: Updated 13 test methods to use `MealListCallbacks(...)` pattern
@@ -1033,7 +1033,7 @@ After completing all 9 tasks in Story 5-9 and achieving SonarQube quality gates 
 
 9. **SettingsScreen.kt** - Missing labels broke test discovery
    - Issue: OutlinedTextField labels removed (API key, endpoint, model), breaking `onNodeWithText()` queries
-   - Fix: Restored `label` parameter to all OutlinedTextField components, changed API Key placeholder from "API Key" to "API Key" to avoid duplicate text nodes
+   - Fix: Restored `label` parametre to all OutlinedTextField components, changed API Key placeholder from "API Key" to "API Key" to avoid duplicate text nodes
    - Tests Fixed: Multiple (indirect - enabled other tests to find elements)
 
 10. **ApiConfigurationInstrumentationTest.kt** - Low-value test
@@ -1129,7 +1129,7 @@ Claude Sonnet 4.5 (via GitHub Copilot)
 - ✅ All 9 tasks completed (Research, Inventory, BLOCKER, CRITICAL, MAJOR, Code Smells, Validation, DoD, Test Deletion)
 - ✅ Target metrics ACHIEVED: Security A, Reliability A, Maintainability A
 - ✅ 87 violations fixed (1 BLOCKER + 59 CRITICAL + 27 MAJOR)
-- ✅ 6 cognitive complexity issues refactored (MainActivity, SettingsScreen, AnalyzeMealWorker, CapturePhotoScreen, MealListScreen, MealDetailScreen)
+- ✅ 6 cognitive complexity issues refactored (MainActivity, SettingsScreen, AnalyseMealWorker, CapturePhotoScreen, MealListScreen, MealDetailScreen)
 - ✅ Code smells reduced 98.2% (704→13)
 - ✅ All 387 unit tests passing (100% pass rate maintained)
 - ✅ Definition of Done created with SonarQube integration process
@@ -1145,13 +1145,13 @@ Claude Sonnet 4.5 (via GitHub Copilot)
 **Modified Files (Tasks 3-7):**
 1. `app/app/src/main/java/com/foodie/app/MainActivity.kt` - Cognitive complexity 50→<15 (extracted 7 helper functions)
 2. `app/app/src/main/java/com/foodie/app/ui/screens/settings/SettingsScreen.kt` - Cognitive complexity 26→<15 (extracted 4 helper composables)
-3. `app/app/src/main/java/com/foodie/app/data/worker/AnalyzeMealWorker.kt` - Cognitive complexity 32→<15 (extracted 13 helper methods)
+3. `app/app/src/main/java/com/foodie/app/data/worker/AnalyseMealWorker.kt` - Cognitive complexity 32→<15 (extracted 13 helper methods)
 4. `app/app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoScreen.kt` - Cognitive complexity 20→<15 (extracted launcher/state helpers)
 5. `app/app/src/main/java/com/foodie/app/ui/screens/meallist/MealListScreen.kt` - Cognitive complexity 28→<15 (extracted permission/lifecycle helpers)
 6. `app/app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailScreen.kt` - Cognitive complexity 20→<15 (extracted LaunchedEffect helpers)
-7. `app/app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt` - Removed unused lambda parameter (changed to `_`)
+7. `app/app/src/main/java/com/foodie/app/ui/navigation/NavGraph.kt` - Removed unused lambda parametre (changed to `_`)
 8. `app/app/src/main/java/com/foodie/app/ui/screens/capture/CapturePhotoViewModel.kt` - Changed throw to error()
-9. `app/app/src/main/java/com/foodie/app/data/local/error/ErrorHandler.kt` - Removed unused exception parameter
+9. `app/app/src/main/java/com/foodie/app/data/local/error/ErrorHandler.kt` - Removed unused exception parametre
 10. `app/app/src/main/java/com/foodie/app/ui/screens/mealdetail/MealDetailViewModel.kt` - Removed useless elvis operators (2×)
 11. `app/app/src/main/java/com/foodie/app/FoodieApplication.kt` - Removed unused Context import
 12. `app/app/src/test/java/com/foodie/app/data/local/credentials/CredentialMigrationTest.kt` - Merged 7 nested if statements
@@ -1173,7 +1173,7 @@ Claude Sonnet 4.5 (via GitHub Copilot)
 20. `app/app/src/androidTest/java/com/foodie/app/data/local/photo/PhotoManagerCacheStatsTest.kt` - Fixed byte count expectation (17→18)
 21. `app/app/src/androidTest/java/com/foodie/app/FoodieApplicationWorkManagerTest.kt` - Added @Ignore (test app limitation)
 22. `app/app/src/androidTest/java/com/foodie/app/data/repository/MealRepositoryDeleteIntegrationTest.kt` - Added permission checks with assumeTrue (4 tests skip gracefully)
-23. `app/app/src/androidTest/java/com/foodie/app/data/worker/AnalyzeMealWorkerForegroundTest.kt` - Fixed Health Connect mock (coEvery) + deletion verification (4 tests fixed)
+23. `app/app/src/androidTest/java/com/foodie/app/data/worker/AnalyseMealWorkerForegroundTest.kt` - Fixed Health Connect mock (coEvery) + deletion verification (4 tests fixed)
 24. `app/app/src/androidTest/java/com/foodie/app/ui/screens/meallist/MealListScreenTest.kt` - Updated contentDescription ("Settings"→"Open Settings"), refactored longPress test (2 tests fixed)
 25. `app/app/src/androidTest/java/com/foodie/app/ui/screens/meallist/MealListScreenDeleteTest.kt` - Deleted flaky snackbar test (architectural issue)
 26. `app/app/src/androidTest/java/com/foodie/app/ui/screens/settings/SettingsScreenTest.kt` - Deleted 2 obsolete placeholder tests (Epic 5 removed placeholders)
@@ -1292,7 +1292,7 @@ Implementation quality exceeds standards. Production-ready.
 | AC# | Description | Status | Evidence |
 |-----|-------------|--------|----------|
 | #1 | All BLOCKER severity issues resolved | ✅ | SonarQube: 0 BLOCKER (1 pre-session CLOSED). Task 7: "BLOCKER issues: **0**" [line: 226] |
-| #2 | All CRITICAL severity issues resolved | ✅ | 59 CRITICAL resolved. Files: MainActivity.kt, SettingsScreen.kt, AnalyzeMealWorker.kt, CapturePhotoScreen.kt, MealListScreen.kt, MealDetailScreen.kt [lines: 558-700] |
+| #2 | All CRITICAL severity issues resolved | ✅ | 59 CRITICAL resolved. Files: MainActivity.kt, SettingsScreen.kt, AnalyseMealWorker.kt, CapturePhotoScreen.kt, MealListScreen.kt, MealDetailScreen.kt [lines: 558-700] |
 | #3 | All MAJOR issues resolved or documented | ✅ | 27/34 fixed (79%). Remaining 7 documented as intentional [lines: 701-730] |
 | #4 | Security Rating E → A or B | ✅ | "Security Rating: **A (1.0)**" [line: 225] |
 | #5 | Reliability Rating B → A | ✅ | "Reliability Rating: **A (1.0)**". Bugs: 11→0 [line: 226] |

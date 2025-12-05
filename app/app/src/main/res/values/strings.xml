@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Foodie</string>
-    
+
     <!-- Widget -->
     <string name="widget_description">Quick access to meal capture - tap to log a meal instantly</string>
     <string name="widget_placeholder">Log Meal</string>
@@ -11,7 +11,7 @@
     <string name="meal_list_delete_message">Delete this entry? This cannot be undone.</string>
     <string name="meal_list_delete_confirm">Delete</string>
     <string name="meal_list_delete_cancel">Cancel</string>
-    
+
     <!-- Camera Capture Screen -->
     <string name="capture_requesting_permission">Requesting camera permission…</string>
     <string name="capture_launching_camera">Launching camera…</string>
@@ -31,22 +31,22 @@
     <string name="capture_ok">OK</string>
     <string name="capture_storage_full_title">Storage Full</string>
     <string name="capture_storage_full_message">Storage full. Free up space to continue.</string>
-    
+
     <!-- Preview Screen -->
     <string name="preview_photo_description">Captured meal photo preview</string>
     <string name="preview_retake">Retake</string>
     <string name="preview_use_photo">Use Photo</string>
-    <string name="notification_meal_analysis_title">Analyzing meal…</string>
-    <string name="notification_meal_analysis_success_title">Meal analyzed</string>
+    <string name="notification_meal_analysis_title">Analysing meal…</string>
+    <string name="notification_meal_analysis_success_title">Meal analysed</string>
     <string name="notification_meal_analysis_success_body">Saved %1$d kcal for %2$s</string>
     <string name="notification_meal_analysis_failure_title">Meal analysis failed</string>
     <string name="notification_meal_analysis_failure_body">%1$s</string>
-    <string name="notification_meal_analysis_failure_generic">Something went wrong while analyzing your meal. Please try again.</string>
+    <string name="notification_meal_analysis_failure_generic">Something went wrong while analysing your meal. Please try again.</string>
     <string name="notification_meal_analysis_status_preparing">Preparing meal analysis…</string>
     <string name="notification_meal_analysis_status_uploading">Uploading meal photo…</string>
     <string name="notification_meal_analysis_status_calling_api">Contacting Foodie AI…</string>
     <string name="notification_meal_analysis_status_saving">Saving nutrition data…</string>
-    
+
     <!-- Error Notifications -->
     <string name="notification_channel_errors_name">Meal Analysis Errors</string>
     <string name="notification_channel_errors_description">Alerts for meal analysis errors requiring your attention</string>
@@ -62,7 +62,7 @@
     <string name="notification_action_open_settings">Open Settings</string>
     <string name="notification_action_retry">Retry</string>
     <string name="notification_action_grant_access">Grant Access</string>
-    
+
     <!-- Settings Screen -->
     <string name="settings_api_help_text">Get your Azure OpenAI credentials at portal.azure.com → Azure OpenAI Service → Keys and Endpoint</string>
     <string name="settings_model_description">Default: gpt-4.1 (Advanced reasoning and vision capabilities). Enter your custom deployment name if needed.</string>

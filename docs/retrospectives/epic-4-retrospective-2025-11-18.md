@@ -394,7 +394,7 @@
 
 **Technical Setup:**
 - ☐ Research Android Keystore API (Charlie - 2 hours) - Story 5-2 secure API key storage
-- ☐ Define Dark Theme Color Palette (Alice - 1 hour) - Story 5-4 Material Design colors
+- ☐ Define Dark Theme Colour Palette (Alice - 1 hour) - Story 5-4 Material Design colours
 
 **Knowledge Development:**
 - ☐ Research Accessibility Testing Tools (Dana - 2 hours) - TalkBack, Accessibility Scanner for Story 5-5

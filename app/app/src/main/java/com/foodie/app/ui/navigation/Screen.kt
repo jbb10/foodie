@@ -81,7 +81,7 @@ sealed class Screen(val route: String) {
     /**
      * Energy Balance Dashboard screen (Story 6.6).
      * Displays daily calories in vs calories out with TDEE breakdown.
-     * Shows deficit/surplus with color coding and real-time updates.
+     * Shows deficit/surplus with colour coding and real-time updates.
      */
-    data object EnergyBalance : Screen("energy_balance")
+    object EnergyBalance : Screen("energy_balance")
 }
